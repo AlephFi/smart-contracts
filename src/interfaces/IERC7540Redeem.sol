@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.25;
+pragma solidity ^0.8.25;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -15,20 +15,14 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {ERC7540} from "../../src/ERC7540.sol";
-import {IERC7540} from "../../src/interfaces/IERC7540.sol";
-
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract ExposedERC7540 is ERC7540 {
+interface IERC7540Redeem {
 
-    function setCurrentDepositBatchId(uint40 _currentDepositBatchId) external {
-        _getStorage().currentDepositBatchId = _currentDepositBatchId;
-    }
+    function requestRedeem(uint256 _shares) external returns (uint40 _batchId);
 
-    function setBatchDepositRequest(uint40 _batchId, address _user, uint256 _amount) external {
-        _getStorage().batchs[_batchId].depositRequest[_user] = _amount;
-    }
+    function pendingRedeemRequest(uint40 _batchId) external view returns (uint256 _shares);
+
 }

@@ -27,16 +27,19 @@ interface IERC7540 is IERC7540Deposit {
     struct InitializationParams {
         address manager;
         address operationsMultisig;
-        address communityMultisig;
         address operator;
         address erc20;
         address custodian;
     }
    
     struct BatchData {
-        uint40 settleId;
+        uint40 batchId;
+        uint256 totalAmount;
+        bool isSettled;
+        bool isRedeemed;
         mapping(address => uint256) depositRequest;
-        mapping(address => uint256) redeemRequest;
+        address[] users;
+        //mapping(address => uint256) redeemRequest;
     }
 
     struct SettleData {

@@ -35,7 +35,6 @@ contract ERC7540Test is Test {
 
     address public manager = makeAddr("manager");
     address public operationsMultisig = makeAddr("operationsMultisig");
-    address public communityMultisig = makeAddr("communityMultisig");
     address public operator = makeAddr("operator");
     address public custodian = makeAddr("custodian");
 
@@ -48,7 +47,6 @@ contract ERC7540Test is Test {
         erc7540.initialize(IERC7540.InitializationParams({
             manager: manager,
             operationsMultisig: operationsMultisig,
-            communityMultisig: communityMultisig,
             operator: operator,
             erc20: address(erc20),
             custodian: custodian
