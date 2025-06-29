@@ -21,6 +21,7 @@ import {ERC7540} from "../src/ERC7540.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 contract ERC7540Script is Script {
     ERC7540 public erc7540;
 

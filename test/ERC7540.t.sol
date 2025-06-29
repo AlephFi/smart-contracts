@@ -27,8 +27,10 @@ import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 contract ERC7540Test is Test {
     using SafeERC20 for IERC20;
+
     ExposedERC7540 public erc7540;
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
@@ -44,13 +46,15 @@ contract ERC7540Test is Test {
         erc20.mint(user, 1000);
         erc20.mint(user2, 1000);
         erc7540 = new ExposedERC7540();
-        erc7540.initialize(IERC7540.InitializationParams({
-            manager: manager,
-            operationsMultisig: operationsMultisig,
-            operator: operator,
-            erc20: address(erc20),
-            custodian: custodian
-        }));
+        erc7540.initialize(
+            IERC7540.InitializationParams({
+                manager: manager,
+                operationsMultisig: operationsMultisig,
+                operator: operator,
+                erc20: address(erc20),
+                custodian: custodian
+            })
+        );
     }
 
     function test_requestMoreThanOneInTheSameBatchDeposit() public {
@@ -67,7 +71,7 @@ contract ERC7540Test is Test {
         uint256 _amount = 100;
         vm.startPrank(user);
         erc20.approve(address(erc7540), _amount * 2);
-        erc7540.requestDeposit(_amount);      
+        erc7540.requestDeposit(_amount);
         vm.stopPrank();
     }
 }
