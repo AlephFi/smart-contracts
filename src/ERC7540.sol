@@ -45,7 +45,7 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
                 || _initalizationParams.operator == address(0) || _initalizationParams.erc20 == address(0)
-                || _initalizationParams.custodian == address(0)
+                || _initalizationParams.custodian == address(0) || _initalizationParams.batchDuration == 0
         ) {
             revert InvalidInitializationParams();
         }
@@ -54,8 +54,9 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         _sd.operator = _initalizationParams.operator;
         _sd.erc20 = _initalizationParams.erc20;
         _sd.custodian = _initalizationParams.custodian;
-        _sd.currentDepositBatchId = 1;
-        _sd.currentDepositSettleId = 0;
+        _sd.batchDuration = _initalizationParams.batchDuration;
+        _sd.depositSettleId = 0;
+        _sd.startTimeStamp = Time.timestamp();
     }
 
     function totalStake() public view returns (uint256) {
@@ -80,15 +81,14 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
 
     function sharesOfAt(address _user, uint48 _timestamp) public view returns (uint256) {
         return _getStorage().sharesOf[_user].upperLookupRecent(_timestamp);
-    }    
-
-    // Transfers amount from msg.sender into the Vault and submits a Request for asynchronous deposit.
-    // This places the Request in Pending state, with a corresponding increase in pendingDepositRequest for the amount assets.
-    function requestDeposit(uint256 _amount) external returns (uint40 _batchId) {
-        return _requestDeposit(_amount);
     }
 
-    function pendingDepositRequest(uint40 _batchId) external view returns (uint256 _amount) {
+    function currentBatch() public view returns (uint48) {
+        ERC7540StorageData storage _sd = _getStorage();
+        return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
+    }
+
+    function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount) {
         ERC7540StorageData storage _sd = _getStorage();
         BatchData storage _batch = _sd.batchs[_batchId];
         if (_batch.isSettled) {
@@ -97,54 +97,64 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         return _batch.depositRequest[msg.sender];
     }
 
-    function _requestDeposit(uint256 _amount) internal returns (uint40) {
+    // Transfers amount from msg.sender into the Vault and submits a Request for asynchronous deposit.
+    // This places the Request in Pending state, with a corresponding increase in pendingDepositRequest for the amount assets.
+    function requestDeposit(uint256 _amount) external returns (uint48 _batchId) {
+        return _requestDeposit(_amount);
+    }
+
+    function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
         ERC7540StorageData storage _sd = _getStorage();
-        uint40 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
-        uint40 _currentDepositBatchId = _sd.currentDepositBatchId;
+        address _user = msg.sender;
+        uint48 _lastDepositBatchId = _sd.lastDepositBatchId[_user];
+        uint48 _currentDepositBatchId = currentBatch();
+        if (_currentDepositBatchId == 0) {
+            revert NoBatchAvailable(); // need to wait for the first batch to be available
+        }
         if (_lastDepositBatchId >= _currentDepositBatchId) {
             revert OnlyOneRequestPerBatchAllowed();
         }
-        _sd.lastDepositBatchId[msg.sender] = _currentDepositBatchId;
+        _sd.lastDepositBatchId[_user] = _currentDepositBatchId;
         IERC20 _erc20 = IERC20(_sd.erc20);
         uint256 _balanceBefore = _erc20.balanceOf(address(this));
-        _erc20.safeTransferFrom(msg.sender, address(this), _amount);
+        _erc20.safeTransferFrom(_user, address(this), _amount);
         uint256 _depositedAmount = _erc20.balanceOf(address(this)) - _balanceBefore;
         if (_depositedAmount == 0) {
             revert InsufficientDeposit();
         }
         BatchData storage _batch = _sd.batchs[_currentDepositBatchId];
-        _batch.depositRequest[msg.sender] += _depositedAmount;
+        _batch.depositRequest[_user] += _depositedAmount;
         _batch.totalAmount += _depositedAmount;
-        _batch.users.push(msg.sender);
-        emit DepositRequest(msg.sender, _depositedAmount, _currentDepositBatchId);
+        _batch.users.push(_user);
+        emit DepositRequest(_user, _depositedAmount, _currentDepositBatchId);
         return _currentDepositBatchId;
     }
 
     function _settleDeposit() internal {
         ERC7540StorageData storage _sd = _getStorage();
-
-        uint40 _currentDepositSettleId = _sd.currentDepositSettleId;
-        uint40 _currentDepositBatchId = _sd.currentDepositBatchId;
-
-        if (_currentDepositBatchId == _currentDepositSettleId) {
+        uint48 _depositSettleId = _sd.depositSettleId;
+        uint48 _currentBatchId = currentBatch();
+        if (_currentBatchId == _depositSettleId) {
             revert("No deposits to settle");
         }
-        uint256 _pendingAmount = 0;
-        for (_currentDepositSettleId; _currentDepositSettleId < _currentDepositBatchId; _currentDepositSettleId++) {
-            _pendingAmount += _settleDepositForBatch(_sd, _currentDepositSettleId);
+        uint48 _timestamp = Time.timestamp();
+        uint256 _amountToSettle = 0;
+        for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
+            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp);
         }
-
-        IERC20(_sd.erc20).safeTransfer(_sd.custodian, _pendingAmount);
-        emit SettleDeposit(_sd.currentDepositSettleId, _currentDepositBatchId, _pendingAmount);
-        _sd.currentDepositSettleId = _currentDepositBatchId;
+        IERC20(_sd.erc20).safeTransfer(_sd.custodian, _amountToSettle);
+        emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle);
+        _sd.depositSettleId = _currentBatchId;
     }
 
-    function _settleDepositForBatch(ERC7540StorageData storage _sd, uint40 _batchId) internal returns (uint256) {
+    function _settleDepositForBatch(ERC7540StorageData storage _sd, uint48 _batchId, uint48 _timestamp)
+        internal
+        returns (uint256)
+    {
         BatchData storage _batch = _sd.batchs[_batchId];
-        if (_batch.isSettled) {
+        if (_batch.isSettled || _batch.totalAmount == 0) {
             return 0;
         }
-        uint48 _timestamp = Time.timestamp();
         uint256 _totalStake = totalStake();
         uint256 _totalShares = totalShares();
         uint256 _totalSharesToMint = 0;

@@ -23,11 +23,15 @@ import {IERC7540} from "../../src/interfaces/IERC7540.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract ExposedERC7540 is ERC7540 {
-    function setCurrentDepositBatchId(uint40 _currentDepositBatchId) external {
-        _getStorage().currentDepositBatchId = _currentDepositBatchId;
+    function settleDeposit() external {
+        _settleDeposit();
     }
 
-    function setBatchDepositRequest(uint40 _batchId, address _user, uint256 _amount) external {
+    function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
+        _getStorage().depositSettleId = _currentDepositBatchId;
+    }
+
+    function setBatchDepositRequest(uint48 _batchId, address _user, uint256 _amount) external {
         _getStorage().batchs[_batchId].depositRequest[_user] = _amount;
     }
 }
