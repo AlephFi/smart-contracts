@@ -26,6 +26,7 @@ interface IERC7540Deposit {
     error InsufficientDeposit();
     error BatchAlreadySettled();
     error NoBatchAvailable();
+    error NoDepositsToSettle();
 
     // Transfers amount from msg.sender into the Vault and submits a Request for asynchronous deposit.
     // This places the Request in Pending state, with a corresponding increase in pendingDepositRequest for the amount assets.

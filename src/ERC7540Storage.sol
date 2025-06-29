@@ -21,7 +21,7 @@ import {Checkpoints} from "./libraries/Checkpoints.sol";
 struct ERC7540StorageData {
     address manager;
     address operationsMultisig;
-    address operator;
+    address oracle;
     address erc20;
     address custodian;
     //uint256 totalAssets;
@@ -31,7 +31,7 @@ struct ERC7540StorageData {
     uint48 batchDuration;
     uint48 startTimeStamp;
     uint48 depositSettleId;
-    Checkpoints.Trace256 stake;
+    Checkpoints.Trace256 assets;
     Checkpoints.Trace256 shares;
     mapping(uint48 batchId => IERC7540.BatchData) batchs;
     mapping(address user => uint48 batchId) lastDepositBatchId;

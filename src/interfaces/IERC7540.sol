@@ -30,7 +30,7 @@ interface IERC7540 is IERC7540Deposit {
     struct InitializationParams {
         address manager;
         address operationsMultisig;
-        address operator;
+        address oracle;
         address erc20;
         address custodian;
         uint48 batchDuration;
@@ -46,11 +46,11 @@ interface IERC7540 is IERC7540Deposit {
     }
 
     // View functions
-    function totalStake() external view returns (uint256);
+    function totalAssets() external view returns (uint256);
 
     function totalShares() external view returns (uint256);
 
-    function stakeAt(uint48 _timestamp) external view returns (uint256);
+    function assetsAt(uint48 _timestamp) external view returns (uint256);
 
     function sharesAt(uint48 _timestamp) external view returns (uint256);
 

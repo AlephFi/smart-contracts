@@ -25,6 +25,7 @@ import {ERC4626Math} from "./libraries/ERC4626Math.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
+import {RolesLibrary} from "./RolesLibrary.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -44,31 +45,32 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         __AccessControl_init();
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
-                || _initalizationParams.operator == address(0) || _initalizationParams.erc20 == address(0)
+                || _initalizationParams.oracle == address(0) || _initalizationParams.erc20 == address(0)
                 || _initalizationParams.custodian == address(0) || _initalizationParams.batchDuration == 0
         ) {
             revert InvalidInitializationParams();
         }
         _sd.manager = _initalizationParams.manager;
         _sd.operationsMultisig = _initalizationParams.operationsMultisig;
-        _sd.operator = _initalizationParams.operator;
+        _sd.oracle = _initalizationParams.oracle;
         _sd.erc20 = _initalizationParams.erc20;
         _sd.custodian = _initalizationParams.custodian;
         _sd.batchDuration = _initalizationParams.batchDuration;
-        _sd.depositSettleId = 0;
         _sd.startTimeStamp = Time.timestamp();
+        _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
     }
 
-    function totalStake() public view returns (uint256) {
-        return _getStorage().stake.latest();
+    function totalAssets() public view returns (uint256) {
+        return _getStorage().assets.latest();
     }
 
     function totalShares() public view returns (uint256) {
         return _getStorage().shares.latest();
     }
 
-    function stakeAt(uint48 _timestamp) public view returns (uint256) {
-        return _getStorage().stake.upperLookupRecent(_timestamp);
+    function assetsAt(uint48 _timestamp) public view returns (uint256) {
+        return _getStorage().assets.upperLookupRecent(_timestamp);
     }
 
     function sharesAt(uint48 _timestamp) public view returns (uint256) {
@@ -95,6 +97,10 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
             revert BatchAlreadySettled();
         }
         return _batch.depositRequest[msg.sender];
+    }
+
+    function settleDeposit(uint256 _newTotalAssets) external onlyRole(RolesLibrary.ORACLE) {
+        _settleDeposit(_newTotalAssets);        
     }
 
     // Transfers amount from msg.sender into the Vault and submits a Request for asynchronous deposit.
@@ -130,24 +136,25 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         return _currentDepositBatchId;
     }
 
-    function _settleDeposit() internal {
+    function _settleDeposit(uint256 _newTotalAssets) internal {
         ERC7540StorageData storage _sd = _getStorage();
         uint48 _depositSettleId = _sd.depositSettleId;
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == _depositSettleId) {
-            revert("No deposits to settle");
+            revert NoDepositsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
-        uint256 _amountToSettle = 0;
+        uint256 _amountToSettle;
         for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
-            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp);
+            uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets();
+            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
         }
         IERC20(_sd.erc20).safeTransfer(_sd.custodian, _amountToSettle);
         emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle);
         _sd.depositSettleId = _currentBatchId;
     }
 
-    function _settleDepositForBatch(ERC7540StorageData storage _sd, uint48 _batchId, uint48 _timestamp)
+    function _settleDepositForBatch(ERC7540StorageData storage _sd, uint48 _batchId, uint48 _timestamp, uint256 _newTotalAssets)
         internal
         returns (uint256)
     {
@@ -155,18 +162,17 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         if (_batch.isSettled || _batch.totalAmount == 0) {
             return 0;
         }
-        uint256 _totalStake = totalStake();
         uint256 _totalShares = totalShares();
-        uint256 _totalSharesToMint = 0;
+        uint256 _totalSharesToMint;
         for (uint256 i = 0; i < _batch.users.length; i++) {
             address _user = _batch.users[i];
             uint256 _amount = _batch.depositRequest[_user];
-            uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalStake);
+            uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _newTotalAssets);
             _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
             _totalSharesToMint += _sharesToMintPerUser;
         }
         _sd.shares.push(_timestamp, _totalShares + _totalSharesToMint);
-        _sd.stake.push(_timestamp, _totalStake + _batch.totalAmount);
+        _sd.assets.push(_timestamp, _newTotalAssets + _batch.totalAmount);
         _batch.isSettled = true;
         emit SettleBatch(_batchId, _batch.totalAmount, _totalSharesToMint);
         return _batch.totalAmount;
