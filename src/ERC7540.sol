@@ -146,7 +146,7 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         uint48 _timestamp = Time.timestamp();
         uint256 _amountToSettle;
         for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
-            uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets();
+            uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
             _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
         }
         IERC20(_sd.erc20).safeTransfer(_sd.custodian, _amountToSettle);
@@ -154,7 +154,7 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         _sd.depositSettleId = _currentBatchId;
     }
 
-    function _settleDepositForBatch(ERC7540StorageData storage _sd, uint48 _batchId, uint48 _timestamp, uint256 _newTotalAssets)
+    function _settleDepositForBatch(ERC7540StorageData storage _sd, uint48 _batchId, uint48 _timestamp, uint256 _totalAssets)
         internal
         returns (uint256)
     {
@@ -167,12 +167,12 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         for (uint256 i = 0; i < _batch.users.length; i++) {
             address _user = _batch.users[i];
             uint256 _amount = _batch.depositRequest[_user];
-            uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _newTotalAssets);
+            uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalAssets);
             _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
             _totalSharesToMint += _sharesToMintPerUser;
         }
         _sd.shares.push(_timestamp, _totalShares + _totalSharesToMint);
-        _sd.assets.push(_timestamp, _newTotalAssets + _batch.totalAmount);
+        _sd.assets.push(_timestamp, _totalAssets + _batch.totalAmount);
         _batch.isSettled = true;
         emit SettleBatch(_batchId, _batch.totalAmount, _totalSharesToMint);
         return _batch.totalAmount;
