@@ -51,6 +51,10 @@ interface IAlephVault is IERC7540Deposit, IERC7540Redeem {
 
     function assetsAt(uint48 _timestamp) external view returns (uint256);
 
+    function assetsOf(address _user) external view returns (uint256);
+
+    function assetsOfAt(address _user, uint48 _timestamp) external view returns (uint256);
+
     function sharesAt(uint48 _timestamp) external view returns (uint256);
 
     function sharesOf(address _user) external view returns (uint256);

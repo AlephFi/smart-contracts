@@ -29,7 +29,6 @@ import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IE
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
 contract AlephVaultTest is Test {
     using SafeERC20 for IERC20;
 
@@ -48,7 +47,7 @@ contract AlephVaultTest is Test {
     function setUp() public {
         erc20.mint(user, 1000);
         erc20.mint(user2, 1000);
-        erc20.mint(admin, 10000);
+        erc20.mint(admin, 10_000);
         vault = new ExposedVault();
         vault.initialize(
             IAlephVault.InitializationParams({
@@ -332,7 +331,9 @@ contract AlephVaultTest is Test {
 
         vm.warp(block.timestamp + batchDuration);
         vm.startPrank(oracle);
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, amount1a));
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, amount1a)
+        );
         vault.settleRedeem(totalAssetsAfterBatch1);
         vm.stopPrank();
     }

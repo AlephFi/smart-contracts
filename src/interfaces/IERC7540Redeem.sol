@@ -26,7 +26,13 @@ interface IERC7540Redeem {
 
     event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 shares, uint256 assets);
 
-    event SettleRedeemBatch(uint48 indexed batchId, uint256 totalAassetsToRedeem, uint256 totalSharesToRedeem, uint256 totalAssets, uint256 totalShares);
+    event SettleRedeemBatch(
+        uint48 indexed batchId,
+        uint256 totalAassetsToRedeem,
+        uint256 totalSharesToRedeem,
+        uint256 totalAssets,
+        uint256 totalShares
+    );
 
     event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);
 

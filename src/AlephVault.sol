@@ -80,6 +80,14 @@ contract AlephVault is IAlephVault, AccessControlUpgradeable {
         return _getStorage().sharesOf[_user].latest();
     }
 
+    function assetsOf(address _user) public view returns (uint256) {
+        return ERC4626Math.previewRedeem(sharesOf(_user), totalAssets(), totalShares());
+    }
+
+    function assetsOfAt(address _user, uint48 _timestamp) public view returns (uint256) {
+        return ERC4626Math.previewRedeem(sharesOfAt(_user, _timestamp), assetsAt(_timestamp), sharesAt(_timestamp));
+    }
+
     function sharesOfAt(address _user, uint48 _timestamp) public view returns (uint256) {
         return _getStorage().sharesOf[_user].upperLookupRecent(_timestamp);
     }
@@ -150,7 +158,7 @@ contract AlephVault is IAlephVault, AccessControlUpgradeable {
     // This places the Request in Pending state, with a corresponding increase in pendingDepositRequest for the amount assets.
     function requestDeposit(uint256 _amount) external returns (uint48 _batchId) {
         return _requestDeposit(_amount);
-    }
+    } 
 
     function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
