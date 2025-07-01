@@ -16,15 +16,13 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {IERC7540Deposit} from "./IERC7540Deposit.sol";
+import {IERC7540Redeem} from "./IERC7540Redeem.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
-interface IERC7540 is IERC7540Deposit {
-    event SettleBatch(uint48 indexed batchId, uint256 totalAmount, uint256 totalShares);
-    event SettleDeposit(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 amount);
-
+interface IERC7540 is IERC7540Deposit, IERC7540Redeem {
     error InvalidInitializationParams();
 
     struct InitializationParams {
@@ -38,11 +36,12 @@ interface IERC7540 is IERC7540Deposit {
 
     struct BatchData {
         uint48 batchId;
-        uint256 totalAmount;
-        bool isSettled;
-        //bool isRedeemed;
+        uint256 totalAmount; // total amount to deposit
+        uint256 totalShares; // total shares to redeem
         mapping(address => uint256) depositRequest;
-        address[] users;
+        mapping(address => uint256) redeemRequest;
+        address[] usersToDeposit;
+        address[] usersToRedeem;
     }
 
     // View functions

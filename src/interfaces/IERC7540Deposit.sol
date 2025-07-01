@@ -21,6 +21,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  */
 interface IERC7540Deposit {
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
+    event SettleDeposit(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 amount);
+    event SettleDepositBatch(uint48 indexed batchId, uint256 totalAmount, uint256 totalShares);
 
     error OnlyOneRequestPerBatchAllowed();
     error InsufficientDeposit();

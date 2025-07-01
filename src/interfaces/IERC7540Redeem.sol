@@ -20,6 +20,16 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IERC7540Redeem {
+    error InsufficientSharesToRedeem();
+    error BatchAlreadyRedeemed();
+    error NoRedeemsToSettle();
+
+    event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 shares);
+
+    event SettleRedeemBatch(uint48 indexed batchId, uint256 totalAmount, uint256 totalShares);
+
+    event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);
+
     function requestRedeem(uint256 _shares) external returns (uint48 _batchId);
 
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares);

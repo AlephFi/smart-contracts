@@ -24,18 +24,17 @@ struct ERC7540StorageData {
     address oracle;
     address erc20;
     address custodian;
-    //uint256 totalAssets;
-    //uint256 newTotalAssets;
     //uint128 totalAssetsExpiration;
     //uint128 totalAssetsLifespan;
     uint48 batchDuration;
     uint48 startTimeStamp;
     uint48 depositSettleId;
+    uint48 redeemSettleId;
     Checkpoints.Trace256 assets;
     Checkpoints.Trace256 shares;
     mapping(uint48 batchId => IERC7540.BatchData) batchs;
     mapping(address user => uint48 batchId) lastDepositBatchId;
-    //mapping(address user => uint48 batchId) lastRedeemBatchId;
+    mapping(address user => uint48 batchId) lastRedeemBatchId;
     mapping(address user => Checkpoints.Trace256 shares) sharesOf;
 }
 /**

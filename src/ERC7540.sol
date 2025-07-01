@@ -90,17 +90,48 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
     }
 
+    function pendingTotalRedeemShares() public view returns (uint256 _totalShares) {
+        ERC7540StorageData storage _sd = _getStorage();
+        uint48 _currentBatchId = currentBatch();
+        for (uint48 _batchId = _sd.redeemSettleId; _batchId < _currentBatchId; _batchId++) {
+            _totalShares += _sd.batchs[_batchId].totalShares;
+        }
+    }
+
+    function pendingTotalRedeemAssets() public view returns (uint256 _totalAssets) {
+        uint256 _totalSharesToRedeem = pendingTotalRedeemShares();
+        return ERC4626Math.previewRedeem(_totalSharesToRedeem, totalShares(), totalAssets());
+    }
+
     function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount) {
         ERC7540StorageData storage _sd = _getStorage();
         BatchData storage _batch = _sd.batchs[_batchId];
-        if (_batch.isSettled) {
+        if (_batchId < _sd.depositSettleId) {
             revert BatchAlreadySettled();
         }
         return _batch.depositRequest[msg.sender];
     }
 
+    function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares) {
+        ERC7540StorageData storage _sd = _getStorage();
+        BatchData storage _batch = _sd.batchs[_batchId];
+        if (_batchId < _sd.redeemSettleId) {
+            revert BatchAlreadyRedeemed();
+        }
+        return _batch.redeemRequest[msg.sender];
+    }
+
     function settleDeposit(uint256 _newTotalAssets) external onlyRole(RolesLibrary.ORACLE) {
-        _settleDeposit(_newTotalAssets);        
+        _settleDeposit(_newTotalAssets);
+    }
+
+    function settleRedeem(uint256 _newTotalAssets) external onlyRole(RolesLibrary.ORACLE) {
+        _settleRedeem(_newTotalAssets);
+    }
+
+    // Submit a request to redeem shares and send funds to user after the batch is redeemed.
+    function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
+        return _requestRedeem(_shares);
     }
 
     // Transfers amount from msg.sender into the Vault and submits a Request for asynchronous deposit.
@@ -109,18 +140,44 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         return _requestDeposit(_amount);
     }
 
+    function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
+        ERC7540StorageData storage _sd = _getStorage();
+        address _user = msg.sender;
+        uint256 _shares = sharesOf(_user);
+        if (_shares < _sharesToRedeem) {
+            revert InsufficientSharesToRedeem();
+        }
+        uint48 _lastRedeemBatchId = _sd.lastRedeemBatchId[_user];
+        uint48 _currentBatchId = currentBatch();
+        if (_currentBatchId == 0) {
+            revert NoBatchAvailable(); // need to wait for the first batch to be available
+        }
+        if (_lastRedeemBatchId >= _currentBatchId) {
+            revert OnlyOneRequestPerBatchAllowed();
+        }
+        _sd.lastRedeemBatchId[_user] = _currentBatchId;
+        BatchData storage _batch = _sd.batchs[_currentBatchId];
+        _batch.redeemRequest[_user] += _sharesToRedeem;
+        _batch.totalShares += _sharesToRedeem;
+        _batch.usersToRedeem.push(_user);
+        _sd.sharesOf[_user].push(Time.timestamp(), sharesOf(_user) - _sharesToRedeem);
+        // we will update the total shares and assets in the _settleRedeemForBatch function
+        emit RedeemRequest(_user, _sharesToRedeem, _currentBatchId);
+        return _currentBatchId;
+    }
+
     function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
         ERC7540StorageData storage _sd = _getStorage();
         address _user = msg.sender;
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[_user];
-        uint48 _currentDepositBatchId = currentBatch();
-        if (_currentDepositBatchId == 0) {
+        uint48 _currentBatchId = currentBatch();
+        if (_currentBatchId == 0) {
             revert NoBatchAvailable(); // need to wait for the first batch to be available
         }
-        if (_lastDepositBatchId >= _currentDepositBatchId) {
+        if (_lastDepositBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowed();
         }
-        _sd.lastDepositBatchId[_user] = _currentDepositBatchId;
+        _sd.lastDepositBatchId[_user] = _currentBatchId;
         IERC20 _erc20 = IERC20(_sd.erc20);
         uint256 _balanceBefore = _erc20.balanceOf(address(this));
         _erc20.safeTransferFrom(_user, address(this), _amount);
@@ -128,12 +185,12 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         if (_depositedAmount == 0) {
             revert InsufficientDeposit();
         }
-        BatchData storage _batch = _sd.batchs[_currentDepositBatchId];
+        BatchData storage _batch = _sd.batchs[_currentBatchId];
         _batch.depositRequest[_user] += _depositedAmount;
         _batch.totalAmount += _depositedAmount;
-        _batch.users.push(_user);
-        emit DepositRequest(_user, _depositedAmount, _currentDepositBatchId);
-        return _currentDepositBatchId;
+        _batch.usersToDeposit.push(_user);
+        emit DepositRequest(_user, _depositedAmount, _currentBatchId);
+        return _currentBatchId;
     }
 
     function _settleDeposit(uint256 _newTotalAssets) internal {
@@ -154,18 +211,37 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         _sd.depositSettleId = _currentBatchId;
     }
 
-    function _settleDepositForBatch(ERC7540StorageData storage _sd, uint48 _batchId, uint48 _timestamp, uint256 _totalAssets)
-        internal
-        returns (uint256)
-    {
+    function _settleRedeem(uint256 _newTotalAssets) internal {
+        ERC7540StorageData storage _sd = _getStorage();
+        uint48 _redeemSettleId = _sd.redeemSettleId;
+        uint48 _currentBatchId = currentBatch();
+        if (_currentBatchId == _redeemSettleId) {
+            revert NoRedeemsToSettle();
+        }
+        uint48 _timestamp = Time.timestamp();
+        uint256 _sharesToSettle;
+        for (_redeemSettleId; _redeemSettleId < _currentBatchId; _redeemSettleId++) {
+            uint256 _totalAssets = _redeemSettleId == _sd.redeemSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
+            _sharesToSettle += _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets);
+        }
+        emit SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle);
+        _sd.redeemSettleId = _currentBatchId;
+    }
+
+    function _settleDepositForBatch(
+        ERC7540StorageData storage _sd,
+        uint48 _batchId,
+        uint48 _timestamp,
+        uint256 _totalAssets
+    ) internal returns (uint256) {
         BatchData storage _batch = _sd.batchs[_batchId];
-        if (_batch.isSettled || _batch.totalAmount == 0) {
+        if (_batch.totalAmount == 0) {
             return 0;
         }
         uint256 _totalShares = totalShares();
         uint256 _totalSharesToMint;
-        for (uint256 i = 0; i < _batch.users.length; i++) {
-            address _user = _batch.users[i];
+        for (uint256 i = 0; i < _batch.usersToDeposit.length; i++) {
+            address _user = _batch.usersToDeposit[i];
             uint256 _amount = _batch.depositRequest[_user];
             uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalAssets);
             _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
@@ -173,9 +249,34 @@ contract ERC7540 is IERC7540, AccessControlUpgradeable {
         }
         _sd.shares.push(_timestamp, _totalShares + _totalSharesToMint);
         _sd.assets.push(_timestamp, _totalAssets + _batch.totalAmount);
-        _batch.isSettled = true;
-        emit SettleBatch(_batchId, _batch.totalAmount, _totalSharesToMint);
+        emit SettleDepositBatch(_batchId, _batch.totalAmount, _totalSharesToMint);
         return _batch.totalAmount;
+    }
+
+    function _settleRedeemForBatch(
+        ERC7540StorageData storage _sd,
+        uint48 _batchId,
+        uint48 _timestamp,
+        uint256 _totalAssets
+    ) internal returns (uint256) {
+        BatchData storage _batch = _sd.batchs[_batchId];
+        if (_batch.totalShares == 0) {
+            return 0;
+        }
+        uint256 _totalShares = totalShares();
+        uint256 _totalSharesToBurn;
+        IERC20 _erc20 = IERC20(_sd.erc20);
+        for (uint256 i = 0; i < _batch.usersToRedeem.length; i++) {
+            address _user = _batch.usersToRedeem[i];
+            uint256 _sharesToBurnPerUser = _batch.redeemRequest[_user];
+            uint256 _assets = ERC4626Math.previewRedeem(_sharesToBurnPerUser, _totalShares, _totalAssets);
+            _totalSharesToBurn += _sharesToBurnPerUser;
+            _erc20.safeTransfer(_user, _assets);
+        }
+        _sd.shares.push(_timestamp, _totalShares - _totalSharesToBurn);
+        _sd.assets.push(_timestamp, _totalAssets - _batch.totalAmount);
+        emit SettleRedeemBatch(_batchId, _batch.totalAmount, _totalSharesToBurn);
+        return _batch.totalShares;
     }
 
     function _getStorage() internal pure returns (ERC7540StorageData storage sd) {

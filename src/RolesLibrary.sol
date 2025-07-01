@@ -14,6 +14,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$ |                
                         $$/                 
 */
+
 library RolesLibrary {
     bytes4 internal constant ORACLE = bytes4(keccak256("ORACLE"));
     bytes4 internal constant OPERATIONS_MULTISIG = bytes4(keccak256("OPERATIONS_MULTISIG"));
