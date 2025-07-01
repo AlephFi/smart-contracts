@@ -15,14 +15,14 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {Vault} from "../../src/Vault.sol";
-import {IERC7540} from "../../src/interfaces/IERC7540.sol";
+import {AlephVault} from "../../src/AlephVault.sol";
+import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract ExposedVault is Vault {
+contract ExposedVault is AlephVault {
     function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
         _getStorage().depositSettleId = _currentDepositBatchId;
     }

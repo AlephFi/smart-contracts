@@ -16,21 +16,21 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
-import {Vault} from "../src/Vault.sol";
+import {AlephVault} from "../src/AlephVault.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
-contract VaultScript is Script {
-    Vault public vault;
+contract AlephVaultScript is Script {
+    AlephVault public vault;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        vault = new Vault();
+        vault = new AlephVault();
 
         vm.stopBroadcast();
     }

@@ -22,11 +22,11 @@ import {IERC7540Redeem} from "./IERC7540Redeem.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
-interface IERC7540 is IERC7540Deposit, IERC7540Redeem {
+interface IAlephVault is IERC7540Deposit, IERC7540Redeem {
     error InvalidInitializationParams();
 
     struct InitializationParams {
-        address manager;
+        address admin;
         address operationsMultisig;
         address oracle;
         address erc20;
@@ -38,10 +38,10 @@ interface IERC7540 is IERC7540Deposit, IERC7540Redeem {
         uint48 batchId;
         uint256 totalAmountToDeposit;
         uint256 totalSharesToRedeem;
-        mapping(address => uint256) depositRequest;
-        mapping(address => uint256) redeemRequest;
         address[] usersToDeposit;
         address[] usersToRedeem;
+        mapping(address => uint256) depositRequest;
+        mapping(address => uint256) redeemRequest;
     }
 
     // View functions
@@ -58,4 +58,12 @@ interface IERC7540 is IERC7540Deposit, IERC7540Redeem {
     function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
 
     function currentBatch() external view returns (uint48);
+
+    function pendingTotalAmountToDeposit() external view returns (uint256);
+
+    function pendingTotalSharesToDeposit() external view returns (uint256);
+
+    function pendingTotalAssetsToRedeem() external view returns (uint256);
+
+    function pendingTotalSharesToRedeem() external view returns (uint256);
 }

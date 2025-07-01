@@ -16,26 +16,27 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Test, console} from "forge-std/Test.sol";
-import {Vault} from "../src/Vault.sol";
-import {IERC7540} from "../src/interfaces/IERC7540.sol";
+import {AlephVault} from "../src/AlephVault.sol";
+import {IAlephVault} from "../src/interfaces/IAlephVault.sol";
 import {ExposedVault} from "./exposes/ExposedVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TestToken} from "./exposes/TestToken.sol";
 import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
-contract VaultTest is Test {
+contract AlephVaultTest is Test {
     using SafeERC20 for IERC20;
 
     ExposedVault public vault;
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
     uint48 public batchDuration = 2000;
-    address public manager = makeAddr("manager");
+    address public admin = makeAddr("admin");
     address public operationsMultisig = makeAddr("operationsMultisig");
     address public operator = makeAddr("operator");
     address public custodian = makeAddr("custodian");
@@ -46,10 +47,11 @@ contract VaultTest is Test {
     function setUp() public {
         erc20.mint(user, 1000);
         erc20.mint(user2, 1000);
+        erc20.mint(admin, 10000);
         vault = new ExposedVault();
         vault.initialize(
-            IERC7540.InitializationParams({
-                manager: manager,
+            IAlephVault.InitializationParams({
+                admin: admin,
                 operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 erc20: address(erc20),
@@ -73,17 +75,15 @@ contract VaultTest is Test {
         assertEq(_currentBatchId, 1);
         uint256 _amount1 = 100;
         uint256 _amount2 = 300;
+        userDepositRequest(user, _amount1);
         vm.startPrank(user);
-        erc20.approve(address(vault), _amount1);
-        vault.requestDeposit(_amount1);
         assertEq(vault.pendingDepositRequest(_currentBatchId), _amount1);
         assertEq(vault.sharesOf(user), 0);
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.totalShares(), 0);
         vm.stopPrank();
+        userDepositRequest(user2, _amount2);
         vm.startPrank(user2);
-        erc20.approve(address(vault), _amount2);
-        vault.requestDeposit(_amount2);
         assertEq(vault.pendingDepositRequest(_currentBatchId), _amount2);
         assertEq(vault.sharesOf(user2), 0);
         assertEq(vault.sharesOf(user), 0);
@@ -128,11 +128,7 @@ contract VaultTest is Test {
 
     function test_requestDeposit() public {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
-        uint256 _amount = 100;
-        vm.startPrank(user);
-        erc20.approve(address(vault), _amount * 2);
-        vault.requestDeposit(_amount);
-        vm.stopPrank();
+        userDepositRequest(user, 100);
     }
 
     function test_settleDeposit_multipleBatches() public {
@@ -143,14 +139,8 @@ contract VaultTest is Test {
 
         uint256 amount1a = 100;
         uint256 amount1b = 200;
-        vm.startPrank(user);
-        erc20.approve(address(vault), amount1a);
-        vault.requestDeposit(amount1a);
-        vm.stopPrank();
-        vm.startPrank(user2);
-        erc20.approve(address(vault), amount1b);
-        vault.requestDeposit(amount1b);
-        vm.stopPrank();
+        userDepositRequest(user, amount1a);
+        userDepositRequest(user2, amount1b);
 
         // --- Batch 2 ---
         vm.warp(block.timestamp + batchDuration);
@@ -159,14 +149,8 @@ contract VaultTest is Test {
 
         uint256 amount2a = 300;
         uint256 amount2b = 400;
-        vm.startPrank(user);
-        erc20.approve(address(vault), amount2a);
-        vault.requestDeposit(amount2a);
-        vm.stopPrank();
-        vm.startPrank(user2);
-        erc20.approve(address(vault), amount2b);
-        vault.requestDeposit(amount2b);
-        vm.stopPrank();
+        userDepositRequest(user, amount2a);
+        userDepositRequest(user2, amount2b);
 
         // --- Settle both batches at once ---
         vm.warp(block.timestamp + batchDuration);
@@ -201,14 +185,8 @@ contract VaultTest is Test {
 
         uint256 amount1a = 100;
         uint256 amount1b = 200;
-        vm.startPrank(user);
-        erc20.approve(address(vault), amount1a);
-        vault.requestDeposit(amount1a);
-        vm.stopPrank();
-        vm.startPrank(user2);
-        erc20.approve(address(vault), amount1b);
-        vault.requestDeposit(amount1b);
-        vm.stopPrank();
+        userDepositRequest(user, amount1a);
+        userDepositRequest(user2, amount1b);
 
         // Settle batch 1
         vm.warp(block.timestamp + batchDuration);
@@ -229,14 +207,8 @@ contract VaultTest is Test {
         // --- Batch 2 ---
         uint256 amount2a = 300;
         uint256 amount2b = 400;
-        vm.startPrank(user);
-        erc20.approve(address(vault), amount2a);
-        vault.requestDeposit(amount2a);
-        vm.stopPrank();
-        vm.startPrank(user2);
-        erc20.approve(address(vault), amount2b);
-        vault.requestDeposit(amount2b);
-        vm.stopPrank();
+        userDepositRequest(user, amount2a);
+        userDepositRequest(user2, amount2b);
 
         // Settle batch 2
         vm.warp(block.timestamp + batchDuration);
@@ -261,6 +233,70 @@ contract VaultTest is Test {
         vault.pendingDepositRequest(batch1);
         vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
         vault.pendingDepositRequest(batch2);
+        vm.stopPrank();
+    }
+
+
+
+    function test_requestRedeem_and_settleRedeem() public {
+        // --- Batch 1 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch1 = vault.currentBatch();
+        assertEq(batch1, 1);
+        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 amount1a = 100;
+        uint256 amount1b = 200;
+        userDepositRequest(user, amount1a);
+        userDepositRequest(user2, amount1b);
+
+        // Settle batch 1
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch2 = vault.currentBatch();
+        assertEq(batch2, 2);
+
+        // Oracle value after batch 1 deposits
+        uint256 totalAssetsAfterBatch1 = amount1a + amount1b;
+        vm.prank(oracle);
+        vault.settleDeposit(0);
+
+        // Check shares and stake after batch 1
+        assertEq(vault.sharesOf(user), amount1a);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1);
+
+        vm.startPrank(user);
+        vault.requestRedeem(amount1a);
+        assertEq(vault.pendingRedeemRequest(batch2), amount1a);
+        assertEq(vault.sharesOf(user), 0);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1);
+        assertEq(vault.pendingTotalAssetsToRedeem(), amount1a);
+        assertEq(vault.pendingTotalSharesToRedeem(), amount1a);
+        vm.stopPrank();
+
+        vm.startPrank(admin);
+        erc20.approve(address(vault), amount1a);
+        erc20.transfer(address(vault), amount1a);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + batchDuration);
+        vm.prank(oracle);
+        vault.settleRedeem(totalAssetsAfterBatch1);
+        assertEq(vault.sharesOf(user), 0);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1 - amount1a);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1 - amount1a);
+        assertEq(vault.pendingTotalAssetsToRedeem(), 0);
+        assertEq(vault.pendingTotalSharesToRedeem(), 0);
+        assertEq(erc20.balanceOf(user), balanceBeforeOfUser);
+    }
+
+    function userDepositRequest(address _user, uint256 _amount) private {
+        vm.startPrank(_user);
+        erc20.approve(address(vault), _amount);
+        vault.requestDeposit(_amount);
         vm.stopPrank();
     }
 }

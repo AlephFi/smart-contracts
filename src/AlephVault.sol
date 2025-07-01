@@ -17,8 +17,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {AccessControlUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import {IERC7540} from "./interfaces/IERC7540.sol";
-import {VaultStorage, VaultStorageData} from "./VaultStorage.sol";
+import {IAlephVault} from "./interfaces/IAlephVault.sol";
+import {AlephVaultStorage, AlephVaultStorageData} from "./AlephVaultStorage.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC4626Math} from "./libraries/ERC4626Math.sol";
@@ -31,7 +31,7 @@ import {RolesLibrary} from "./RolesLibrary.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract Vault is IERC7540, AccessControlUpgradeable {
+contract AlephVault is IAlephVault, AccessControlUpgradeable {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
@@ -41,16 +41,16 @@ contract Vault is IERC7540, AccessControlUpgradeable {
     }
 
     function _initialize(InitializationParams calldata _initalizationParams) internal onlyInitializing {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
+            _initalizationParams.admin == address(0) || _initalizationParams.operationsMultisig == address(0)
                 || _initalizationParams.oracle == address(0) || _initalizationParams.erc20 == address(0)
                 || _initalizationParams.custodian == address(0) || _initalizationParams.batchDuration == 0
         ) {
             revert InvalidInitializationParams();
         }
-        _sd.manager = _initalizationParams.manager;
+        _sd.admin = _initalizationParams.admin;
         _sd.operationsMultisig = _initalizationParams.operationsMultisig;
         _sd.oracle = _initalizationParams.oracle;
         _sd.erc20 = _initalizationParams.erc20;
@@ -86,25 +86,38 @@ contract Vault is IERC7540, AccessControlUpgradeable {
     }
 
     function currentBatch() public view returns (uint48) {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
     }
 
-    function pendingTotalRedeemShares() public view returns (uint256 _totalSharesToRedeem) {
-        VaultStorageData storage _sd = _getStorage();
+    function pendingTotalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
+        AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
-        for (uint48 _batchId = _sd.redeemSettleId; _batchId < _currentBatchId; _batchId++) {
+        for (uint48 _batchId = _sd.redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
             _totalSharesToRedeem += _sd.batchs[_batchId].totalSharesToRedeem;
         }
     }
 
-    function pendingTotalRedeemAssets() public view returns (uint256 _totalAssetsToRedeem) {
-        uint256 _totalSharesToRedeem = pendingTotalRedeemShares();
+    function pendingTotalAssetsToRedeem() public view returns (uint256 _totalAssetsToRedeem) {
+        uint256 _totalSharesToRedeem = pendingTotalSharesToRedeem();
         return ERC4626Math.previewRedeem(_totalSharesToRedeem, totalAssets(), totalShares());
     }
 
+    function pendingTotalAmountToDeposit() public view returns (uint256 _totalAmountToDeposit) {
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint48 _currentBatchId = currentBatch();
+        for (uint48 _batchId = _sd.depositSettleId; _batchId <= _currentBatchId; _batchId++) {
+            _totalAmountToDeposit += _sd.batchs[_batchId].totalAmountToDeposit;
+        }
+    }
+
+    function pendingTotalSharesToDeposit() public view returns (uint256 _totalSharesToDeposit) {
+        uint256 _totalAmountToDeposit = pendingTotalAmountToDeposit();
+        return ERC4626Math.previewDeposit(_totalAmountToDeposit, totalShares(), totalAssets());
+    }
+
     function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount) {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         BatchData storage _batch = _sd.batchs[_batchId];
         if (_batchId < _sd.depositSettleId) {
             revert BatchAlreadySettled();
@@ -113,7 +126,7 @@ contract Vault is IERC7540, AccessControlUpgradeable {
     }
 
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares) {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         BatchData storage _batch = _sd.batchs[_batchId];
         if (_batchId < _sd.redeemSettleId) {
             revert BatchAlreadyRedeemed();
@@ -141,7 +154,7 @@ contract Vault is IERC7540, AccessControlUpgradeable {
     }
 
     function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         address _user = msg.sender;
         uint256 _shares = sharesOf(_user);
         if (_shares < _sharesToRedeem) {
@@ -167,7 +180,7 @@ contract Vault is IERC7540, AccessControlUpgradeable {
     }
 
     function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         address _user = msg.sender;
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[_user];
         uint48 _currentBatchId = currentBatch();
@@ -194,7 +207,7 @@ contract Vault is IERC7540, AccessControlUpgradeable {
     }
 
     function _settleDeposit(uint256 _newTotalAssets) internal {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         uint48 _depositSettleId = _sd.depositSettleId;
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == _depositSettleId) {
@@ -207,12 +220,12 @@ contract Vault is IERC7540, AccessControlUpgradeable {
             _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
         }
         IERC20(_sd.erc20).safeTransfer(_sd.custodian, _amountToSettle);
-        emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle);
+        emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
         _sd.depositSettleId = _currentBatchId;
     }
 
     function _settleRedeem(uint256 _newTotalAssets) internal {
-        VaultStorageData storage _sd = _getStorage();
+        AlephVaultStorageData storage _sd = _getStorage();
         uint48 _redeemSettleId = _sd.redeemSettleId;
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == _redeemSettleId) {
@@ -224,12 +237,12 @@ contract Vault is IERC7540, AccessControlUpgradeable {
             uint256 _totalAssets = _redeemSettleId == _sd.redeemSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
             _sharesToSettle += _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets);
         }
-        emit SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle);
+        emit SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
         _sd.redeemSettleId = _currentBatchId;
     }
 
     function _settleDepositForBatch(
-        VaultStorageData storage _sd,
+        AlephVaultStorageData storage _sd,
         uint48 _batchId,
         uint48 _timestamp,
         uint256 _totalAssets
@@ -249,12 +262,12 @@ contract Vault is IERC7540, AccessControlUpgradeable {
         }
         _sd.shares.push(_timestamp, _totalShares + _totalSharesToMint);
         _sd.assets.push(_timestamp, _totalAssets + _batch.totalAmountToDeposit);
-        emit SettleDepositBatch(_batchId, _batch.totalAmountToDeposit, _totalSharesToMint);
+        emit SettleDepositBatch(_batchId, _batch.totalAmountToDeposit, _totalSharesToMint, _totalAssets, _totalShares);
         return _batch.totalAmountToDeposit;
     }
 
     function _settleRedeemForBatch(
-        VaultStorageData storage _sd,
+        AlephVaultStorageData storage _sd,
         uint48 _batchId,
         uint48 _timestamp,
         uint256 _totalAssets
@@ -275,11 +288,11 @@ contract Vault is IERC7540, AccessControlUpgradeable {
         }
         _sd.shares.push(_timestamp, _totalShares - _batch.totalSharesToRedeem);
         _sd.assets.push(_timestamp, _totalAssets - _totalAassetsToRedeem);
-        emit SettleRedeemBatch(_batchId, _totalAassetsToRedeem, _batch.totalSharesToRedeem);
+        emit SettleRedeemBatch(_batchId, _totalAassetsToRedeem, _batch.totalSharesToRedeem, _totalAssets, _totalShares);
         return _batch.totalSharesToRedeem;
     }
 
-    function _getStorage() internal pure returns (VaultStorageData storage sd) {
-        return VaultStorage.load();
+    function _getStorage() internal pure returns (AlephVaultStorageData storage sd) {
+        return AlephVaultStorage.load();
     }
 }
