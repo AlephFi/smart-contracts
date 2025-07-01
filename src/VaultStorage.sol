@@ -18,7 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {IERC7540} from "./interfaces/IERC7540.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 
-struct ERC7540StorageData {
+struct VaultStorageData {
     address manager;
     address operationsMultisig;
     address oracle;
@@ -42,10 +42,10 @@ struct ERC7540StorageData {
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
-library ERC7540Storage {
-    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.erc7540")) - 1;
+library VaultStorage {
+    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.vault")) - 1;
 
-    function load() internal pure returns (ERC7540StorageData storage sd) {
+    function load() internal pure returns (VaultStorageData storage sd) {
         uint256 position = STORAGE_POSITION;
         assembly {
             sd.slot := position

@@ -16,9 +16,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Test, console} from "forge-std/Test.sol";
-import {ERC7540} from "../src/ERC7540.sol";
+import {Vault} from "../src/Vault.sol";
 import {IERC7540} from "../src/interfaces/IERC7540.sol";
-import {ExposedERC7540} from "./exposes/ExposedERC7540.sol";
+import {ExposedVault} from "./exposes/ExposedVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TestToken} from "./exposes/TestToken.sol";
@@ -28,10 +28,10 @@ import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
-contract ERC7540Test is Test {
+contract VaultTest is Test {
     using SafeERC20 for IERC20;
 
-    ExposedERC7540 public erc7540;
+    ExposedVault public vault;
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
     uint48 public batchDuration = 2000;
@@ -46,8 +46,8 @@ contract ERC7540Test is Test {
     function setUp() public {
         erc20.mint(user, 1000);
         erc20.mint(user2, 1000);
-        erc7540 = new ExposedERC7540();
-        erc7540.initialize(
+        vault = new ExposedVault();
+        vault.initialize(
             IERC7540.InitializationParams({
                 manager: manager,
                 operationsMultisig: operationsMultisig,
@@ -62,55 +62,55 @@ contract ERC7540Test is Test {
     function test_noBatchAvailable() public {
         vm.prank(user);
         uint256 _amount = 100;
-        erc20.approve(address(erc7540), _amount);
+        erc20.approve(address(vault), _amount);
         vm.expectRevert(IERC7540Deposit.NoBatchAvailable.selector);
-        erc7540.requestDeposit(_amount);
+        vault.requestDeposit(_amount);
     }
 
     function test_settleDeposit_oneBatch() public {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
-        uint48 _currentBatchId = erc7540.currentBatch();
+        uint48 _currentBatchId = vault.currentBatch();
         assertEq(_currentBatchId, 1);
         uint256 _amount1 = 100;
         uint256 _amount2 = 300;
         vm.startPrank(user);
-        erc20.approve(address(erc7540), _amount1);
-        erc7540.requestDeposit(_amount1);
-        assertEq(erc7540.pendingDepositRequest(_currentBatchId), _amount1);
-        assertEq(erc7540.sharesOf(user), 0);
-        assertEq(erc7540.totalAssets(), 0);
-        assertEq(erc7540.totalShares(), 0);
+        erc20.approve(address(vault), _amount1);
+        vault.requestDeposit(_amount1);
+        assertEq(vault.pendingDepositRequest(_currentBatchId), _amount1);
+        assertEq(vault.sharesOf(user), 0);
+        assertEq(vault.totalAssets(), 0);
+        assertEq(vault.totalShares(), 0);
         vm.stopPrank();
         vm.startPrank(user2);
-        erc20.approve(address(erc7540), _amount2);
-        erc7540.requestDeposit(_amount2);
-        assertEq(erc7540.pendingDepositRequest(_currentBatchId), _amount2);
-        assertEq(erc7540.sharesOf(user2), 0);
-        assertEq(erc7540.sharesOf(user), 0);
-        assertEq(erc7540.totalAssets(), 0);
-        assertEq(erc7540.totalShares(), 0);
+        erc20.approve(address(vault), _amount2);
+        vault.requestDeposit(_amount2);
+        assertEq(vault.pendingDepositRequest(_currentBatchId), _amount2);
+        assertEq(vault.sharesOf(user2), 0);
+        assertEq(vault.sharesOf(user), 0);
+        assertEq(vault.totalAssets(), 0);
+        assertEq(vault.totalShares(), 0);
 
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
-        uint48 _newcurrentBatchId = erc7540.currentBatch();
+        uint48 _newcurrentBatchId = vault.currentBatch();
         assertEq(_newcurrentBatchId, 2);
         vm.stopPrank();
         vm.prank(oracle);
-        erc7540.settleDeposit(0);
-        assertEq(erc7540.sharesOf(user), _amount1);
-        assertEq(erc7540.sharesOf(user2), _amount2);
-        assertEq(erc7540.totalAssets(), _amount1 + _amount2);
-        assertEq(erc7540.totalShares(), _amount1 + _amount2);
+        vault.settleDeposit(0);
+        assertEq(vault.sharesOf(user), _amount1);
+        assertEq(vault.sharesOf(user2), _amount2);
+        assertEq(vault.totalAssets(), _amount1 + _amount2);
+        assertEq(vault.totalShares(), _amount1 + _amount2);
 
         // expect revert when calling pendingDepositRequest after settleDeposit
         vm.startPrank(user);
         vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
-        erc7540.pendingDepositRequest(_currentBatchId);
+        vault.pendingDepositRequest(_currentBatchId);
         vm.stopPrank();
     }
 
     function test_currentBatch() public {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
-        uint48 _currentBatchId = erc7540.currentBatch();
+        uint48 _currentBatchId = vault.currentBatch();
         console.log("currentBatchId", _currentBatchId);
         assertEq(_currentBatchId, 1);
     }
@@ -119,10 +119,10 @@ contract ERC7540Test is Test {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
         uint256 _amount = 100;
         vm.startPrank(user);
-        erc20.approve(address(erc7540), _amount * 2);
-        erc7540.requestDeposit(_amount);
+        erc20.approve(address(vault), _amount * 2);
+        vault.requestDeposit(_amount);
         vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowed.selector);
-        erc7540.requestDeposit(_amount);
+        vault.requestDeposit(_amount);
         vm.stopPrank();
     }
 
@@ -130,137 +130,137 @@ contract ERC7540Test is Test {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
         uint256 _amount = 100;
         vm.startPrank(user);
-        erc20.approve(address(erc7540), _amount * 2);
-        erc7540.requestDeposit(_amount);
+        erc20.approve(address(vault), _amount * 2);
+        vault.requestDeposit(_amount);
         vm.stopPrank();
     }
 
     function test_settleDeposit_multipleBatches() public {
         // --- Batch 1 ---
         vm.warp(block.timestamp + batchDuration);
-        uint48 batch1 = erc7540.currentBatch();
+        uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
 
         uint256 amount1a = 100;
         uint256 amount1b = 200;
         vm.startPrank(user);
-        erc20.approve(address(erc7540), amount1a);
-        erc7540.requestDeposit(amount1a);
+        erc20.approve(address(vault), amount1a);
+        vault.requestDeposit(amount1a);
         vm.stopPrank();
         vm.startPrank(user2);
-        erc20.approve(address(erc7540), amount1b);
-        erc7540.requestDeposit(amount1b);
+        erc20.approve(address(vault), amount1b);
+        vault.requestDeposit(amount1b);
         vm.stopPrank();
 
         // --- Batch 2 ---
         vm.warp(block.timestamp + batchDuration);
-        uint48 batch2 = erc7540.currentBatch();
+        uint48 batch2 = vault.currentBatch();
         assertEq(batch2, 2);
 
         uint256 amount2a = 300;
         uint256 amount2b = 400;
         vm.startPrank(user);
-        erc20.approve(address(erc7540), amount2a);
-        erc7540.requestDeposit(amount2a);
+        erc20.approve(address(vault), amount2a);
+        vault.requestDeposit(amount2a);
         vm.stopPrank();
         vm.startPrank(user2);
-        erc20.approve(address(erc7540), amount2b);
-        erc7540.requestDeposit(amount2b);
+        erc20.approve(address(vault), amount2b);
+        vault.requestDeposit(amount2b);
         vm.stopPrank();
 
         // --- Settle both batches at once ---
         vm.warp(block.timestamp + batchDuration);
-        uint48 batch3 = erc7540.currentBatch();
+        uint48 batch3 = vault.currentBatch();
         assertEq(batch3, 3);
 
         // For this test, we assume the oracle value is the sum of all deposits
         uint256 newTotalAssets = amount1a + amount1b + amount2a + amount2b;
         vm.prank(oracle);
-        erc7540.settleDeposit(0);
+        vault.settleDeposit(0);
 
         // Check shares and stake
-        assertEq(erc7540.sharesOf(user), amount1a + amount2a);
-        assertEq(erc7540.sharesOf(user2), amount1b + amount2b);
-        assertEq(erc7540.totalAssets(), newTotalAssets);
-        assertEq(erc7540.totalShares(), newTotalAssets);
+        assertEq(vault.sharesOf(user), amount1a + amount2a);
+        assertEq(vault.sharesOf(user2), amount1b + amount2b);
+        assertEq(vault.totalAssets(), newTotalAssets);
+        assertEq(vault.totalShares(), newTotalAssets);
 
         // Check that pendingDepositRequest reverts for both batches
         vm.startPrank(user);
         vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
-        erc7540.pendingDepositRequest(batch1);
+        vault.pendingDepositRequest(batch1);
         vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
-        erc7540.pendingDepositRequest(batch2);
+        vault.pendingDepositRequest(batch2);
         vm.stopPrank();
     }
 
     function test_settleDeposit_multipleSequential() public {
         // --- Batch 1 ---
         vm.warp(block.timestamp + batchDuration);
-        uint48 batch1 = erc7540.currentBatch();
+        uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
 
         uint256 amount1a = 100;
         uint256 amount1b = 200;
         vm.startPrank(user);
-        erc20.approve(address(erc7540), amount1a);
-        erc7540.requestDeposit(amount1a);
+        erc20.approve(address(vault), amount1a);
+        vault.requestDeposit(amount1a);
         vm.stopPrank();
         vm.startPrank(user2);
-        erc20.approve(address(erc7540), amount1b);
-        erc7540.requestDeposit(amount1b);
+        erc20.approve(address(vault), amount1b);
+        vault.requestDeposit(amount1b);
         vm.stopPrank();
 
         // Settle batch 1
         vm.warp(block.timestamp + batchDuration);
-        uint48 batch2 = erc7540.currentBatch();
+        uint48 batch2 = vault.currentBatch();
         assertEq(batch2, 2);
 
         // Oracle value after batch 1 deposits
         uint256 totalAssetsAfterBatch1 = amount1a + amount1b;
         vm.prank(oracle);
-        erc7540.settleDeposit(0);
+        vault.settleDeposit(0);
 
         // Check shares and stake after batch 1
-        assertEq(erc7540.sharesOf(user), amount1a);
-        assertEq(erc7540.sharesOf(user2), amount1b);
-        assertEq(erc7540.totalAssets(), totalAssetsAfterBatch1);
-        assertEq(erc7540.totalShares(), totalAssetsAfterBatch1);
+        assertEq(vault.sharesOf(user), amount1a);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1);
 
         // --- Batch 2 ---
         uint256 amount2a = 300;
         uint256 amount2b = 400;
         vm.startPrank(user);
-        erc20.approve(address(erc7540), amount2a);
-        erc7540.requestDeposit(amount2a);
+        erc20.approve(address(vault), amount2a);
+        vault.requestDeposit(amount2a);
         vm.stopPrank();
         vm.startPrank(user2);
-        erc20.approve(address(erc7540), amount2b);
-        erc7540.requestDeposit(amount2b);
+        erc20.approve(address(vault), amount2b);
+        vault.requestDeposit(amount2b);
         vm.stopPrank();
 
         // Settle batch 2
         vm.warp(block.timestamp + batchDuration);
-        uint48 batch3 = erc7540.currentBatch();
+        uint48 batch3 = vault.currentBatch();
         assertEq(batch3, 3);
 
         // Oracle value after batch 2 deposits
         uint256 totalAssetsAfterBatch2 = amount1a + amount1b + amount2a + amount2b;
         uint256 _profit = 30;
         vm.prank(oracle);
-        erc7540.settleDeposit(totalAssetsAfterBatch1 + _profit);
-        console.log("erc7540.sharesOf(user)", erc7540.sharesOf(user));
-        console.log("erc7540.sharesOf(user2)", erc7540.sharesOf(user2));
-        console.log("erc7540.totalAssets()", erc7540.totalAssets());
-        console.log("erc7540.totalShares()", erc7540.totalShares());
-        assertEq(erc7540.totalAssets(), totalAssetsAfterBatch2 + _profit);
-        assertEq(erc7540.totalShares(), erc7540.sharesOf(user) + erc7540.sharesOf(user2));
+        vault.settleDeposit(totalAssetsAfterBatch1 + _profit);
+        console.log("vault.sharesOf(user)", vault.sharesOf(user));
+        console.log("vault.sharesOf(user2)", vault.sharesOf(user2));
+        console.log("vault.totalAssets()", vault.totalAssets());
+        console.log("vault.totalShares()", vault.totalShares());
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch2 + _profit);
+        assertEq(vault.totalShares(), vault.sharesOf(user) + vault.sharesOf(user2));
 
         // Check that pendingDepositRequest reverts for both batches
         vm.startPrank(user);
         vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
-        erc7540.pendingDepositRequest(batch1);
+        vault.pendingDepositRequest(batch1);
         vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
-        erc7540.pendingDepositRequest(batch2);
+        vault.pendingDepositRequest(batch2);
         vm.stopPrank();
     }
 }

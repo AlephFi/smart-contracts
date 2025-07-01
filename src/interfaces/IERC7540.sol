@@ -36,8 +36,8 @@ interface IERC7540 is IERC7540Deposit, IERC7540Redeem {
 
     struct BatchData {
         uint48 batchId;
-        uint256 totalAmount; // total amount to deposit
-        uint256 totalShares; // total shares to redeem
+        uint256 totalAmountToDeposit;
+        uint256 totalSharesToRedeem;
         mapping(address => uint256) depositRequest;
         mapping(address => uint256) redeemRequest;
         address[] usersToDeposit;
