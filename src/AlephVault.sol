@@ -58,7 +58,6 @@ contract AlephVault is IAlephVault, AccessControlUpgradeable {
         _sd.batchDuration = _initalizationParams.batchDuration;
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
-        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
     }
 
     function totalAssets() public view returns (uint256) {

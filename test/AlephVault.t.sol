@@ -23,6 +23,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TestToken} from "./exposes/TestToken.sol";
 import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
+import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -236,8 +237,6 @@ contract AlephVaultTest is Test {
         vm.stopPrank();
     }
 
-
-
     function test_requestRedeem_and_settleRedeem() public {
         // --- Batch 1 ---
         vm.warp(block.timestamp + batchDuration);
@@ -291,6 +290,135 @@ contract AlephVaultTest is Test {
         assertEq(vault.pendingTotalAssetsToRedeem(), 0);
         assertEq(vault.pendingTotalSharesToRedeem(), 0);
         assertEq(erc20.balanceOf(user), balanceBeforeOfUser);
+    }
+
+    function test_requestRedeem_and_settleRedeem_noFundsInVault() public {
+        // --- Batch 1 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch1 = vault.currentBatch();
+        assertEq(batch1, 1);
+        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 amount1a = 100;
+        uint256 amount1b = 200;
+        userDepositRequest(user, amount1a);
+        userDepositRequest(user2, amount1b);
+
+        // Settle batch 1
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch2 = vault.currentBatch();
+        assertEq(batch2, 2);
+
+        // Oracle value after batch 1 deposits
+        uint256 totalAssetsAfterBatch1 = amount1a + amount1b;
+        vm.prank(oracle);
+        vault.settleDeposit(0);
+
+        // Check shares and stake after batch 1
+        assertEq(vault.sharesOf(user), amount1a);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1);
+
+        vm.startPrank(user);
+        vault.requestRedeem(amount1a);
+        assertEq(vault.pendingRedeemRequest(batch2), amount1a);
+        assertEq(vault.sharesOf(user), 0);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1);
+        assertEq(vault.pendingTotalAssetsToRedeem(), amount1a);
+        assertEq(vault.pendingTotalSharesToRedeem(), amount1a);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + batchDuration);
+        vm.startPrank(oracle);
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, amount1a));
+        vault.settleRedeem(totalAssetsAfterBatch1);
+        vm.stopPrank();
+    }
+
+    function test_requestRedeem_and_settleRedeem_partialRedeem() public {
+        // --- Batch 1 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch1 = vault.currentBatch();
+        assertEq(batch1, 1);
+        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 amount1a = 100;
+        uint256 amount1b = 200;
+        userDepositRequest(user, amount1a);
+        userDepositRequest(user2, amount1b);
+
+        // Settle batch 1
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch2 = vault.currentBatch();
+        assertEq(batch2, 2);
+
+        // Oracle value after batch 1 deposits
+        uint256 totalAssetsAfterBatch1 = amount1a + amount1b;
+        vm.prank(oracle);
+        vault.settleDeposit(0);
+
+        // Check shares and stake after batch 1
+        assertEq(vault.sharesOf(user), amount1a);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1);
+
+        vm.startPrank(user);
+        uint256 amountToRedeem = amount1a / 2;
+        vault.requestRedeem(amountToRedeem);
+        assertEq(vault.pendingRedeemRequest(batch2), amountToRedeem);
+        assertEq(vault.sharesOf(user), amount1a - amountToRedeem);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1);
+        assertEq(vault.pendingTotalAssetsToRedeem(), amountToRedeem);
+        assertEq(vault.pendingTotalSharesToRedeem(), amountToRedeem);
+        vm.stopPrank();
+
+        vm.startPrank(admin);
+        erc20.approve(address(vault), amountToRedeem);
+        erc20.transfer(address(vault), amountToRedeem);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + batchDuration);
+        vm.prank(oracle);
+        vault.settleRedeem(totalAssetsAfterBatch1);
+        assertEq(vault.sharesOf(user), amount1a - amountToRedeem);
+        assertEq(vault.sharesOf(user2), amount1b);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch1 - amountToRedeem);
+        assertEq(vault.totalShares(), totalAssetsAfterBatch1 - amountToRedeem);
+        assertEq(vault.pendingTotalAssetsToRedeem(), 0);
+        assertEq(vault.pendingTotalSharesToRedeem(), 0);
+        assertEq(erc20.balanceOf(user), balanceBeforeOfUser - amountToRedeem);
+    }
+
+    function test_partialRedeemInSameBatch() public {
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch1 = vault.currentBatch();
+        assertEq(batch1, 1);
+        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 amount1a = 100;
+        userDepositRequest(user, amount1a);
+
+        // Settle batch 1
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch2 = vault.currentBatch();
+        assertEq(batch2, 2);
+
+        // Oracle value after batch 1 deposits
+        uint256 totalAssetsAfterBatch1 = amount1a;
+        vm.prank(oracle);
+        vault.settleDeposit(0);
+
+        // User redeems part, then tries to redeem more in same batch
+        vm.warp(block.timestamp + batchDuration);
+        vm.startPrank(user);
+        uint256 amountToRedeem = amount1a / 2;
+        vault.requestRedeem(amountToRedeem);
+        vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowed.selector);
+        vault.requestRedeem(amountToRedeem);
+        vm.stopPrank();
     }
 
     function userDepositRequest(address _user, uint256 _amount) private {
