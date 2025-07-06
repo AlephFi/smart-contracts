@@ -32,18 +32,41 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
 
+    /**
+     * @notice Returns the current batch ID.
+     */
     function currentBatch() public view virtual returns (uint48);
 
+    /**
+     * @notice Returns the number of shares owned by a user.
+     * @param _user The address of the user.
+     */
     function sharesOf(address _user) public view virtual returns (uint256);
 
+    /**
+     * @notice Returns the total assets in the vault.
+     */
     function totalAssets() public view virtual returns (uint256);
 
+    /**
+     * @notice Returns the total shares issued by the vault.
+     */
     function totalShares() public view virtual returns (uint256);
 
+    /**
+     * @notice Settles all pending redeems up to the current batch.
+     * @param _newTotalAssets The new total assets after settlement.
+     */
     function settleRedeem(uint256 _newTotalAssets) external virtual;
 
+    /**
+     * @dev Returns the storage struct for the vault.
+     */
     function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
 
+    /**
+     * @notice Returns the total shares pending to be redeemed across all batches.
+     */
     function pendingTotalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
@@ -52,16 +75,28 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         }
     }
 
+    /**
+     * @notice Returns the total assets that would be redeemed for all pending shares.
+     */
     function pendingTotalAssetsToRedeem() public view returns (uint256 _totalAssetsToRedeem) {
         uint256 _totalSharesToRedeem = pendingTotalSharesToRedeem();
         return ERC4626Math.previewRedeem(_totalSharesToRedeem, totalAssets(), totalShares());
     }
 
-    // Submit a request to redeem shares and send funds to user after the batch is redeemed.
+    /**
+     * @notice Requests to redeem shares from the vault for the current batch.
+     * @param _shares The number of shares to redeem.
+     * @return _batchId The batch ID for the redeem request.
+     */
     function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
         return _requestRedeem(_shares);
     }
 
+    /**
+     * @notice Returns the pending redeem shares for the caller in a specific batch.
+     * @param _batchId The batch ID to query.
+     * @return _shares The pending redeem shares.
+     */
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares) {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
@@ -71,6 +106,10 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         return _batch.redeemRequest[msg.sender];
     }
 
+    /**
+     * @dev Internal function to settle all redeems for batches up to the current batch.
+     * @param _newTotalAssets The new total assets after settlement.
+     */
     function _settleRedeem(uint256 _newTotalAssets) internal {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _redeemSettleId = _sd.redeemSettleId;
@@ -88,6 +127,14 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         _sd.redeemSettleId = _currentBatchId;
     }
 
+    /**
+     * @dev Internal function to settle redeems for a specific batch.
+     * @param _sd The storage struct.
+     * @param _batchId The batch ID to settle.
+     * @param _timestamp The timestamp of settlement.
+     * @param _totalAssets The total assets at settlement.
+     * @return The total shares settled for the batch.
+     */
     function _settleRedeemForBatch(
         AlephVaultStorageData storage _sd,
         uint48 _batchId,
@@ -114,6 +161,11 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         return _batch.totalSharesToRedeem;
     }
 
+    /**
+     * @dev Internal function to handle a redeem request.
+     * @param _sharesToRedeem The number of shares to redeem.
+     * @return _batchId The batch ID for the redeem request.
+     */
     function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
         address _user = msg.sender;

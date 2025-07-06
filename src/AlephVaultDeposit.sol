@@ -32,18 +32,41 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
 
+    /**
+     * @notice Returns the current batch ID.
+     */
     function currentBatch() public view virtual returns (uint48);
 
+    /**
+     * @notice Returns the total assets in the vault.
+     */
     function totalAssets() public view virtual returns (uint256);
 
+    /**
+     * @notice Returns the total shares issued by the vault.
+     */
     function totalShares() public view virtual returns (uint256);
 
+    /**
+     * @notice Returns the number of shares owned by a user.
+     * @param _user The address of the user.
+     */
     function sharesOf(address _user) public view virtual returns (uint256);
 
+    /**
+     * @notice Settles all pending deposits up to the current batch.
+     * @param _newTotalAssets The new total assets after settlement.
+     */
     function settleDeposit(uint256 _newTotalAssets) external virtual;
 
+    /**
+     * @dev Returns the storage struct for the vault.
+     */
     function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
 
+    /**
+     * @notice Returns the total amount pending to be deposited across all batches.
+     */
     function pendingTotalAmountToDeposit() public view returns (uint256 _totalAmountToDeposit) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
@@ -52,17 +75,28 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         }
     }
 
+    /**
+     * @notice Returns the total shares that would be minted for all pending deposits.
+     */
     function pendingTotalSharesToDeposit() public view returns (uint256 _totalSharesToDeposit) {
         uint256 _totalAmountToDeposit = pendingTotalAmountToDeposit();
         return ERC4626Math.previewDeposit(_totalAmountToDeposit, totalShares(), totalAssets());
     }
 
-    // Transfers amount from msg.sender into the Vault and submits a Request for asynchronous deposit.
-    // This places the Request in Pending state, with a corresponding increase in pendingDepositRequest for the amount assets.
+    /**
+     * @notice Requests a deposit of assets into the vault for the current batch.
+     * @param _amount The amount of assets to deposit.
+     * @return _batchId The batch ID for the deposit.
+     */
     function requestDeposit(uint256 _amount) external returns (uint48 _batchId) {
         return _requestDeposit(_amount);
     }
 
+    /**
+     * @notice Returns the pending deposit amount for the caller in a specific batch.
+     * @param _batchId The batch ID to query.
+     * @return _amount The pending deposit amount.
+     */
     function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount) {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
@@ -72,6 +106,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         return _batch.depositRequest[msg.sender];
     }
 
+    /**
+     * @dev Internal function to settle all deposits for batches up to the current batch.
+     * @param _newTotalAssets The new total assets after settlement.
+     */
     function _settleDeposit(uint256 _newTotalAssets) internal {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _depositSettleId = _sd.depositSettleId;
@@ -90,6 +128,14 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         _sd.depositSettleId = _currentBatchId;
     }
 
+    /**
+     * @dev Internal function to settle deposits for a specific batch.
+     * @param _sd The storage struct.
+     * @param _batchId The batch ID to settle.
+     * @param _timestamp The timestamp of settlement.
+     * @param _totalAssets The total assets at settlement.
+     * @return The total amount settled for the batch.
+     */
     function _settleDepositForBatch(
         AlephVaultStorageData storage _sd,
         uint48 _batchId,
@@ -115,6 +161,11 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         return _batch.totalAmountToDeposit;
     }
 
+    /**
+     * @dev Internal function to handle a deposit request.
+     * @param _amount The amount to deposit.
+     * @return _batchId The batch ID for the deposit.
+     */
     function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
         address _user = msg.sender;
