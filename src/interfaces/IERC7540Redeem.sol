@@ -38,13 +38,33 @@ interface IERC7540Redeem {
 
     event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);
 
+    /**
+     * @notice Requests to redeem shares from the vault for the current batch.
+     * @param _shares The number of shares to redeem.
+     * @return _batchId The batch ID for the redeem request.
+     */
     function requestRedeem(uint256 _shares) external returns (uint48 _batchId);
 
+    /**
+     * @notice Returns the pending redeem shares for the caller in a specific batch.
+     * @param _batchId The batch ID to query.
+     * @return _shares The pending redeem shares.
+     */
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares);
 
+    /**
+     * @notice Returns the total assets that would be redeemed for all pending shares.
+     */
     function pendingTotalAssetsToRedeem() external view returns (uint256 _totalAssetsToRedeem);
 
+    /**
+     * @notice Returns the total shares pending to be redeemed across all batches.
+     */
     function pendingTotalSharesToRedeem() external view returns (uint256 _totalSharesToRedeem);
 
+    /**
+     * @notice Settles all pending redeems up to the current batch.
+     * @param _newTotalAssets The new total assets after settlement.
+     */
     function settleRedeem(uint256 _newTotalAssets) external;
 }

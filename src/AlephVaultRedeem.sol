@@ -53,10 +53,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
      */
     function totalShares() public view virtual returns (uint256);
 
-    /**
-     * @notice Settles all pending redeems up to the current batch.
-     * @param _newTotalAssets The new total assets after settlement.
-     */
+    /// @inheritdoc IERC7540Redeem
     function settleRedeem(uint256 _newTotalAssets) external virtual;
 
     /**
@@ -64,9 +61,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
      */
     function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
 
-    /**
-     * @notice Returns the total shares pending to be redeemed across all batches.
-     */
+    /// @inheritdoc IERC7540Redeem
     function pendingTotalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
@@ -75,28 +70,18 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         }
     }
 
-    /**
-     * @notice Returns the total assets that would be redeemed for all pending shares.
-     */
+    /// @inheritdoc IERC7540Redeem
     function pendingTotalAssetsToRedeem() public view returns (uint256 _totalAssetsToRedeem) {
         uint256 _totalSharesToRedeem = pendingTotalSharesToRedeem();
         return ERC4626Math.previewRedeem(_totalSharesToRedeem, totalAssets(), totalShares());
     }
 
-    /**
-     * @notice Requests to redeem shares from the vault for the current batch.
-     * @param _shares The number of shares to redeem.
-     * @return _batchId The batch ID for the redeem request.
-     */
+    /// @inheritdoc IERC7540Redeem
     function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
         return _requestRedeem(_shares);
     }
 
-    /**
-     * @notice Returns the pending redeem shares for the caller in a specific batch.
-     * @param _batchId The batch ID to query.
-     * @return _shares The pending redeem shares.
-     */
+    /// @inheritdoc IERC7540Redeem
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares) {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
@@ -140,7 +125,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         uint48 _batchId,
         uint48 _timestamp,
         uint256 _totalAssets
-    ) internal returns (uint256 _totalSharesToRedeem) {
+    ) internal returns (uint256) {
         IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
         if (_batch.totalSharesToRedeem == 0) {
             return 0;
