@@ -68,7 +68,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     function currentBatch() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (uint48) {
         AlephVaultStorageData storage _sd = _getStorage();
         return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
-    }    
+    }
 
     function totalAssets() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (uint256) {
         return _getStorage().assets.latest();
@@ -86,7 +86,12 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         return _getStorage().shares.upperLookupRecent(_timestamp);
     }
 
-    function sharesOf(address _user) public view override(AlephVaultRedeem, AlephVaultDeposit, IAlephVault) returns (uint256) {
+    function sharesOf(address _user)
+        public
+        view
+        override(AlephVaultRedeem, AlephVaultDeposit, IAlephVault)
+        returns (uint256)
+    {
         return _getStorage().sharesOf[_user].latest();
     }
 
@@ -102,7 +107,11 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         return _getStorage().sharesOf[_user].upperLookupRecent(_timestamp);
     }
 
-    function settleDeposit(uint256 _newTotalAssets) external override(AlephVaultDeposit) onlyRole(RolesLibrary.ORACLE) {
+    function settleDeposit(uint256 _newTotalAssets)
+        external
+        override(AlephVaultDeposit)
+        onlyRole(RolesLibrary.ORACLE)
+    {
         _settleDeposit(_newTotalAssets);
     }
 
@@ -110,7 +119,12 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         _settleRedeem(_newTotalAssets);
     }
 
-    function _getStorage() internal pure override (AlephVaultDeposit, AlephVaultRedeem) returns (AlephVaultStorageData storage sd) {
+    function _getStorage()
+        internal
+        pure
+        override(AlephVaultDeposit, AlephVaultRedeem)
+        returns (AlephVaultStorageData storage sd)
+    {
         return AlephVaultStorage.load();
     }
 }

@@ -15,7 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -30,7 +29,7 @@ interface IERC7540Deposit {
         uint256 totalAssets,
         uint256 totalShares
     );
-    
+
     error OnlyOneRequestPerBatchAllowedForDeposit();
     error InsufficientDeposit();
     error BatchAlreadySettledForDeposit();

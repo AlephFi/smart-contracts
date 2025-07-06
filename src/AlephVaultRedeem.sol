@@ -55,8 +55,8 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     function pendingTotalAssetsToRedeem() public view returns (uint256 _totalAssetsToRedeem) {
         uint256 _totalSharesToRedeem = pendingTotalSharesToRedeem();
         return ERC4626Math.previewRedeem(_totalSharesToRedeem, totalAssets(), totalShares());
-    }       
-  
+    }
+
     // Submit a request to redeem shares and send funds to user after the batch is redeemed.
     function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
         return _requestRedeem(_shares);
@@ -112,7 +112,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         _sd.assets.push(_timestamp, _totalAssets - _totalAassetsToRedeem);
         emit SettleRedeemBatch(_batchId, _totalAassetsToRedeem, _batch.totalSharesToRedeem, _totalAssets, _totalShares);
         return _batch.totalSharesToRedeem;
-    }    
+    }
 
     function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
@@ -138,5 +138,5 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         // we will update the total shares and assets in the _settleRedeemForBatch function
         emit RedeemRequest(_user, _sharesToRedeem, _currentBatchId);
         return _currentBatchId;
-    }    
+    }
 }

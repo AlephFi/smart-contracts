@@ -23,7 +23,7 @@ interface IAlephVault {
     error InvalidInitializationParams();
 
     struct InitializationParams {
-        string name;   
+        string name;
         address admin;
         address operationsMultisig;
         address oracle;

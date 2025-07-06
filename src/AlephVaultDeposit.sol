@@ -55,13 +55,13 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     function pendingTotalSharesToDeposit() public view returns (uint256 _totalSharesToDeposit) {
         uint256 _totalAmountToDeposit = pendingTotalAmountToDeposit();
         return ERC4626Math.previewDeposit(_totalAmountToDeposit, totalShares(), totalAssets());
-    }    
-  
+    }
+
     // Transfers amount from msg.sender into the Vault and submits a Request for asynchronous deposit.
     // This places the Request in Pending state, with a corresponding increase in pendingDepositRequest for the amount assets.
     function requestDeposit(uint256 _amount) external returns (uint48 _batchId) {
         return _requestDeposit(_amount);
-    } 
+    }
 
     function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount) {
         AlephVaultStorageData storage _sd = _getStorage();
@@ -70,7 +70,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
             revert BatchAlreadySettledForDeposit();
         }
         return _batch.depositRequest[msg.sender];
-    } 
+    }
 
     function _settleDeposit(uint256 _newTotalAssets) internal {
         AlephVaultStorageData storage _sd = _getStorage();
@@ -88,7 +88,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         IERC20(_sd.erc20).safeTransfer(_sd.custodian, _amountToSettle);
         emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
         _sd.depositSettleId = _currentBatchId;
-    }   
+    }
 
     function _settleDepositForBatch(
         AlephVaultStorageData storage _sd,
@@ -113,7 +113,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         _sd.assets.push(_timestamp, _totalAssets + _batch.totalAmountToDeposit);
         emit SettleDepositBatch(_batchId, _batch.totalAmountToDeposit, _totalSharesToMint, _totalAssets, _totalShares);
         return _batch.totalAmountToDeposit;
-    }     
+    }
 
     function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
@@ -140,5 +140,5 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         _batch.usersToDeposit.push(_user);
         emit DepositRequest(_user, _depositedAmount, _currentBatchId);
         return _currentBatchId;
-    }    
+    }
 }
