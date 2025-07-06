@@ -71,6 +71,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
+        _grantRole(RolesLibrary.ADMIN, _initalizationParams.admin);
     }
 
     /// @inheritdoc IAlephVault
@@ -122,6 +123,17 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     /// @inheritdoc IAlephVault
     function sharesOfAt(address _user, uint48 _timestamp) public view returns (uint256) {
         return _getStorage().sharesOf[_user].upperLookupRecent(_timestamp);
+    }
+
+    /// @inheritdoc IAlephVault
+    function metadataUrl() external view returns (string memory) {
+        return _getStorage().metadataUrl;
+    }
+
+    /// @inheritdoc IAlephVault
+    function setMetadataUrl(string calldata _metadataUrl) external override(IAlephVault) onlyRole(RolesLibrary.ADMIN) {
+        _getStorage().metadataUrl = _metadataUrl;
+        emit MetadataUrlSet(_metadataUrl);
     }
 
     /**

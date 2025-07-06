@@ -19,7 +19,7 @@ import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 
 struct AlephVaultStorageData {
-    string name;
+    string metadataUrl;
     address admin;
     address operationsMultisig;
     address oracle;

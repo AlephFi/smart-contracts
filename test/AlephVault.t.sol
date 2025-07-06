@@ -53,7 +53,6 @@ contract AlephVaultTest is Test {
         vault = new ExposedVault();
         vault.initialize(
             IAlephVault.InitializationParams({
-                name: "test",
                 admin: admin,
                 operationsMultisig: operationsMultisig,
                 oracle: oracle,
@@ -423,6 +422,16 @@ contract AlephVaultTest is Test {
         vault.requestRedeem(amountToRedeem);
         vm.expectRevert(IERC7540Redeem.OnlyOneRequestPerBatchAllowedForRedeem.selector);
         vault.requestRedeem(amountToRedeem);
+        vm.stopPrank();
+    }
+
+    function test_setMetadataUrl() public {
+        vm.startPrank(admin);
+        string memory _metadataUrl = "metadataUrl";
+        vm.expectEmit(address(vault));
+        emit IAlephVault.MetadataUrlSet(_metadataUrl);   
+        vault.setMetadataUrl(_metadataUrl);
+        assertEq(vault.metadataUrl(), _metadataUrl);
         vm.stopPrank();
     }
 

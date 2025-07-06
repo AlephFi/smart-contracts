@@ -22,8 +22,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 interface IAlephVault {
     error InvalidInitializationParams();
 
+    event MetadataUrlSet(string metadataUrl);
+
     struct InitializationParams {
-        string name;
         address admin;
         address operationsMultisig;
         address oracle;
@@ -106,4 +107,16 @@ interface IAlephVault {
      * @return The number of shares owned by the user at the given timestamp.
      */
     function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
+
+    /**
+     * @notice Returns the metadata URL of the vault.
+     * @return The metadata URL.
+     */
+    function metadataUrl() external view returns (string memory);
+
+    /**
+     * @notice Sets the metadata URL of the vault.
+     * @param _metadataUrl The new metadata URL.
+     */
+    function setMetadataUrl(string calldata _metadataUrl) external;
 }
