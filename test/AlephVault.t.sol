@@ -24,6 +24,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {TestToken} from "./exposes/TestToken.sol";
 import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
+import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -41,6 +42,7 @@ contract AlephVaultTest is Test {
     address public operator = makeAddr("operator");
     address public custodian = makeAddr("custodian");
     address public oracle = makeAddr("oracle");
+    address public guardian = makeAddr("guardian");
 
     TestToken public erc20 = new TestToken();
 
@@ -51,12 +53,14 @@ contract AlephVaultTest is Test {
         vault = new ExposedVault();
         vault.initialize(
             IAlephVault.InitializationParams({
+                name: "test",
                 admin: admin,
                 operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 erc20: address(erc20),
                 custodian: custodian,
-                batchDuration: batchDuration
+                batchDuration: batchDuration,
+                guardian: guardian
             })
         );
     }
@@ -65,7 +69,7 @@ contract AlephVaultTest is Test {
         vm.prank(user);
         uint256 _amount = 100;
         erc20.approve(address(vault), _amount);
-        vm.expectRevert(IERC7540Deposit.NoBatchAvailable.selector);
+        vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
         vault.requestDeposit(_amount);
     }
 
@@ -103,7 +107,7 @@ contract AlephVaultTest is Test {
 
         // expect revert when calling pendingDepositRequest after settleDeposit
         vm.startPrank(user);
-        vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
+        vm.expectRevert(IERC7540Deposit.BatchAlreadySettledForDeposit.selector);
         vault.pendingDepositRequest(_currentBatchId);
         vm.stopPrank();
     }
@@ -121,7 +125,7 @@ contract AlephVaultTest is Test {
         vm.startPrank(user);
         erc20.approve(address(vault), _amount * 2);
         vault.requestDeposit(_amount);
-        vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowed.selector);
+        vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
         vault.requestDeposit(_amount);
         vm.stopPrank();
     }
@@ -170,9 +174,9 @@ contract AlephVaultTest is Test {
 
         // Check that pendingDepositRequest reverts for both batches
         vm.startPrank(user);
-        vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
+        vm.expectRevert(IERC7540Deposit.BatchAlreadySettledForDeposit.selector);
         vault.pendingDepositRequest(batch1);
-        vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
+        vm.expectRevert(IERC7540Deposit.BatchAlreadySettledForDeposit.selector);
         vault.pendingDepositRequest(batch2);
         vm.stopPrank();
     }
@@ -229,9 +233,9 @@ contract AlephVaultTest is Test {
 
         // Check that pendingDepositRequest reverts for both batches
         vm.startPrank(user);
-        vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
+        vm.expectRevert(IERC7540Deposit.BatchAlreadySettledForDeposit.selector);
         vault.pendingDepositRequest(batch1);
-        vm.expectRevert(IERC7540Deposit.BatchAlreadySettled.selector);
+        vm.expectRevert(IERC7540Deposit.BatchAlreadySettledForDeposit.selector);
         vault.pendingDepositRequest(batch2);
         vm.stopPrank();
     }
@@ -417,7 +421,7 @@ contract AlephVaultTest is Test {
         vm.startPrank(user);
         uint256 amountToRedeem = amount1a / 2;
         vault.requestRedeem(amountToRedeem);
-        vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowed.selector);
+        vm.expectRevert(IERC7540Redeem.OnlyOneRequestPerBatchAllowedForRedeem.selector);
         vault.requestRedeem(amountToRedeem);
         vm.stopPrank();
     }

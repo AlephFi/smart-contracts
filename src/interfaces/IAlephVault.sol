@@ -15,20 +15,19 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC7540Deposit} from "./IERC7540Deposit.sol";
-import {IERC7540Redeem} from "./IERC7540Redeem.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
-interface IAlephVault is IERC7540Deposit, IERC7540Redeem {
+interface IAlephVault {
     error InvalidInitializationParams();
 
     struct InitializationParams {
+        string name;   
         address admin;
         address operationsMultisig;
         address oracle;
+        address guardian;
         address erc20;
         address custodian;
         uint48 batchDuration;
@@ -45,6 +44,9 @@ interface IAlephVault is IERC7540Deposit, IERC7540Redeem {
     }
 
     // View functions
+
+    function currentBatch() external view returns (uint48);
+
     function totalAssets() external view returns (uint256);
 
     function totalShares() external view returns (uint256);
@@ -60,14 +62,4 @@ interface IAlephVault is IERC7540Deposit, IERC7540Redeem {
     function sharesOf(address _user) external view returns (uint256);
 
     function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
-
-    function currentBatch() external view returns (uint48);
-
-    function pendingTotalAmountToDeposit() external view returns (uint256);
-
-    function pendingTotalSharesToDeposit() external view returns (uint256);
-
-    function pendingTotalAssetsToRedeem() external view returns (uint256);
-
-    function pendingTotalSharesToRedeem() external view returns (uint256);
 }

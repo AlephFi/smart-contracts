@@ -15,6 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -29,11 +30,11 @@ interface IERC7540Deposit {
         uint256 totalAssets,
         uint256 totalShares
     );
-
-    error OnlyOneRequestPerBatchAllowed();
+    
+    error OnlyOneRequestPerBatchAllowedForDeposit();
     error InsufficientDeposit();
-    error BatchAlreadySettled();
-    error NoBatchAvailable();
+    error BatchAlreadySettledForDeposit();
+    error NoBatchAvailableForDeposit();
     error NoDepositsToSettle();
 
     // Transfers amount from msg.sender into the Vault and submits a request for asynchronous deposit.
@@ -41,4 +42,10 @@ interface IERC7540Deposit {
     function requestDeposit(uint256 _amount) external returns (uint48 _batchId);
 
     function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount);
+
+    function pendingTotalAmountToDeposit() external view returns (uint256 _totalAmountToDeposit);
+
+    function pendingTotalSharesToDeposit() external view returns (uint256 _totalSharesToDeposit);
+
+    function settleDeposit(uint256 _newTotalAssets) external;
 }
