@@ -118,7 +118,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
      * @param _batchId The batch ID to settle.
      * @param _timestamp The timestamp of settlement.
      * @param _totalAssets The total assets at settlement.
-     * @return The total shares settled for the batch.
+     * @return _totalSharesToRedeem The total shares settled for the batch.
      */
     function _settleRedeemForBatch(
         AlephVaultStorageData storage _sd,
