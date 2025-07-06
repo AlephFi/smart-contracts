@@ -429,7 +429,7 @@ contract AlephVaultTest is Test {
         vm.startPrank(admin);
         string memory _metadataUrl = "metadataUrl";
         vm.expectEmit(address(vault));
-        emit IAlephVault.MetadataUrlSet(_metadataUrl);   
+        emit IAlephVault.MetadataUrlSet(_metadataUrl);
         vault.setMetadataUrl(_metadataUrl);
         assertEq(vault.metadataUrl(), _metadataUrl);
         vm.stopPrank();
