@@ -28,6 +28,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {RolesLibrary} from "./RolesLibrary.sol";
 import {AlephVaultDeposit} from "./AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
+import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -37,6 +38,22 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
+
+    address public immutable OPERATIONS_MULTISIG;
+    address public immutable ORACLE;
+    address public immutable GUARDIAN;
+
+    /**
+     * @notice Constructor.
+     * @param _constructorParams Struct containing all initialization parameters.
+     */
+    constructor(IAlephVault.ConstructorParams memory _constructorParams) {
+        OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
+        ORACLE = _constructorParams.oracle;
+        GUARDIAN = _constructorParams.guardian;
+        _grantRole(RolesLibrary.ORACLE, _constructorParams.oracle);
+        _grantRole(RolesLibrary.GUARDIAN, _constructorParams.guardian);
+    }
 
     /**
      * @notice Initializes the vault with the given parameters.
@@ -54,23 +71,19 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.admin == address(0) || _initalizationParams.operationsMultisig == address(0)
-                || _initalizationParams.oracle == address(0) || _initalizationParams.erc20 == address(0)
-                || _initalizationParams.custodian == address(0) || _initalizationParams.batchDuration == 0
-                || _initalizationParams.guardian == address(0)
+            _initalizationParams.admin == address(0) ||
+            _initalizationParams.erc20 == address(0) ||
+            _initalizationParams.custodian == address(0) ||
+            _initalizationParams.batchDuration == 0
         ) {
             revert InvalidInitializationParams();
         }
         _sd.admin = _initalizationParams.admin;
-        _sd.operationsMultisig = _initalizationParams.operationsMultisig;
-        _sd.guardian = _initalizationParams.guardian;
-        _sd.oracle = _initalizationParams.oracle;
         _sd.erc20 = _initalizationParams.erc20;
         _sd.custodian = _initalizationParams.custodian;
         _sd.batchDuration = _initalizationParams.batchDuration;
+        _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
-        _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
-        _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
         _grantRole(RolesLibrary.ADMIN, _initalizationParams.admin);
     }
 
@@ -128,6 +141,11 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     /// @inheritdoc IAlephVault
     function metadataUrl() external view returns (string memory) {
         return _getStorage().metadataUrl;
+    }
+
+    /// @inheritdoc IAlephVault
+    function name() external view returns (string memory) {
+        return _getStorage().name;
     }
 
     /// @inheritdoc IAlephVault

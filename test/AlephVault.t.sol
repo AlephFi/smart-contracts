@@ -25,7 +25,7 @@ import {TestToken} from "./exposes/TestToken.sol";
 import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
-
+import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -47,19 +47,22 @@ contract AlephVaultTest is Test {
     TestToken public erc20 = new TestToken();
 
     function setUp() public {
+        vm.chainId(560048);
         erc20.mint(user, 1000);
         erc20.mint(user2, 1000);
         erc20.mint(admin, 10_000);
-        vault = new ExposedVault();
+        vault = new ExposedVault(IAlephVault.ConstructorParams({
+            operationsMultisig: operationsMultisig,
+            oracle: oracle,
+            guardian: guardian
+        }));
         vault.initialize(
             IAlephVault.InitializationParams({
+                name: "test",
                 admin: admin,
-                operationsMultisig: operationsMultisig,
-                oracle: oracle,
                 erc20: address(erc20),
                 custodian: custodian,
-                batchDuration: batchDuration,
-                guardian: guardian
+                batchDuration: batchDuration
             })
         );
     }

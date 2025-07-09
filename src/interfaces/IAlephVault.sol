@@ -24,11 +24,15 @@ interface IAlephVault {
 
     event MetadataUrlSet(string metadataUrl);
 
-    struct InitializationParams {
-        address admin;
+    struct ConstructorParams {
         address operationsMultisig;
         address oracle;
         address guardian;
+    }
+
+    struct InitializationParams {
+        string name;
+        address admin;
         address erc20;
         address custodian;
         uint48 batchDuration;
@@ -113,6 +117,12 @@ interface IAlephVault {
      * @return The metadata URL.
      */
     function metadataUrl() external view returns (string memory);
+
+    /**
+     * @notice Returns the name of the vault.
+     * @return The name.
+     */
+    function name() external view returns (string memory);
 
     /**
      * @notice Sets the metadata URL of the vault.
