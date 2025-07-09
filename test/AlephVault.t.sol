@@ -36,7 +36,7 @@ contract AlephVaultTest is Test {
     ExposedVault public vault;
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
-    uint48 public batchDuration = 2000;
+    uint48 public batchDuration = 1 days;
     address public admin = makeAddr("admin");
     address public operationsMultisig = makeAddr("operationsMultisig");
     address public operator = makeAddr("operator");
@@ -61,8 +61,7 @@ contract AlephVaultTest is Test {
                 name: "test",
                 admin: admin,
                 erc20: address(erc20),
-                custodian: custodian,
-                batchDuration: batchDuration
+                custodian: custodian
             })
         );
     }

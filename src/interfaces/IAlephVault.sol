@@ -35,7 +35,6 @@ interface IAlephVault {
         address admin;
         address erc20;
         address custodian;
-        uint48 batchDuration;
     }
 
     struct BatchData {

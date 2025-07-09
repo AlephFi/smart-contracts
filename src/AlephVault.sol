@@ -51,6 +51,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
         ORACLE = _constructorParams.oracle;
         GUARDIAN = _constructorParams.guardian;
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _constructorParams.operationsMultisig);
         _grantRole(RolesLibrary.ORACLE, _constructorParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _constructorParams.guardian);
     }
@@ -73,15 +74,14 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         if (
             _initalizationParams.admin == address(0) ||
             _initalizationParams.erc20 == address(0) ||
-            _initalizationParams.custodian == address(0) ||
-            _initalizationParams.batchDuration == 0
+            _initalizationParams.custodian == address(0)
         ) {
             revert InvalidInitializationParams();
         }
         _sd.admin = _initalizationParams.admin;
         _sd.erc20 = _initalizationParams.erc20;
         _sd.custodian = _initalizationParams.custodian;
-        _sd.batchDuration = _initalizationParams.batchDuration;
+        _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.ADMIN, _initalizationParams.admin);

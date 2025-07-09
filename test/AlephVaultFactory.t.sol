@@ -21,7 +21,6 @@ contract AlephVaultFactoryTest is Test {
         guardian: guardian
     }));
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
-    uint48 batchDuration = 1 hours;
 
     function setUp() public {
         // Set chainid to 560048 for supported chain
@@ -44,8 +43,7 @@ contract AlephVaultFactoryTest is Test {
             name: name,
             admin: admin,
             erc20: erc20,
-            custodian: custodian,
-            batchDuration: batchDuration
+            custodian: custodian
         });
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
