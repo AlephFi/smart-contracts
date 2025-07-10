@@ -23,8 +23,8 @@ import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract ExposedVault is AlephVault {
-
     constructor(IAlephVault.ConstructorParams memory _initalizationParams) AlephVault(_initalizationParams) {}
+
     function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
         _getStorage().depositSettleId = _currentDepositBatchId;
     }

@@ -31,7 +31,6 @@ import {RolesLibrary} from "./RolesLibrary.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
-
     /**
      * @notice Initializes the factory.
      */
@@ -42,7 +41,10 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     /**
      * @notice Internal function to initialize the factory.
      */
-    function _initialize(IAlephVaultFactory.InitializationParams calldata _initalizationParams) internal onlyInitializing {
+    function _initialize(IAlephVaultFactory.InitializationParams calldata _initalizationParams)
+        internal
+        onlyInitializing
+    {
         __AccessControl_init();
         _getStorage().beacon = _initalizationParams.beacon;
     }
@@ -53,7 +55,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
      * @return The address of the new vault.
      */
     function deployVault(IAlephVault.InitializationParams calldata _initalizationParams) external returns (address) {
-        
         bytes32 _salt = keccak256(abi.encodePacked(_initalizationParams.admin, _initalizationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
         bytes memory _bytecode = abi.encodePacked(

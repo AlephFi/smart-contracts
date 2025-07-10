@@ -30,6 +30,7 @@ import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 contract AlephVaultTest is Test {
     using SafeERC20 for IERC20;
 
@@ -47,22 +48,15 @@ contract AlephVaultTest is Test {
     TestToken public erc20 = new TestToken();
 
     function setUp() public {
-        vm.chainId(560048);
+        vm.chainId(560_048);
         erc20.mint(user, 1000);
         erc20.mint(user2, 1000);
         erc20.mint(admin, 10_000);
-        vault = new ExposedVault(IAlephVault.ConstructorParams({
-            operationsMultisig: operationsMultisig,
-            oracle: oracle,
-            guardian: guardian
-        }));
+        vault = new ExposedVault(
+            IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
+        );
         vault.initialize(
-            IAlephVault.InitializationParams({
-                name: "test",
-                admin: admin,
-                erc20: address(erc20),
-                custodian: custodian
-            })
+            IAlephVault.InitializationParams({name: "test", admin: admin, erc20: address(erc20), custodian: custodian})
         );
     }
 

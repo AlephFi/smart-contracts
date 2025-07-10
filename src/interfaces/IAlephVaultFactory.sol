@@ -22,8 +22,8 @@ import {IAlephVault} from "./IAlephVault.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IAlephVaultFactory {
-
     error UnsupportedChain();
+
     event VaultDeployed(address indexed vault, address indexed admin, string name);
 
     struct InitializationParams {
@@ -36,7 +36,6 @@ interface IAlephVaultFactory {
      * @return True if the vault is valid, false otherwise.
      */
     function isValidVault(address _vault) external view returns (bool);
-
 
     /**
      * @notice Deploys a new vault.

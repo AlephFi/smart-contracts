@@ -34,8 +34,8 @@ contract DeployAlephVaultImplementation is Script {
     function run() public {
         vm.startBroadcast();
         IAlephVault.ConstructorParams memory _constructorParams;
-        
-        if(block.chainid == 560048) {
+
+        if (block.chainid == 560_048) {
             _constructorParams = IAlephVault.ConstructorParams({
                 operationsMultisig: 0x7f7eb0b9aC4f796fb96912A7184603EB2633f584,
                 oracle: 0x7f7eb0b9aC4f796fb96912A7184603EB2633f584,

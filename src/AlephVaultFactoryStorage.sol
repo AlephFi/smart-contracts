@@ -15,7 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-
 struct AlephVaultFactoryStorageData {
     mapping(address vault => bool isValid) vaults;
     address beacon;

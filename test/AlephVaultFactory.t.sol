@@ -6,6 +6,7 @@ import "../src/AlephVaultFactory.sol";
 import "../src/interfaces/IAlephVault.sol";
 import {UpgradeableBeacon} from "openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {AlephVault} from "../src/AlephVault.sol";
+
 contract AlephVaultFactoryTest is Test {
     AlephVaultFactory factory;
     address admin = address(0xABCD);
@@ -15,36 +16,26 @@ contract AlephVaultFactoryTest is Test {
     address guardian = address(0x9ABC);
     address erc20 = address(0xDEF0);
     address custodian = address(0x1111);
-    AlephVault vaultImpl = new AlephVault(IAlephVault.ConstructorParams({
-        operationsMultisig: operationsMultisig,
-        oracle: oracle,
-        guardian: guardian
-    }));
+    AlephVault vaultImpl = new AlephVault(
+        IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
+    );
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
 
     function setUp() public {
         // Set chainid to 560048 for supported chain
-        vm.chainId(560048);
+        vm.chainId(560_048);
         factory = new AlephVaultFactory();
-        factory.initialize(IAlephVaultFactory.InitializationParams({
-            beacon: address(beacon)
-        }));
+        factory.initialize(IAlephVaultFactory.InitializationParams({beacon: address(beacon)}));
     }
 
     function testInitializeOnlyOnce() public {
         vm.expectRevert(); // Should revert on second initialize
-        factory.initialize(IAlephVaultFactory.InitializationParams({
-            beacon: address(beacon)
-        }));
+        factory.initialize(IAlephVaultFactory.InitializationParams({beacon: address(beacon)}));
     }
 
     function testDeployVaultAndIsValidVault() public {
-        IAlephVault.InitializationParams memory params = IAlephVault.InitializationParams({
-            name: name,
-            admin: admin,
-            erc20: erc20,
-            custodian: custodian
-        });
+        IAlephVault.InitializationParams memory params =
+            IAlephVault.InitializationParams({name: name, admin: admin, erc20: erc20, custodian: custodian});
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
     }
@@ -52,4 +43,4 @@ contract AlephVaultFactoryTest is Test {
     function testIsValidVaultFalseForUnknown() public {
         assertFalse(factory.isValidVault(address(0xBEEF)));
     }
-} 
+}
