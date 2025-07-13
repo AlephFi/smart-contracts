@@ -426,13 +426,13 @@ contract AlephVaultTest is Test {
         vm.stopPrank();
     }
 
-    function test_setMetadataUrl() public {
+    function test_setMetadataUri() public {
         vm.startPrank(manager);
-        string memory _metadataUrl = "metadataUrl";
+        string memory _metadataUri = "metadataUri";
         vm.expectEmit(address(vault));
-        emit IAlephVault.MetadataUrlSet(_metadataUrl);
-        vault.setMetadataUrl(_metadataUrl);
-        assertEq(vault.metadataUrl(), _metadataUrl);
+        emit IAlephVault.MetadataUriSet(_metadataUri);
+        vault.setMetadataUri(_metadataUri);
+        assertEq(vault.metadataUri(), _metadataUri);
         vm.stopPrank();
     }
 

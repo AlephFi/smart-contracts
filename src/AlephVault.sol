@@ -143,8 +143,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     }
 
     /// @inheritdoc IAlephVault
-    function metadataUrl() external view returns (string memory) {
-        return _getStorage().metadataUrl;
+    function metadataUri() external view returns (string memory) {
+        return _getStorage().metadataUri;
     }
 
     /// @inheritdoc IAlephVault
@@ -153,13 +153,13 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     }
 
     /// @inheritdoc IAlephVault
-    function setMetadataUrl(string calldata _metadataUrl)
+    function setMetadataUri(string calldata _metadataUri)
         external
         override(IAlephVault)
         onlyRole(RolesLibrary.MANAGER)
     {
-        _getStorage().metadataUrl = _metadataUrl;
-        emit MetadataUrlSet(_metadataUrl);
+        _getStorage().metadataUri = _metadataUri;
+        emit MetadataUriSet(_metadataUri);
     }
 
     /**

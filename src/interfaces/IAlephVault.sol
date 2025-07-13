@@ -22,7 +22,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 interface IAlephVault {
     error InvalidInitializationParams();
 
-    event MetadataUrlSet(string metadataUrl);
+    event MetadataUriSet(string metadataUri);
 
     struct ConstructorParams {
         address operationsMultisig;
@@ -121,7 +121,7 @@ interface IAlephVault {
      * @notice Returns the metadata URL of the vault.
      * @return The metadata URL.
      */
-    function metadataUrl() external view returns (string memory);
+    function metadataUri() external view returns (string memory);
 
     /**
      * @notice Returns the name of the vault.
@@ -133,5 +133,5 @@ interface IAlephVault {
      * @notice Sets the metadata URL of the vault.
      * @param _metadataUrl The new metadata URL.
      */
-    function setMetadataUrl(string calldata _metadataUrl) external;
+    function setMetadataUri(string calldata _metadataUrl) external;
 }
