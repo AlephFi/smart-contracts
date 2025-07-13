@@ -23,17 +23,20 @@ import {
     ITransparentUpgradeableProxy
 } from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
+import {BaseScript} from "./BaseScript.s.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
 // Use to Deploy only an AlephVaultFactory.
-// forge script DeployAlephVaultFactory --sig="run(address, address)" <_proxyOwner> <_beacon> --rpc-url $RPC_URL --private-key $DEPLOYER_PRIVATE_KEY --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
-contract DeployAlephVaultFactory is Script {
+// forge script DeployAlephVaultFactory --sig="run(address, address)" <_proxyOwner> <_beacon> --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
+contract DeployAlephVaultFactory is BaseScript {
     function setUp() public {}
 
     function run(address _proxyOwner, address _beacon) public {
+        string memory _chainId = _getChainId();
+        vm.createSelectFork(_chainId);
         bytes memory _initializeArgs;
         if (block.chainid == 560_048) {
             _initializeArgs = abi.encodeWithSelector(
@@ -43,7 +46,8 @@ contract DeployAlephVaultFactory is Script {
             revert("Unsupported chain");
         }
 
-        vm.startBroadcast();
+        uint256 _privateKey = _getPrivateKey();
+        vm.startBroadcast(_privateKey);
         AlephVaultFactory _factoryImpl = new AlephVaultFactory();
 
         ITransparentUpgradeableProxy _proxy = ITransparentUpgradeableProxy(

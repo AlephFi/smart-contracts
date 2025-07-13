@@ -56,7 +56,12 @@ contract AlephVaultTest is Test {
             IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
         );
         vault.initialize(
-            IAlephVault.InitializationParams({name: "test", manager: manager, underlyingToken: address(underlyingToken), custodian: custodian})
+            IAlephVault.InitializationParams({
+                name: "test",
+                manager: manager,
+                underlyingToken: address(underlyingToken),
+                custodian: custodian
+            })
         );
     }
 

@@ -34,8 +34,12 @@ contract AlephVaultFactoryTest is Test {
     }
 
     function testDeployVaultAndIsValidVault() public {
-        IAlephVault.InitializationParams memory params =
-            IAlephVault.InitializationParams({name: name, manager: manager, underlyingToken: underlyingToken, custodian: custodian});
+        IAlephVault.InitializationParams memory params = IAlephVault.InitializationParams({
+            name: name,
+            manager: manager,
+            underlyingToken: underlyingToken,
+            custodian: custodian
+        });
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
     }

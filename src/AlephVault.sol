@@ -153,7 +153,11 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     }
 
     /// @inheritdoc IAlephVault
-    function setMetadataUrl(string calldata _metadataUrl) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
+    function setMetadataUrl(string calldata _metadataUrl)
+        external
+        override(IAlephVault)
+        onlyRole(RolesLibrary.MANAGER)
+    {
         _getStorage().metadataUrl = _metadataUrl;
         emit MetadataUrlSet(_metadataUrl);
     }

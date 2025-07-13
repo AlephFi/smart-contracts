@@ -19,20 +19,24 @@ import {Script, console} from "forge-std/Script.sol";
 import {AlephVault} from "../src/AlephVault.sol";
 import {console} from "forge-std/console.sol";
 import {IAlephVault} from "../src/interfaces/IAlephVault.sol";
+import {BaseScript} from "./BaseScript.s.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
 // Use to Deploy only an AlephVault implementation.
-// forge script DeployAlephVaultImplementation --rpc-url $RPC_URL --private-key $DEPLOYER_PRIVATE_KEY --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
-contract DeployAlephVaultImplementation is Script {
+// forge script DeployAlephVaultImplementation --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
+contract DeployAlephVaultImplementation is BaseScript {
     AlephVault public vault;
 
     function setUp() public {}
 
     function run() public {
-        vm.startBroadcast();
+        string memory _chainId = _getChainId();
+        vm.createSelectFork(_chainId);
+        uint256 _privateKey = _getPrivateKey();
+        vm.startBroadcast(_privateKey);
         IAlephVault.ConstructorParams memory _constructorParams;
 
         if (block.chainid == 560_048) {
