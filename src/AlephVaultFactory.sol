@@ -22,7 +22,7 @@ import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconP
 import {AlephVaultFactoryStorage, AlephVaultFactoryStorageData} from "./AlephVaultFactoryStorage.sol";
 import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
-import {CREATE3} from "solmate/utils/CREATE3.sol";
+import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 import {AlephVault} from "./AlephVault.sol";
 import {RolesLibrary} from "./RolesLibrary.sol";
 
@@ -61,7 +61,8 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             type(BeaconProxy).creationCode,
             abi.encode(_sd.beacon, abi.encodeCall(AlephVault.initialize, (_initalizationParams)))
         );
-        address _vault = CREATE3.deploy(_salt, _bytecode, 0);
+
+        address _vault = Create2.deploy(0, _salt, _bytecode);
         _sd.vaults[_vault] = true;
         emit VaultDeployed(_vault, _initalizationParams.manager, _initalizationParams.name);
         return _vault;

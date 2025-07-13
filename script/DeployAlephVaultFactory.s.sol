@@ -37,14 +37,9 @@ contract DeployAlephVaultFactory is BaseScript {
     function run(address _proxyOwner, address _beacon) public {
         string memory _chainId = _getChainId();
         vm.createSelectFork(_chainId);
-        bytes memory _initializeArgs;
-        if (block.chainid == 560_048) {
-            _initializeArgs = abi.encodeWithSelector(
-                AlephVaultFactory.initialize.selector, IAlephVaultFactory.InitializationParams({beacon: _beacon})
-            );
-        } else {
-            revert("Unsupported chain");
-        }
+        bytes memory _initializeArgs = abi.encodeWithSelector(
+            AlephVaultFactory.initialize.selector, IAlephVaultFactory.InitializationParams({beacon: _beacon})
+        );
 
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);

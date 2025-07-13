@@ -33,4 +33,9 @@ abstract contract BaseScript is Script {
         string memory _chainIdFromPrompt = vm.prompt("Enter chain id");
         return _chainIdFromPrompt;
     }
+
+    function _getConfigFile() internal returns (string memory) {
+        string memory _config = vm.readFile("config.json");
+        return _config;
+    }
 }

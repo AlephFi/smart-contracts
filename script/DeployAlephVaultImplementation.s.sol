@@ -28,8 +28,6 @@ import {BaseScript} from "./BaseScript.s.sol";
 // Use to Deploy only an AlephVault implementation.
 // forge script DeployAlephVaultImplementation --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
 contract DeployAlephVaultImplementation is BaseScript {
-    AlephVault public vault;
-
     function setUp() public {}
 
     function run() public {
@@ -38,19 +36,21 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
         IAlephVault.ConstructorParams memory _constructorParams;
+        string memory _config = _getConfigFile();
+        address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
+        address _oracle = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".oracle"));
+        address _guardian = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".guardian"));
+        console.log("operationsMultisig", _operationsMultisig);
+        console.log("oracle", _oracle);
+        console.log("guardian", _guardian);
+        _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: _operationsMultisig,
+            oracle: _oracle,
+            guardian: _guardian
+        });
 
-        if (block.chainid == 560_048) {
-            _constructorParams = IAlephVault.ConstructorParams({
-                operationsMultisig: 0x7f7eb0b9aC4f796fb96912A7184603EB2633f584,
-                oracle: 0x7f7eb0b9aC4f796fb96912A7184603EB2633f584,
-                guardian: 0x7f7eb0b9aC4f796fb96912A7184603EB2633f584
-            });
-        } else {
-            revert("Unsupported chain");
-        }
-
-        vault = new AlephVault(_constructorParams);
-        console.log("Vault implementation deployed at:", address(vault));
+        AlephVault _vault = new AlephVault(_constructorParams);
+        console.log("Vault implementation deployed at:", address(_vault));
 
         vm.stopBroadcast();
     }

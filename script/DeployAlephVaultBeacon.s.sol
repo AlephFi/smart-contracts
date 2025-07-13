@@ -27,18 +27,13 @@ import {BaseScript} from "./BaseScript.s.sol";
 // Use to Deploy only an AlephVault beacon.
 // forge script DeployAlephVaultBeacon --sig="run(address, address)" <_vaultImplementation> <_beaconOwner> --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
 contract DeployAlephVaultBeacon is BaseScript {
-    UpgradeableBeacon public beacon;
-
     function setUp() public {}
 
     function run(address _vaultImplementation, address _beaconOwner) public {
-        string memory _chainId = _getChainId();
-        vm.createSelectFork(_chainId);
-        uint256 _privateKey = _getPrivateKey();
-        vm.startBroadcast(_privateKey);
+        vm.startBroadcast();
 
-        beacon = new UpgradeableBeacon(_vaultImplementation, _beaconOwner);
-        console.log("UpgradeableBeacon deployed at:", address(beacon));
+        UpgradeableBeacon _beacon = new UpgradeableBeacon(_vaultImplementation, _beaconOwner);
+        console.log("UpgradeableBeacon deployed at:", address(_beacon));
 
         vm.stopBroadcast();
     }
