@@ -25,41 +25,42 @@ import {TestToken} from "./exposes/TestToken.sol";
 import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
-
+import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 contract AlephVaultTest is Test {
     using SafeERC20 for IERC20;
 
     ExposedVault public vault;
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
-    uint48 public batchDuration = 2000;
-    address public admin = makeAddr("admin");
+    uint48 public batchDuration = 1 days;
+    address public manager = makeAddr("manager");
     address public operationsMultisig = makeAddr("operationsMultisig");
     address public operator = makeAddr("operator");
     address public custodian = makeAddr("custodian");
     address public oracle = makeAddr("oracle");
     address public guardian = makeAddr("guardian");
 
-    TestToken public erc20 = new TestToken();
+    TestToken public underlyingToken = new TestToken();
 
     function setUp() public {
-        erc20.mint(user, 1000);
-        erc20.mint(user2, 1000);
-        erc20.mint(admin, 10_000);
-        vault = new ExposedVault();
+        vm.chainId(560_048);
+        underlyingToken.mint(user, 1000);
+        underlyingToken.mint(user2, 1000);
+        underlyingToken.mint(manager, 10_000);
+        vault = new ExposedVault(
+            IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
+        );
         vault.initialize(
             IAlephVault.InitializationParams({
-                admin: admin,
-                operationsMultisig: operationsMultisig,
-                oracle: oracle,
-                erc20: address(erc20),
-                custodian: custodian,
-                batchDuration: batchDuration,
-                guardian: guardian
+                name: "test",
+                manager: manager,
+                underlyingToken: address(underlyingToken),
+                custodian: custodian
             })
         );
     }
@@ -67,7 +68,7 @@ contract AlephVaultTest is Test {
     function test_noBatchAvailable() public {
         vm.prank(user);
         uint256 _amount = 100;
-        erc20.approve(address(vault), _amount);
+        underlyingToken.approve(address(vault), _amount);
         vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
         vault.requestDeposit(_amount);
     }
@@ -122,7 +123,7 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
         uint256 _amount = 100;
         vm.startPrank(user);
-        erc20.approve(address(vault), _amount * 2);
+        underlyingToken.approve(address(vault), _amount * 2);
         vault.requestDeposit(_amount);
         vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
         vault.requestDeposit(_amount);
@@ -244,7 +245,7 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         uint256 amount1b = 200;
         userDepositRequest(user, amount1a);
@@ -277,9 +278,9 @@ contract AlephVaultTest is Test {
         assertEq(vault.pendingTotalSharesToRedeem(), amount1a);
         vm.stopPrank();
 
-        vm.startPrank(admin);
-        erc20.approve(address(vault), amount1a);
-        erc20.transfer(address(vault), amount1a);
+        vm.startPrank(manager);
+        underlyingToken.approve(address(vault), amount1a);
+        underlyingToken.transfer(address(vault), amount1a);
         vm.stopPrank();
 
         vm.warp(block.timestamp + batchDuration);
@@ -291,7 +292,7 @@ contract AlephVaultTest is Test {
         assertEq(vault.totalShares(), totalAssetsAfterBatch1 - amount1a);
         assertEq(vault.pendingTotalAssetsToRedeem(), 0);
         assertEq(vault.pendingTotalSharesToRedeem(), 0);
-        assertEq(erc20.balanceOf(user), balanceBeforeOfUser);
+        assertEq(underlyingToken.balanceOf(user), balanceBeforeOfUser);
     }
 
     function test_requestRedeem_and_settleRedeem_noFundsInVault() public {
@@ -299,7 +300,7 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         uint256 amount1b = 200;
         userDepositRequest(user, amount1a);
@@ -346,7 +347,7 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         uint256 amount1b = 200;
         userDepositRequest(user, amount1a);
@@ -380,9 +381,9 @@ contract AlephVaultTest is Test {
         assertEq(vault.pendingTotalSharesToRedeem(), amountToRedeem);
         vm.stopPrank();
 
-        vm.startPrank(admin);
-        erc20.approve(address(vault), amountToRedeem);
-        erc20.transfer(address(vault), amountToRedeem);
+        vm.startPrank(manager);
+        underlyingToken.approve(address(vault), amountToRedeem);
+        underlyingToken.transfer(address(vault), amountToRedeem);
         vm.stopPrank();
 
         vm.warp(block.timestamp + batchDuration);
@@ -394,14 +395,14 @@ contract AlephVaultTest is Test {
         assertEq(vault.totalShares(), totalAssetsAfterBatch1 - amountToRedeem);
         assertEq(vault.pendingTotalAssetsToRedeem(), 0);
         assertEq(vault.pendingTotalSharesToRedeem(), 0);
-        assertEq(erc20.balanceOf(user), balanceBeforeOfUser - amountToRedeem);
+        assertEq(underlyingToken.balanceOf(user), balanceBeforeOfUser - amountToRedeem);
     }
 
     function test_partialRedeemInSameBatch() public {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = erc20.balanceOf(user);
+        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         userDepositRequest(user, amount1a);
 
@@ -425,19 +426,19 @@ contract AlephVaultTest is Test {
         vm.stopPrank();
     }
 
-    function test_setMetadataUrl() public {
-        vm.startPrank(admin);
-        string memory _metadataUrl = "metadataUrl";
+    function test_setMetadataUri() public {
+        vm.startPrank(manager);
+        string memory _metadataUri = "metadataUri";
         vm.expectEmit(address(vault));
-        emit IAlephVault.MetadataUrlSet(_metadataUrl);
-        vault.setMetadataUrl(_metadataUrl);
-        assertEq(vault.metadataUrl(), _metadataUrl);
+        emit IAlephVault.MetadataUriSet(_metadataUri);
+        vault.setMetadataUri(_metadataUri);
+        assertEq(vault.metadataUri(), _metadataUri);
         vm.stopPrank();
     }
 
     function userDepositRequest(address _user, uint256 _amount) private {
         vm.startPrank(_user);
-        erc20.approve(address(vault), _amount);
+        underlyingToken.approve(address(vault), _amount);
         vault.requestDeposit(_amount);
         vm.stopPrank();
     }

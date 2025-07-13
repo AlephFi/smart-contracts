@@ -22,16 +22,19 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 interface IAlephVault {
     error InvalidInitializationParams();
 
-    event MetadataUrlSet(string metadataUrl);
+    event MetadataUriSet(string metadataUri);
 
-    struct InitializationParams {
-        address admin;
+    struct ConstructorParams {
         address operationsMultisig;
         address oracle;
         address guardian;
-        address erc20;
+    }
+
+    struct InitializationParams {
+        string name;
+        address manager;
+        address underlyingToken;
         address custodian;
-        uint48 batchDuration;
     }
 
     struct BatchData {
@@ -45,6 +48,12 @@ interface IAlephVault {
     }
 
     // View functions
+
+    /**
+     * @notice Returns the underlying token of the vault.
+     * @return The underlying token.
+     */
+    function underlyingToken() external view returns (address);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.
@@ -112,11 +121,17 @@ interface IAlephVault {
      * @notice Returns the metadata URL of the vault.
      * @return The metadata URL.
      */
-    function metadataUrl() external view returns (string memory);
+    function metadataUri() external view returns (string memory);
+
+    /**
+     * @notice Returns the name of the vault.
+     * @return The name.
+     */
+    function name() external view returns (string memory);
 
     /**
      * @notice Sets the metadata URL of the vault.
      * @param _metadataUrl The new metadata URL.
      */
-    function setMetadataUrl(string calldata _metadataUrl) external;
+    function setMetadataUri(string calldata _metadataUrl) external;
 }

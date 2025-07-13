@@ -19,15 +19,11 @@ import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 
 struct AlephVaultStorageData {
-    string metadataUrl;
-    address admin;
-    address operationsMultisig;
-    address oracle;
-    address guardian;
-    address erc20;
+    string name;
+    string metadataUri;
+    address manager;
+    address underlyingToken;
     address custodian;
-    //uint128 totalAssetsExpiration;
-    //uint128 totalAssetsLifespan;
     uint48 batchDuration;
     uint48 startTimeStamp;
     uint48 depositSettleId;

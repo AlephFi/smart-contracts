@@ -28,6 +28,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {RolesLibrary} from "./RolesLibrary.sol";
 import {AlephVaultDeposit} from "./AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
+import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -37,6 +38,23 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
+
+    address public immutable OPERATIONS_MULTISIG;
+    address public immutable ORACLE;
+    address public immutable GUARDIAN;
+
+    /**
+     * @notice Constructor.
+     * @param _constructorParams Struct containing all initialization parameters.
+     */
+    constructor(IAlephVault.ConstructorParams memory _constructorParams) {
+        OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
+        ORACLE = _constructorParams.oracle;
+        GUARDIAN = _constructorParams.guardian;
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _constructorParams.operationsMultisig);
+        _grantRole(RolesLibrary.ORACLE, _constructorParams.oracle);
+        _grantRole(RolesLibrary.GUARDIAN, _constructorParams.guardian);
+    }
 
     /**
      * @notice Initializes the vault with the given parameters.
@@ -54,24 +72,23 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.admin == address(0) || _initalizationParams.operationsMultisig == address(0)
-                || _initalizationParams.oracle == address(0) || _initalizationParams.erc20 == address(0)
-                || _initalizationParams.custodian == address(0) || _initalizationParams.batchDuration == 0
-                || _initalizationParams.guardian == address(0)
+            _initalizationParams.manager == address(0) || _initalizationParams.underlyingToken == address(0)
+                || _initalizationParams.custodian == address(0)
         ) {
             revert InvalidInitializationParams();
         }
-        _sd.admin = _initalizationParams.admin;
-        _sd.operationsMultisig = _initalizationParams.operationsMultisig;
-        _sd.guardian = _initalizationParams.guardian;
-        _sd.oracle = _initalizationParams.oracle;
-        _sd.erc20 = _initalizationParams.erc20;
+        _sd.manager = _initalizationParams.manager;
+        _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
-        _sd.batchDuration = _initalizationParams.batchDuration;
+        _sd.batchDuration = 1 days;
+        _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
-        _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
-        _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
-        _grantRole(RolesLibrary.ADMIN, _initalizationParams.admin);
+        _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
+    }
+
+    /// @inheritdoc IAlephVault
+    function underlyingToken() external view override(IAlephVault) returns (address) {
+        return _getStorage().underlyingToken;
     }
 
     /// @inheritdoc IAlephVault
@@ -126,14 +143,23 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     }
 
     /// @inheritdoc IAlephVault
-    function metadataUrl() external view returns (string memory) {
-        return _getStorage().metadataUrl;
+    function metadataUri() external view returns (string memory) {
+        return _getStorage().metadataUri;
     }
 
     /// @inheritdoc IAlephVault
-    function setMetadataUrl(string calldata _metadataUrl) external override(IAlephVault) onlyRole(RolesLibrary.ADMIN) {
-        _getStorage().metadataUrl = _metadataUrl;
-        emit MetadataUrlSet(_metadataUrl);
+    function name() external view returns (string memory) {
+        return _getStorage().name;
+    }
+
+    /// @inheritdoc IAlephVault
+    function setMetadataUri(string calldata _metadataUri)
+        external
+        override(IAlephVault)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _getStorage().metadataUri = _metadataUri;
+        emit MetadataUriSet(_metadataUri);
     }
 
     /**
