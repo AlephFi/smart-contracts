@@ -33,7 +33,7 @@ interface IAlephVault {
     struct InitializationParams {
         string name;
         address admin;
-        address erc20;
+        address underlyingToken;
         address custodian;
     }
 

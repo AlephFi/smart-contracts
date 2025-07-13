@@ -14,7 +14,7 @@ contract AlephVaultFactoryTest is Test {
     address operationsMultisig = address(0x1234);
     address oracle = address(0x5678);
     address guardian = address(0x9ABC);
-    address erc20 = address(0xDEF0);
+    address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
     AlephVault vaultImpl = new AlephVault(
         IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
@@ -35,7 +35,7 @@ contract AlephVaultFactoryTest is Test {
 
     function testDeployVaultAndIsValidVault() public {
         IAlephVault.InitializationParams memory params =
-            IAlephVault.InitializationParams({name: name, admin: admin, erc20: erc20, custodian: custodian});
+            IAlephVault.InitializationParams({name: name, admin: admin, underlyingToken: underlyingToken, custodian: custodian});
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
     }

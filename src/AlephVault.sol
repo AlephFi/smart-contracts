@@ -72,13 +72,13 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.admin == address(0) || _initalizationParams.erc20 == address(0)
+            _initalizationParams.admin == address(0) || _initalizationParams.underlyingToken == address(0)
                 || _initalizationParams.custodian == address(0)
         ) {
             revert InvalidInitializationParams();
         }
         _sd.admin = _initalizationParams.admin;
-        _sd.erc20 = _initalizationParams.erc20;
+        _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;

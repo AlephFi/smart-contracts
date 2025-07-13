@@ -22,7 +22,7 @@ struct AlephVaultStorageData {
     string name;
     string metadataUrl;
     address admin;
-    address erc20;
+    address underlyingToken;
     address custodian;
     uint48 batchDuration;
     uint48 startTimeStamp;

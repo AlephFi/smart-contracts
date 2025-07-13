@@ -108,7 +108,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
             uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
             _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
         }
-        IERC20(_sd.erc20).safeTransfer(_sd.custodian, _amountToSettle);
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
         _sd.depositSettleId = _currentBatchId;
     }
@@ -163,10 +163,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
         _sd.lastDepositBatchId[_user] = _currentBatchId;
-        IERC20 _erc20 = IERC20(_sd.erc20);
-        uint256 _balanceBefore = _erc20.balanceOf(address(this));
-        _erc20.safeTransferFrom(_user, address(this), _amount);
-        uint256 _depositedAmount = _erc20.balanceOf(address(this)) - _balanceBefore;
+        IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
+        uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
+        _underlyingToken.safeTransferFrom(_user, address(this), _amount);
+        uint256 _depositedAmount = _underlyingToken.balanceOf(address(this)) - _balanceBefore;
         if (_depositedAmount == 0) {
             revert InsufficientDeposit();
         }

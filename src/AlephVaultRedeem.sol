@@ -132,13 +132,13 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         }
         uint256 _totalShares = totalShares();
         uint256 _totalAassetsToRedeem;
-        IERC20 _erc20 = IERC20(_sd.erc20);
+        IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         for (uint256 i = 0; i < _batch.usersToRedeem.length; i++) {
             address _user = _batch.usersToRedeem[i];
             uint256 _sharesToBurnPerUser = _batch.redeemRequest[_user];
             uint256 _assets = ERC4626Math.previewRedeem(_sharesToBurnPerUser, _totalAssets, _totalShares);
             _totalAassetsToRedeem += _assets;
-            _erc20.safeTransfer(_user, _assets);
+            _underlyingToken.safeTransfer(_user, _assets);
         }
         _sd.shares.push(_timestamp, _totalShares - _batch.totalSharesToRedeem);
         _sd.assets.push(_timestamp, _totalAssets - _totalAassetsToRedeem);
