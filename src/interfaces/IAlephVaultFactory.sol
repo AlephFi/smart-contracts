@@ -24,7 +24,7 @@ import {IAlephVault} from "./IAlephVault.sol";
 interface IAlephVaultFactory {
     error UnsupportedChain();
 
-    event VaultDeployed(address indexed vault, address indexed admin, string name);
+    event VaultDeployed(address indexed vault, address indexed manager, string name);
 
     struct InitializationParams {
         address beacon;

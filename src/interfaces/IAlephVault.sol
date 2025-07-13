@@ -32,7 +32,7 @@ interface IAlephVault {
 
     struct InitializationParams {
         string name;
-        address admin;
+        address manager;
         address underlyingToken;
         address custodian;
     }
@@ -48,6 +48,12 @@ interface IAlephVault {
     }
 
     // View functions
+
+    /**
+     * @notice Returns the underlying token of the vault.
+     * @return The underlying token.
+     */
+    function underlyingToken() external view returns (address);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.

@@ -21,7 +21,7 @@ import {Checkpoints} from "./libraries/Checkpoints.sol";
 struct AlephVaultStorageData {
     string name;
     string metadataUrl;
-    address admin;
+    address manager;
     address underlyingToken;
     address custodian;
     uint48 batchDuration;

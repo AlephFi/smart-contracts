@@ -38,7 +38,7 @@ contract AlephVaultTest is Test {
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
     uint48 public batchDuration = 1 days;
-    address public admin = makeAddr("admin");
+    address public manager = makeAddr("manager");
     address public operationsMultisig = makeAddr("operationsMultisig");
     address public operator = makeAddr("operator");
     address public custodian = makeAddr("custodian");
@@ -51,12 +51,12 @@ contract AlephVaultTest is Test {
         vm.chainId(560_048);
         underlyingToken.mint(user, 1000);
         underlyingToken.mint(user2, 1000);
-        underlyingToken.mint(admin, 10_000);
+        underlyingToken.mint(manager, 10_000);
         vault = new ExposedVault(
             IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
         );
         vault.initialize(
-            IAlephVault.InitializationParams({name: "test", admin: admin, underlyingToken: address(underlyingToken), custodian: custodian})
+            IAlephVault.InitializationParams({name: "test", manager: manager, underlyingToken: address(underlyingToken), custodian: custodian})
         );
     }
 
@@ -273,7 +273,7 @@ contract AlephVaultTest is Test {
         assertEq(vault.pendingTotalSharesToRedeem(), amount1a);
         vm.stopPrank();
 
-        vm.startPrank(admin);
+        vm.startPrank(manager);
         underlyingToken.approve(address(vault), amount1a);
         underlyingToken.transfer(address(vault), amount1a);
         vm.stopPrank();
@@ -376,7 +376,7 @@ contract AlephVaultTest is Test {
         assertEq(vault.pendingTotalSharesToRedeem(), amountToRedeem);
         vm.stopPrank();
 
-        vm.startPrank(admin);
+        vm.startPrank(manager);
         underlyingToken.approve(address(vault), amountToRedeem);
         underlyingToken.transfer(address(vault), amountToRedeem);
         vm.stopPrank();
@@ -422,7 +422,7 @@ contract AlephVaultTest is Test {
     }
 
     function test_setMetadataUrl() public {
-        vm.startPrank(admin);
+        vm.startPrank(manager);
         string memory _metadataUrl = "metadataUrl";
         vm.expectEmit(address(vault));
         emit IAlephVault.MetadataUrlSet(_metadataUrl);

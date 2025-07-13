@@ -9,7 +9,7 @@ import {AlephVault} from "../src/AlephVault.sol";
 
 contract AlephVaultFactoryTest is Test {
     AlephVaultFactory factory;
-    address admin = address(0xABCD);
+    address manager = address(0xABCD);
     string name = "TestVault";
     address operationsMultisig = address(0x1234);
     address oracle = address(0x5678);
@@ -35,7 +35,7 @@ contract AlephVaultFactoryTest is Test {
 
     function testDeployVaultAndIsValidVault() public {
         IAlephVault.InitializationParams memory params =
-            IAlephVault.InitializationParams({name: name, admin: admin, underlyingToken: underlyingToken, custodian: custodian});
+            IAlephVault.InitializationParams({name: name, manager: manager, underlyingToken: underlyingToken, custodian: custodian});
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
     }

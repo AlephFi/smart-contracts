@@ -72,18 +72,23 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.admin == address(0) || _initalizationParams.underlyingToken == address(0)
+            _initalizationParams.manager == address(0) || _initalizationParams.underlyingToken == address(0)
                 || _initalizationParams.custodian == address(0)
         ) {
             revert InvalidInitializationParams();
         }
-        _sd.admin = _initalizationParams.admin;
+        _sd.manager = _initalizationParams.manager;
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
-        _grantRole(RolesLibrary.ADMIN, _initalizationParams.admin);
+        _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
+    }
+
+    /// @inheritdoc IAlephVault
+    function underlyingToken() external view override(IAlephVault) returns (address) {
+        return _getStorage().underlyingToken;
     }
 
     /// @inheritdoc IAlephVault
@@ -148,7 +153,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     }
 
     /// @inheritdoc IAlephVault
-    function setMetadataUrl(string calldata _metadataUrl) external override(IAlephVault) onlyRole(RolesLibrary.ADMIN) {
+    function setMetadataUrl(string calldata _metadataUrl) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
         _getStorage().metadataUrl = _metadataUrl;
         emit MetadataUrlSet(_metadataUrl);
     }

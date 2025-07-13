@@ -55,7 +55,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
      * @return The address of the new vault.
      */
     function deployVault(IAlephVault.InitializationParams calldata _initalizationParams) external returns (address) {
-        bytes32 _salt = keccak256(abi.encodePacked(_initalizationParams.admin, _initalizationParams.name));
+        bytes32 _salt = keccak256(abi.encodePacked(_initalizationParams.manager, _initalizationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
         bytes memory _bytecode = abi.encodePacked(
             type(BeaconProxy).creationCode,
@@ -63,7 +63,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         );
         address _vault = CREATE3.deploy(_salt, _bytecode, 0);
         _sd.vaults[_vault] = true;
-        emit VaultDeployed(_vault, _initalizationParams.admin, _initalizationParams.name);
+        emit VaultDeployed(_vault, _initalizationParams.manager, _initalizationParams.name);
         return _vault;
     }
 
