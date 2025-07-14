@@ -29,12 +29,12 @@ import {RolesLibrary} from "./RolesLibrary.sol";
 import {AlephVaultDeposit} from "./AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
 import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
-
+import {AlephPausable} from "./AlephPausable.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessControlUpgradeable {
+contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
@@ -50,7 +50,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
         ORACLE = _constructorParams.oracle;
-        GUARDIAN = _constructorParams.guardian;
+        GUARDIAN = _constructorParams.guardian;     
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _constructorParams.operationsMultisig);
         _grantRole(RolesLibrary.ORACLE, _constructorParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _constructorParams.guardian);
@@ -84,6 +84,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
+        __AlephVaultDeposit_init(_initalizationParams.manager);
+        __AlephVaultRedeem_init(_initalizationParams.manager);
     }
 
     /// @inheritdoc IAlephVault
@@ -95,6 +97,16 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     function currentBatch() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (uint48) {
         AlephVaultStorageData storage _sd = _getStorage();
         return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
+    }
+
+    /// @inheritdoc IAlephVault
+    function operationsMultisig() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (address) {
+        return OPERATIONS_MULTISIG;
+    }
+
+    /// @inheritdoc IAlephVault
+    function guardian() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (address) {
+        return GUARDIAN;
     }
 
     /// @inheritdoc IAlephVault

@@ -23,14 +23,27 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {ERC4626Math} from "./libraries/ERC4626Math.sol";
+import {AlephPausable} from "./AlephPausable.sol";
+import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-abstract contract AlephVaultRedeem is IERC7540Redeem {
+abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
+
+    function __AlephVaultRedeem_init(address _manager) internal onlyInitializing {
+        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.REDEEM_REQUEST_FLOW] = true;
+        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, _manager);
+        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, guardian());
+        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, operationsMultisig());
+    }
+
+    function operationsMultisig() public view virtual returns (address);
+
+    function guardian() public view virtual returns (address);
 
     /**
      * @notice Returns the current batch ID.
@@ -77,7 +90,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     }
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
+    function requestRedeem(uint256 _shares) external whenFlowNotPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW) returns (uint48 _batchId) {
         return _requestRedeem(_shares);
     }
 

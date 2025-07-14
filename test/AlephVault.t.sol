@@ -26,6 +26,7 @@ import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
+import {PausableFlowsLibrary} from "../src/PausableFlowsLibrary.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -63,6 +64,10 @@ contract AlephVaultTest is Test {
                 custodian: custodian
             })
         );
+        vm.startPrank(manager);
+        vault.unpause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
+        vault.unpause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
+        vm.stopPrank();
     }
 
     function test_noBatchAvailable() public {
