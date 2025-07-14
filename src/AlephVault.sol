@@ -50,7 +50,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
         ORACLE = _constructorParams.oracle;
-        GUARDIAN = _constructorParams.guardian;     
+        GUARDIAN = _constructorParams.guardian;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _constructorParams.operationsMultisig);
         _grantRole(RolesLibrary.ORACLE, _constructorParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _constructorParams.guardian);
