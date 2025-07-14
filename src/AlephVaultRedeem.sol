@@ -36,9 +36,13 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
 
     function __AlephVaultRedeem_init(address _manager) internal onlyInitializing {
         _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.REDEEM_REQUEST_FLOW] = true;
+        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.SETTLE_REDEEM_FLOW] = true;
         _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, _manager);
         _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, guardian());
         _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, operationsMultisig());
+        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, _manager);
+        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, guardian());
+        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, operationsMultisig());
     }
 
     function operationsMultisig() public view virtual returns (address);

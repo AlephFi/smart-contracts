@@ -36,9 +36,13 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
 
     function __AlephVaultDeposit_init(address _manager) internal onlyInitializing {
         _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW] = true;
+        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW] = true;
         _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, _manager);
         _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, guardian());
         _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, operationsMultisig());
+        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, _manager);
+        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, guardian());
+        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, operationsMultisig());
     }
 
     function operationsMultisig() public view virtual returns (address);

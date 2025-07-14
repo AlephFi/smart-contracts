@@ -68,7 +68,29 @@ contract AlephVaultTest is Test {
         vm.startPrank(manager);
         vault.unpause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
         vault.unpause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
+        vault.unpause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
+        vault.unpause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
         vm.stopPrank();
+    }
+
+    function test_pauseAndUnpauseSettleDepositFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), true);
+        vm.prank(oracle);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.settleDeposit(100);
+    }
+
+    function test_pauseAndUnpauseSettleRedeemFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), true);
+        vm.prank(oracle);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.settleRedeem(100);
     }
 
     function test_pauseAndUnpauseRedeemRequestFlow() public {

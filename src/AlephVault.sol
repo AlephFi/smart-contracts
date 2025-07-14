@@ -30,6 +30,7 @@ import {AlephVaultDeposit} from "./AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
 import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 import {AlephPausable} from "./AlephPausable.sol";
+import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -189,6 +190,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         external
         override(AlephVaultDeposit)
         onlyRole(RolesLibrary.ORACLE)
+        whenFlowNotPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW)
     {
         _settleDeposit(_newTotalAssets);
     }
@@ -198,7 +200,12 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @param _newTotalAssets The new total assets after settlement.
      * @dev Only callable by the ORACLE role.
      */
-    function settleRedeem(uint256 _newTotalAssets) external override(AlephVaultRedeem) onlyRole(RolesLibrary.ORACLE) {
+    function settleRedeem(uint256 _newTotalAssets)
+        external
+        override(AlephVaultRedeem)
+        onlyRole(RolesLibrary.ORACLE)
+        whenFlowNotPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW)
+    {
         _settleRedeem(_newTotalAssets);
     }
 
