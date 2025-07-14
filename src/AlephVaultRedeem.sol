@@ -83,7 +83,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
         for (uint48 _batchId = _sd.redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
-            _totalSharesToRedeem += _sd.batchs[_batchId].totalSharesToRedeem;
+            _totalSharesToRedeem += _sd.batches[_batchId].totalSharesToRedeem;
         }
     }
 
@@ -105,7 +105,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
     /// @inheritdoc IERC7540Redeem
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares) {
         AlephVaultStorageData storage _sd = _getStorage();
-        IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
         if (_batchId < _sd.redeemSettleId) {
             revert BatchAlreadyRedeemed();
         }
@@ -147,7 +147,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
         uint48 _timestamp,
         uint256 _totalAssets
     ) internal returns (uint256) {
-        IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
         if (_batch.totalSharesToRedeem == 0) {
             return 0;
         }
@@ -188,7 +188,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
         _sd.lastRedeemBatchId[_user] = _currentBatchId;
-        IAlephVault.BatchData storage _batch = _sd.batchs[_currentBatchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
         _batch.redeemRequest[_user] += _sharesToRedeem;
         _batch.totalSharesToRedeem += _sharesToRedeem;
         _batch.usersToRedeem.push(_user);

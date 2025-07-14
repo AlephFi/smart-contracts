@@ -349,7 +349,6 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         uint256 amount1b = 200;
         userDepositRequest(user, amount1a);
@@ -451,7 +450,6 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         userDepositRequest(user, amount1a);
 
@@ -461,7 +459,6 @@ contract AlephVaultTest is Test {
         assertEq(batch2, 2);
 
         // Oracle value after batch 1 deposits
-        uint256 totalAssetsAfterBatch1 = amount1a;
         vm.prank(oracle);
         vault.settleDeposit(0);
 

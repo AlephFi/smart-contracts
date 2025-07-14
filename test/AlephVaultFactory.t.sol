@@ -44,7 +44,7 @@ contract AlephVaultFactoryTest is Test {
         assertTrue(factory.isValidVault(vault));
     }
 
-    function testIsValidVaultFalseForUnknown() public {
+    function testIsValidVaultFalseForUnknown() public view {
         assertFalse(factory.isValidVault(address(0xBEEF)));
     }
 }

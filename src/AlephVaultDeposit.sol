@@ -83,7 +83,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
         for (uint48 _batchId = _sd.depositSettleId; _batchId <= _currentBatchId; _batchId++) {
-            _totalAmountToDeposit += _sd.batchs[_batchId].totalAmountToDeposit;
+            _totalAmountToDeposit += _sd.batches[_batchId].totalAmountToDeposit;
         }
     }
 
@@ -105,7 +105,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
     /// @inheritdoc IERC7540Deposit
     function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount) {
         AlephVaultStorageData storage _sd = _getStorage();
-        IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
         if (_batchId < _sd.depositSettleId) {
             revert BatchAlreadySettledForDeposit();
         }
@@ -148,7 +148,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
         uint48 _timestamp,
         uint256 _totalAssets
     ) internal returns (uint256) {
-        IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
         if (_batch.totalAmountToDeposit == 0) {
             return 0;
         }
@@ -191,7 +191,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
         if (_depositedAmount == 0) {
             revert InsufficientDeposit();
         }
-        IAlephVault.BatchData storage _batch = _sd.batchs[_currentBatchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
         _batch.depositRequest[_user] += _depositedAmount;
         _batch.totalAmountToDeposit += _depositedAmount;
         _batch.usersToDeposit.push(_user);
