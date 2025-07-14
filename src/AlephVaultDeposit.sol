@@ -26,7 +26,6 @@ import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {AlephPausable} from "./AlephPausable.sol";
 import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
 
-
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -91,7 +90,11 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
     }
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(uint256 _amount) external whenFlowNotPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW) returns (uint48 _batchId) {
+    function requestDeposit(uint256 _amount)
+        external
+        whenFlowNotPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW)
+        returns (uint48 _batchId)
+    {
         return _requestDeposit(_amount);
     }
 

@@ -90,7 +90,11 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
     }
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint256 _shares) external whenFlowNotPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW) returns (uint48 _batchId) {
+    function requestRedeem(uint256 _shares)
+        external
+        whenFlowNotPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW)
+        returns (uint48 _batchId)
+    {
         return _requestRedeem(_shares);
     }
 

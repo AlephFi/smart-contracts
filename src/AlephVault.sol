@@ -34,6 +34,7 @@ import {AlephPausable} from "./AlephPausable.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
@@ -100,7 +101,12 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     }
 
     /// @inheritdoc IAlephVault
-    function operationsMultisig() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (address) {
+    function operationsMultisig()
+        public
+        view
+        override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault)
+        returns (address)
+    {
         return OPERATIONS_MULTISIG;
     }
 

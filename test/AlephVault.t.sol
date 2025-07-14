@@ -33,7 +33,6 @@ import {IAlephPausable} from "../src/interfaces/IAlephPausable.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
 contract AlephVaultTest is Test {
     using SafeERC20 for IERC20;
 

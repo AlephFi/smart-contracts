@@ -22,6 +22,7 @@ struct AlephPausableStorageData {
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 library AlephPausableStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.pausable.flows")) - 1;
 
