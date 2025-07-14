@@ -30,6 +30,6 @@ contract ExposedVault is AlephVault {
     }
 
     function setBatchDepositRequest(uint48 _batchId, address _user, uint256 _amount) external {
-        _getStorage().batchs[_batchId].depositRequest[_user] = _amount;
+        _getStorage().batches[_batchId].depositRequest[_user] = _amount;
     }
 }

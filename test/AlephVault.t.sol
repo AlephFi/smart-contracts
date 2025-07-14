@@ -165,7 +165,6 @@ contract AlephVaultTest is Test {
     function test_currentBatch() public {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
         uint48 _currentBatchId = vault.currentBatch();
-        console.log("currentBatchId", _currentBatchId);
         assertEq(_currentBatchId, 1);
     }
 
