@@ -132,6 +132,7 @@ contract AlephVaultTest is Test {
         vm.startPrank(user);
         assertEq(vault.pendingDepositRequest(_currentBatchId), _amount1);
         assertEq(vault.sharesOf(user), 0);
+        assertEq(vault.sharesOf(user2), 0);
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.totalShares(), 0);
         vm.stopPrank();
@@ -144,8 +145,8 @@ contract AlephVaultTest is Test {
         assertEq(vault.totalShares(), 0);
 
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
-        uint48 _newcurrentBatchId = vault.currentBatch();
-        assertEq(_newcurrentBatchId, 2);
+        uint48 _newCurrentBatchId = vault.currentBatch();
+        assertEq(_newCurrentBatchId, 2);
         vm.stopPrank();
         vm.prank(oracle);
         vault.settleDeposit(0);
