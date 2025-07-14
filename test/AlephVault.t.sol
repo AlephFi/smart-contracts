@@ -27,6 +27,8 @@ import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IE
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
 import {PausableFlowsLibrary} from "../src/PausableFlowsLibrary.sol";
+import {IAlephPausable} from "../src/interfaces/IAlephPausable.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -67,6 +69,27 @@ contract AlephVaultTest is Test {
         vm.startPrank(manager);
         vault.unpause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
         vault.unpause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
+        vm.stopPrank();
+    }
+
+    function test_pauseAndUnpauseRedeemRequestFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), true);
+        vm.prank(user);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.requestRedeem(100);
+    }
+
+    function test_pauseAndUnpauseDepositRequestFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), true);
+        vm.prank(user);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.requestDeposit(100);
         vm.stopPrank();
     }
 
