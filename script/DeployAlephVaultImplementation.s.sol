@@ -47,6 +47,8 @@ contract DeployAlephVaultImplementation is BaseScript {
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFeeTimelock")));
         uint48 _performanceFeeTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFeeTimelock")));
+        uint48 _feeRecipientTimelock =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
         console.log("operationsMultisig", _operationsMultisig);
         console.log("oracle", _oracle);
         console.log("guardian", _guardian);
@@ -54,6 +56,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("maxPerformanceFee", _maxPerformanceFee);
         console.log("managementFeeTimelock", _managementFeeTimelock);
         console.log("performanceFeeTimelock", _performanceFeeTimelock);
+        console.log("feeRecipientTimelock", _feeRecipientTimelock);
         _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: _operationsMultisig,
             oracle: _oracle,
@@ -61,7 +64,8 @@ contract DeployAlephVaultImplementation is BaseScript {
             maxManagementFee: _maxManagementFee,
             maxPerformanceFee: _maxPerformanceFee,
             managementFeeTimelock: _managementFeeTimelock,
-            performanceFeeTimelock: _performanceFeeTimelock
+            performanceFeeTimelock: _performanceFeeTimelock,
+            feeRecipientTimelock: _feeRecipientTimelock
         });
 
         AlephVault _vault = new AlephVault(_constructorParams);

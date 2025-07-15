@@ -32,6 +32,7 @@ interface IAlephVault {
         uint32 maxPerformanceFee;
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
+        uint48 feeRecipientTimelock;
     }
 
     struct InitializationParams {
@@ -39,6 +40,7 @@ interface IAlephVault {
         address manager;
         address underlyingToken;
         address custodian;
+        address feeRecipient;
     }
 
     struct BatchData {

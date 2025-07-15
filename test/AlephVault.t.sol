@@ -42,12 +42,14 @@ contract AlephVaultTest is Test {
     address public operationsMultisig = makeAddr("operationsMultisig");
     address public operator = makeAddr("operator");
     address public custodian = makeAddr("custodian");
+    address public feeRecipient = makeAddr("feeRecipient");
     address public oracle = makeAddr("oracle");
     address public guardian = makeAddr("guardian");
     uint32 public maxManagementFee = 100;
     uint32 public maxPerformanceFee = 500;
     uint48 public managementFeeTimelock = 7 days;
     uint48 public performanceFeeTimelock = 7 days;
+    uint48 public feeRecipientTimelock = 7 days;
 
     TestToken public underlyingToken = new TestToken();
 
@@ -64,7 +66,8 @@ contract AlephVaultTest is Test {
                 maxManagementFee: maxManagementFee,
                 maxPerformanceFee: maxPerformanceFee,
                 managementFeeTimelock: managementFeeTimelock,
-                performanceFeeTimelock: performanceFeeTimelock
+                performanceFeeTimelock: performanceFeeTimelock,
+                feeRecipientTimelock: feeRecipientTimelock
             })
         );
         vault.initialize(
@@ -72,7 +75,8 @@ contract AlephVaultTest is Test {
                 name: "test",
                 manager: manager,
                 underlyingToken: address(underlyingToken),
-                custodian: custodian
+                custodian: custodian,
+                feeRecipient: feeRecipient
             })
         );
     }

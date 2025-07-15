@@ -53,6 +53,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         MAXIMUM_PERFORMANCE_FEE = _constructorParams.maxPerformanceFee;
         MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
         PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
+        FEE_RECIPIENT_TIMELOCK = _constructorParams.feeRecipientTimelock;
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
         ORACLE = _constructorParams.oracle;
         GUARDIAN = _constructorParams.guardian;
@@ -85,6 +86,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
         _sd.manager = _initalizationParams.manager;
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
+        _sd.feeRecipient = _initalizationParams.feeRecipient;
         _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
@@ -186,6 +188,19 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     }
 
     /**
+     * @notice Queues a new fee recipient to be set after the timelock period.
+     * @param _feeRecipient The new fee recipient to be set.
+     * @dev Only callable by the OPERATIONS_MULTISIG role.
+     */
+    function queueFeeRecipient(address _feeRecipient)
+        external
+        override(FeeManager)
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
+        _queueFeeRecipient(_feeRecipient);
+    }
+
+    /**
      * @notice Sets the management fee to the queued value after the timelock period.
      * @dev Only callable by the MANAGER role.
      */
@@ -199,6 +214,14 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
      */
     function setPerformanceFee() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
         _setPerformanceFee();
+    }
+
+    /**
+     * @notice Sets the fee recipient to the queued value after the timelock period.
+     * @dev Only callable by the OPERATIONS_MULTISIG role.
+     */
+    function setFeeRecipient() external override(FeeManager) onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _setFeeRecipient();
     }
 
     /**

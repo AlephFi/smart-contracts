@@ -37,6 +37,7 @@ abstract contract FeeManager is IFeeManager {
     uint32 public immutable MAXIMUM_PERFORMANCE_FEE;
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
+    uint48 public immutable FEE_RECIPIENT_TIMELOCK;
 
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
@@ -59,10 +60,16 @@ abstract contract FeeManager is IFeeManager {
     function queuePerformanceFee(uint32 _performanceFee) external virtual;
 
     /// @inheritdoc IFeeManager
+    function queueFeeRecipient(address _feeRecipient) external virtual;
+
+    /// @inheritdoc IFeeManager
     function setManagementFee() external virtual;
 
     /// @inheritdoc IFeeManager
     function setPerformanceFee() external virtual;
+
+    /// @inheritdoc IFeeManager
+    function setFeeRecipient() external virtual;
 
     ///@inheritdoc IFeeManager
     function collectFees() external virtual;
@@ -98,6 +105,18 @@ abstract contract FeeManager is IFeeManager {
     }
 
     /**
+     * @dev Internal function to queue a new fee recipient.
+     * @param _feeRecipient The new fee recipient to be set.
+     */
+    function _queueFeeRecipient(address _feeRecipient) internal {
+        _getStorage().timelocks[TimelockRegistry.FEE_RECIPIENT] = TimelockRegistry.Timelock({
+            unlockTimestamp: Time.timestamp() + FEE_RECIPIENT_TIMELOCK,
+            newValue: abi.encode(_feeRecipient)
+        });
+        emit NewFeeRecipientQueued(_feeRecipient);
+    }
+
+    /**
      * @dev Internal function to set the management fee.
      */
     function _setManagementFee() internal {
@@ -118,9 +137,22 @@ abstract contract FeeManager is IFeeManager {
         emit NewPerformanceFeeSet(_performanceFee);
     }
 
-    function _accumulateFees(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _timestamp)
-        internal
-    {
+    /**
+     * @dev Internal function to set the fee recipient.
+     */
+    function _setFeeRecipient() internal {
+        AlephVaultStorageData storage _sd = _getStorage();
+        address _feeRecipient = abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.FEE_RECIPIENT), (address));
+        _sd.feeRecipient = _feeRecipient;
+        emit NewFeeRecipientSet(_feeRecipient);
+    }
+
+    function _accumulateFees(
+        AlephVaultStorageData storage _sd,
+        uint256 _newTotalAssets,
+        uint48 _currentBatchId,
+        uint48 _timestamp
+    ) internal {
         uint256 _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _sd.lastFeePaidId);
         uint256 _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets);
         _sd.lastFeePaidId = _currentBatchId;
@@ -143,7 +175,8 @@ abstract contract FeeManager is IFeeManager {
     {
         uint256 _annualFees =
             _newTotalAssets.mulDiv(uint256(_sd.managementFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
-        _managementFee = _annualFees.mulDiv(uint256(_batchesElapsed * _sd.batchDuration), uint256(ONE_YEAR), Math.Rounding.Ceil);
+        _managementFee =
+            _annualFees.mulDiv(uint256(_batchesElapsed * _sd.batchDuration), uint256(ONE_YEAR), Math.Rounding.Ceil);
     }
 
     /**
