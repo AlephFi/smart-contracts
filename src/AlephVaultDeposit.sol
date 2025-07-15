@@ -104,9 +104,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
             revert NoDepositsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
-        if (_newTotalAssets > 0) {
-            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
-        }
+        _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
         uint256 _amountToSettle;
         for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
             //@perf: repeated storage access in loop

@@ -152,14 +152,16 @@ abstract contract FeeManager is IFeeManager {
         uint256 _newTotalAssets,
         uint48 _currentBatchId,
         uint48 _timestamp
-    ) internal {
-        uint256 _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _sd.lastFeePaidId);
-        uint256 _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets);
+    ) internal returns (uint256 _managementFee, uint256 _performanceFee) {
+        if (_newTotalAssets > 0) {
+            _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _sd.lastFeePaidId);
+            _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets);
+            emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
+        }
         _sd.lastFeePaidId = _currentBatchId;
         uint256 _feesToCollect = _managementFee + _performanceFee;
         _sd.feesToCollect += _feesToCollect;
         _sd.assets.push(_timestamp, _newTotalAssets - _feesToCollect);
-        emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
     }
 
     /**

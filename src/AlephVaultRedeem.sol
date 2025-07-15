@@ -104,9 +104,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
             revert NoRedeemsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
-        if (_newTotalAssets > 0) {
-            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
-        }
+        _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
         uint256 _sharesToSettle;
         for (_redeemSettleId; _redeemSettleId < _currentBatchId; _redeemSettleId++) {
             _sharesToSettle += _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, totalAssets());
