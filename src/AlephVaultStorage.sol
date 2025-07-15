@@ -25,6 +25,7 @@ struct AlephVaultStorageData {
     address manager;
     address underlyingToken;
     address custodian;
+    address feeRecipient;
     uint32 managementFee;
     uint32 performanceFee;
     uint48 batchDuration;
@@ -32,6 +33,8 @@ struct AlephVaultStorageData {
     uint48 lastFeePaidId;
     uint48 depositSettleId;
     uint48 redeemSettleId;
+    uint256 highWaterMark;
+    uint256 feesToCollect;
     Checkpoints.Trace256 assets;
     Checkpoints.Trace256 shares;
     mapping(uint48 batchId => IAlephVault.BatchData) batchs;

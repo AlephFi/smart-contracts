@@ -15,9 +15,13 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IFeeManager} from "./interfaces/IFeeManager.sol";
 import {TimelockRegistry} from "./libraries/TimelockRegistry.sol";
+import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {AlephVaultStorageData} from "./AlephVaultStorage.sol";
 
 /**
@@ -25,15 +29,28 @@ import {AlephVaultStorageData} from "./AlephVaultStorage.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 abstract contract FeeManager is IFeeManager {
+    using SafeERC20 for IERC20;
+    using Checkpoints for Checkpoints.Trace256;
+    using Math for uint256;
+
     uint32 public immutable MAXIMUM_MANAGEMENT_FEE;
     uint32 public immutable MAXIMUM_PERFORMANCE_FEE;
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
 
+    uint48 public constant ONE_YEAR = 365 days;
+    uint48 public constant BPS_DENOMINATOR = 10_000;
+    uint48 public constant PRICE_DENOMINATOR = 1e6;
+
     /**
      * @dev Returns the storage struct for the vault.
      */
     function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
+
+    /**
+     * @notice Returns the total shares issued by the vault.
+     */
+    function totalShares() public view virtual returns (uint256);
 
     /// @inheritdoc IFeeManager
     function queueManagementFee(uint32 _managementFee) external virtual;
@@ -46,6 +63,9 @@ abstract contract FeeManager is IFeeManager {
 
     /// @inheritdoc IFeeManager
     function setPerformanceFee() external virtual;
+
+    ///@inheritdoc IFeeManager
+    function collectFees() external virtual;
 
     /**
      * @dev Internal function to queue a new management fee.
@@ -96,5 +116,66 @@ abstract contract FeeManager is IFeeManager {
             abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.PERFORMANCE_FEE), (uint32));
         _sd.performanceFee = _performanceFee;
         emit NewPerformanceFeeSet(_performanceFee);
+    }
+
+    function _accumulateFees(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _timestamp)
+        internal
+    {
+        uint256 _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _sd.lastFeePaidId);
+        uint256 _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets);
+        _sd.lastFeePaidId = _currentBatchId;
+        uint256 _feesToCollect = _managementFee + _performanceFee;
+        _sd.feesToCollect += _feesToCollect;
+        _sd.assets.push(_timestamp, _newTotalAssets - _feesToCollect);
+        emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
+    }
+
+    /**
+     * @dev Internal function to calculate the management fee.
+     * @param _sd The storage struct for the vault.
+     * @param _newTotalAssets The new total assets after collection.
+     * @return _managementFee The management fee to be collected.
+     */
+    function _calculateManagementFee(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint48 _batchesElapsed)
+        internal
+        view
+        returns (uint256 _managementFee)
+    {
+        uint256 _annualFees =
+            _newTotalAssets.mulDiv(uint256(_sd.managementFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
+        _managementFee = _annualFees.mulDiv(uint256(_batchesElapsed * _sd.batchDuration), uint256(ONE_YEAR), Math.Rounding.Ceil);
+    }
+
+    /**
+     * @dev Internal function to calculate the performance fee.
+     * @param _sd The storage struct for the vault.
+     * @param _newTotalAssets The new total assets after collection.
+     * @return _performanceFee The performance fee to be collected.
+     */
+    function _calculatePerformanceFee(AlephVaultStorageData storage _sd, uint256 _newTotalAssets)
+        internal
+        returns (uint256 _performanceFee)
+    {
+        uint256 _totalShares = totalShares();
+        uint256 _pricePerShare = _newTotalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
+        uint256 _highWaterMark = _sd.highWaterMark;
+        if (_pricePerShare > _highWaterMark) {
+            uint256 _profitPerShare = _pricePerShare - _highWaterMark;
+            uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
+            _performanceFee = _profit.mulDiv(uint256(_sd.performanceFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
+            _sd.highWaterMark = _pricePerShare;
+            emit NewHighWaterMarkSet(_pricePerShare);
+        }
+    }
+
+    /**
+     * @dev Internal function to collect all pending fees.
+     */
+    function _collectFees() internal {
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint256 _feesToCollect = _sd.feesToCollect;
+        _sd.feesToCollect = 0;
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.feeRecipient, _feesToCollect);
+        emit FeesCollected(_feesToCollect);
     }
 }

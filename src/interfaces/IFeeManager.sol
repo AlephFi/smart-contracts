@@ -24,6 +24,9 @@ interface IFeeManager {
     event NewPerformanceFeeQueued(uint32 performanceFee);
     event NewManagementFeeSet(uint32 managementFee);
     event NewPerformanceFeeSet(uint32 performanceFee);
+    event FeesAccumulated(uint256 managementFee, uint256 performanceFee, uint48 timestamp);
+    event NewHighWaterMarkSet(uint256 highWaterMark);
+    event FeesCollected(uint256 feesCollected);
 
     error InvalidManagementFee();
     error InvalidPerformanceFee();
@@ -49,4 +52,9 @@ interface IFeeManager {
      * @notice Sets the performance fee to the queued value after the timelock period.
      */
     function setPerformanceFee() external;
+
+    /**
+     * @notice Collects all pending fees.
+     */
+    function collectFees() external;
 }

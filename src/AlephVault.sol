@@ -35,7 +35,7 @@ import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, FeeManager, AccessControlUpgradeable {
+contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessControlUpgradeable {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
@@ -202,6 +202,14 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, FeeMana
     }
 
     /**
+     * @notice Collects all pending fees.
+     * @dev Only callable by the MANAGER role.
+     */
+    function collectFees() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+        _collectFees();
+    }
+
+    /**
      * @notice Settles all pending deposits up to the current batch.
      * @param _newTotalAssets The new total assets after settlement.
      * @dev Only callable by the ORACLE role.
@@ -230,7 +238,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, FeeMana
     function _getStorage()
         internal
         pure
-        override(AlephVaultDeposit, AlephVaultRedeem, FeeManager)
+        override(AlephVaultDeposit, AlephVaultRedeem)
         returns (AlephVaultStorageData storage sd)
     {
         return AlephVaultStorage.load();

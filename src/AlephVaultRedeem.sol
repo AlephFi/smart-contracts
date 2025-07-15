@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {IERC7540Redeem} from "./interfaces/IERC7540Redeem.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "./AlephVaultStorage.sol";
+import {FeeManager} from "./FeeManager.sol";
 import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -28,7 +29,7 @@ import {ERC4626Math} from "./libraries/ERC4626Math.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-abstract contract AlephVaultRedeem is IERC7540Redeem {
+abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
 
@@ -51,7 +52,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     /**
      * @notice Returns the total shares issued by the vault.
      */
-    function totalShares() public view virtual returns (uint256);
+    function totalShares() public view virtual override returns (uint256);
 
     /// @inheritdoc IERC7540Redeem
     function settleRedeem(uint256 _newTotalAssets) external virtual;
@@ -59,7 +60,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     /**
      * @dev Returns the storage struct for the vault.
      */
-    function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
+    function _getStorage() internal pure virtual override returns (AlephVaultStorageData storage sd);
 
     /// @inheritdoc IERC7540Redeem
     function pendingTotalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
@@ -103,10 +104,12 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
             revert NoRedeemsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
+        if (_newTotalAssets > 0) {
+            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
+        }
         uint256 _sharesToSettle;
         for (_redeemSettleId; _redeemSettleId < _currentBatchId; _redeemSettleId++) {
-            uint256 _totalAssets = _redeemSettleId == _sd.redeemSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
-            _sharesToSettle += _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets);
+            _sharesToSettle += _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, totalAssets());
         }
         emit SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
         _sd.redeemSettleId = _currentBatchId;

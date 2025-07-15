@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {IERC7540Deposit} from "./interfaces/IERC7540Deposit.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "./AlephVaultStorage.sol";
+import {FeeManager} from "./FeeManager.sol";
 import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -28,7 +29,7 @@ import {Checkpoints} from "./libraries/Checkpoints.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-abstract contract AlephVaultDeposit is IERC7540Deposit {
+abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
 
@@ -45,7 +46,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     /**
      * @notice Returns the total shares issued by the vault.
      */
-    function totalShares() public view virtual returns (uint256);
+    function totalShares() public view virtual override returns (uint256);
 
     /**
      * @notice Returns the number of shares owned by a user.
@@ -59,7 +60,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     /**
      * @dev Returns the storage struct for the vault.
      */
-    function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
+    function _getStorage() internal pure virtual override returns (AlephVaultStorageData storage sd);
 
     /// @inheritdoc IERC7540Deposit
     function pendingTotalAmountToDeposit() public view returns (uint256 _totalAmountToDeposit) {
@@ -103,11 +104,13 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
             revert NoDepositsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
+        if (_newTotalAssets > 0) {
+            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
+        }
         uint256 _amountToSettle;
         for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
-            //@perf: unnecessary check in loop
-            uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
-            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
+            //@perf: repeated storage access in loop
+            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, totalAssets());
         }
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
