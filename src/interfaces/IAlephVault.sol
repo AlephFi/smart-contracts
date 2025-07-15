@@ -28,6 +28,10 @@ interface IAlephVault {
         address operationsMultisig;
         address oracle;
         address guardian;
+        uint32 maxManagementFee;
+        uint32 maxPerformanceFee;
+        uint48 managementFeeTimelock;
+        uint48 performanceFeeTimelock;
     }
 
     struct InitializationParams {

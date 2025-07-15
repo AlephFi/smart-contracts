@@ -44,6 +44,10 @@ contract AlephVaultTest is Test {
     address public custodian = makeAddr("custodian");
     address public oracle = makeAddr("oracle");
     address public guardian = makeAddr("guardian");
+    uint32 public maxManagementFee = 100;
+    uint32 public maxPerformanceFee = 500;
+    uint48 public managementFeeTimelock = 7 days;
+    uint48 public performanceFeeTimelock = 7 days;
 
     TestToken public underlyingToken = new TestToken();
 
@@ -53,7 +57,15 @@ contract AlephVaultTest is Test {
         underlyingToken.mint(user2, 1000);
         underlyingToken.mint(manager, 10_000);
         vault = new ExposedVault(
-            IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
+            IAlephVault.ConstructorParams({
+                operationsMultisig: operationsMultisig,
+                oracle: oracle,
+                guardian: guardian,
+                maxManagementFee: maxManagementFee,
+                maxPerformanceFee: maxPerformanceFee,
+                managementFeeTimelock: managementFeeTimelock,
+                performanceFeeTimelock: performanceFeeTimelock
+            })
         );
         vault.initialize(
             IAlephVault.InitializationParams({

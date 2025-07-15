@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
+import {TimelockRegistry} from "./libraries/TimelockRegistry.sol";
 
 struct AlephVaultStorageData {
     string name;
@@ -24,8 +25,11 @@ struct AlephVaultStorageData {
     address manager;
     address underlyingToken;
     address custodian;
+    uint32 managementFee;
+    uint32 performanceFee;
     uint48 batchDuration;
     uint48 startTimeStamp;
+    uint48 lastFeePaidId;
     uint48 depositSettleId;
     uint48 redeemSettleId;
     Checkpoints.Trace256 assets;
@@ -34,6 +38,7 @@ struct AlephVaultStorageData {
     mapping(address user => uint48 batchId) lastDepositBatchId;
     mapping(address user => uint48 batchId) lastRedeemBatchId;
     mapping(address user => Checkpoints.Trace256 shares) sharesOf;
+    mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
 }
 /**
  * @author Othentic Labs LTD.

@@ -25,16 +25,17 @@ import {ERC4626Math} from "./libraries/ERC4626Math.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {RolesLibrary} from "./RolesLibrary.sol";
+import {RolesLibrary} from "./libraries/RolesLibrary.sol";
 import {AlephVaultDeposit} from "./AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
+import {FeeManager} from "./FeeManager.sol";
 import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessControlUpgradeable {
+contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, FeeManager, AccessControlUpgradeable {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
@@ -48,6 +49,10 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
      * @param _constructorParams Struct containing all initialization parameters.
      */
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
+        MAXIMUM_MANAGEMENT_FEE = _constructorParams.maxManagementFee;
+        MAXIMUM_PERFORMANCE_FEE = _constructorParams.maxPerformanceFee;
+        MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
+        PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
         ORACLE = _constructorParams.oracle;
         GUARDIAN = _constructorParams.guardian;
@@ -163,6 +168,40 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     }
 
     /**
+     * @notice Queues a new management fee to be set after the timelock period.
+     * @param _managementFee The new management fee to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueManagementFee(uint32 _managementFee) external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+        _queueManagementFee(_managementFee);
+    }
+
+    /**
+     * @notice Queues a new performance fee to be set after the timelock period.
+     * @param _performanceFee The new performance fee to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queuePerformanceFee(uint32 _performanceFee) external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+        _queuePerformanceFee(_performanceFee);
+    }
+
+    /**
+     * @notice Sets the management fee to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setManagementFee() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+        _setManagementFee();
+    }
+
+    /**
+     * @notice Sets the performance fee to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setPerformanceFee() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+        _setPerformanceFee();
+    }
+
+    /**
      * @notice Settles all pending deposits up to the current batch.
      * @param _newTotalAssets The new total assets after settlement.
      * @dev Only callable by the ORACLE role.
@@ -191,7 +230,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AccessC
     function _getStorage()
         internal
         pure
-        override(AlephVaultDeposit, AlephVaultRedeem)
+        override(AlephVaultDeposit, AlephVaultRedeem, FeeManager)
         returns (AlephVaultStorageData storage sd)
     {
         return AlephVaultStorage.load();

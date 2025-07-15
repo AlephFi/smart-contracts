@@ -24,7 +24,7 @@ import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 import {AlephVault} from "./AlephVault.sol";
-import {RolesLibrary} from "./RolesLibrary.sol";
+import {RolesLibrary} from "./libraries/RolesLibrary.sol";
 
 /**
  * @author Othentic Labs LTD.

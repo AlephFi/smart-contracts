@@ -105,6 +105,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         uint48 _timestamp = Time.timestamp();
         uint256 _amountToSettle;
         for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
+            //@perf: unnecessary check in loop
             uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
             _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
         }
@@ -127,6 +128,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         uint48 _timestamp,
         uint256 _totalAssets
     ) internal returns (uint256) {
+        //@perf: storage -> memory
         IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
         if (_batch.totalAmountToDeposit == 0) {
             return 0;

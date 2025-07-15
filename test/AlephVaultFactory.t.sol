@@ -16,8 +16,21 @@ contract AlephVaultFactoryTest is Test {
     address guardian = address(0x9ABC);
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
+    uint32 maxManagementFee = 100;
+    uint32 maxPerformanceFee = 500;
+    uint48 managementFeeTimelock = 7 days;
+    uint48 performanceFeeTimelock = 7 days;
+
     AlephVault vaultImpl = new AlephVault(
-        IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
+        IAlephVault.ConstructorParams({
+            operationsMultisig: operationsMultisig,
+            oracle: oracle,
+            guardian: guardian,
+            maxManagementFee: maxManagementFee,
+            maxPerformanceFee: maxPerformanceFee,
+            managementFeeTimelock: managementFeeTimelock,
+            performanceFeeTimelock: performanceFeeTimelock
+        })
     );
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
 
