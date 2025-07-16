@@ -41,7 +41,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
     /**
      * @notice Returns the total assets in the vault.
      */
-    function totalAssets() public view virtual returns (uint256);
+    function totalAssets() public view virtual override returns (uint256);
 
     /**
      * @notice Returns the total shares issued by the vault.
@@ -52,7 +52,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
      * @notice Returns the number of shares owned by a user.
      * @param _user The address of the user.
      */
-    function sharesOf(address _user) public view virtual returns (uint256);
+    function sharesOf(address _user) public view virtual override returns (uint256);
 
     /// @inheritdoc IERC7540Deposit
     function settleDeposit(uint256 _newTotalAssets) external virtual;
@@ -108,7 +108,8 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
         uint256 _amountToSettle;
         for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
             //@perf: repeated storage access in loop
-            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, totalAssets());
+            uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
+            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
         }
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);

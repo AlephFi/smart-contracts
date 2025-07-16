@@ -34,7 +34,6 @@ struct AlephVaultStorageData {
     uint48 depositSettleId;
     uint48 redeemSettleId;
     uint256 highWaterMark;
-    uint256 feesToCollect;
     Checkpoints.Trace256 assets;
     Checkpoints.Trace256 shares;
     mapping(uint48 batchId => IAlephVault.BatchData) batchs;

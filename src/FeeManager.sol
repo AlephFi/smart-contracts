@@ -20,6 +20,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IFeeManager} from "./interfaces/IFeeManager.sol";
+import {ERC4626Math} from "./libraries/ERC4626Math.sol";
 import {TimelockRegistry} from "./libraries/TimelockRegistry.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {AlephVaultStorageData} from "./AlephVaultStorage.sol";
@@ -49,9 +50,20 @@ abstract contract FeeManager is IFeeManager {
     function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
 
     /**
+     * @notice Returns the total assets in the vault.
+     */
+    function totalAssets() public view virtual returns (uint256);
+
+    /**
      * @notice Returns the total shares issued by the vault.
      */
     function totalShares() public view virtual returns (uint256);
+
+    /**
+     * @notice Returns the number of shares owned by a user.
+     * @param _user The address of the user.
+     */
+    function sharesOf(address _user) public view virtual returns (uint256);
 
     /// @inheritdoc IFeeManager
     function queueManagementFee(uint32 _managementFee) external virtual;
@@ -154,14 +166,17 @@ abstract contract FeeManager is IFeeManager {
         uint48 _timestamp
     ) internal returns (uint256 _managementFee, uint256 _performanceFee) {
         if (_newTotalAssets > 0) {
+            uint256 _totalShares = totalShares();
             _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _sd.lastFeePaidId);
-            _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets);
+            _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets, _totalShares);
+            uint256 _feesToCollect = _managementFee + _performanceFee;
+            uint256 _sharesToMint = ERC4626Math.previewDeposit(_feesToCollect, _totalShares, _newTotalAssets);
+            address _feeRecipient = _sd.feeRecipient;
+            _sd.sharesOf[_feeRecipient].push(_timestamp, sharesOf(_feeRecipient) + _sharesToMint);
+            _sd.shares.push(_timestamp, _totalShares + _sharesToMint);
             emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
         }
         _sd.lastFeePaidId = _currentBatchId;
-        uint256 _feesToCollect = _managementFee + _performanceFee;
-        _sd.feesToCollect += _feesToCollect;
-        _sd.assets.push(_timestamp, _newTotalAssets - _feesToCollect);
     }
 
     /**
@@ -187,11 +202,10 @@ abstract contract FeeManager is IFeeManager {
      * @param _newTotalAssets The new total assets after collection.
      * @return _performanceFee The performance fee to be collected.
      */
-    function _calculatePerformanceFee(AlephVaultStorageData storage _sd, uint256 _newTotalAssets)
+    function _calculatePerformanceFee(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint256 _totalShares)
         internal
         returns (uint256 _performanceFee)
     {
-        uint256 _totalShares = totalShares();
         uint256 _pricePerShare = _newTotalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
         uint256 _highWaterMark = _sd.highWaterMark;
         if (_pricePerShare > _highWaterMark) {
@@ -208,9 +222,10 @@ abstract contract FeeManager is IFeeManager {
      */
     function _collectFees() internal {
         AlephVaultStorageData storage _sd = _getStorage();
-        uint256 _feesToCollect = _sd.feesToCollect;
-        _sd.feesToCollect = 0;
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.feeRecipient, _feesToCollect);
+        address _feeRecipient = _sd.feeRecipient;
+        uint256 _feesToCollect = ERC4626Math.previewRedeem(sharesOf(_feeRecipient), totalAssets(), totalShares());
+        _sd.sharesOf[_feeRecipient].push(Time.timestamp(), 0);
+        IERC20(_sd.underlyingToken).safeTransfer(_feeRecipient, _feesToCollect);
         emit FeesCollected(_feesToCollect);
     }
 }
