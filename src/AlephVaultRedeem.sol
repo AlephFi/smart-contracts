@@ -24,14 +24,31 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {ERC4626Math} from "./libraries/ERC4626Math.sol";
+import {AlephPausable} from "./AlephPausable.sol";
+import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
+abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable, FeeManager {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
+
+    function __AlephVaultRedeem_init(address _manager) internal onlyInitializing {
+        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.REDEEM_REQUEST_FLOW] = true;
+        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.SETTLE_REDEEM_FLOW] = true;
+        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, _manager);
+        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, guardian());
+        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, operationsMultisig());
+        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, _manager);
+        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, guardian());
+        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, operationsMultisig());
+    }
+
+    function operationsMultisig() public view virtual returns (address);
+
+    function guardian() public view virtual returns (address);
 
     /**
      * @notice Returns the current batch ID.
@@ -67,7 +84,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
         for (uint48 _batchId = _sd.redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
-            _totalSharesToRedeem += _sd.batchs[_batchId].totalSharesToRedeem;
+            _totalSharesToRedeem += _sd.batches[_batchId].totalSharesToRedeem;
         }
     }
 
@@ -78,14 +95,18 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
     }
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
+    function requestRedeem(uint256 _shares)
+        external
+        whenFlowNotPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW)
+        returns (uint48 _batchId)
+    {
         return _requestRedeem(_shares);
     }
 
     /// @inheritdoc IERC7540Redeem
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares) {
         AlephVaultStorageData storage _sd = _getStorage();
-        IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
         if (_batchId < _sd.redeemSettleId) {
             revert BatchAlreadyRedeemed();
         }
@@ -136,7 +157,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
         uint256 _totalAssets,
         uint256 _totalShares
     ) internal returns (uint256, uint256) {
-        IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
         if (_batch.totalSharesToRedeem == 0) {
             return (0, 0);
         }
@@ -173,7 +194,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
         _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.BatchData storage _batch = _sd.batchs[_currentBatchId];
+        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
         _batch.redeemRequest[msg.sender] += _sharesToRedeem;
         _batch.totalSharesToRedeem += _sharesToRedeem;
         _batch.usersToRedeem.push(msg.sender);

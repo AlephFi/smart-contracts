@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.25;
+pragma solidity ^0.8.25;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -15,21 +15,24 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {AlephVault} from "../../src/AlephVault.sol";
-import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
-
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract ExposedVault is AlephVault {
-    constructor(IAlephVault.ConstructorParams memory _initalizationParams) AlephVault(_initalizationParams) {}
+interface IAlephPausable {
+    // EVENTS
 
-    function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
-        _getStorage().depositSettleId = _currentDepositBatchId;
-    }
+    event FlowPaused(bytes4 _pausableFlow, address _pauser);
+    event FlowUnpaused(bytes4 _pausableFlowFlag, address _unpauser);
 
-    function setBatchDepositRequest(uint48 _batchId, address _user, uint256 _amount) external {
-        _getStorage().batches[_batchId].depositRequest[_user] = _amount;
-    }
+    // ERRORS
+
+    error FlowIsCurrentlyPaused();
+    error FlowIsCurrentlyUnpaused();
+
+    // EXTERNAL FUNCTIONS
+
+    function pause(bytes4 _pausableFlow) external;
+    function unpause(bytes4 _pausableFlow) external;
+    function isFlowPaused(bytes4 _pausableFlow) external view returns (bool);
 }
