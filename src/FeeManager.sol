@@ -223,8 +223,14 @@ abstract contract FeeManager is IFeeManager {
     function _collectFees() internal {
         AlephVaultStorageData storage _sd = _getStorage();
         address _feeRecipient = _sd.feeRecipient;
-        uint256 _feesToCollect = ERC4626Math.previewRedeem(sharesOf(_feeRecipient), totalAssets(), totalShares());
-        _sd.sharesOf[_feeRecipient].push(Time.timestamp(), 0);
+        uint256 _shares = sharesOf(_feeRecipient);
+        uint256 _totalShares = totalShares();
+        uint256 _totalAssets = totalAssets();
+        uint256 _feesToCollect = ERC4626Math.previewRedeem(_shares, _totalAssets, _totalShares);
+        uint48 _timestamp = Time.timestamp();
+        _sd.sharesOf[_feeRecipient].push(_timestamp, 0);
+        _sd.shares.push(_timestamp, _totalShares - _shares);
+        _sd.assets.push(_timestamp, _totalAssets - _feesToCollect);
         IERC20(_sd.underlyingToken).safeTransfer(_feeRecipient, _feesToCollect);
         emit FeesCollected(_feesToCollect);
     }
