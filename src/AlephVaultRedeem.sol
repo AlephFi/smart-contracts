@@ -106,10 +106,17 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
         uint48 _timestamp = Time.timestamp();
         _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
         uint256 _sharesToSettle;
+        uint256 _totalAssets = _newTotalAssets;
+        uint256 _totalShares = totalShares();
         for (_redeemSettleId; _redeemSettleId < _currentBatchId; _redeemSettleId++) {
-            uint256 _totalAssets = _redeemSettleId == _sd.redeemSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
-            _sharesToSettle += _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets);
+            (uint256 _assets, uint256 _sharesToRedeem) =
+                _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets, _totalShares);
+            _sharesToSettle += _sharesToRedeem;
+            _totalAssets -= _assets;
+            _totalShares -= _sharesToRedeem;
         }
+        _sd.shares.push(_timestamp, _totalShares);
+        _sd.assets.push(_timestamp, _totalAssets);
         emit SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
         _sd.redeemSettleId = _currentBatchId;
     }
@@ -126,13 +133,13 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
         AlephVaultStorageData storage _sd,
         uint48 _batchId,
         uint48 _timestamp,
-        uint256 _totalAssets
-    ) internal returns (uint256) {
+        uint256 _totalAssets,
+        uint256 _totalShares
+    ) internal returns (uint256, uint256) {
         IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
         if (_batch.totalSharesToRedeem == 0) {
-            return 0;
+            return (0, 0);
         }
-        uint256 _totalShares = totalShares();
         uint256 _totalAssetsToRedeem;
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         for (uint256 i = 0; i < _batch.usersToRedeem.length; i++) {
@@ -142,10 +149,8 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
             _totalAssetsToRedeem += _assets;
             _underlyingToken.safeTransfer(_user, _assets);
         }
-        _sd.shares.push(_timestamp, _totalShares - _batch.totalSharesToRedeem);
-        _sd.assets.push(_timestamp, _totalAssets - _totalAssetsToRedeem);
         emit SettleRedeemBatch(_batchId, _totalAssetsToRedeem, _batch.totalSharesToRedeem, _totalAssets, _totalShares);
-        return _batch.totalSharesToRedeem;
+        return (_totalAssetsToRedeem, _batch.totalSharesToRedeem);
     }
 
     /**

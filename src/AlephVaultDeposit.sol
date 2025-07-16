@@ -106,11 +106,17 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
         uint48 _timestamp = Time.timestamp();
         _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
         uint256 _amountToSettle;
+        uint256 _totalAssets = _newTotalAssets;
+        uint256 _totalShares = totalShares();
         for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
-            //@perf: repeated storage access in loop
-            uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
-            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
+            (uint256 _amount, uint256 _sharesToMint) =
+                _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets, _totalShares);
+            _amountToSettle += _amount;
+            _totalAssets += _amount;
+            _totalShares += _sharesToMint;
         }
+        _sd.shares.push(_timestamp, _totalShares);
+        _sd.assets.push(_timestamp, _totalAssets);
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
         _sd.depositSettleId = _currentBatchId;
@@ -128,14 +134,13 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
         AlephVaultStorageData storage _sd,
         uint48 _batchId,
         uint48 _timestamp,
-        uint256 _totalAssets
-    ) internal returns (uint256) {
-        //@perf: storage -> memory
+        uint256 _totalAssets,
+        uint256 _totalShares
+    ) internal returns (uint256, uint256) {
         IAlephVault.BatchData storage _batch = _sd.batchs[_batchId];
         if (_batch.totalAmountToDeposit == 0) {
-            return 0;
+            return (0, 0);
         }
-        uint256 _totalShares = totalShares();
         uint256 _totalSharesToMint;
         for (uint256 i = 0; i < _batch.usersToDeposit.length; i++) {
             address _user = _batch.usersToDeposit[i];
@@ -144,10 +149,8 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
             _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
             _totalSharesToMint += _sharesToMintPerUser;
         }
-        _sd.shares.push(_timestamp, _totalShares + _totalSharesToMint);
-        _sd.assets.push(_timestamp, _totalAssets + _batch.totalAmountToDeposit);
         emit SettleDepositBatch(_batchId, _batch.totalAmountToDeposit, _totalSharesToMint, _totalAssets, _totalShares);
-        return _batch.totalAmountToDeposit;
+        return (_batch.totalAmountToDeposit, _totalSharesToMint);
     }
 
     /**
