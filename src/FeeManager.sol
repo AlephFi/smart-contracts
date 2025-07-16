@@ -190,8 +190,10 @@ abstract contract FeeManager is IFeeManager {
         view
         returns (uint256 _managementFee)
     {
-        uint256 _annualFees =
-            _newTotalAssets.mulDiv(uint256(_sd.managementFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
+        uint48 _managementFeeRate = _sd.managementFee;
+        uint256 _annualFees = _newTotalAssets.mulDiv(
+            uint256(_managementFeeRate), uint256(BPS_DENOMINATOR - _managementFeeRate), Math.Rounding.Ceil
+        );
         _managementFee =
             _annualFees.mulDiv(uint256(_batchesElapsed * _sd.batchDuration), uint256(ONE_YEAR), Math.Rounding.Ceil);
     }
@@ -211,7 +213,10 @@ abstract contract FeeManager is IFeeManager {
         if (_pricePerShare > _highWaterMark) {
             uint256 _profitPerShare = _pricePerShare - _highWaterMark;
             uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
-            _performanceFee = _profit.mulDiv(uint256(_sd.performanceFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
+            uint48 _performanceFeeRate = _sd.performanceFee;
+            _performanceFee = _profit.mulDiv(
+                uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
+            );
             _sd.highWaterMark = _pricePerShare;
             emit NewHighWaterMarkSet(_pricePerShare);
         }
