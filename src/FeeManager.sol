@@ -208,7 +208,7 @@ abstract contract FeeManager is IFeeManager {
         internal
         returns (uint256 _performanceFee)
     {
-        uint256 _pricePerShare = _newTotalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
+        uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
         uint256 _highWaterMark = _sd.highWaterMark;
         if (_pricePerShare > _highWaterMark) {
             uint256 _profitPerShare = _pricePerShare - _highWaterMark;
@@ -220,6 +220,22 @@ abstract contract FeeManager is IFeeManager {
             _sd.highWaterMark = _pricePerShare;
             emit NewHighWaterMarkSet(_pricePerShare);
         }
+    }
+
+    function _initializeHighWaterMark(AlephVaultStorageData storage _sd) internal {
+        uint256 _pricePerShare = _getPricePerShare(totalAssets(), totalShares());
+        _sd.highWaterMark = _pricePerShare;
+        emit NewHighWaterMarkSet(_pricePerShare);
+    }
+
+    /**
+     * @dev Internal function to get the price per share.
+     * @param _totalAssets The total assets in the vault.
+     * @param _totalShares The total shares in the vault.
+     * @return _pricePerShare The price per share.
+     */
+    function _getPricePerShare(uint256 _totalAssets, uint256 _totalShares) internal view returns (uint256 _pricePerShare) {
+        _pricePerShare = _totalAssets.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
     }
 
     /**

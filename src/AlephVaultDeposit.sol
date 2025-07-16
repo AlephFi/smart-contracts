@@ -117,6 +117,9 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, FeeManager {
         }
         _sd.shares.push(_timestamp, _totalShares);
         _sd.assets.push(_timestamp, _totalAssets);
+        if (_sd.highWaterMark == 0) {
+            _initializeHighWaterMark(_sd);
+        }
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
         _sd.depositSettleId = _currentBatchId;
