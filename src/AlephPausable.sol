@@ -54,7 +54,7 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
 
     function _pause(bytes4 _pausableFlow) internal {
         AlephPausableStorageData storage _sd = _getPausableStorage();
-        if (_sd.flowsPauseStates[_pausableFlow]) revert PauseFlowIsAlreadyPaused();
+        if (_sd.flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyPaused();
 
         _sd.flowsPauseStates[_pausableFlow] = true;
         emit FlowPaused(_pausableFlow, msg.sender);
@@ -62,7 +62,7 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
 
     function _unpause(bytes4 _pausableFlow) internal {
         AlephPausableStorageData storage _sd = _getPausableStorage();
-        if (!_sd.flowsPauseStates[_pausableFlow]) revert UnpausingFlowIsAlreadyUnpaused();
+        if (!_sd.flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyUnpaused();
 
         _sd.flowsPauseStates[_pausableFlow] = false;
         emit FlowUnpaused(_pausableFlow, msg.sender);

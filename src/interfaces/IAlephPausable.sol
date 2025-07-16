@@ -29,8 +29,6 @@ interface IAlephPausable {
 
     error FlowIsCurrentlyPaused();
     error FlowIsCurrentlyUnpaused();
-    error PauseFlowIsAlreadyPaused();
-    error UnpausingFlowIsAlreadyUnpaused();
 
     // EXTERNAL FUNCTIONS
 
