@@ -24,7 +24,6 @@ import {AlephPausableStorage, AlephPausableStorageData} from "./AlephPausableSto
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
-    
     // MODIFIERS
 
     modifier whenFlowNotPaused(bytes4 _pausableFlow) {
