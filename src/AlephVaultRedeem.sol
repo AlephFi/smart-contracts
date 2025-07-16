@@ -160,12 +160,11 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
      */
     function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
-        address _user = msg.sender;
-        uint256 _shares = sharesOf(_user);
+        uint256 _shares = sharesOf(msg.sender);
         if (_shares < _sharesToRedeem) {
             revert InsufficientSharesToRedeem();
         }
-        uint48 _lastRedeemBatchId = _sd.lastRedeemBatchId[_user];
+        uint48 _lastRedeemBatchId = _sd.lastRedeemBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForRedeem(); // need to wait for the first batch to be available
@@ -173,14 +172,14 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, FeeManager {
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
-        _sd.lastRedeemBatchId[_user] = _currentBatchId;
+        _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.BatchData storage _batch = _sd.batchs[_currentBatchId];
-        _batch.redeemRequest[_user] += _sharesToRedeem;
+        _batch.redeemRequest[msg.sender] += _sharesToRedeem;
         _batch.totalSharesToRedeem += _sharesToRedeem;
-        _batch.usersToRedeem.push(_user);
-        _sd.sharesOf[_user].push(Time.timestamp(), _shares - _sharesToRedeem);
+        _batch.usersToRedeem.push(msg.sender);
+        _sd.sharesOf[msg.sender].push(Time.timestamp(), _shares - _sharesToRedeem);
         // we will update the total shares and assets in the _settleRedeemForBatch function
-        emit RedeemRequest(_user, _sharesToRedeem, _currentBatchId);
+        emit RedeemRequest(msg.sender, _sharesToRedeem, _currentBatchId);
         return _currentBatchId;
     }
 }
