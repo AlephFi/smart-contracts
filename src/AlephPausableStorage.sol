@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.25;
+pragma solidity ^0.8.25;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -15,21 +15,21 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {AlephVault} from "../../src/AlephVault.sol";
-import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
-
+struct AlephPausableStorageData {
+    mapping(bytes4 _pausableFlow => bool isPaused) flowsPauseStates;
+}
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract ExposedVault is AlephVault {
-    constructor(IAlephVault.ConstructorParams memory _initalizationParams) AlephVault(_initalizationParams) {}
 
-    function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
-        _getStorage().depositSettleId = _currentDepositBatchId;
-    }
+library AlephPausableStorage {
+    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.pausable.flows")) - 1;
 
-    function setBatchDepositRequest(uint48 _batchId, address _user, uint256 _amount) external {
-        _getStorage().batches[_batchId].depositRequest[_user] = _amount;
+    function load() internal pure returns (AlephPausableStorageData storage sd) {
+        uint256 position = STORAGE_POSITION;
+        assembly {
+            sd.slot := position
+        }
     }
 }

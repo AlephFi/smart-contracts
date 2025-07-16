@@ -50,6 +50,18 @@ interface IAlephVault {
     // View functions
 
     /**
+     * @notice Returns the operations multisig of the vault.
+     * @return The operations multisig.
+     */
+    function operationsMultisig() external view returns (address);
+
+    /**
+     * @notice Returns the guardian of the vault.
+     * @return The guardian.
+     */
+    function guardian() external view returns (address);
+
+    /**
      * @notice Returns the underlying token of the vault.
      * @return The underlying token.
      */

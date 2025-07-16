@@ -26,11 +26,13 @@ import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
+import {PausableFlowsLibrary} from "../src/PausableFlowsLibrary.sol";
+import {IAlephPausable} from "../src/interfaces/IAlephPausable.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
 contract AlephVaultTest is Test {
     using SafeERC20 for IERC20;
 
@@ -63,6 +65,53 @@ contract AlephVaultTest is Test {
                 custodian: custodian
             })
         );
+        vm.startPrank(manager);
+        vault.unpause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
+        vault.unpause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
+        vault.unpause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
+        vault.unpause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
+        vm.stopPrank();
+    }
+
+    function test_pauseAndUnpauseSettleDepositFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), true);
+        vm.prank(oracle);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.settleDeposit(100);
+    }
+
+    function test_pauseAndUnpauseSettleRedeemFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), true);
+        vm.prank(oracle);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.settleRedeem(100);
+    }
+
+    function test_pauseAndUnpauseRedeemRequestFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), true);
+        vm.prank(user);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.requestRedeem(100);
+    }
+
+    function test_pauseAndUnpauseDepositRequestFlow() public {
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), false);
+        vm.prank(manager);
+        vault.pause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), true);
+        vm.prank(user);
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.requestDeposit(100);
+        vm.stopPrank();
     }
 
     function test_noBatchAvailable() public {
@@ -83,6 +132,7 @@ contract AlephVaultTest is Test {
         vm.startPrank(user);
         assertEq(vault.pendingDepositRequest(_currentBatchId), _amount1);
         assertEq(vault.sharesOf(user), 0);
+        assertEq(vault.sharesOf(user2), 0);
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.totalShares(), 0);
         vm.stopPrank();
@@ -95,8 +145,8 @@ contract AlephVaultTest is Test {
         assertEq(vault.totalShares(), 0);
 
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
-        uint48 _newcurrentBatchId = vault.currentBatch();
-        assertEq(_newcurrentBatchId, 2);
+        uint48 _newCurrentBatchId = vault.currentBatch();
+        assertEq(_newCurrentBatchId, 2);
         vm.stopPrank();
         vm.prank(oracle);
         vault.settleDeposit(0);
@@ -115,7 +165,6 @@ contract AlephVaultTest is Test {
     function test_currentBatch() public {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
         uint48 _currentBatchId = vault.currentBatch();
-        console.log("currentBatchId", _currentBatchId);
         assertEq(_currentBatchId, 1);
     }
 
@@ -300,7 +349,6 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         uint256 amount1b = 200;
         userDepositRequest(user, amount1a);
@@ -402,7 +450,6 @@ contract AlephVaultTest is Test {
         vm.warp(block.timestamp + batchDuration);
         uint48 batch1 = vault.currentBatch();
         assertEq(batch1, 1);
-        uint256 balanceBeforeOfUser = underlyingToken.balanceOf(user);
         uint256 amount1a = 100;
         userDepositRequest(user, amount1a);
 
@@ -412,7 +459,6 @@ contract AlephVaultTest is Test {
         assertEq(batch2, 2);
 
         // Oracle value after batch 1 deposits
-        uint256 totalAssetsAfterBatch1 = amount1a;
         vm.prank(oracle);
         vault.settleDeposit(0);
 
