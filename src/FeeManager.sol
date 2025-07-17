@@ -45,11 +45,6 @@ abstract contract FeeManager is IFeeManager {
     uint48 public constant PRICE_DENOMINATOR = 1e6;
 
     /**
-     * @dev Returns the storage struct for the vault.
-     */
-    function _getStorage() internal pure virtual returns (AlephVaultStorageData storage sd);
-
-    /**
      * @notice Returns the total assets in the vault.
      */
     function totalAssets() public view virtual returns (uint256);
@@ -90,11 +85,11 @@ abstract contract FeeManager is IFeeManager {
      * @dev Internal function to queue a new management fee.
      * @param _managementFee The new management fee to be set.
      */
-    function _queueManagementFee(uint32 _managementFee) internal {
+    function _queueManagementFee(AlephVaultStorageData storage _sd, uint32 _managementFee) internal {
         if (_managementFee > MAXIMUM_MANAGEMENT_FEE) {
             revert InvalidManagementFee();
         }
-        _getStorage().timelocks[TimelockRegistry.MANAGEMENT_FEE] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.MANAGEMENT_FEE] = TimelockRegistry.Timelock({
             unlockTimestamp: Time.timestamp() + MANAGEMENT_FEE_TIMELOCK,
             newValue: abi.encode(_managementFee)
         });
@@ -105,11 +100,11 @@ abstract contract FeeManager is IFeeManager {
      * @dev Internal function to queue a new performance fee.
      * @param _performanceFee The new performance fee to be set.
      */
-    function _queuePerformanceFee(uint32 _performanceFee) internal {
+    function _queuePerformanceFee(AlephVaultStorageData storage _sd, uint32 _performanceFee) internal {
         if (_performanceFee > MAXIMUM_PERFORMANCE_FEE) {
             revert InvalidPerformanceFee();
         }
-        _getStorage().timelocks[TimelockRegistry.PERFORMANCE_FEE] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.PERFORMANCE_FEE] = TimelockRegistry.Timelock({
             unlockTimestamp: Time.timestamp() + PERFORMANCE_FEE_TIMELOCK,
             newValue: abi.encode(_performanceFee)
         });
@@ -120,8 +115,8 @@ abstract contract FeeManager is IFeeManager {
      * @dev Internal function to queue a new fee recipient.
      * @param _feeRecipient The new fee recipient to be set.
      */
-    function _queueFeeRecipient(address _feeRecipient) internal {
-        _getStorage().timelocks[TimelockRegistry.FEE_RECIPIENT] = TimelockRegistry.Timelock({
+    function _queueFeeRecipient(AlephVaultStorageData storage _sd, address _feeRecipient) internal {
+        _sd.timelocks[TimelockRegistry.FEE_RECIPIENT] = TimelockRegistry.Timelock({
             unlockTimestamp: Time.timestamp() + FEE_RECIPIENT_TIMELOCK,
             newValue: abi.encode(_feeRecipient)
         });
@@ -131,8 +126,7 @@ abstract contract FeeManager is IFeeManager {
     /**
      * @dev Internal function to set the management fee.
      */
-    function _setManagementFee() internal {
-        AlephVaultStorageData storage _sd = _getStorage();
+    function _setManagementFee(AlephVaultStorageData storage _sd) internal {
         uint32 _managementFee = abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MANAGEMENT_FEE), (uint32));
         _sd.managementFee = _managementFee;
         emit NewManagementFeeSet(_managementFee);
@@ -141,8 +135,7 @@ abstract contract FeeManager is IFeeManager {
     /**
      * @dev Internal function to set the performance fee.
      */
-    function _setPerformanceFee() internal {
-        AlephVaultStorageData storage _sd = _getStorage();
+    function _setPerformanceFee(AlephVaultStorageData storage _sd) internal {
         uint32 _performanceFee =
             abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.PERFORMANCE_FEE), (uint32));
         _sd.performanceFee = _performanceFee;
@@ -152,8 +145,7 @@ abstract contract FeeManager is IFeeManager {
     /**
      * @dev Internal function to set the fee recipient.
      */
-    function _setFeeRecipient() internal {
-        AlephVaultStorageData storage _sd = _getStorage();
+    function _setFeeRecipient(AlephVaultStorageData storage _sd) internal {
         address _feeRecipient = abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.FEE_RECIPIENT), (address));
         _sd.feeRecipient = _feeRecipient;
         emit NewFeeRecipientSet(_feeRecipient);
@@ -245,8 +237,7 @@ abstract contract FeeManager is IFeeManager {
     /**
      * @dev Internal function to collect all pending fees.
      */
-    function _collectFees() internal {
-        AlephVaultStorageData storage _sd = _getStorage();
+    function _collectFees(AlephVaultStorageData storage _sd) internal {
         address _feeRecipient = _sd.feeRecipient;
         uint256 _shares = sharesOf(_feeRecipient);
         uint256 _totalShares = totalShares();

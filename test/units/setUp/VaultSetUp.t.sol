@@ -16,6 +16,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {IAlephVault} from "../../../src/interfaces/IAlephVault.sol";
+import {RolesLibrary} from "../../../src/libraries/RolesLibrary.sol";
+import {PausableFlows} from "../../../src/libraries/PausableFlows.sol";
 import {ExposedVault} from "../../exposes/ExposedVault.sol";
 import {BaseTest} from "../../utils/BaseTest.t.sol";
 
@@ -198,6 +200,10 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.MANAGEMENT_FEE_TIMELOCK(), defaultConstructorParams.managementFeeTimelock);
         assertEq(vault.PERFORMANCE_FEE_TIMELOCK(), defaultConstructorParams.performanceFeeTimelock);
         assertEq(vault.FEE_RECIPIENT_TIMELOCK(), defaultConstructorParams.feeRecipientTimelock);
+
+        assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(RolesLibrary.ORACLE, defaultConstructorParams.oracle));
+        assertTrue(vault.hasRole(RolesLibrary.GUARDIAN, defaultConstructorParams.guardian));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -272,5 +278,25 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.underlyingToken(), defaultInitializationParams.underlyingToken);
         assertEq(vault.custodian(), defaultInitializationParams.custodian);
         assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);
+
+        assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.manager));
+
+        assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.manager));
+        assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultConstructorParams.guardian));
+        assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.manager));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultConstructorParams.guardian));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.manager));
+        assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultConstructorParams.guardian));
+        assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.manager));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultConstructorParams.guardian));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultConstructorParams.operationsMultisig));
+
+        assertTrue(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW));
+        assertTrue(vault.isFlowPaused(PausableFlows.SETTLE_DEPOSIT_FLOW));
+        assertTrue(vault.isFlowPaused(PausableFlows.REDEEM_REQUEST_FLOW));
+        assertTrue(vault.isFlowPaused(PausableFlows.SETTLE_REDEEM_FLOW));
     }
 }

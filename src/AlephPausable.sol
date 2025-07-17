@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {IAlephPausable} from "./interfaces/IAlephPausable.sol";
+import {PausableFlows} from "./libraries/PausableFlows.sol";
 import {AlephPausableStorage, AlephPausableStorageData} from "./AlephPausableStorage.sol";
 
 /**
@@ -74,6 +75,34 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
 
     function _revertIfFlowUnpaused(bytes4 _pausableFlow) internal view {
         if (!_getPausableStorage().flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyUnpaused();
+    }
+
+    function __AlephVaultDeposit_init(address _manager, address _guardian, address _operationsMultisig)
+        internal
+        onlyInitializing
+    {
+        _getPausableStorage().flowsPauseStates[PausableFlows.DEPOSIT_REQUEST_FLOW] = true;
+        _getPausableStorage().flowsPauseStates[PausableFlows.SETTLE_DEPOSIT_FLOW] = true;
+        _grantRole(PausableFlows.DEPOSIT_REQUEST_FLOW, _manager);
+        _grantRole(PausableFlows.DEPOSIT_REQUEST_FLOW, _guardian);
+        _grantRole(PausableFlows.DEPOSIT_REQUEST_FLOW, _operationsMultisig);
+        _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _manager);
+        _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _guardian);
+        _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _operationsMultisig);
+    }
+
+    function __AlephVaultRedeem_init(address _manager, address _guardian, address _operationsMultisig)
+        internal
+        onlyInitializing
+    {
+        _getPausableStorage().flowsPauseStates[PausableFlows.REDEEM_REQUEST_FLOW] = true;
+        _getPausableStorage().flowsPauseStates[PausableFlows.SETTLE_REDEEM_FLOW] = true;
+        _grantRole(PausableFlows.REDEEM_REQUEST_FLOW, _manager);
+        _grantRole(PausableFlows.REDEEM_REQUEST_FLOW, _guardian);
+        _grantRole(PausableFlows.REDEEM_REQUEST_FLOW, _operationsMultisig);
+        _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _manager);
+        _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _guardian);
+        _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _operationsMultisig);
     }
 
     function _getPausableStorage() internal pure returns (AlephPausableStorageData storage _sd) {

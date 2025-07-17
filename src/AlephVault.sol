@@ -28,8 +28,8 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {RolesLibrary} from "./libraries/RolesLibrary.sol";
 import {AlephVaultDeposit} from "./AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
+import {AlephVaultSettlement} from "./AlephVaultSettlement.sol";
 import {FeeManager} from "./FeeManager.sol";
-import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 import {AlephPausable} from "./AlephPausable.sol";
 import {PausableFlows} from "./libraries/PausableFlows.sol";
 
@@ -37,7 +37,7 @@ import {PausableFlows} from "./libraries/PausableFlows.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
+contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPausable, AlephVaultSettlement {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
@@ -107,43 +107,58 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     }
 
     /// @inheritdoc IAlephVault
-    function name() external view override(IAlephVault) returns (string memory) {
+    function name() external view returns (string memory) {
         return _getStorage().name;
     }
 
     /// @inheritdoc IAlephVault
-    function manager() external view override(IAlephVault) returns (address) {
+    function manager() external view returns (address) {
         return _getStorage().manager;
     }
 
     /// @inheritdoc IAlephVault
-    function underlyingToken() external view override(IAlephVault) returns (address) {
+    function underlyingToken() external view returns (address) {
         return _getStorage().underlyingToken;
     }
 
     /// @inheritdoc IAlephVault
-    function custodian() external view override(IAlephVault) returns (address) {
+    function custodian() external view returns (address) {
         return _getStorage().custodian;
     }
 
     /// @inheritdoc IAlephVault
-    function feeRecipient() external view override(IAlephVault) returns (address) {
+    function feeRecipient() external view returns (address) {
         return _getStorage().feeRecipient;
     }
 
     /// @inheritdoc IAlephVault
-    function currentBatch() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (uint48) {
+    function currentBatch()
+        public
+        view
+        override(AlephVaultDeposit, AlephVaultRedeem, AlephVaultSettlement, IAlephVault)
+        returns (uint48)
+    {
         AlephVaultStorageData storage _sd = _getStorage();
         return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
     }
 
     /// @inheritdoc IAlephVault
-    function totalAssets() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (uint256) {
+    function totalAssets()
+        public
+        view
+        override(AlephVaultDeposit, AlephVaultRedeem, FeeManager, IAlephVault)
+        returns (uint256)
+    {
         return _getStorage().assets.latest();
     }
 
     /// @inheritdoc IAlephVault
-    function totalShares() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (uint256) {
+    function totalShares()
+        public
+        view
+        override(AlephVaultDeposit, AlephVaultRedeem, FeeManager, IAlephVault)
+        returns (uint256)
+    {
         return _getStorage().shares.latest();
     }
 
@@ -161,7 +176,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     function sharesOf(address _user)
         public
         view
-        override(AlephVaultRedeem, AlephVaultDeposit, IAlephVault)
+        override(AlephVaultRedeem, FeeManager, IAlephVault)
         returns (uint256)
     {
         return _getStorage().sharesOf[_user].latest();
@@ -203,7 +218,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @dev Only callable by the MANAGER role.
      */
     function queueManagementFee(uint32 _managementFee) external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
-        _queueManagementFee(_managementFee);
+        _queueManagementFee(_getStorage(), _managementFee);
     }
 
     /**
@@ -212,7 +227,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @dev Only callable by the MANAGER role.
      */
     function queuePerformanceFee(uint32 _performanceFee) external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
-        _queuePerformanceFee(_performanceFee);
+        _queuePerformanceFee(_getStorage(), _performanceFee);
     }
 
     /**
@@ -225,7 +240,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         override(FeeManager)
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
     {
-        _queueFeeRecipient(_feeRecipient);
+        _queueFeeRecipient(_getStorage(), _feeRecipient);
     }
 
     /**
@@ -233,7 +248,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @dev Only callable by the MANAGER role.
      */
     function setManagementFee() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
-        _setManagementFee();
+        _setManagementFee(_getStorage());
     }
 
     /**
@@ -241,7 +256,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @dev Only callable by the MANAGER role.
      */
     function setPerformanceFee() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
-        _setPerformanceFee();
+        _setPerformanceFee(_getStorage());
     }
 
     /**
@@ -249,7 +264,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
     function setFeeRecipient() external override(FeeManager) onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        _setFeeRecipient();
+        _setFeeRecipient(_getStorage());
     }
 
     /**
@@ -257,7 +272,22 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @dev Only callable by the MANAGER role.
      */
     function collectFees() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
-        _collectFees();
+        _collectFees(_getStorage());
+    }
+
+    /**
+     * @notice Requests a deposit of assets.
+     * @param _amount The amount of assets to deposit.
+     * @return _batchId The batch ID of the deposit.
+     * @dev Only callable when the deposit request flow is not paused.
+     */
+    function requestDeposit(uint256 _amount)
+        external
+        override(AlephVaultDeposit)
+        whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
+        returns (uint48 _batchId)
+    {
+        return _requestDeposit(_amount);
     }
 
     /**
@@ -271,7 +301,22 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         onlyRole(RolesLibrary.ORACLE)
         whenFlowNotPaused(PausableFlows.SETTLE_DEPOSIT_FLOW)
     {
-        _settleDeposit(_newTotalAssets);
+        _settleDeposit(_getStorage(), _newTotalAssets);
+    }
+
+    /**
+     * @notice Requests a redeem of shares.
+     * @param _shares The number of shares to redeem.
+     * @return _batchId The batch ID of the redeem.
+     * @dev Only callable when the redeem request flow is not paused.
+     */
+    function requestRedeem(uint256 _shares)
+        external
+        override(AlephVaultRedeem)
+        whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
+        returns (uint48 _batchId)
+    {
+        return _requestRedeem(_shares);
     }
 
     /**
@@ -285,7 +330,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         onlyRole(RolesLibrary.ORACLE)
         whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
     {
-        _settleRedeem(_newTotalAssets);
+        _settleRedeem(_getStorage(), _newTotalAssets);
     }
 
     /**

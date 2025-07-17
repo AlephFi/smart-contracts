@@ -8,4 +8,4 @@ Initialize_Unit_Test
 ├── when feeRecipient passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 └── when all params are valid
-    └── it should set the initialization params and grant roles
+    └── it should set the initialization params, grant roles and set pausable flows
