@@ -31,12 +31,12 @@ import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
 import {FeeManager} from "./FeeManager.sol";
 import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 import {AlephPausable} from "./AlephPausable.sol";
-import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
+import {PausableFlows} from "./libraries/PausableFlows.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
 contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
@@ -51,17 +51,26 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
      * @param _constructorParams Struct containing all initialization parameters.
      */
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
-        MAXIMUM_MANAGEMENT_FEE = _constructorParams.maxManagementFee;
-        MAXIMUM_PERFORMANCE_FEE = _constructorParams.maxPerformanceFee;
-        MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
-        PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
-        FEE_RECIPIENT_TIMELOCK = _constructorParams.feeRecipientTimelock;
+        if (
+            _constructorParams.operationsMultisig == address(0) || _constructorParams.oracle == address(0)
+                || _constructorParams.guardian == address(0) || _constructorParams.maxManagementFee == 0
+                || _constructorParams.maxPerformanceFee == 0 || _constructorParams.managementFeeTimelock == 0
+                || _constructorParams.performanceFeeTimelock == 0 || _constructorParams.feeRecipientTimelock == 0
+                || _constructorParams.maxManagementFee > 10_000 || _constructorParams.maxPerformanceFee > 10_000
+        ) {
+            revert InvalidConstructorParams();
+        }
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
         ORACLE = _constructorParams.oracle;
         GUARDIAN = _constructorParams.guardian;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _constructorParams.operationsMultisig);
         _grantRole(RolesLibrary.ORACLE, _constructorParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _constructorParams.guardian);
+        MAXIMUM_MANAGEMENT_FEE = _constructorParams.maxManagementFee;
+        MAXIMUM_PERFORMANCE_FEE = _constructorParams.maxPerformanceFee;
+        MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
+        PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
+        FEE_RECIPIENT_TIMELOCK = _constructorParams.feeRecipientTimelock;
     }
 
     /**
@@ -81,7 +90,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         __AccessControl_init();
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.underlyingToken == address(0)
-                || _initalizationParams.custodian == address(0)
+                || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
         ) {
             revert InvalidInitializationParams();
         }
@@ -93,8 +102,18 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
-        __AlephVaultDeposit_init(_initalizationParams.manager);
-        __AlephVaultRedeem_init(_initalizationParams.manager);
+        __AlephVaultDeposit_init(_initalizationParams.manager, GUARDIAN, OPERATIONS_MULTISIG);
+        __AlephVaultRedeem_init(_initalizationParams.manager, GUARDIAN, OPERATIONS_MULTISIG);
+    }
+
+    /// @inheritdoc IAlephVault
+    function name() external view override(IAlephVault) returns (string memory) {
+        return _getStorage().name;
+    }
+
+    /// @inheritdoc IAlephVault
+    function manager() external view override(IAlephVault) returns (address) {
+        return _getStorage().manager;
     }
 
     /// @inheritdoc IAlephVault
@@ -103,24 +122,19 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     }
 
     /// @inheritdoc IAlephVault
+    function custodian() external view override(IAlephVault) returns (address) {
+        return _getStorage().custodian;
+    }
+
+    /// @inheritdoc IAlephVault
+    function feeRecipient() external view override(IAlephVault) returns (address) {
+        return _getStorage().feeRecipient;
+    }
+
+    /// @inheritdoc IAlephVault
     function currentBatch() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (uint48) {
         AlephVaultStorageData storage _sd = _getStorage();
         return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
-    }
-
-    /// @inheritdoc IAlephVault
-    function operationsMultisig()
-        public
-        view
-        override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault)
-        returns (address)
-    {
-        return OPERATIONS_MULTISIG;
-    }
-
-    /// @inheritdoc IAlephVault
-    function guardian() public view override(AlephVaultDeposit, AlephVaultRedeem, IAlephVault) returns (address) {
-        return GUARDIAN;
     }
 
     /// @inheritdoc IAlephVault
@@ -171,11 +185,6 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
     /// @inheritdoc IAlephVault
     function metadataUri() external view returns (string memory) {
         return _getStorage().metadataUri;
-    }
-
-    /// @inheritdoc IAlephVault
-    function name() external view returns (string memory) {
-        return _getStorage().name;
     }
 
     /// @inheritdoc IAlephVault
@@ -260,7 +269,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         external
         override(AlephVaultDeposit)
         onlyRole(RolesLibrary.ORACLE)
-        whenFlowNotPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW)
+        whenFlowNotPaused(PausableFlows.SETTLE_DEPOSIT_FLOW)
     {
         _settleDeposit(_newTotalAssets);
     }
@@ -274,7 +283,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem {
         external
         override(AlephVaultRedeem)
         onlyRole(RolesLibrary.ORACLE)
-        whenFlowNotPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW)
+        whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
     {
         _settleRedeem(_newTotalAssets);
     }

@@ -20,6 +20,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IAlephVault {
+    error InvalidConstructorParams();
     error InvalidInitializationParams();
 
     event MetadataUriSet(string metadataUri);
@@ -56,22 +57,34 @@ interface IAlephVault {
     // View functions
 
     /**
-     * @notice Returns the operations multisig of the vault.
-     * @return The operations multisig.
+     * @notice Returns the name of the vault.
+     * @return The name.
      */
-    function operationsMultisig() external view returns (address);
+    function name() external view returns (string memory);
 
     /**
-     * @notice Returns the guardian of the vault.
-     * @return The guardian.
+     * @notice Returns the manager of the vault.
+     * @return The manager.
      */
-    function guardian() external view returns (address);
+    function manager() external view returns (address);
 
     /**
      * @notice Returns the underlying token of the vault.
      * @return The underlying token.
      */
     function underlyingToken() external view returns (address);
+
+    /**
+     * @notice Returns the custodian of the vault.
+     * @return The custodian.
+     */
+    function custodian() external view returns (address);
+
+    /**
+     * @notice Returns the fee recipient of the vault.
+     * @return The fee recipient.
+     */
+    function feeRecipient() external view returns (address);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.
@@ -140,12 +153,6 @@ interface IAlephVault {
      * @return The metadata URL.
      */
     function metadataUri() external view returns (string memory);
-
-    /**
-     * @notice Returns the name of the vault.
-     * @return The name.
-     */
-    function name() external view returns (string memory);
 
     /**
      * @notice Sets the metadata URL of the vault.

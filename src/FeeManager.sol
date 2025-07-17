@@ -234,7 +234,11 @@ abstract contract FeeManager is IFeeManager {
      * @param _totalShares The total shares in the vault.
      * @return _pricePerShare The price per share.
      */
-    function _getPricePerShare(uint256 _totalAssets, uint256 _totalShares) internal view returns (uint256 _pricePerShare) {
+    function _getPricePerShare(uint256 _totalAssets, uint256 _totalShares)
+        internal
+        view
+        returns (uint256 _pricePerShare)
+    {
         _pricePerShare = _totalAssets.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
     }
 

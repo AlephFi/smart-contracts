@@ -25,7 +25,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {ERC4626Math} from "./libraries/ERC4626Math.sol";
 import {AlephPausable} from "./AlephPausable.sol";
-import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
+import {PausableFlows} from "./libraries/PausableFlows.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -35,20 +35,19 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable, FeeManager 
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
 
-    function __AlephVaultRedeem_init(address _manager) internal onlyInitializing {
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.REDEEM_REQUEST_FLOW] = true;
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.SETTLE_REDEEM_FLOW] = true;
-        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, operationsMultisig());
-        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, operationsMultisig());
+    function __AlephVaultRedeem_init(address _manager, address _guardian, address _operationsMultisig)
+        internal
+        onlyInitializing
+    {
+        _getPausableStorage().flowsPauseStates[PausableFlows.REDEEM_REQUEST_FLOW] = true;
+        _getPausableStorage().flowsPauseStates[PausableFlows.SETTLE_REDEEM_FLOW] = true;
+        _grantRole(PausableFlows.REDEEM_REQUEST_FLOW, _manager);
+        _grantRole(PausableFlows.REDEEM_REQUEST_FLOW, _guardian);
+        _grantRole(PausableFlows.REDEEM_REQUEST_FLOW, _operationsMultisig);
+        _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _manager);
+        _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _guardian);
+        _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _operationsMultisig);
     }
-
-    function operationsMultisig() public view virtual returns (address);
-
-    function guardian() public view virtual returns (address);
 
     /**
      * @notice Returns the current batch ID.
@@ -97,7 +96,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable, FeeManager 
     /// @inheritdoc IERC7540Redeem
     function requestRedeem(uint256 _shares)
         external
-        whenFlowNotPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW)
+        whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
         returns (uint48 _batchId)
     {
         return _requestRedeem(_shares);

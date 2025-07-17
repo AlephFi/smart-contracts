@@ -26,7 +26,7 @@ import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
-import {PausableFlowsLibrary} from "../src/PausableFlowsLibrary.sol";
+import {PausableFlows} from "../src/libraries/PausableFlows.sol";
 import {IAlephPausable} from "../src/interfaces/IAlephPausable.sol";
 
 /**
@@ -82,48 +82,48 @@ contract AlephVaultTest is Test {
             })
         );
         vm.startPrank(manager);
-        vault.unpause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
-        vault.unpause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
-        vault.unpause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
-        vault.unpause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
+        vault.unpause(PausableFlows.DEPOSIT_REQUEST_FLOW);
+        vault.unpause(PausableFlows.REDEEM_REQUEST_FLOW);
+        vault.unpause(PausableFlows.SETTLE_DEPOSIT_FLOW);
+        vault.unpause(PausableFlows.SETTLE_REDEEM_FLOW);
         vm.stopPrank();
     }
 
     function test_pauseAndUnpauseSettleDepositFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_DEPOSIT_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), true);
+        vault.pause(PausableFlows.SETTLE_DEPOSIT_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_DEPOSIT_FLOW), true);
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.settleDeposit(100);
     }
 
     function test_pauseAndUnpauseSettleRedeemFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_REDEEM_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), true);
+        vault.pause(PausableFlows.SETTLE_REDEEM_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_REDEEM_FLOW), true);
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.settleRedeem(100);
     }
 
     function test_pauseAndUnpauseRedeemRequestFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.REDEEM_REQUEST_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), true);
+        vault.pause(PausableFlows.REDEEM_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.REDEEM_REQUEST_FLOW), true);
         vm.prank(user);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.requestRedeem(100);
     }
 
     function test_pauseAndUnpauseDepositRequestFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), true);
+        vault.pause(PausableFlows.DEPOSIT_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW), true);
         vm.prank(user);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.requestDeposit(100);

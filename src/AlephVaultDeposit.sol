@@ -25,7 +25,7 @@ import {ERC4626Math} from "./libraries/ERC4626Math.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {AlephPausable} from "./AlephPausable.sol";
-import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
+import {PausableFlows} from "./libraries/PausableFlows.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -35,20 +35,19 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable, FeeManage
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
 
-    function __AlephVaultDeposit_init(address _manager) internal onlyInitializing {
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW] = true;
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW] = true;
-        _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, operationsMultisig());
-        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, operationsMultisig());
+    function __AlephVaultDeposit_init(address _manager, address _guardian, address _operationsMultisig)
+        internal
+        onlyInitializing
+    {
+        _getPausableStorage().flowsPauseStates[PausableFlows.DEPOSIT_REQUEST_FLOW] = true;
+        _getPausableStorage().flowsPauseStates[PausableFlows.SETTLE_DEPOSIT_FLOW] = true;
+        _grantRole(PausableFlows.DEPOSIT_REQUEST_FLOW, _manager);
+        _grantRole(PausableFlows.DEPOSIT_REQUEST_FLOW, _guardian);
+        _grantRole(PausableFlows.DEPOSIT_REQUEST_FLOW, _operationsMultisig);
+        _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _manager);
+        _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _guardian);
+        _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _operationsMultisig);
     }
-
-    function operationsMultisig() public view virtual returns (address);
-
-    function guardian() public view virtual returns (address);
 
     /**
      * @notice Returns the current batch ID.
@@ -97,7 +96,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable, FeeManage
     /// @inheritdoc IERC7540Deposit
     function requestDeposit(uint256 _amount)
         external
-        whenFlowNotPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW)
+        whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
         returns (uint48 _batchId)
     {
         return _requestDeposit(_amount);

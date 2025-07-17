@@ -1,0 +1,276 @@
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.25;
+/*
+  ______   __                      __       
+ /      \ /  |                    /  |      
+/$$$$$$  |$$ |  ______    ______  $$ |____  
+$$ |__$$ |$$ | /      \  /      \ $$      \ 
+$$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
+$$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
+$$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
+$$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
+                        $$ |                
+                        $$ |                
+                        $$/                 
+*/
+
+import {IAlephVault} from "../../../src/interfaces/IAlephVault.sol";
+import {ExposedVault} from "../../exposes/ExposedVault.sol";
+import {BaseTest} from "../../utils/BaseTest.t.sol";
+
+/**
+ * @author Othentic Labs LTD.
+ * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ */
+contract VaultSetUpTest is BaseTest {
+    /*//////////////////////////////////////////////////////////////
+                           CONSTRUCTOR TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_constructor_when_operationsMultisig_passed_is_address_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: address(0),
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_oracle_passed_is_address_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: address(0),
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_guardian_passed_is_address_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: address(0),
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_maxManagementFee_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: 0,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_maxPerformanceFee_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: 0,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_managementFeeTimelock_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: 0,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_performanceFeeTimelock_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: 0,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_feeRecipientTimelock_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: 0
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_maxManagementFee_passed_is_greater_than_10_000() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: 10_001,
+            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_maxPerformanceFee_passed_is_greater_than_10_000() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            oracle: defaultConstructorParams.oracle,
+            guardian: defaultConstructorParams.guardian,
+            maxManagementFee: defaultConstructorParams.maxManagementFee,
+            maxPerformanceFee: 10_001,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_all_params_are_valid() public {
+        vault = new ExposedVault(defaultConstructorParams);
+
+        assertEq(vault.OPERATIONS_MULTISIG(), defaultConstructorParams.operationsMultisig);
+        assertEq(vault.ORACLE(), defaultConstructorParams.oracle);
+        assertEq(vault.GUARDIAN(), defaultConstructorParams.guardian);
+        assertEq(vault.MAXIMUM_MANAGEMENT_FEE(), defaultConstructorParams.maxManagementFee);
+        assertEq(vault.MAXIMUM_PERFORMANCE_FEE(), defaultConstructorParams.maxPerformanceFee);
+        assertEq(vault.MANAGEMENT_FEE_TIMELOCK(), defaultConstructorParams.managementFeeTimelock);
+        assertEq(vault.PERFORMANCE_FEE_TIMELOCK(), defaultConstructorParams.performanceFeeTimelock);
+        assertEq(vault.FEE_RECIPIENT_TIMELOCK(), defaultConstructorParams.feeRecipientTimelock);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        INITIALIZATION TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_initialize_when_manager_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: address(0),
+            underlyingToken: defaultInitializationParams.underlyingToken,
+            custodian: defaultInitializationParams.custodian,
+            feeRecipient: defaultInitializationParams.feeRecipient
+        });
+
+        vault = new ExposedVault(defaultConstructorParams);
+
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_underlyingToken_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: defaultInitializationParams.manager,
+            underlyingToken: address(0),
+            custodian: defaultInitializationParams.custodian,
+            feeRecipient: defaultInitializationParams.feeRecipient
+        });
+
+        vault = new ExposedVault(defaultConstructorParams);
+
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_custodian_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: defaultInitializationParams.manager,
+            underlyingToken: defaultInitializationParams.underlyingToken,
+            custodian: address(0),
+            feeRecipient: defaultInitializationParams.feeRecipient
+        });
+
+        vault = new ExposedVault(defaultConstructorParams);
+
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_feeRecipient_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: defaultInitializationParams.manager,
+            underlyingToken: defaultInitializationParams.underlyingToken,
+            custodian: defaultInitializationParams.custodian,
+            feeRecipient: address(0)
+        });
+
+        vault = new ExposedVault(defaultConstructorParams);
+
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_all_params_are_valid() public {
+        vault = new ExposedVault(defaultConstructorParams);
+        vault.initialize(defaultInitializationParams);
+
+        assertEq(vault.name(), defaultInitializationParams.name);
+        assertEq(vault.manager(), defaultInitializationParams.manager);
+        assertEq(vault.underlyingToken(), defaultInitializationParams.underlyingToken);
+        assertEq(vault.custodian(), defaultInitializationParams.custodian);
+        assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);
+    }
+}
