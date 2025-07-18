@@ -30,10 +30,12 @@ interface IERC7540Deposit {
         uint256 totalShares
     );
 
-    error OnlyOneRequestPerBatchAllowedForDeposit();
     error InsufficientDeposit();
-    error BatchAlreadySettledForDeposit();
     error NoBatchAvailableForDeposit();
+    error OnlyOneRequestPerBatchAllowedForDeposit();
+    error DepositRequestFailed();
+
+    error BatchAlreadySettledForDeposit();
     error NoDepositsToSettle();
 
     /**

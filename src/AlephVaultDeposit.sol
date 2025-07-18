@@ -91,6 +91,9 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
      */
     function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
+        if (_amount == 0) {
+            revert InsufficientDeposit();
+        }   
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {
@@ -100,18 +103,19 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
         _sd.lastDepositBatchId[msg.sender] = _currentBatchId;
+        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
+        _batch.depositRequest[msg.sender] += _amount;
+        _batch.totalAmountToDeposit += _amount;
+        _batch.usersToDeposit.push(msg.sender);
+        emit DepositRequest(msg.sender, _amount, _currentBatchId);
+
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _depositedAmount = _underlyingToken.balanceOf(address(this)) - _balanceBefore;
-        if (_depositedAmount == 0) {
-            revert InsufficientDeposit();
+        if (_depositedAmount != _amount) {
+            revert DepositRequestFailed();
         }
-        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.depositRequest[msg.sender] += _depositedAmount;
-        _batch.totalAmountToDeposit += _depositedAmount;
-        _batch.usersToDeposit.push(msg.sender);
-        emit DepositRequest(msg.sender, _depositedAmount, _currentBatchId);
         return _currentBatchId;
     }
 }
