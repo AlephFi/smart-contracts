@@ -30,6 +30,9 @@ import {TestToken} from "../exposes/TestToken.sol";
 contract BaseTest is Test {
     using SafeERC20 for IERC20;
 
+    address public mockUser_1 = makeAddr("mockUser_1");
+    address public mockUser_2 = makeAddr("mockUser_2");
+
     ExposedVault public vault;
     uint48 public batchDuration;
     address public manager;

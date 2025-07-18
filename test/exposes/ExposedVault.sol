@@ -25,6 +25,10 @@ import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
 contract ExposedVault is AlephVault {
     constructor(IAlephVault.ConstructorParams memory _initalizationParams) AlephVault(_initalizationParams) {}
 
+    function setLastDepositBatchId(address _user, uint48 _lastDepositBatchId) external {
+        _getStorage().lastDepositBatchId[_user] = _lastDepositBatchId;
+    }
+
     function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
         _getStorage().depositSettleId = _currentDepositBatchId;
     }

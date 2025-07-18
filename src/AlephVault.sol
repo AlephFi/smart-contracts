@@ -198,6 +198,66 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
+    function totalDepositRequests() external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].totalAmountToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalRedeemRequests() external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].totalSharesToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalDepositRequestsAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalAmountToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalRedeemRequestsAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalSharesToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToDeposit() external view returns (address[] memory) {
+        return _getStorage().batches[currentBatch()].usersToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToRedeem() external view returns (address[] memory) {
+        return _getStorage().batches[currentBatch()].usersToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToRedeemAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function depositRequestOf(address _user) external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].depositRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
+    function redeemRequestOf(address _user) external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].redeemRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
+    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].depositRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
+    function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].redeemRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
     function metadataUri() external view returns (string memory) {
         return _getStorage().metadataUri;
     }
