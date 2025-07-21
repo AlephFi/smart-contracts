@@ -16,12 +16,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Test, console} from "forge-std/Test.sol";
-import {ExposedVault} from "../exposes/ExposedVault.sol";
-import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
-import {PausableFlows} from "../../src/libraries/PausableFlows.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {TestToken} from "../exposes/TestToken.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
+import {TestToken} from "@aleph-test/exposes/TestToken.sol";
 
 /**
  * @author Othentic Labs LTD.

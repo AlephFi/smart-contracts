@@ -15,11 +15,11 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IAlephVault} from "../../../src/interfaces/IAlephVault.sol";
-import {RolesLibrary} from "../../../src/libraries/RolesLibrary.sol";
-import {PausableFlows} from "../../../src/libraries/PausableFlows.sol";
-import {ExposedVault} from "../../exposes/ExposedVault.sol";
-import {BaseTest} from "../../utils/BaseTest.t.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
+import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.

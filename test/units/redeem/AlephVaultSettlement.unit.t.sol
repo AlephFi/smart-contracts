@@ -18,13 +18,13 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
-import {IAlephVault} from "../../../src/interfaces/IAlephVault.sol";
-import {IFeeManager} from "../../../src/interfaces/IFeeManager.sol";
-import {IAlephPausable} from "../../../src/interfaces/IAlephPausable.sol";
-import {IERC7540Redeem} from "../../../src/interfaces/IERC7540Redeem.sol";
-import {RolesLibrary} from "../../../src/libraries/RolesLibrary.sol";
-import {PausableFlows} from "../../../src/libraries/PausableFlows.sol";
-import {BaseTest} from "../../utils/BaseTest.t.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
+import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
+import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.

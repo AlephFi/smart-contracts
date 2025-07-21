@@ -15,12 +15,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC7540Redeem} from "./interfaces/IERC7540Redeem.sol";
-import {AlephVaultStorageData} from "./AlephVaultStorage.sol";
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
+import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.

@@ -19,11 +19,11 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IFeeManager} from "./interfaces/IFeeManager.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
-import {TimelockRegistry} from "./libraries/TimelockRegistry.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
-import {AlephVaultStorageData} from "./AlephVaultStorage.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.

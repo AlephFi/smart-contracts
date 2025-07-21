@@ -15,11 +15,11 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IAlephVault} from "../../../src/interfaces/IAlephVault.sol";
-import {IAlephPausable} from "../../../src/interfaces/IAlephPausable.sol";
-import {IERC7540Redeem} from "../../../src/interfaces/IERC7540Redeem.sol";
-import {PausableFlows} from "../../../src/libraries/PausableFlows.sol";
-import {BaseTest} from "../../utils/BaseTest.t.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
+import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.

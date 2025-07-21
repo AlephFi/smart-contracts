@@ -16,10 +16,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
-import {Checkpoints} from "../../src/libraries/Checkpoints.sol";
-import {AlephVaultStorageData} from "../../src/AlephVaultStorage.sol";
-import {AlephVault} from "../../src/AlephVault.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
 
 /**
  * @author Othentic Labs LTD.
