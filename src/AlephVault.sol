@@ -258,6 +258,26 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
+    function pricePerShare() public view returns (uint256) {
+        return _getPricePerShare(totalAssets(), totalShares());
+    }
+
+    /// @inheritdoc IAlephVault
+    function pricePerShareAt(uint48 _timestamp) public view returns (uint256) {
+        return _getPricePerShare(assetsAt(_timestamp), sharesAt(_timestamp));
+    }
+
+    /// @inheritdoc IAlephVault
+    function highWaterMark() public view override(AlephVaultSettlement, IAlephVault) returns (uint256) {
+        return _getStorage().highWaterMark.latest();
+    }
+
+    /// @inheritdoc IAlephVault
+    function highWaterMarkAt(uint48 _timestamp) public view returns (uint256) {
+        return _getStorage().highWaterMark.upperLookupRecent(_timestamp);
+    }
+
+    /// @inheritdoc IAlephVault
     function metadataUri() external view returns (string memory) {
         return _getStorage().metadataUri;
     }
@@ -331,8 +351,13 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
      * @notice Collects all pending fees.
      * @dev Only callable by the MANAGER role.
      */
-    function collectFees() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
-        _collectFees(_getStorage());
+    function collectFees()
+        external
+        override(FeeManager)
+        onlyRole(RolesLibrary.MANAGER)
+        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
+    {
+        return _collectFees(_getStorage());
     }
 
     /**

@@ -28,7 +28,7 @@ interface IFeeManager {
     event NewFeeRecipientSet(address feeRecipient);
     event FeesAccumulated(uint256 managementFee, uint256 performanceFee, uint48 timestamp);
     event NewHighWaterMarkSet(uint256 highWaterMark);
-    event FeesCollected(uint256 feesCollected);
+    event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
     error InvalidManagementFee();
     error InvalidPerformanceFee();
@@ -69,5 +69,5 @@ interface IFeeManager {
     /**
      * @notice Collects all pending fees.
      */
-    function collectFees() external;
+    function collectFees() external returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect);
 }
