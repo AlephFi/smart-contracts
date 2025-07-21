@@ -107,7 +107,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         }
         _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.redeemRequest[msg.sender] += _sharesToRedeem;
+        _batch.redeemRequest[msg.sender] = _sharesToRedeem;
         _batch.totalSharesToRedeem += _sharesToRedeem;
         _batch.usersToRedeem.push(msg.sender);
         _sd.sharesOf[msg.sender].push(Time.timestamp(), _shares - _sharesToRedeem);

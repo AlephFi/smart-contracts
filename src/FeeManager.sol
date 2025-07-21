@@ -255,7 +255,9 @@ abstract contract FeeManager is IFeeManager {
         view
         returns (uint256 _pricePerShare)
     {
-        _pricePerShare = _totalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
+        if (_totalShares > 0) {
+            _pricePerShare = _totalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
+        }
     }
 
     /**

@@ -34,6 +34,10 @@ contract ExposedVault is AlephVault {
         return _getStorage().depositSettleId;
     }
 
+    function redeemSettleId() external view returns (uint48) {
+        return _getStorage().redeemSettleId;
+    }
+
     function lastFeePaidId() external view returns (uint48) {
         return _getStorage().lastFeePaidId;
     }
@@ -59,6 +63,21 @@ contract ExposedVault is AlephVault {
         _sd.batches[_batchId].usersToDeposit.push(_user);
         _sd.batches[_batchId].depositRequest[_user] = _amount;
         _sd.batches[_batchId].totalAmountToDeposit += _amount;
+    }
+
+    function setBatchRedeem(uint48 _batchId, address _user, uint256 _shares) external {
+        AlephVaultStorageData storage _sd = _getStorage();
+        _sd.batches[_batchId].usersToRedeem.push(_user);
+        _sd.batches[_batchId].redeemRequest[_user] = _shares;
+        _sd.batches[_batchId].totalSharesToRedeem += _shares;
+    }
+
+    function setTotalAssets(uint256 _totalAssets) external {
+        _getStorage().assets.push(Time.timestamp(), _totalAssets);
+    }
+
+    function setTotalShares(uint256 _totalShares) external {
+        _getStorage().shares.push(Time.timestamp(), _totalShares);
     }
 
     function setSharesOf(address _user, uint256 _shares) external {

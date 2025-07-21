@@ -11,12 +11,11 @@ SettleDeposit_Unit_Test
             ├── when lastFeePaidId is less than currentBatchId
             │   └── it should call _accumulateFees
             ├── when _amountToSettle is 0
-            │   └── it should not emit SettleDepositBatch and update total assets and total shares
+            │   └── it should update lastDepositBatchId and not emit SettleDepositBatch and update total assets and total shares
             └── when _amountToSettle is greater than 0
-                ├── it should mint shares to users, emit SettleDepositBatch per batch and update totalShares and totalAssets
-                ├── given highWaterMark is 0
-                │   └── it should set highWaterMark and emit NewHighWaterMarkSet
                 ├── given vault has insufficient balance
                 │   └── it should revert with ERC20InsufficientBalance
                 └── given vault has sufficient balance
-                    └── it should transfer amountToSettle to custodian and emit SettleDeposit
+                    ├── given highWaterMark is 0
+                    │   └── it should set highWaterMark and emit NewHighWaterMarkSet
+                    └── it should mint shares to users, emit SettleDepositBatch per batch, update depositSettleId, totalShares and totalAssets, transfer amountToSettle to custodian and emit SettleDeposit

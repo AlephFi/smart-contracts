@@ -133,17 +133,19 @@ abstract contract AlephVaultSettlement is FeeManager {
         uint256 _sharesToSettle;
         uint256 _totalAssets = _newTotalAssets;
         uint256 _totalShares = totalShares();
-        for (_redeemSettleId; _redeemSettleId < _currentBatchId; _redeemSettleId++) {
+        for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
             (uint256 _assets, uint256 _sharesToRedeem) =
-                _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets, _totalShares);
+                _settleRedeemForBatch(_sd, _id, _timestamp, _totalAssets, _totalShares);
             _sharesToSettle += _sharesToRedeem;
             _totalAssets -= _assets;
             _totalShares -= _sharesToRedeem;
         }
-        _sd.shares.push(_timestamp, _totalShares);
-        _sd.assets.push(_timestamp, _totalAssets);
-        emit IERC7540Redeem.SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
         _sd.redeemSettleId = _currentBatchId;
+        if (_sharesToSettle > 0) {
+            _sd.shares.push(_timestamp, _totalShares);
+            _sd.assets.push(_timestamp, _totalAssets);
+        }
+        emit IERC7540Redeem.SettleRedeem(_redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
     }
 
     /**

@@ -95,7 +95,8 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
 
         // assert deposit settle id is less than current batch id
-        assertLt(vault.depositSettleId(), vault.currentBatch());
+        uint48 _currentBatchId = vault.currentBatch();
+        assertLt(vault.depositSettleId(), _currentBatchId);
 
         // settle deposit
         vm.prank(oracle);
@@ -106,7 +107,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.totalShares(), _totalShares);
 
         // assert deposit settle id is equal to current batch id
-        assertEq(vault.depositSettleId(), vault.currentBatch());
+        assertEq(vault.depositSettleId(), _currentBatchId);
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_revertsGivenVaultHasInsufficientBalance(
@@ -169,6 +170,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
+
+        // assert balance of custodian is 300
+        assertEq(underlyingToken.balanceOf(address(custodian)), 300);
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_multipleBatches(
@@ -222,5 +226,8 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
+
+        // assert balance of custodian is 600
+        assertEq(underlyingToken.balanceOf(address(custodian)), 600);
     }
 }
