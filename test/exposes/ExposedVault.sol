@@ -15,18 +15,26 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {AlephVault} from "../../src/AlephVault.sol";
+import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
+import {Checkpoints} from "../../src/libraries/Checkpoints.sol";
+import {AlephVault} from "../../src/AlephVault.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract ExposedVault is AlephVault {
+    using Checkpoints for Checkpoints.Trace256;
+
     constructor(IAlephVault.ConstructorParams memory _initalizationParams) AlephVault(_initalizationParams) {}
 
     function setLastDepositBatchId(address _user, uint48 _lastDepositBatchId) external {
         _getStorage().lastDepositBatchId[_user] = _lastDepositBatchId;
+    }
+
+    function setLastRedeemBatchId(address _user, uint48 _lastRedeemBatchId) external {
+        _getStorage().lastRedeemBatchId[_user] = _lastRedeemBatchId;
     }
 
     function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
@@ -35,5 +43,9 @@ contract ExposedVault is AlephVault {
 
     function setBatchDepositRequest(uint48 _batchId, address _user, uint256 _amount) external {
         _getStorage().batches[_batchId].depositRequest[_user] = _amount;
+    }
+
+    function setSharesOf(address _user, uint256 _shares) external {
+        _getStorage().sharesOf[_user].push(Time.timestamp(), _shares);
     }
 }

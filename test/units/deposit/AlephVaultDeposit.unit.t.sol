@@ -54,7 +54,6 @@ contract AlephVaultDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // set last deposit id to current batch id
-        vm.prank(manager);
         vault.setLastDepositBatchId(mockUser_1, vault.currentBatch());
 
         // request deposit
