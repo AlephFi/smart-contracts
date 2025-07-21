@@ -198,6 +198,11 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
+    function pricePerShare() external view returns (uint256) {
+        return _getPricePerShare(totalAssets(), totalShares());
+    }
+
+    /// @inheritdoc IAlephVault
     function metadataUri() external view returns (string memory) {
         return _getStorage().metadataUri;
     }

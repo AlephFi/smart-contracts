@@ -149,6 +149,12 @@ interface IAlephVault {
     function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
 
     /**
+     * @notice Returns the price per share of the vault.
+     * @return The price per share of the vault.
+     */
+    function pricePerShare() external view returns (uint256);
+
+    /**
      * @notice Returns the metadata URL of the vault.
      * @return The metadata URL.
      */

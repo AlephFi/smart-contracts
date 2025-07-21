@@ -50,7 +50,10 @@ abstract contract AlephVaultSettlement is FeeManager {
             revert IERC7540Deposit.NoDepositsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
-        _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
+        uint48 _lastFeePaidId = _sd.lastFeePaidId;
+        if (_currentBatchId > _lastFeePaidId) {
+            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+        }
         uint256 _amountToSettle;
         uint256 _totalAssets = _newTotalAssets;
         uint256 _totalShares = totalShares();
@@ -115,7 +118,10 @@ abstract contract AlephVaultSettlement is FeeManager {
             revert IERC7540Redeem.NoRedeemsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
-        _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _timestamp);
+        uint48 _lastFeePaidId = _sd.lastFeePaidId;
+        if (_currentBatchId > _lastFeePaidId) {
+            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+        }
         uint256 _sharesToSettle;
         uint256 _totalAssets = _newTotalAssets;
         uint256 _totalShares = totalShares();

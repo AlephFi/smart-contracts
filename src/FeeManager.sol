@@ -155,11 +155,12 @@ abstract contract FeeManager is IFeeManager {
         AlephVaultStorageData storage _sd,
         uint256 _newTotalAssets,
         uint48 _currentBatchId,
+        uint48 _lastFeePaidId,
         uint48 _timestamp
     ) internal returns (uint256 _managementFee, uint256 _performanceFee) {
         if (_newTotalAssets > 0) {
             uint256 _totalShares = totalShares();
-            _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _sd.lastFeePaidId);
+            _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
             _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets, _totalShares);
             uint256 _feesToCollect = _managementFee + _performanceFee;
             uint256 _sharesToMint = ERC4626Math.previewDeposit(_feesToCollect, _totalShares, _newTotalAssets);
@@ -231,7 +232,7 @@ abstract contract FeeManager is IFeeManager {
         view
         returns (uint256 _pricePerShare)
     {
-        _pricePerShare = _totalAssets.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
+        _pricePerShare = _totalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
     }
 
     /**
