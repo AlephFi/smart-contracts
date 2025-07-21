@@ -104,7 +104,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         }
         _sd.lastDepositBatchId[msg.sender] = _currentBatchId;
         IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.depositRequest[msg.sender] += _amount;
+        _batch.depositRequest[msg.sender] = _amount;
         _batch.totalAmountToDeposit += _amount;
         _batch.usersToDeposit.push(msg.sender);
         emit DepositRequest(msg.sender, _amount, _currentBatchId);

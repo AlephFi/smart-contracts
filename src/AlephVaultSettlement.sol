@@ -63,21 +63,23 @@ abstract contract AlephVaultSettlement is FeeManager {
         uint256 _amountToSettle;
         uint256 _totalAssets = _newTotalAssets;
         uint256 _totalShares = totalShares();
-        for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
+        for (uint48 _id = _depositSettleId; _id < _currentBatchId; _id++) {
             (uint256 _amount, uint256 _sharesToMint) =
-                _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets, _totalShares);
+                _settleDepositForBatch(_sd, _id, _timestamp, _totalAssets, _totalShares);
             _amountToSettle += _amount;
             _totalAssets += _amount;
             _totalShares += _sharesToMint;
         }
-        _sd.shares.push(_timestamp, _totalShares);
-        _sd.assets.push(_timestamp, _totalAssets);
-        if (highWaterMark() == 0) {
-            _initializeHighWaterMark(_sd, _totalAssets, _totalShares, _timestamp);
-        }
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
-        emit IERC7540Deposit.SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
         _sd.depositSettleId = _currentBatchId;
+        if (_amountToSettle > 0) {
+            _sd.shares.push(_timestamp, _totalShares);
+            _sd.assets.push(_timestamp, _totalAssets);
+            if (highWaterMark() == 0) {
+                _initializeHighWaterMark(_sd, _totalAssets, _totalShares, _timestamp);
+            }
+            IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
+        }
+        emit IERC7540Deposit.SettleDeposit(_depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
     }
 
     /**
@@ -104,8 +106,8 @@ abstract contract AlephVaultSettlement is FeeManager {
             address _user = _batch.usersToDeposit[i];
             uint256 _amount = _batch.depositRequest[_user];
             uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalAssets);
-            _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
             _totalSharesToMint += _sharesToMintPerUser;
+            _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
         }
         emit IERC7540Deposit.SettleDepositBatch(
             _batchId, _batch.totalAmountToDeposit, _totalSharesToMint, _totalAssets, _totalShares

@@ -31,7 +31,7 @@ contract AlephVaultRedeemTest is BaseTest {
         _unpauseVaultFlows();
     }
 
-    function test_requestRedeem_whenFlowIsPaused_reverts() public {
+    function test_requestRedeem_revertsGivenFlowIsPaused() public {
         // pause redeem request flow
         vm.prank(manager);
         vault.pause(PausableFlows.REDEEM_REQUEST_FLOW);

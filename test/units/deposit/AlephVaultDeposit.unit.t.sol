@@ -33,7 +33,7 @@ contract AlephVaultDepositTest is BaseTest {
         _unpauseVaultFlows();
     }
 
-    function test_requestDeposit_whenFlowIsPaused_reverts() public {
+    function test_requestDeposit_revertsGivenFlowIsPaused() public {
         // pause deposit request flow
         vm.prank(manager);
         vault.pause(PausableFlows.DEPOSIT_REQUEST_FLOW);
