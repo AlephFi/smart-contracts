@@ -40,6 +40,12 @@ abstract contract AlephVaultSettlement is FeeManager {
     function currentBatch() public view virtual returns (uint48);
 
     /**
+     * @notice Returns the current high water mark of the vault.
+     * @return The current high water mark.
+     */
+    function highWaterMark() public view virtual override returns (uint256);
+
+    /**
      * @dev Internal function to settle all deposits for batches up to the current batch.
      * @param _newTotalAssets The new total assets after settlement.
      */
@@ -66,8 +72,8 @@ abstract contract AlephVaultSettlement is FeeManager {
         }
         _sd.shares.push(_timestamp, _totalShares);
         _sd.assets.push(_timestamp, _totalAssets);
-        if (_sd.highWaterMark == 0) {
-            _initializeHighWaterMark(_sd);
+        if (highWaterMark() == 0) {
+            _initializeHighWaterMark(_sd, _totalAssets, _totalShares, _timestamp);
         }
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         emit IERC7540Deposit.SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);

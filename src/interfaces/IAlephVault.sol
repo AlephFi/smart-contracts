@@ -149,10 +149,30 @@ interface IAlephVault {
     function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
 
     /**
-     * @notice Returns the price per share of the vault.
-     * @return The price per share of the vault.
+     * @notice Returns the current price per share of the vault.
+     * @return The current price per share.
      */
     function pricePerShare() external view returns (uint256);
+
+    /**
+     * @notice Returns the price per share at a specific timestamp.
+     * @param _timestamp The timestamp to query.
+     * @return The price per share at the given timestamp.
+     */
+    function pricePerShareAt(uint48 _timestamp) external view returns (uint256);
+
+    /**
+     * @notice Returns the current high water mark of the vault.
+     * @return The current high water mark.
+     */
+    function highWaterMark() external view returns (uint256);
+
+    /**
+     * @notice Returns the high water mark at a specific timestamp.
+     * @param _timestamp The timestamp to query.
+     * @return The high water mark at the given timestamp.
+     */
+    function highWaterMarkAt(uint48 _timestamp) external view returns (uint256);
 
     /**
      * @notice Returns the metadata URL of the vault.
