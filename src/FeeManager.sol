@@ -179,9 +179,11 @@ abstract contract FeeManager is IFeeManager {
             _sd.sharesOf[MANAGEMENT_FEE_RECIPIENT].push(
                 _timestamp, sharesOf(MANAGEMENT_FEE_RECIPIENT) + _managementSharesToMint
             );
-            _sd.sharesOf[PERFORMANCE_FEE_RECIPIENT].push(
-                _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
-            );
+            if (_performanceSharesToMint > 0) {
+                _sd.sharesOf[PERFORMANCE_FEE_RECIPIENT].push(
+                    _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
+                );
+            }
             _sd.shares.push(_timestamp, _totalShares + _managementSharesToMint + _performanceSharesToMint);
             emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
         }

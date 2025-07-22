@@ -83,4 +83,12 @@ contract ExposedVault is AlephVault {
     function setSharesOf(address _user, uint256 _shares) external {
         _getStorage().sharesOf[_user].push(Time.timestamp(), _shares);
     }
+
+    function setHighWaterMark(uint256 _highWaterMark) external {
+        _getStorage().highWaterMark.push(Time.timestamp(), _highWaterMark);
+    }
+
+    function accumalateFees(uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _lastFeePaidId, uint48 _timestamp) external {
+        _accumulateFees(_getStorage(), _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+    }
 }
