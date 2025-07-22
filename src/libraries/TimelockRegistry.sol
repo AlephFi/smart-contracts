@@ -21,7 +21,7 @@ library TimelockRegistry {
 
     function setTimelock(AlephVaultStorageData storage _sd, bytes4 _key) internal returns (bytes memory) {
         Timelock memory _timelock = _sd.timelocks[_key];
-        if (_timelock.unlockTimestamp <= Time.timestamp()) {
+        if (_timelock.unlockTimestamp > Time.timestamp()) {
             revert TimelockNotExpired(_key, _timelock.unlockTimestamp);
         }
         delete _sd.timelocks[_key];
