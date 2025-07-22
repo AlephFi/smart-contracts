@@ -32,7 +32,17 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  */
 contract AlephVaultRedeemSettlementTest is BaseTest {
     function setUp() public {
-        _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: defaultInitializationParams.manager,
+            underlyingToken: defaultInitializationParams.underlyingToken,
+            custodian: defaultInitializationParams.custodian,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: 0, // 0%
+            performanceFee: 0 // 0%
+        });
+
+        _setUpNewAlephVault(defaultConstructorParams, _initializationParams);
         _unpauseVaultFlows();
     }
 

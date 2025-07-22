@@ -44,7 +44,8 @@ contract FeeManagerTest is BaseTest {
         assertEq(vault.sharesOf(performanceFeeRecipient), 0);
     }
 
-    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsHigherThanPricePerShare_shouldAccumalateOnlyManagementFees() public {
+    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsHigherThanPricePerShare_shouldAccumalateOnlyManagementFees(
+    ) public {
         // set up context
         uint48 currentBatchId = 3;
         uint48 lastFeePaidId = 1;
@@ -75,7 +76,8 @@ contract FeeManagerTest is BaseTest {
         assertEq(vault.sharesOf(performanceFeeRecipient), 0);
     }
 
-    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsLowerThanPricePerShare_shouldAccumalateBothPerformanceAndManagementFees() public {
+    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsLowerThanPricePerShare_shouldAccumalateBothPerformanceAndManagementFees(
+    ) public {
         // set up context
         uint48 currentBatchId = 3;
         uint48 lastFeePaidId = 1;
@@ -105,6 +107,6 @@ contract FeeManagerTest is BaseTest {
 
         // check fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.PERFORMANCE_FEE_RECIPIENT();
-        assertEq(vault.sharesOf(performanceFeeRecipient), 0);
+        assertEq(vault.sharesOf(performanceFeeRecipient), 250);
     }
 }

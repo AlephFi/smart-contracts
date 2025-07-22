@@ -88,7 +88,9 @@ contract ExposedVault is AlephVault {
         _getStorage().highWaterMark.push(Time.timestamp(), _highWaterMark);
     }
 
-    function accumalateFees(uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _lastFeePaidId, uint48 _timestamp) external {
+    function accumalateFees(uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _lastFeePaidId, uint48 _timestamp)
+        external
+    {
         _accumulateFees(_getStorage(), _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
     }
 }

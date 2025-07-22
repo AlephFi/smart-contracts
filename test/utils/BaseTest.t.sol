@@ -41,6 +41,8 @@ contract BaseTest is Test {
     address public feeRecipient;
     address public oracle;
     address public guardian;
+    uint32 public managementFee;
+    uint32 public performanceFee;
     uint32 public maxManagementFee;
     uint32 public maxPerformanceFee;
     uint48 public managementFeeTimelock;
@@ -53,8 +55,8 @@ contract BaseTest is Test {
         operationsMultisig: makeAddr("operationsMultisig"),
         oracle: makeAddr("oracle"),
         guardian: makeAddr("guardian"),
-        maxManagementFee: 100,
-        maxPerformanceFee: 500,
+        maxManagementFee: 1000, // 10%
+        maxPerformanceFee: 5000, // 50%
         managementFeeTimelock: 7 days,
         performanceFeeTimelock: 7 days,
         feeRecipientTimelock: 7 days
@@ -65,7 +67,9 @@ contract BaseTest is Test {
         manager: makeAddr("manager"),
         underlyingToken: address(underlyingToken),
         custodian: makeAddr("custodian"),
-        feeRecipient: makeAddr("feeRecipient")
+        feeRecipient: makeAddr("feeRecipient"),
+        managementFee: 200, // 2%
+        performanceFee: 2000 // 20%
     });
 
     function _setUpNewAlephVault(
@@ -89,6 +93,8 @@ contract BaseTest is Test {
         manager = _initializationParams.manager;
         custodian = _initializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
+        managementFee = _initializationParams.managementFee;
+        performanceFee = _initializationParams.performanceFee;
 
         // initialize vault
         vault.initialize(_initializationParams);

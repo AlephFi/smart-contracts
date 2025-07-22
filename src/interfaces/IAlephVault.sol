@@ -42,6 +42,8 @@ interface IAlephVault {
         address underlyingToken;
         address custodian;
         address feeRecipient;
+        uint32 managementFee;
+        uint32 performanceFee;
     }
 
     struct BatchData {
@@ -85,6 +87,18 @@ interface IAlephVault {
      * @return The fee recipient.
      */
     function feeRecipient() external view returns (address);
+
+    /**
+     * @notice Returns the management fee of the vault.
+     * @return The management fee.
+     */
+    function managementFee() external view returns (uint32);
+
+    /**
+     * @notice Returns the performance fee of the vault.
+     * @return The performance fee.
+     */
+    function performanceFee() external view returns (uint32);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.

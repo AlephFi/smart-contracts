@@ -91,6 +91,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.underlyingToken == address(0)
                 || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
+                || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
             revert InvalidInitializationParams();
         }
@@ -98,6 +100,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
+        _sd.managementFee = _initalizationParams.managementFee;
+        _sd.performanceFee = _initalizationParams.performanceFee;
         _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
@@ -129,6 +133,16 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /// @inheritdoc IAlephVault
     function feeRecipient() external view returns (address) {
         return _getStorage().feeRecipient;
+    }
+
+    /// @inheritdoc IAlephVault
+    function managementFee() external view returns (uint32) {
+        return _getStorage().managementFee;
+    }
+
+    /// @inheritdoc IAlephVault
+    function performanceFee() external view returns (uint32) {
+        return _getStorage().performanceFee;
     }
 
     /// @inheritdoc IAlephVault

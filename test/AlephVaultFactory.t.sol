@@ -55,7 +55,9 @@ contract AlephVaultFactoryTest is Test {
             manager: manager,
             underlyingToken: underlyingToken,
             custodian: custodian,
-            feeRecipient: feeRecipient
+            feeRecipient: feeRecipient,
+            managementFee: 0,
+            performanceFee: 0
         });
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
