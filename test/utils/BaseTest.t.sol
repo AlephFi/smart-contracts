@@ -53,8 +53,6 @@ contract BaseTest is Test {
 
     IAlephVault.ConstructorParams public defaultConstructorParams = IAlephVault.ConstructorParams({
         operationsMultisig: makeAddr("operationsMultisig"),
-        oracle: makeAddr("oracle"),
-        guardian: makeAddr("guardian"),
         maxManagementFee: 1000, // 10%
         maxPerformanceFee: 5000, // 50%
         managementFeeTimelock: 7 days,
@@ -65,6 +63,8 @@ contract BaseTest is Test {
     IAlephVault.InitializationParams public defaultInitializationParams = IAlephVault.InitializationParams({
         name: "test",
         manager: makeAddr("manager"),
+        oracle: makeAddr("oracle"),
+        guardian: makeAddr("guardian"),
         underlyingToken: address(underlyingToken),
         custodian: makeAddr("custodian"),
         feeRecipient: makeAddr("feeRecipient"),
@@ -78,8 +78,6 @@ contract BaseTest is Test {
     ) public {
         // set up constructor params
         operationsMultisig = _constructorParams.operationsMultisig;
-        oracle = _constructorParams.oracle;
-        guardian = _constructorParams.guardian;
         maxManagementFee = _constructorParams.maxManagementFee;
         maxPerformanceFee = _constructorParams.maxPerformanceFee;
         managementFeeTimelock = _constructorParams.managementFeeTimelock;
@@ -91,6 +89,8 @@ contract BaseTest is Test {
 
         // set up initialization params
         manager = _initializationParams.manager;
+        oracle = _initializationParams.oracle;
+        guardian = _initializationParams.guardian;
         custodian = _initializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
         managementFee = _initializationParams.managementFee;

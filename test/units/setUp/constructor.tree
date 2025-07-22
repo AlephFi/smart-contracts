@@ -1,10 +1,6 @@
 Constructor_Unit_Test
 ├── when operationsMultisig passed is address(0)
 │   └── it should revert with InvalidConstructorParams
-├── when oracle passed is address(0)
-│   └── it should revert with InvalidConstructorParams
-├── when guardian passed is address(0)
-│   └── it should revert with InvalidConstructorParams
 ├── when maxManagementFee passed is 0
 │   └── it should revert with InvalidConstructorParams
 ├── when maxPerformanceFee passed is 0
@@ -22,4 +18,4 @@ Constructor_Unit_Test
 ├── when maxManagementFee passed is greater than 10_000
 │   └── it should revert with InvalidConstructorParams
 └── when all params are valid
-    └── it should set the constructor params and grant roles
+    └── it should set the constructor params

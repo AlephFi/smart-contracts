@@ -35,6 +35,8 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,

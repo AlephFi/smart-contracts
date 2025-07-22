@@ -63,8 +63,6 @@ contract AlephVaultTest is Test {
         vault = new ExposedVault(
             IAlephVault.ConstructorParams({
                 operationsMultisig: operationsMultisig,
-                oracle: oracle,
-                guardian: guardian,
                 maxManagementFee: maxManagementFee,
                 maxPerformanceFee: maxPerformanceFee,
                 managementFeeTimelock: managementFeeTimelock,
@@ -76,6 +74,8 @@ contract AlephVaultTest is Test {
             IAlephVault.InitializationParams({
                 name: "test",
                 manager: manager,
+                oracle: oracle,
+                guardian: guardian,
                 underlyingToken: address(underlyingToken),
                 custodian: custodian,
                 feeRecipient: feeRecipient,

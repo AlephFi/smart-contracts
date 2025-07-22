@@ -27,8 +27,6 @@ interface IAlephVault {
 
     struct ConstructorParams {
         address operationsMultisig;
-        address oracle;
-        address guardian;
         uint32 maxManagementFee;
         uint32 maxPerformanceFee;
         uint48 managementFeeTimelock;
@@ -39,6 +37,8 @@ interface IAlephVault {
     struct InitializationParams {
         string name;
         address manager;
+        address oracle;
+        address guardian;
         address underlyingToken;
         address custodian;
         address feeRecipient;
@@ -69,6 +69,18 @@ interface IAlephVault {
      * @return The manager.
      */
     function manager() external view returns (address);
+
+    /**
+     * @notice Returns the oracle of the vault.
+     * @return The oracle.
+     */
+    function oracle() external view returns (address);
+
+    /**
+     * @notice Returns the guardian of the vault.
+     * @return The guardian.
+     */
+    function guardian() external view returns (address);
 
     /**
      * @notice Returns the underlying token of the vault.

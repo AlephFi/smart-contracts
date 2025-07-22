@@ -23,6 +23,8 @@ struct AlephVaultStorageData {
     string name;
     string metadataUri;
     address manager;
+    address oracle;
+    address guardian;
     address underlyingToken;
     address custodian;
     address feeRecipient;

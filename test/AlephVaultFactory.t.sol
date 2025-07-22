@@ -26,8 +26,6 @@ contract AlephVaultFactoryTest is Test {
     AlephVault vaultImpl = new AlephVault(
         IAlephVault.ConstructorParams({
             operationsMultisig: operationsMultisig,
-            oracle: oracle,
-            guardian: guardian,
             maxManagementFee: maxManagementFee,
             maxPerformanceFee: maxPerformanceFee,
             managementFeeTimelock: managementFeeTimelock,
@@ -53,6 +51,8 @@ contract AlephVaultFactoryTest is Test {
         IAlephVault.InitializationParams memory params = IAlephVault.InitializationParams({
             name: name,
             manager: manager,
+            oracle: oracle,
+            guardian: guardian,
             underlyingToken: underlyingToken,
             custodian: custodian,
             feeRecipient: feeRecipient,

@@ -38,8 +38,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         IAlephVault.ConstructorParams memory _constructorParams;
         string memory _config = _getConfigFile();
         address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
-        address _oracle = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".oracle"));
-        address _guardian = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".guardian"));
         uint32 _maxManagementFee = uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".maxManagementFee")));
         uint32 _maxPerformanceFee =
             uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".maxPerformanceFee")));
@@ -50,8 +48,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 _feeRecipientTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
         console.log("operationsMultisig", _operationsMultisig);
-        console.log("oracle", _oracle);
-        console.log("guardian", _guardian);
         console.log("maxManagementFee", _maxManagementFee);
         console.log("maxPerformanceFee", _maxPerformanceFee);
         console.log("managementFeeTimelock", _managementFeeTimelock);
@@ -59,8 +55,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
         _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: _operationsMultisig,
-            oracle: _oracle,
-            guardian: _guardian,
             maxManagementFee: _maxManagementFee,
             maxPerformanceFee: _maxPerformanceFee,
             managementFeeTimelock: _managementFeeTimelock,

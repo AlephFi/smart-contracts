@@ -43,8 +43,6 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     using SafeCast for uint256;
 
     address public immutable OPERATIONS_MULTISIG;
-    address public immutable ORACLE;
-    address public immutable GUARDIAN;
 
     /**
      * @notice Constructor.
@@ -52,8 +50,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
      */
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
         if (
-            _constructorParams.operationsMultisig == address(0) || _constructorParams.oracle == address(0)
-                || _constructorParams.guardian == address(0) || _constructorParams.maxManagementFee == 0
+            _constructorParams.operationsMultisig == address(0) || _constructorParams.maxManagementFee == 0
                 || _constructorParams.maxPerformanceFee == 0 || _constructorParams.managementFeeTimelock == 0
                 || _constructorParams.performanceFeeTimelock == 0 || _constructorParams.feeRecipientTimelock == 0
                 || _constructorParams.maxManagementFee > 10_000 || _constructorParams.maxPerformanceFee > 10_000
@@ -61,11 +58,6 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
             revert InvalidConstructorParams();
         }
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
-        ORACLE = _constructorParams.oracle;
-        GUARDIAN = _constructorParams.guardian;
-        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _constructorParams.operationsMultisig);
-        _grantRole(RolesLibrary.ORACLE, _constructorParams.oracle);
-        _grantRole(RolesLibrary.GUARDIAN, _constructorParams.guardian);
         MAXIMUM_MANAGEMENT_FEE = _constructorParams.maxManagementFee;
         MAXIMUM_PERFORMANCE_FEE = _constructorParams.maxPerformanceFee;
         MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
@@ -89,7 +81,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.manager == address(0) || _initalizationParams.underlyingToken == address(0)
+            _initalizationParams.manager == address(0) || _initalizationParams.oracle == address(0)
+                || _initalizationParams.guardian == address(0) || _initalizationParams.underlyingToken == address(0)
                 || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
                 || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
@@ -97,6 +90,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
             revert InvalidInitializationParams();
         }
         _sd.manager = _initalizationParams.manager;
+        _sd.oracle = _initalizationParams.oracle;
+        _sd.guardian = _initalizationParams.guardian;
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
@@ -105,9 +100,12 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, OPERATIONS_MULTISIG);
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
-        __AlephVaultDeposit_init(_initalizationParams.manager, GUARDIAN, OPERATIONS_MULTISIG);
-        __AlephVaultRedeem_init(_initalizationParams.manager, GUARDIAN, OPERATIONS_MULTISIG);
+        _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
+        _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
+        __AlephVaultDeposit_init(_initalizationParams.manager, _initalizationParams.guardian, OPERATIONS_MULTISIG);
+        __AlephVaultRedeem_init(_initalizationParams.manager, _initalizationParams.guardian, OPERATIONS_MULTISIG);
     }
 
     /// @inheritdoc IAlephVault
@@ -121,6 +119,15 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
+    function oracle() external view returns (address) {
+        return _getStorage().oracle;
+    }
+
+    /// @inheritdoc IAlephVault
+    function guardian() external view returns (address) {
+        return _getStorage().guardian;
+    }
+
     function underlyingToken() external view returns (address) {
         return _getStorage().underlyingToken;
     }
