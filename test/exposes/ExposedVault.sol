@@ -18,6 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 
@@ -40,6 +41,10 @@ contract ExposedVault is AlephVault {
 
     function lastFeePaidId() external view returns (uint48) {
         return _getStorage().lastFeePaidId;
+    }
+
+    function timelocks(bytes4 _key) external view returns (TimelockRegistry.Timelock memory) {
+        return _getStorage().timelocks[_key];
     }
 
     function setLastDepositBatchId(address _user, uint48 _lastDepositBatchId) external {

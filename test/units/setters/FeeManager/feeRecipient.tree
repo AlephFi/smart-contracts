@@ -1,0 +1,14 @@
+QueueFeeRecipient_Unit_Test
+├── when caller is not OPERATIONS_MULTISIG
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is OPERATIONS_MULTISIG
+    └── it should set timelock for fee recipient and emit NewFeeRecipientQueued
+
+SetFeeRecipient_Unit_Test
+├── when caller is not OPERATIONS_MULTISIG
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is OPERATIONS_MULTISIG
+    ├── given unlockTimestamp is greater than current timestamp
+    │   └── it should revert with TimelockNotExpired
+    └── given unlockTimestamp is not greater thancurrent timestamp
+        └── it should set fee recipient and emit FeeRecipientSet
