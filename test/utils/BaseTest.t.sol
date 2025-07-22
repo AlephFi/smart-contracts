@@ -16,12 +16,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Test, console} from "forge-std/Test.sol";
-import {ExposedVault} from "../exposes/ExposedVault.sol";
-import {IAlephVault} from "../../src/interfaces/IAlephVault.sol";
-import {PausableFlows} from "../../src/libraries/PausableFlows.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {TestToken} from "../exposes/TestToken.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
+import {TestToken} from "@aleph-test/exposes/TestToken.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -29,6 +29,9 @@ import {TestToken} from "../exposes/TestToken.sol";
  */
 contract BaseTest is Test {
     using SafeERC20 for IERC20;
+
+    address public mockUser_1 = makeAddr("mockUser_1");
+    address public mockUser_2 = makeAddr("mockUser_2");
 
     ExposedVault public vault;
     uint48 public batchDuration;
@@ -38,6 +41,8 @@ contract BaseTest is Test {
     address public feeRecipient;
     address public oracle;
     address public guardian;
+    uint32 public managementFee;
+    uint32 public performanceFee;
     uint32 public maxManagementFee;
     uint32 public maxPerformanceFee;
     uint48 public managementFeeTimelock;
@@ -50,8 +55,8 @@ contract BaseTest is Test {
         operationsMultisig: makeAddr("operationsMultisig"),
         oracle: makeAddr("oracle"),
         guardian: makeAddr("guardian"),
-        maxManagementFee: 100,
-        maxPerformanceFee: 500,
+        maxManagementFee: 1000, // 10%
+        maxPerformanceFee: 5000, // 50%
         managementFeeTimelock: 7 days,
         performanceFeeTimelock: 7 days,
         feeRecipientTimelock: 7 days
@@ -62,7 +67,9 @@ contract BaseTest is Test {
         manager: makeAddr("manager"),
         underlyingToken: address(underlyingToken),
         custodian: makeAddr("custodian"),
-        feeRecipient: makeAddr("feeRecipient")
+        feeRecipient: makeAddr("feeRecipient"),
+        managementFee: 200, // 2%
+        performanceFee: 2000 // 20%
     });
 
     function _setUpNewAlephVault(
@@ -86,6 +93,8 @@ contract BaseTest is Test {
         manager = _initializationParams.manager;
         custodian = _initializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
+        managementFee = _initializationParams.managementFee;
+        performanceFee = _initializationParams.performanceFee;
 
         // initialize vault
         vault.initialize(_initializationParams);

@@ -78,7 +78,9 @@ contract AlephVaultTest is Test {
                 manager: manager,
                 underlyingToken: address(underlyingToken),
                 custodian: custodian,
-                feeRecipient: feeRecipient
+                feeRecipient: feeRecipient,
+                managementFee: 0,
+                performanceFee: 0
             })
         );
         vm.startPrank(manager);

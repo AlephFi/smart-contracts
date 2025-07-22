@@ -15,16 +15,16 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {Checkpoints} from "./libraries/Checkpoints.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
-import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {FeeManager} from "./FeeManager.sol";
-import {AlephVaultStorageData} from "./AlephVaultStorage.sol";
-import {IERC7540Deposit} from "./interfaces/IERC7540Deposit.sol";
-import {IERC7540Redeem} from "./interfaces/IERC7540Redeem.sol";
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
+import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {FeeManager} from "@aleph-vault/FeeManager.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -63,21 +63,23 @@ abstract contract AlephVaultSettlement is FeeManager {
         uint256 _amountToSettle;
         uint256 _totalAssets = _newTotalAssets;
         uint256 _totalShares = totalShares();
-        for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
+        for (uint48 _id = _depositSettleId; _id < _currentBatchId; _id++) {
             (uint256 _amount, uint256 _sharesToMint) =
-                _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets, _totalShares);
+                _settleDepositForBatch(_sd, _id, _timestamp, _totalAssets, _totalShares);
             _amountToSettle += _amount;
             _totalAssets += _amount;
             _totalShares += _sharesToMint;
         }
-        _sd.shares.push(_timestamp, _totalShares);
-        _sd.assets.push(_timestamp, _totalAssets);
-        if (highWaterMark() == 0) {
-            _initializeHighWaterMark(_sd, _totalAssets, _totalShares, _timestamp);
-        }
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
-        emit IERC7540Deposit.SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
         _sd.depositSettleId = _currentBatchId;
+        if (_amountToSettle > 0) {
+            _sd.shares.push(_timestamp, _totalShares);
+            _sd.assets.push(_timestamp, _totalAssets);
+            if (highWaterMark() == 0) {
+                _initializeHighWaterMark(_sd, _totalAssets, _totalShares, _timestamp);
+            }
+            IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
+        }
+        emit IERC7540Deposit.SettleDeposit(_depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
     }
 
     /**
@@ -104,8 +106,8 @@ abstract contract AlephVaultSettlement is FeeManager {
             address _user = _batch.usersToDeposit[i];
             uint256 _amount = _batch.depositRequest[_user];
             uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalAssets);
-            _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
             _totalSharesToMint += _sharesToMintPerUser;
+            _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
         }
         emit IERC7540Deposit.SettleDepositBatch(
             _batchId, _batch.totalAmountToDeposit, _totalSharesToMint, _totalAssets, _totalShares
@@ -131,17 +133,19 @@ abstract contract AlephVaultSettlement is FeeManager {
         uint256 _sharesToSettle;
         uint256 _totalAssets = _newTotalAssets;
         uint256 _totalShares = totalShares();
-        for (_redeemSettleId; _redeemSettleId < _currentBatchId; _redeemSettleId++) {
+        for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
             (uint256 _assets, uint256 _sharesToRedeem) =
-                _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets, _totalShares);
+                _settleRedeemForBatch(_sd, _id, _timestamp, _totalAssets, _totalShares);
             _sharesToSettle += _sharesToRedeem;
             _totalAssets -= _assets;
             _totalShares -= _sharesToRedeem;
         }
-        _sd.shares.push(_timestamp, _totalShares);
-        _sd.assets.push(_timestamp, _totalAssets);
-        emit IERC7540Redeem.SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
         _sd.redeemSettleId = _currentBatchId;
+        if (_sharesToSettle > 0) {
+            _sd.shares.push(_timestamp, _totalShares);
+            _sd.assets.push(_timestamp, _totalAssets);
+        }
+        emit IERC7540Redeem.SettleRedeem(_redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
     }
 
     /**

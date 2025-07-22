@@ -16,9 +16,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import {IAlephPausable} from "./interfaces/IAlephPausable.sol";
-import {PausableFlows} from "./libraries/PausableFlows.sol";
-import {AlephPausableStorage, AlephPausableStorageData} from "./AlephPausableStorage.sol";
+import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {AlephPausableStorage, AlephPausableStorageData} from "@aleph-vault/AlephPausableStorage.sol";
 
 /**
  * @author Othentic Labs LTD.

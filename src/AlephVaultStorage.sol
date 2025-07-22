@@ -15,9 +15,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
-import {TimelockRegistry} from "./libraries/TimelockRegistry.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 
 struct AlephVaultStorageData {
     string name;

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {AlephVaultStorageData} from "../AlephVaultStorage.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @dev This library manages the timelock for various storage variables.

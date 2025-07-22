@@ -1,0 +1,5 @@
+CollectFees_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    └── it should burn shares of MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT, update total shares and total assets, approve feeRecipient to collect fees, emit FeesCollected

@@ -15,11 +15,11 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IAlephVault} from "../../../src/interfaces/IAlephVault.sol";
-import {RolesLibrary} from "../../../src/libraries/RolesLibrary.sol";
-import {PausableFlows} from "../../../src/libraries/PausableFlows.sol";
-import {ExposedVault} from "../../exposes/ExposedVault.sol";
-import {BaseTest} from "../../utils/BaseTest.t.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
+import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -215,7 +215,9 @@ contract VaultSetUpTest is BaseTest {
             manager: address(0),
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
-            feeRecipient: defaultInitializationParams.feeRecipient
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: defaultInitializationParams.managementFee,
+            performanceFee: defaultInitializationParams.performanceFee
         });
 
         vault = new ExposedVault(defaultConstructorParams);
@@ -230,7 +232,9 @@ contract VaultSetUpTest is BaseTest {
             manager: defaultInitializationParams.manager,
             underlyingToken: address(0),
             custodian: defaultInitializationParams.custodian,
-            feeRecipient: defaultInitializationParams.feeRecipient
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: defaultInitializationParams.managementFee,
+            performanceFee: defaultInitializationParams.performanceFee
         });
 
         vault = new ExposedVault(defaultConstructorParams);
@@ -245,7 +249,9 @@ contract VaultSetUpTest is BaseTest {
             manager: defaultInitializationParams.manager,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: address(0),
-            feeRecipient: defaultInitializationParams.feeRecipient
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: defaultInitializationParams.managementFee,
+            performanceFee: defaultInitializationParams.performanceFee
         });
 
         vault = new ExposedVault(defaultConstructorParams);
@@ -260,11 +266,45 @@ contract VaultSetUpTest is BaseTest {
             manager: defaultInitializationParams.manager,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
-            feeRecipient: address(0)
+            feeRecipient: address(0),
+            managementFee: defaultInitializationParams.managementFee,
+            performanceFee: defaultInitializationParams.performanceFee
         });
 
         vault = new ExposedVault(defaultConstructorParams);
 
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_managementFee_is_greater_than_maxManagementFee() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: defaultInitializationParams.manager,
+            underlyingToken: defaultInitializationParams.underlyingToken,
+            custodian: defaultInitializationParams.custodian,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: defaultConstructorParams.maxManagementFee + 1,
+            performanceFee: defaultInitializationParams.performanceFee
+        });
+
+        vault = new ExposedVault(defaultConstructorParams);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_performanceFee_is_greater_than_maxPerformanceFee() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: defaultInitializationParams.manager,
+            underlyingToken: defaultInitializationParams.underlyingToken,
+            custodian: defaultInitializationParams.custodian,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: defaultInitializationParams.managementFee,
+            performanceFee: defaultConstructorParams.maxPerformanceFee + 1
+        });
+
+        vault = new ExposedVault(defaultConstructorParams);
         vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
         vault.initialize(_initializationParams);
     }
@@ -278,6 +318,8 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.underlyingToken(), defaultInitializationParams.underlyingToken);
         assertEq(vault.custodian(), defaultInitializationParams.custodian);
         assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);
+        assertEq(vault.managementFee(), defaultInitializationParams.managementFee);
+        assertEq(vault.performanceFee(), defaultInitializationParams.performanceFee);
 
         assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.manager));
 

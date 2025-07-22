@@ -15,15 +15,14 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC7540Deposit} from "./interfaces/IERC7540Deposit.sol";
-import {AlephVaultStorage, AlephVaultStorageData} from "./AlephVaultStorage.sol";
-import {FeeManager} from "./FeeManager.sol";
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
+import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -91,6 +90,9 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
      */
     function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
+        if (_amount == 0) {
+            revert InsufficientDeposit();
+        }
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {
@@ -100,18 +102,19 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
         _sd.lastDepositBatchId[msg.sender] = _currentBatchId;
+        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
+        _batch.depositRequest[msg.sender] = _amount;
+        _batch.totalAmountToDeposit += _amount;
+        _batch.usersToDeposit.push(msg.sender);
+        emit DepositRequest(msg.sender, _amount, _currentBatchId);
+
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _depositedAmount = _underlyingToken.balanceOf(address(this)) - _balanceBefore;
-        if (_depositedAmount == 0) {
-            revert InsufficientDeposit();
+        if (_depositedAmount != _amount) {
+            revert DepositRequestFailed();
         }
-        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.depositRequest[msg.sender] += _depositedAmount;
-        _batch.totalAmountToDeposit += _depositedAmount;
-        _batch.usersToDeposit.push(msg.sender);
-        emit DepositRequest(msg.sender, _depositedAmount, _currentBatchId);
         return _currentBatchId;
     }
 }

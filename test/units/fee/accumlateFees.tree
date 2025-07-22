@@ -1,0 +1,7 @@
+AccumalateFees_Unit_Test
+├── when new total assets is 0
+│   └── it should update lastFeePaidId and not emit FeesAccumulated
+└── when new total assets is greater than 0
+    ├── given highWaterMark is lower than pricePerShare
+    │   └── it should set highWaterMark, emit NewHighWaterMarkSet and accumlate shares to PERFORMANCE_FEE_RECIPIENT
+    └── it should accumlate shares to MANAGEMENT_FEE_RECIPIENT, update total shares and lastFeePaidId and emit FeesAccumulated

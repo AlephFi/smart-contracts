@@ -42,6 +42,8 @@ interface IAlephVault {
         address underlyingToken;
         address custodian;
         address feeRecipient;
+        uint32 managementFee;
+        uint32 performanceFee;
     }
 
     struct BatchData {
@@ -85,6 +87,18 @@ interface IAlephVault {
      * @return The fee recipient.
      */
     function feeRecipient() external view returns (address);
+
+    /**
+     * @notice Returns the management fee of the vault.
+     * @return The management fee.
+     */
+    function managementFee() external view returns (uint32);
+
+    /**
+     * @notice Returns the performance fee of the vault.
+     * @return The performance fee.
+     */
+    function performanceFee() external view returns (uint32);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.
@@ -147,6 +161,88 @@ interface IAlephVault {
      * @return The number of shares owned by the user at the given timestamp.
      */
     function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
+
+    /**
+     * @notice Returns the total amount of deposit requests at the current batch.
+     * @return The total amount of deposit requests at the current batch.
+     */
+    function totalDepositRequests() external view returns (uint256);
+
+    /**
+     * @notice Returns the total shares to redeem at the current batch.
+     * @return The total shares to redeem at the current batch.
+     */
+    function totalRedeemRequests() external view returns (uint256);
+
+    /**
+     * @notice Returns the total amount of deposit requests at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The total amount of deposit requests at the given batch ID.
+     */
+    function totalDepositRequestsAt(uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total shares to redeem at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The total shares to redeem at the given batch ID.
+     */
+    function totalRedeemRequestsAt(uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the users that have requested to deposit at the current batch.
+     * @return The users that have requested to deposit at the current batch.
+     */
+    function usersToDeposit() external view returns (address[] memory);
+
+    /**
+     * @notice Returns the users that have requested to redeem at the current batch.
+     * @return The users that have requested to redeem at the current batch.
+     */
+    function usersToRedeem() external view returns (address[] memory);
+
+    /**
+     * @notice Returns the users that have requested to deposit at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The users that have requested to deposit at the given batch ID.
+     */
+    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory);
+
+    /**
+     * @notice Returns the users that have requested to redeem at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The users that have requested to redeem at the given batch ID.
+     */
+    function usersToRedeemAt(uint48 _batchId) external view returns (address[] memory);
+
+    /**
+     * @notice Returns the amount of deposit requested by a user at the current batch.
+     * @param _user The address of the user.
+     * @return The amount of deposit requested by the user at the current batch.
+     */
+    function depositRequestOf(address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns the shares to redeem requested by a user at the current batch.
+     * @param _user The address of the user.
+     * @return The shares to redeem requested by the user at the current batch.
+     */
+    function redeemRequestOf(address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns the amount of deposit requested by a user at a specific batch ID.
+     * @param _user The address of the user.
+     * @param _batchId The batch ID to query.
+     * @return The amount of deposit requested by the user at the given batch ID.
+     */
+    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the shares to redeem requested by a user at a specific batch ID.
+     * @param _user The address of the user.
+     * @param _batchId The batch ID to query.
+     * @return The shares to redeem requested by the user at the given batch ID.
+     */
+    function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
 
     /**
      * @notice Returns the current price per share of the vault.

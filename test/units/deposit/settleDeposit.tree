@@ -1,0 +1,21 @@
+SettleDeposit_Unit_Test
+├── when caller is not ORACLE
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is ORACLE
+    ├── given settle deposit flow is paused
+    │   └── it should revert with FlowIsCurrentlyPaused
+    └── given settle deposit flow is unpaused
+        ├── when depositSettleId is equal to currentBatchId
+        │   └── it should revert with NoDepositsToSettle
+        └── when depositSettleId is less than currentBatchId
+            ├── when lastFeePaidId is less than currentBatchId
+            │   └── it should call _accumulateFees
+            ├── when _amountToSettle is 0
+            │   └── it should update lastDepositBatchId and not emit SettleDepositBatch and update total assets and total shares
+            └── when _amountToSettle is greater than 0
+                ├── given vault has insufficient balance
+                │   └── it should revert with ERC20InsufficientBalance
+                └── given vault has sufficient balance
+                    ├── given highWaterMark is 0
+                    │   └── it should set highWaterMark and emit NewHighWaterMarkSet
+                    └── it should mint shares to users, emit SettleDepositBatch per batch, update depositSettleId, totalShares and totalAssets, transfer amountToSettle to custodian and emit SettleDeposit

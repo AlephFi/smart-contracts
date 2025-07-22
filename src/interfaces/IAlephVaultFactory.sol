@@ -15,7 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IAlephVault} from "./IAlephVault.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 
 /**
  * @author Othentic Labs LTD.

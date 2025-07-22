@@ -17,21 +17,21 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {AccessControlUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
-import {AlephVaultStorage, AlephVaultStorageData} from "./AlephVaultStorage.sol";
+import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {RolesLibrary} from "./libraries/RolesLibrary.sol";
-import {AlephVaultDeposit} from "./AlephVaultDeposit.sol";
-import {AlephVaultRedeem} from "./AlephVaultRedeem.sol";
-import {AlephVaultSettlement} from "./AlephVaultSettlement.sol";
-import {FeeManager} from "./FeeManager.sol";
-import {AlephPausable} from "./AlephPausable.sol";
-import {PausableFlows} from "./libraries/PausableFlows.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {AlephVaultDeposit} from "@aleph-vault/AlephVaultDeposit.sol";
+import {AlephVaultRedeem} from "@aleph-vault/AlephVaultRedeem.sol";
+import {AlephVaultSettlement} from "@aleph-vault/AlephVaultSettlement.sol";
+import {FeeManager} from "@aleph-vault/FeeManager.sol";
+import {AlephPausable} from "@aleph-vault/AlephPausable.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -91,6 +91,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.underlyingToken == address(0)
                 || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
+                || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
             revert InvalidInitializationParams();
         }
@@ -98,6 +100,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
+        _sd.managementFee = _initalizationParams.managementFee;
+        _sd.performanceFee = _initalizationParams.performanceFee;
         _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
@@ -129,6 +133,16 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /// @inheritdoc IAlephVault
     function feeRecipient() external view returns (address) {
         return _getStorage().feeRecipient;
+    }
+
+    /// @inheritdoc IAlephVault
+    function managementFee() external view returns (uint32) {
+        return _getStorage().managementFee;
+    }
+
+    /// @inheritdoc IAlephVault
+    function performanceFee() external view returns (uint32) {
+        return _getStorage().performanceFee;
     }
 
     /// @inheritdoc IAlephVault
@@ -195,6 +209,66 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /// @inheritdoc IAlephVault
     function sharesOfAt(address _user, uint48 _timestamp) public view returns (uint256) {
         return _getStorage().sharesOf[_user].upperLookupRecent(_timestamp);
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalDepositRequests() external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].totalAmountToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalRedeemRequests() external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].totalSharesToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalDepositRequestsAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalAmountToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalRedeemRequestsAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalSharesToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToDeposit() external view returns (address[] memory) {
+        return _getStorage().batches[currentBatch()].usersToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToRedeem() external view returns (address[] memory) {
+        return _getStorage().batches[currentBatch()].usersToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToRedeemAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToRedeem;
+    }
+
+    /// @inheritdoc IAlephVault
+    function depositRequestOf(address _user) external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].depositRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
+    function redeemRequestOf(address _user) external view returns (uint256) {
+        return _getStorage().batches[currentBatch()].redeemRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
+    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].depositRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
+    function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].redeemRequest[_user];
     }
 
     /// @inheritdoc IAlephVault

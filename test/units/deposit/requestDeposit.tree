@@ -1,0 +1,21 @@
+RequestDeposit_Unit_Test
+├── given deposit request flow is paused
+│   └── it should revert with FlowIsCurrentlyPaused
+└── given deposit request flow is unpaused
+    ├── when currentBatchId is 0
+    │   └── it should revert with NoBatchAvailableForDeposit
+    └── when currentBatchId is not 0
+        ├── when lastDepositBatchId is greater than or equal to currentBatchId
+        │   └── it should revert with OnlyOneRequestPerBatchAllowedForDeposit
+        └── when lastDepositBatchId is less than currentBatchId
+            ├── given vault has insufficient allowance to transfer
+            │   └── it should revert with ERC20InsufficientAllowance
+            └── given vault has sufficient allowance to transfer
+                ├── given user has insufficient balance to transfer
+                │   └── it should revert with InsufficientDeposit
+                └── given user has sufficient balance to transfer
+                    ├── when deposited token amount is 0
+                    │   └── it should revert with InsufficientDeposit
+                    └── when deposited token amount is not 0
+                        └── it should update lastDepositBatchId, batches and emit DepositRequest
+

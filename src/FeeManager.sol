@@ -19,11 +19,11 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IFeeManager} from "./interfaces/IFeeManager.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
-import {TimelockRegistry} from "./libraries/TimelockRegistry.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
-import {AlephVaultStorageData} from "./AlephVaultStorage.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -179,9 +179,11 @@ abstract contract FeeManager is IFeeManager {
             _sd.sharesOf[MANAGEMENT_FEE_RECIPIENT].push(
                 _timestamp, sharesOf(MANAGEMENT_FEE_RECIPIENT) + _managementSharesToMint
             );
-            _sd.sharesOf[PERFORMANCE_FEE_RECIPIENT].push(
-                _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
-            );
+            if (_performanceSharesToMint > 0) {
+                _sd.sharesOf[PERFORMANCE_FEE_RECIPIENT].push(
+                    _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
+                );
+            }
             _sd.shares.push(_timestamp, _totalShares + _managementSharesToMint + _performanceSharesToMint);
             emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
         }
@@ -255,7 +257,9 @@ abstract contract FeeManager is IFeeManager {
         view
         returns (uint256 _pricePerShare)
     {
-        _pricePerShare = _totalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
+        if (_totalShares > 0) {
+            _pricePerShare = _totalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
+        }
     }
 
     /**
