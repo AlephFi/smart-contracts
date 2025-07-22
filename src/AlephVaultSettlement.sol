@@ -57,12 +57,12 @@ abstract contract AlephVaultSettlement is FeeManager {
         }
         uint48 _timestamp = Time.timestamp();
         uint48 _lastFeePaidId = _sd.lastFeePaidId;
+        uint256 _totalShares = totalShares();
         if (_currentBatchId > _lastFeePaidId) {
-            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+            _totalShares += _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
         }
         uint256 _amountToSettle;
         uint256 _totalAssets = _newTotalAssets;
-        uint256 _totalShares = totalShares();
         for (uint48 _id = _depositSettleId; _id < _currentBatchId; _id++) {
             (uint256 _amount, uint256 _sharesToMint) =
                 _settleDepositForBatch(_sd, _id, _timestamp, _totalAssets, _totalShares);
@@ -127,12 +127,12 @@ abstract contract AlephVaultSettlement is FeeManager {
         }
         uint48 _timestamp = Time.timestamp();
         uint48 _lastFeePaidId = _sd.lastFeePaidId;
+        uint256 _totalShares = totalShares();
         if (_currentBatchId > _lastFeePaidId) {
-            _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+            _totalShares += _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
         }
         uint256 _sharesToSettle;
         uint256 _totalAssets = _newTotalAssets;
-        uint256 _totalShares = totalShares();
         for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
             (uint256 _assets, uint256 _sharesToRedeem) =
                 _settleRedeemForBatch(_sd, _id, _timestamp, _totalAssets, _totalShares);

@@ -70,7 +70,10 @@ contract FeeManagerTest is BaseTest {
         // accumalate fees
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(7, 0, timestamp);
-        vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+        uint256 _totalSharesMinted = vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+
+        // assert total shares minted
+        assertEq(_totalSharesMinted, 5);
 
         // check lastFeePaidId is updated
         assertEq(vault.lastFeePaidId(), currentBatchId);
@@ -85,10 +88,6 @@ contract FeeManagerTest is BaseTest {
         // check no fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.PERFORMANCE_FEE_RECIPIENT();
         assertEq(vault.sharesOf(performanceFeeRecipient), 0);
-
-        // assert total assets and total shares
-        assertEq(vault.totalAssets(), 1000); // accumalate fee does not update assets
-        assertEq(vault.totalShares(), 1005); // accumalate only updates shares for fees
     }
 
     function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsLowerThanPricePerShare_shouldAccumalateBothPerformanceAndManagementFees(
@@ -114,7 +113,10 @@ contract FeeManagerTest is BaseTest {
         emit IFeeManager.NewHighWaterMarkSet(_newHighWaterMark);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(7, 50, timestamp);
-        vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+        uint256 _totalSharesMinted = vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+
+        // assert total shares minted
+        assertEq(_totalSharesMinted, 46);
 
         // check lastFeePaidId is updated
         assertEq(vault.lastFeePaidId(), currentBatchId);
@@ -129,10 +131,6 @@ contract FeeManagerTest is BaseTest {
         // check fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.PERFORMANCE_FEE_RECIPIENT();
         assertEq(vault.sharesOf(performanceFeeRecipient), 41);
-
-        // assert total assets and total shares
-        assertEq(vault.totalAssets(), 1000); // accumalate fee does not update assets
-        assertEq(vault.totalShares(), 1046); // accumalate only updates shares for fees
     }
 
     /*//////////////////////////////////////////////////////////////

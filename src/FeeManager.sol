@@ -168,11 +168,12 @@ abstract contract FeeManager is IFeeManager {
         uint48 _currentBatchId,
         uint48 _lastFeePaidId,
         uint48 _timestamp
-    ) internal returns (uint256 _managementFee, uint256 _performanceFee) {
+    ) internal returns (uint256) {
+        _sd.lastFeePaidId = _currentBatchId;
         if (_newTotalAssets > 0) {
             uint256 _totalShares = totalShares();
-            _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
-            _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets, _totalShares, _timestamp);
+            uint256 _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
+            uint256 _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets, _totalShares, _timestamp);
             uint256 _managementSharesToMint = ERC4626Math.previewDeposit(_managementFee, _totalShares, _newTotalAssets);
             uint256 _performanceSharesToMint =
                 ERC4626Math.previewDeposit(_performanceFee, _totalShares, _newTotalAssets);
@@ -184,10 +185,10 @@ abstract contract FeeManager is IFeeManager {
                     _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
                 );
             }
-            _sd.shares.push(_timestamp, _totalShares + _managementSharesToMint + _performanceSharesToMint);
             emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
+            return _managementSharesToMint + _performanceSharesToMint;
         }
-        _sd.lastFeePaidId = _currentBatchId;
+        return 0;
     }
 
     /**

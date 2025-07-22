@@ -53,7 +53,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
             _constructorParams.operationsMultisig == address(0) || _constructorParams.maxManagementFee == 0
                 || _constructorParams.maxPerformanceFee == 0 || _constructorParams.managementFeeTimelock == 0
                 || _constructorParams.performanceFeeTimelock == 0 || _constructorParams.feeRecipientTimelock == 0
-                || _constructorParams.maxManagementFee > 10_000 || _constructorParams.maxPerformanceFee > 10_000
+                || _constructorParams.maxManagementFee >= 10_000 || _constructorParams.maxPerformanceFee >= 10_000
         ) {
             revert InvalidConstructorParams();
         }
