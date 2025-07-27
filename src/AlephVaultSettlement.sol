@@ -134,8 +134,7 @@ abstract contract AlephVaultSettlement is FeeManager {
         uint256 _sharesToSettle;
         uint256 _totalAssets = _newTotalAssets;
         for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
-            (uint256 _assets, uint256 _sharesToRedeem) =
-                _settleRedeemForBatch(_sd, _id, _timestamp, _totalAssets, _totalShares);
+            (uint256 _assets, uint256 _sharesToRedeem) = _settleRedeemForBatch(_sd, _id, _totalAssets, _totalShares);
             _sharesToSettle += _sharesToRedeem;
             _totalAssets -= _assets;
             _totalShares -= _sharesToRedeem;
@@ -152,14 +151,12 @@ abstract contract AlephVaultSettlement is FeeManager {
      * @dev Internal function to settle redeems for a specific batch.
      * @param _sd The storage struct.
      * @param _batchId The batch ID to settle.
-     * @param _timestamp The timestamp of settlement.
      * @param _totalAssets The total assets at settlement.
      * @return _totalSharesToRedeem The total shares settled for the batch.
      */
     function _settleRedeemForBatch(
         AlephVaultStorageData storage _sd,
         uint48 _batchId,
-        uint48 _timestamp,
         uint256 _totalAssets,
         uint256 _totalShares
     ) internal returns (uint256, uint256) {

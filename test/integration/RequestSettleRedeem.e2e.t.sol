@@ -362,9 +362,8 @@ contract RequestSettleRedeemTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
         uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 10);
-        uint256 _expectedPerformanceShares = vault.getPerformanceFeeSharesAccumulated(
-            _newTotalAssets, _totalShares, vault.highWaterMark(), Time.timestamp()
-        );
+        uint256 _expectedPerformanceShares =
+            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
         uint256 _assetsToWithdraw = ERC4626Math.previewRedeem(_userShares, _newTotalAssets, _totalShares);
 
@@ -542,9 +541,8 @@ contract RequestSettleRedeemTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
         uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 3);
-        uint256 _expectedPerformanceShares = vault.getPerformanceFeeSharesAccumulated(
-            _newTotalAssets, _totalShares, vault.highWaterMark(), Time.timestamp()
-        );
+        uint256 _expectedPerformanceShares =
+            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected assets to withdraw per user

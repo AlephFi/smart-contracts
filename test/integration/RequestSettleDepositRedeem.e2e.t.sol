@@ -114,9 +114,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
         uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 2);
-        uint256 _expectedPerformanceShares = vault.getPerformanceFeeSharesAccumulated(
-            _newTotalAssets, _totalShares, vault.highWaterMark(), Time.timestamp()
-        );
+        uint256 _expectedPerformanceShares =
+            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected assets to withdraw per user
@@ -255,9 +254,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
         uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 3);
-        uint256 _expectedPerformanceShares = vault.getPerformanceFeeSharesAccumulated(
-            _newTotalAssets, _totalShares, vault.highWaterMark(), Time.timestamp()
-        );
+        uint256 _expectedPerformanceShares =
+            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected shares to mint per user

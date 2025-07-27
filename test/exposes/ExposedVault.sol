@@ -124,12 +124,11 @@ contract ExposedVault is AlephVault {
         return ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
     }
 
-    function getPerformanceFeeSharesAccumulated(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
-        uint256 _highWaterMark,
-        uint48 _timestamp
-    ) external returns (uint256) {
+    function getPerformanceFeeSharesAccumulated(uint256 _newTotalAssets, uint256 _totalShares, uint256 _highWaterMark)
+        external
+        view
+        returns (uint256)
+    {
         AlephVaultStorageData storage _sd = _getStorage();
         uint256 _profitPerShare = _getPricePerShare(_newTotalAssets, _totalShares) - _highWaterMark;
         uint48 _performanceFeeRate = _sd.performanceFee;

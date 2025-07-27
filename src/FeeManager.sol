@@ -259,7 +259,7 @@ abstract contract FeeManager is IFeeManager {
      */
     function _getPricePerShare(uint256 _totalAssets, uint256 _totalShares)
         internal
-        view
+        pure
         returns (uint256 _pricePerShare)
     {
         if (_totalShares > 0) {
