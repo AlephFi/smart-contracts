@@ -51,10 +51,43 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     function totalShares() public view virtual returns (uint256);
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint256 _shares) external virtual returns (uint48 _batchId);
+    function totalSharesToRedeem() external view returns (uint256 _totalSharesToRedeem) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _redeemSettleId = _sd.redeemSettleId;
+            for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
+                _totalSharesToRedeem += _sd.batches[_redeemSettleId].totalSharesToRedeem;
+            }
+        }
+    }
 
     /// @inheritdoc IERC7540Redeem
-    function settleRedeem(uint256 _newTotalAssets) external virtual;
+    function totalSharesToRedeemAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalSharesToRedeem;
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function usersToRedeemAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToRedeem;
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function redeemRequestOf(address _user) external view returns (uint256 _totalSharesToRedeem) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _redeemSettleId = _sd.redeemSettleId;
+            for (; _redeemSettleId < _currentBatch; _redeemSettleId++) {
+                _totalSharesToRedeem += _sd.batches[_redeemSettleId].redeemRequest[_user];
+            }
+        }
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].redeemRequest[_user];
+    }
 
     /**
      * @dev Returns the storage struct for the vault.
@@ -85,6 +118,12 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         }
         return _batch.redeemRequest[msg.sender];
     }
+
+    /// @inheritdoc IERC7540Redeem
+    function requestRedeem(uint256 _shares) external virtual returns (uint48 _batchId);
+
+    /// @inheritdoc IERC7540Redeem
+    function settleRedeem(uint256 _newTotalAssets) external virtual;
 
     /**
      * @dev Internal function to handle a redeem request.

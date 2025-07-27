@@ -120,7 +120,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.stopPrank();
 
         // check the deposit request
-        assertEq(vault.totalDepositRequestsAt(_batchId), 100);
+        assertEq(vault.totalAmountToDepositAt(_batchId), 100);
         assertEq(vault.depositRequestOfAt(mockUser_1, _batchId), 100);
         assertEq(vault.usersToDepositAt(_batchId).length, 1);
         assertEq(vault.usersToDepositAt(_batchId)[0], mockUser_1);
@@ -156,7 +156,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         // check the deposit requests
         assertEq(_batchId_user1, _batchId_user2);
-        assertEq(vault.totalDepositRequestsAt(_batchId_user1), 100 + 300);
+        assertEq(vault.totalAmountToDepositAt(_batchId_user1), 100 + 300);
         assertEq(vault.depositRequestOfAt(mockUser_1, _batchId_user1), 100);
         assertEq(vault.depositRequestOfAt(mockUser_2, _batchId_user1), 300);
         assertEq(vault.usersToDepositAt(_batchId_user1).length, 2);

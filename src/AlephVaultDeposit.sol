@@ -48,10 +48,43 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     function totalShares() public view virtual returns (uint256);
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(uint256 _amount) external virtual returns (uint48 _batchId);
+    function totalAmountToDeposit() external view returns (uint256 _totalAmountToDeposit) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _depositSettleId = _sd.depositSettleId;
+            for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
+                _totalAmountToDeposit += _sd.batches[_depositSettleId].totalAmountToDeposit;
+            }
+        }
+    }
 
     /// @inheritdoc IERC7540Deposit
-    function settleDeposit(uint256 _newTotalAssets) external virtual;
+    function totalAmountToDepositAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalAmountToDeposit;
+    }
+
+    /// @inheritdoc IERC7540Deposit
+    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToDeposit;
+    }
+
+    /// @inheritdoc IERC7540Deposit
+    function depositRequestOf(address _user) external view returns (uint256 _totalAmountToDeposit) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _depositSettleId = _sd.depositSettleId;
+            for (; _depositSettleId < _currentBatch; _depositSettleId++) {
+                _totalAmountToDeposit += _sd.batches[_depositSettleId].depositRequest[_user];
+            }
+        }
+    }
+
+    /// @inheritdoc IERC7540Deposit
+    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].depositRequest[_user];
+    }
 
     /**
      * @dev Returns the storage struct for the vault.
@@ -82,6 +115,12 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         }
         return _batch.depositRequest[msg.sender];
     }
+
+    /// @inheritdoc IERC7540Deposit
+    function requestDeposit(uint256 _amount) external virtual returns (uint48 _batchId);
+
+    /// @inheritdoc IERC7540Deposit
+    function settleDeposit(uint256 _newTotalAssets) external virtual;
 
     /**
      * @dev Internal function to handle a deposit request.

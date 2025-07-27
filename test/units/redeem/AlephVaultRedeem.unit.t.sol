@@ -88,7 +88,7 @@ contract AlephVaultRedeemTest is BaseTest {
         uint48 _batchId = vault.requestRedeem(100);
 
         // check the redeem request
-        assertEq(vault.totalRedeemRequestsAt(_batchId), 100);
+        assertEq(vault.totalSharesToRedeemAt(_batchId), 100);
         assertEq(vault.redeemRequestOfAt(mockUser_1, _batchId), 100);
         assertEq(vault.usersToRedeemAt(_batchId).length, 1);
         assertEq(vault.usersToRedeemAt(_batchId)[0], mockUser_1);
@@ -121,7 +121,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
         // check the redeem requests
         assertEq(_batchId_user1, _batchId_user2);
-        assertEq(vault.totalRedeemRequestsAt(_batchId_user1), 100 + 300);
+        assertEq(vault.totalSharesToRedeemAt(_batchId_user1), 100 + 300);
         assertEq(vault.redeemRequestOfAt(mockUser_1, _batchId_user1), 100);
         assertEq(vault.redeemRequestOfAt(mockUser_2, _batchId_user1), 300);
         assertEq(vault.usersToRedeemAt(_batchId_user1).length, 2);
