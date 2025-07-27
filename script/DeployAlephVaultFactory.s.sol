@@ -30,7 +30,7 @@ import {BaseScript} from "./BaseScript.s.sol";
  */
 
 // Use to Deploy only an AlephVaultFactory.
-// forge script DeployAlephVaultFactory --sig="run(address, address)" <_proxyOwner> <_beacon> --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
+// forge script DeployAlephVaultFactory --sig="run(address, address)" <_proxyOwner> <_beacon> --broadcast -vvvv --verify
 contract DeployAlephVaultFactory is BaseScript {
     function setUp() public {}
 

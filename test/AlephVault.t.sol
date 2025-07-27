@@ -28,6 +28,7 @@ import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
 import {PausableFlows} from "../src/libraries/PausableFlows.sol";
 import {IAlephPausable} from "../src/interfaces/IAlephPausable.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -85,6 +86,69 @@ contract AlephVaultTest is Test {
         vault.unpause(PausableFlows.SETTLE_DEPOSIT_FLOW);
         vault.unpause(PausableFlows.SETTLE_REDEEM_FLOW);
         vm.stopPrank();
+    }
+
+    function test_settleDeposit_dilution_thereIsNoDilution() public {
+        // --- Batch 1 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch1 = vault.currentBatch();
+        assertEq(batch1, 1);
+        uint256 amount1a = 100;
+        userDepositRequest(user, amount1a);
+
+        // --- Batch 2 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch2 = vault.currentBatch();
+        assertEq(batch2, 2);
+        uint256 amount2b = 100;
+        userDepositRequest(user2, amount2b);
+
+        // Settle batch 2
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch3 = vault.currentBatch();
+        assertEq(batch3, 3);
+        // Oracle value after batch 2 deposits
+        vm.prank(oracle);
+        vault.settleDeposit(0);
+        uint256 _sharesToMintUser = ERC4626Math.previewDeposit(amount1a, vault.totalShares(), vault.totalAssets());
+        uint256 _sharesToMintUser2 = ERC4626Math.previewDeposit(amount2b, vault.totalShares(), vault.totalAssets());
+        assertEq(vault.sharesOf(user), _sharesToMintUser);
+        assertEq(vault.sharesOf(user2), _sharesToMintUser2);
+        assertEq(_sharesToMintUser, _sharesToMintUser2);
+        assertEq(vault.totalAssets(), amount1a + amount2b);
+        assertEq(vault.totalShares(), _sharesToMintUser + _sharesToMintUser2);
+        assertEq(vault.assetsOf(user), amount1a);
+        assertEq(vault.assetsOf(user2), amount2b);
+        uint256 profit = 10;
+        uint256 totalAssetsAfterBatch2 = amount1a + amount2b + profit;
+
+        // --- Batch 4 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch4 = vault.currentBatch();
+        assertEq(batch4, 4);
+        userDepositRequest(user, amount1a);
+
+        // --- Batch 5 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch5 = vault.currentBatch();
+        assertEq(batch5, 5);
+        userDepositRequest(user2, amount2b);
+
+        // Settle batch 5
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch6 = vault.currentBatch();
+        assertEq(batch6, 6);
+
+        vm.prank(oracle);
+        vault.settleDeposit(totalAssetsAfterBatch2);
+        uint256 _newSharesToMintUser =
+            _sharesToMintUser + ERC4626Math.previewDeposit(amount1a, vault.totalShares(), vault.totalAssets());
+        uint256 _newSharesToMintUser2 =
+            _sharesToMintUser2 + ERC4626Math.previewDeposit(amount2b, vault.totalShares(), vault.totalAssets());
+        assertEq(vault.sharesOf(user), _newSharesToMintUser);
+        assertEq(vault.sharesOf(user2), _newSharesToMintUser2);
+        assertEq(vault.totalShares(), _newSharesToMintUser + _newSharesToMintUser2);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch2 + amount1a + amount2b);
     }
 
     function test_pauseAndUnpauseSettleDepositFlow() public {
