@@ -34,7 +34,6 @@ contract BaseTest is Test {
     address public mockUser_2 = makeAddr("mockUser_2");
 
     ExposedVault public vault;
-    uint48 public batchDuration;
     address public manager;
     address public operationsMultisig;
     address public custodian;

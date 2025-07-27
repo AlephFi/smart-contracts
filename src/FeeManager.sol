@@ -43,6 +43,7 @@ abstract contract FeeManager is IFeeManager {
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
     uint48 public constant PRICE_DENOMINATOR = 1e6;
+    uint48 public constant BATCH_DURATION = 1 days;
     address public constant MANAGEMENT_FEE_RECIPIENT = address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
     address public constant PERFORMANCE_FEE_RECIPIENT = address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
 
@@ -210,7 +211,7 @@ abstract contract FeeManager is IFeeManager {
             uint256(_managementFeeRate), uint256(BPS_DENOMINATOR - _managementFeeRate), Math.Rounding.Ceil
         );
         _managementFeeAmount =
-            _annualFees.mulDiv(uint256(_batchesElapsed * _sd.batchDuration), uint256(ONE_YEAR), Math.Rounding.Ceil);
+            _annualFees.mulDiv(uint256(_batchesElapsed * BATCH_DURATION), uint256(ONE_YEAR), Math.Rounding.Ceil);
     }
 
     /**

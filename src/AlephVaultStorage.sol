@@ -30,7 +30,6 @@ struct AlephVaultStorageData {
     address feeRecipient;
     uint32 managementFee;
     uint32 performanceFee;
-    uint48 batchDuration;
     uint48 startTimeStamp;
     uint48 lastFeePaidId;
     uint48 depositSettleId;
@@ -44,11 +43,11 @@ struct AlephVaultStorageData {
     mapping(address user => Checkpoints.Trace256 shares) sharesOf;
     mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
 }
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
 library AlephVaultStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.vault")) - 1;
 

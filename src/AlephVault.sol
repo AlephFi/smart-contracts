@@ -93,7 +93,6 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.feeRecipient = _initalizationParams.feeRecipient;
         _sd.managementFee = _initalizationParams.managementFee;
         _sd.performanceFee = _initalizationParams.performanceFee;
-        _sd.batchDuration = 1 days;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, OPERATIONS_MULTISIG);
@@ -156,7 +155,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         returns (uint48)
     {
         AlephVaultStorageData storage _sd = _getStorage();
-        return (Time.timestamp() - _sd.startTimeStamp) / _sd.batchDuration;
+        return (Time.timestamp() - _sd.startTimeStamp) / BATCH_DURATION;
     }
 
     /// @inheritdoc IAlephVault
