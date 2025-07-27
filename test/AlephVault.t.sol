@@ -47,8 +47,6 @@ contract AlephVaultTest is Test {
     address public feeRecipient = makeAddr("feeRecipient");
     address public oracle = makeAddr("oracle");
     address public guardian = makeAddr("guardian");
-    uint32 public maxManagementFee = 100;
-    uint32 public maxPerformanceFee = 500;
     uint48 public managementFeeTimelock = 7 days;
     uint48 public performanceFeeTimelock = 7 days;
     uint48 public feeRecipientTimelock = 7 days;
@@ -63,8 +61,6 @@ contract AlephVaultTest is Test {
         vault = new ExposedVault(
             IAlephVault.ConstructorParams({
                 operationsMultisig: operationsMultisig,
-                maxManagementFee: maxManagementFee,
-                maxPerformanceFee: maxPerformanceFee,
                 managementFeeTimelock: managementFeeTimelock,
                 performanceFeeTimelock: performanceFeeTimelock,
                 feeRecipientTimelock: feeRecipientTimelock

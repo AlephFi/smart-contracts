@@ -38,9 +38,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         IAlephVault.ConstructorParams memory _constructorParams;
         string memory _config = _getConfigFile();
         address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
-        uint32 _maxManagementFee = uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".maxManagementFee")));
-        uint32 _maxPerformanceFee =
-            uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".maxPerformanceFee")));
         uint48 _managementFeeTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFeeTimelock")));
         uint48 _performanceFeeTimelock =
@@ -48,15 +45,11 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 _feeRecipientTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
         console.log("operationsMultisig", _operationsMultisig);
-        console.log("maxManagementFee", _maxManagementFee);
-        console.log("maxPerformanceFee", _maxPerformanceFee);
         console.log("managementFeeTimelock", _managementFeeTimelock);
         console.log("performanceFeeTimelock", _performanceFeeTimelock);
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
         _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: _operationsMultisig,
-            maxManagementFee: _maxManagementFee,
-            maxPerformanceFee: _maxPerformanceFee,
             managementFeeTimelock: _managementFeeTimelock,
             performanceFeeTimelock: _performanceFeeTimelock,
             feeRecipientTimelock: _feeRecipientTimelock

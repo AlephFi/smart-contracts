@@ -43,8 +43,6 @@ contract BaseTest is Test {
     address public guardian;
     uint32 public managementFee;
     uint32 public performanceFee;
-    uint32 public maxManagementFee;
-    uint32 public maxPerformanceFee;
     uint48 public managementFeeTimelock;
     uint48 public performanceFeeTimelock;
     uint48 public feeRecipientTimelock;
@@ -53,8 +51,6 @@ contract BaseTest is Test {
 
     IAlephVault.ConstructorParams public defaultConstructorParams = IAlephVault.ConstructorParams({
         operationsMultisig: makeAddr("operationsMultisig"),
-        maxManagementFee: 1000, // 10%
-        maxPerformanceFee: 5000, // 50%
         managementFeeTimelock: 7 days,
         performanceFeeTimelock: 7 days,
         feeRecipientTimelock: 7 days
@@ -78,8 +74,6 @@ contract BaseTest is Test {
     ) public {
         // set up constructor params
         operationsMultisig = _constructorParams.operationsMultisig;
-        maxManagementFee = _constructorParams.maxManagementFee;
-        maxPerformanceFee = _constructorParams.maxPerformanceFee;
         managementFeeTimelock = _constructorParams.managementFeeTimelock;
         performanceFeeTimelock = _constructorParams.performanceFeeTimelock;
         feeRecipientTimelock = _constructorParams.feeRecipientTimelock;

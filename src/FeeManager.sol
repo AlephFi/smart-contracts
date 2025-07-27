@@ -34,12 +34,12 @@ abstract contract FeeManager is IFeeManager {
     using Checkpoints for Checkpoints.Trace256;
     using Math for uint256;
 
-    uint32 public immutable MAXIMUM_MANAGEMENT_FEE;
-    uint32 public immutable MAXIMUM_PERFORMANCE_FEE;
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
     uint48 public immutable FEE_RECIPIENT_TIMELOCK;
 
+    uint32 public constant MAXIMUM_MANAGEMENT_FEE = 1000; // 10%
+    uint32 public constant MAXIMUM_PERFORMANCE_FEE = 5000; // 50%
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
     uint48 public constant PRICE_DENOMINATOR = 1e6;

@@ -27,8 +27,6 @@ interface IAlephVault {
 
     struct ConstructorParams {
         address operationsMultisig;
-        uint32 maxManagementFee;
-        uint32 maxPerformanceFee;
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
         uint48 feeRecipientTimelock;

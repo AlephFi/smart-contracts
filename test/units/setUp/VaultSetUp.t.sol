@@ -32,36 +32,6 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_operationsMultisig_passed_is_address_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: address(0),
-            maxManagementFee: defaultConstructorParams.maxManagementFee,
-            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
-            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
-            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
-        });
-
-        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
-        new ExposedVault(_constructorParams);
-    }
-
-    function test_constructor_when_maxManagementFee_passed_is_0() public {
-        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
-            maxManagementFee: 0,
-            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
-            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
-            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
-        });
-
-        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
-        new ExposedVault(_constructorParams);
-    }
-
-    function test_constructor_when_maxPerformanceFee_passed_is_0() public {
-        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
-            maxManagementFee: defaultConstructorParams.maxManagementFee,
-            maxPerformanceFee: 0,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
             feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
@@ -74,8 +44,6 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_managementFeeTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: defaultConstructorParams.operationsMultisig,
-            maxManagementFee: defaultConstructorParams.maxManagementFee,
-            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
             managementFeeTimelock: 0,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
             feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
@@ -88,8 +56,6 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_performanceFeeTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: defaultConstructorParams.operationsMultisig,
-            maxManagementFee: defaultConstructorParams.maxManagementFee,
-            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: 0,
             feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
@@ -102,39 +68,9 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_feeRecipientTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: defaultConstructorParams.operationsMultisig,
-            maxManagementFee: defaultConstructorParams.maxManagementFee,
-            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
             feeRecipientTimelock: 0
-        });
-
-        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
-        new ExposedVault(_constructorParams);
-    }
-
-    function test_constructor_when_maxManagementFee_passed_is_greater_than_10_000() public {
-        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
-            maxManagementFee: 10_001,
-            maxPerformanceFee: defaultConstructorParams.maxPerformanceFee,
-            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
-            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
-        });
-
-        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
-        new ExposedVault(_constructorParams);
-    }
-
-    function test_constructor_when_maxPerformanceFee_passed_is_greater_than_10_000() public {
-        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
-            maxManagementFee: defaultConstructorParams.maxManagementFee,
-            maxPerformanceFee: 10_001,
-            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
-            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
         });
 
         vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
@@ -145,8 +81,6 @@ contract VaultSetUpTest is BaseTest {
         vault = new ExposedVault(defaultConstructorParams);
 
         assertEq(vault.OPERATIONS_MULTISIG(), defaultConstructorParams.operationsMultisig);
-        assertEq(vault.MAXIMUM_MANAGEMENT_FEE(), defaultConstructorParams.maxManagementFee);
-        assertEq(vault.MAXIMUM_PERFORMANCE_FEE(), defaultConstructorParams.maxPerformanceFee);
         assertEq(vault.MANAGEMENT_FEE_TIMELOCK(), defaultConstructorParams.managementFeeTimelock);
         assertEq(vault.PERFORMANCE_FEE_TIMELOCK(), defaultConstructorParams.performanceFeeTimelock);
         assertEq(vault.FEE_RECIPIENT_TIMELOCK(), defaultConstructorParams.feeRecipientTimelock);
@@ -278,7 +212,7 @@ contract VaultSetUpTest is BaseTest {
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultConstructorParams.maxManagementFee + 1,
+            managementFee: 10_001,
             performanceFee: defaultInitializationParams.performanceFee
         });
 
@@ -297,7 +231,7 @@ contract VaultSetUpTest is BaseTest {
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
             managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultConstructorParams.maxPerformanceFee + 1
+            performanceFee: 10_001
         });
 
         vault = new ExposedVault(defaultConstructorParams);
