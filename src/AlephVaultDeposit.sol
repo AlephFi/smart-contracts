@@ -75,7 +75,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         if (_currentBatch > 0) {
             AlephVaultStorageData storage _sd = _getStorage();
             uint48 _depositSettleId = _sd.depositSettleId;
-            for (; _depositSettleId < _currentBatch; _depositSettleId++) {
+            for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
                 _totalAmountToDeposit += _sd.batches[_depositSettleId].depositRequest[_user];
             }
         }

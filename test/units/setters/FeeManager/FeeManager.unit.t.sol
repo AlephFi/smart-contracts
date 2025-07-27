@@ -47,7 +47,7 @@ contract FeeManager_Unit_Test is BaseTest {
     function test_queueManagementFee_revertsWhenManagementFeeIsGreaterThanMaximuManagementFee() public {
         // queue management fee
         vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(IFeeManager.InvalidManagementFee.selector, 10_001));
+        vm.expectRevert(IFeeManager.InvalidManagementFee.selector);
         vault.queueManagementFee(10_001);
     }
 
@@ -139,7 +139,7 @@ contract FeeManager_Unit_Test is BaseTest {
     function test_queuePerformanceFee_revertsWhenPerformanceFeeIsGreaterThanMaximuPerformanceFee() public {
         // queue performance fee
         vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(IFeeManager.InvalidPerformanceFee.selector, 10_001));
+        vm.expectRevert(IFeeManager.InvalidPerformanceFee.selector);
         vault.queuePerformanceFee(10_001);
     }
 

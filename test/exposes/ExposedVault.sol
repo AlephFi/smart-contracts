@@ -120,8 +120,8 @@ contract ExposedVault is AlephVault {
         view
         returns (uint256)
     {
-        uint256 _managementFee = _calculateManagementFee(_getStorage(), _newTotalAssets, _batchesElapsed);
-        return ERC4626Math.previewDeposit(_managementFee, _totalShares, _newTotalAssets);
+        uint256 _managementFeeAmount = _calculateManagementFeeAmount(_getStorage(), _newTotalAssets, _batchesElapsed);
+        return ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
     }
 
     function getPerformanceFeeSharesAccumulated(
@@ -133,9 +133,8 @@ contract ExposedVault is AlephVault {
         AlephVaultStorageData storage _sd = _getStorage();
         uint256 _profitPerShare = _getPricePerShare(_newTotalAssets, _totalShares) - _highWaterMark;
         uint48 _performanceFeeRate = _sd.performanceFee;
-        uint256 _performanceFee = (_profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil)).mulDiv(
-            uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
-        );
-        return ERC4626Math.previewDeposit(_performanceFee, _totalShares, _newTotalAssets);
+        uint256 _performanceFeeAmount = (_profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil))
+            .mulDiv(uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil);
+        return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
     }
 }

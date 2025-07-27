@@ -172,11 +172,14 @@ abstract contract FeeManager is IFeeManager {
         _sd.lastFeePaidId = _currentBatchId;
         if (_newTotalAssets > 0) {
             uint256 _totalShares = totalShares();
-            uint256 _managementFee = _calculateManagementFee(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
-            uint256 _performanceFee = _calculatePerformanceFee(_sd, _newTotalAssets, _totalShares, _timestamp);
-            uint256 _managementSharesToMint = ERC4626Math.previewDeposit(_managementFee, _totalShares, _newTotalAssets);
+            uint256 _managementFeeAmount =
+                _calculateManagementFeeAmount(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
+            uint256 _performanceFeeAmount =
+                _calculatePerformanceFeeAmount(_sd, _newTotalAssets, _totalShares, _timestamp);
+            uint256 _managementSharesToMint =
+                ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
             uint256 _performanceSharesToMint =
-                ERC4626Math.previewDeposit(_performanceFee, _totalShares, _newTotalAssets);
+                ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
             _sd.sharesOf[MANAGEMENT_FEE_RECIPIENT].push(
                 _timestamp, sharesOf(MANAGEMENT_FEE_RECIPIENT) + _managementSharesToMint
             );
@@ -185,50 +188,50 @@ abstract contract FeeManager is IFeeManager {
                     _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
                 );
             }
-            emit FeesAccumulated(_managementFee, _performanceFee, _timestamp);
+            emit FeesAccumulated(_managementFeeAmount, _performanceFeeAmount, _timestamp);
             return _managementSharesToMint + _performanceSharesToMint;
         }
         return 0;
     }
 
     /**
-     * @dev Internal function to calculate the management fee.
+     * @dev Internal function to calculate the management fee amount.
      * @param _sd The storage struct for the vault.
      * @param _newTotalAssets The new total assets after collection.
-     * @return _managementFee The management fee to be collected.
+     * @return _managementFeeAmount The management fee to be collected.
      */
-    function _calculateManagementFee(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint48 _batchesElapsed)
-        internal
-        view
-        returns (uint256 _managementFee)
-    {
+    function _calculateManagementFeeAmount(
+        AlephVaultStorageData storage _sd,
+        uint256 _newTotalAssets,
+        uint48 _batchesElapsed
+    ) internal view returns (uint256 _managementFeeAmount) {
         uint48 _managementFeeRate = _sd.managementFee;
         uint256 _annualFees = _newTotalAssets.mulDiv(
             uint256(_managementFeeRate), uint256(BPS_DENOMINATOR - _managementFeeRate), Math.Rounding.Ceil
         );
-        _managementFee =
+        _managementFeeAmount =
             _annualFees.mulDiv(uint256(_batchesElapsed * _sd.batchDuration), uint256(ONE_YEAR), Math.Rounding.Ceil);
     }
 
     /**
-     * @dev Internal function to calculate the performance fee.
+     * @dev Internal function to calculate the performance fee amount.
      * @param _sd The storage struct for the vault.
      * @param _newTotalAssets The new total assets after collection.
-     * @return _performanceFee The performance fee to be collected.
+     * @return _performanceFeeAmount The performance fee to be collected.
      */
-    function _calculatePerformanceFee(
+    function _calculatePerformanceFeeAmount(
         AlephVaultStorageData storage _sd,
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint48 _timestamp
-    ) internal returns (uint256 _performanceFee) {
+    ) internal returns (uint256 _performanceFeeAmount) {
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
         uint256 _highWaterMark = highWaterMark();
         if (_pricePerShare > _highWaterMark) {
             uint256 _profitPerShare = _pricePerShare - _highWaterMark;
             uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
             uint48 _performanceFeeRate = _sd.performanceFee;
-            _performanceFee = _profit.mulDiv(
+            _performanceFeeAmount = _profit.mulDiv(
                 uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
             );
             _sd.highWaterMark.push(_timestamp, _pricePerShare);
