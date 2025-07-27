@@ -26,7 +26,7 @@ import {BaseScript} from "./BaseScript.s.sol";
  */
 
 // Use to Deploy only an AlephVault implementation.
-// forge script DeployAlephVaultImplementation --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
+// forge script DeployAlephVaultImplementation --broadcast -vvvv --verify
 contract DeployAlephVaultImplementation is BaseScript {
     function setUp() public {}
 
