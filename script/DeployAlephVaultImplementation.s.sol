@@ -49,6 +49,7 @@ contract DeployAlephVaultImplementation is BaseScript {
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFeeTimelock")));
         uint48 _feeRecipientTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
+        uint48 _batchDuration = uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".batchDuration")));
 
         console.log("operationsMultisig", _operationsMultisig);
         console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
@@ -56,6 +57,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("managementFeeTimelock", _managementFeeTimelock);
         console.log("performanceFeeTimelock", _performanceFeeTimelock);
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
+        console.log("batchDuration", _batchDuration);
 
         _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: _operationsMultisig,
@@ -63,7 +65,8 @@ contract DeployAlephVaultImplementation is BaseScript {
             maxDepositCapTimelock: _maxDepositCapTimelock,
             managementFeeTimelock: _managementFeeTimelock,
             performanceFeeTimelock: _performanceFeeTimelock,
-            feeRecipientTimelock: _feeRecipientTimelock
+            feeRecipientTimelock: _feeRecipientTimelock,
+            batchDuration: _batchDuration
         });
 
         AlephVault _vault = new AlephVault(_constructorParams);

@@ -11,5 +11,7 @@ Constructor_Unit_Test
 │   └── it should revert with InvalidConstructorParams
 ├── when feeRecipientTimelock passed is 0
 │   └── it should revert with InvalidConstructorParams
+├── when batchDuration passed is 0
+│   └── it should revert with InvalidConstructorParams
 └── when all params are valid
     └── it should set the constructor params

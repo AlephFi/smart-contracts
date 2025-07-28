@@ -36,7 +36,8 @@ contract VaultSetUpTest is BaseTest {
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock,
+            batchDuration: defaultConstructorParams.batchDuration
         });
 
         vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
@@ -50,7 +51,8 @@ contract VaultSetUpTest is BaseTest {
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock,
+            batchDuration: defaultConstructorParams.batchDuration
         });
 
         vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
@@ -64,7 +66,8 @@ contract VaultSetUpTest is BaseTest {
             maxDepositCapTimelock: 0,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock,
+            batchDuration: defaultConstructorParams.batchDuration
         });
 
         vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
@@ -78,7 +81,8 @@ contract VaultSetUpTest is BaseTest {
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: 0,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock,
+            batchDuration: defaultConstructorParams.batchDuration
         });
 
         vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
@@ -92,7 +96,8 @@ contract VaultSetUpTest is BaseTest {
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: 0,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock,
+            batchDuration: defaultConstructorParams.batchDuration
         });
 
         vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
@@ -106,7 +111,23 @@ contract VaultSetUpTest is BaseTest {
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: 0
+            feeRecipientTimelock: 0,
+            batchDuration: defaultConstructorParams.batchDuration
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_batchDuration_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
+            maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock,
+            batchDuration: 0
         });
 
         vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
@@ -122,6 +143,7 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.MANAGEMENT_FEE_TIMELOCK(), defaultConstructorParams.managementFeeTimelock);
         assertEq(vault.PERFORMANCE_FEE_TIMELOCK(), defaultConstructorParams.performanceFeeTimelock);
         assertEq(vault.FEE_RECIPIENT_TIMELOCK(), defaultConstructorParams.feeRecipientTimelock);
+        assertEq(vault.BATCH_DURATION(), defaultConstructorParams.batchDuration);
     }
 
     /*//////////////////////////////////////////////////////////////

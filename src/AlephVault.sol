@@ -53,6 +53,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
             _constructorParams.operationsMultisig == address(0) || _constructorParams.minDepositAmountTimelock == 0
                 || _constructorParams.maxDepositCapTimelock == 0 || _constructorParams.managementFeeTimelock == 0
                 || _constructorParams.performanceFeeTimelock == 0 || _constructorParams.feeRecipientTimelock == 0
+                || _constructorParams.batchDuration == 0
         ) {
             revert InvalidConstructorParams();
         }
@@ -62,6 +63,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
         PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
         FEE_RECIPIENT_TIMELOCK = _constructorParams.feeRecipientTimelock;
+        BATCH_DURATION = _constructorParams.batchDuration;
     }
 
     /**

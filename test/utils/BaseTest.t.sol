@@ -47,6 +47,7 @@ contract BaseTest is Test {
     uint48 public managementFeeTimelock;
     uint48 public performanceFeeTimelock;
     uint48 public feeRecipientTimelock;
+    uint48 public batchDuration;
 
     TestToken public underlyingToken = new TestToken();
 
@@ -56,7 +57,8 @@ contract BaseTest is Test {
         maxDepositCapTimelock: 7 days,
         managementFeeTimelock: 7 days,
         performanceFeeTimelock: 7 days,
-        feeRecipientTimelock: 7 days
+        feeRecipientTimelock: 7 days,
+        batchDuration: 1 days
     });
 
     IAlephVault.InitializationParams public defaultInitializationParams = IAlephVault.InitializationParams({
@@ -82,6 +84,7 @@ contract BaseTest is Test {
         managementFeeTimelock = _constructorParams.managementFeeTimelock;
         performanceFeeTimelock = _constructorParams.performanceFeeTimelock;
         feeRecipientTimelock = _constructorParams.feeRecipientTimelock;
+        batchDuration = _constructorParams.batchDuration;
 
         // set up vault
         vault = new ExposedVault(_constructorParams);

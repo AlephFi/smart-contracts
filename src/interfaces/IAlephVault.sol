@@ -32,6 +32,7 @@ interface IAlephVault {
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
         uint48 feeRecipientTimelock;
+        uint48 batchDuration;
     }
 
     struct InitializationParams {

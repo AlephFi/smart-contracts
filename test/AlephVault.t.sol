@@ -40,7 +40,6 @@ contract AlephVaultTest is Test {
     ExposedVault public vault;
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
-    uint48 public batchDuration = 1 days;
     address public manager = makeAddr("manager");
     address public operationsMultisig = makeAddr("operationsMultisig");
     address public operator = makeAddr("operator");
@@ -53,6 +52,7 @@ contract AlephVaultTest is Test {
     uint48 public managementFeeTimelock = 7 days;
     uint48 public performanceFeeTimelock = 7 days;
     uint48 public feeRecipientTimelock = 7 days;
+    uint48 public batchDuration = 1 days;
 
     TestToken public underlyingToken = new TestToken();
 
@@ -68,7 +68,8 @@ contract AlephVaultTest is Test {
                 maxDepositCapTimelock: maxDepositCapTimelock,
                 managementFeeTimelock: managementFeeTimelock,
                 performanceFeeTimelock: performanceFeeTimelock,
-                feeRecipientTimelock: feeRecipientTimelock
+                feeRecipientTimelock: feeRecipientTimelock,
+                batchDuration: batchDuration
             })
         );
         vault.initialize(
