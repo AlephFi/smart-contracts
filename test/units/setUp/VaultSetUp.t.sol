@@ -32,6 +32,36 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_operationsMultisig_passed_is_address_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: address(0),
+            minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
+            maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_minDepositAmountTimelock_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            minDepositAmountTimelock: 0,
+            maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
+            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
+            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
+            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
+        });
+
+        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
+        new ExposedVault(_constructorParams);
+    }
+
+    function test_constructor_when_maxDepositCapTimelock_passed_is_0() public {
+        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
+            operationsMultisig: defaultConstructorParams.operationsMultisig,
+            minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
+            maxDepositCapTimelock: 0,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
             feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
@@ -44,6 +74,8 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_managementFeeTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: defaultConstructorParams.operationsMultisig,
+            minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
+            maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: 0,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
             feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
@@ -56,6 +88,8 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_performanceFeeTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: defaultConstructorParams.operationsMultisig,
+            minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
+            maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: 0,
             feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock
@@ -68,6 +102,8 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_feeRecipientTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: defaultConstructorParams.operationsMultisig,
+            minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
+            maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
             performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
             feeRecipientTimelock: 0
@@ -81,6 +117,8 @@ contract VaultSetUpTest is BaseTest {
         vault = new ExposedVault(defaultConstructorParams);
 
         assertEq(vault.OPERATIONS_MULTISIG(), defaultConstructorParams.operationsMultisig);
+        assertEq(vault.MIN_DEPOSIT_AMOUNT_TIMELOCK(), defaultConstructorParams.minDepositAmountTimelock);
+        assertEq(vault.MAX_DEPOSIT_CAP_TIMELOCK(), defaultConstructorParams.maxDepositCapTimelock);
         assertEq(vault.MANAGEMENT_FEE_TIMELOCK(), defaultConstructorParams.managementFeeTimelock);
         assertEq(vault.PERFORMANCE_FEE_TIMELOCK(), defaultConstructorParams.performanceFeeTimelock);
         assertEq(vault.FEE_RECIPIENT_TIMELOCK(), defaultConstructorParams.feeRecipientTimelock);

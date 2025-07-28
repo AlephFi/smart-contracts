@@ -50,12 +50,15 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
      */
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
         if (
-            _constructorParams.operationsMultisig == address(0) || _constructorParams.managementFeeTimelock == 0
+            _constructorParams.operationsMultisig == address(0) || _constructorParams.minDepositAmountTimelock == 0
+                || _constructorParams.maxDepositCapTimelock == 0 || _constructorParams.managementFeeTimelock == 0
                 || _constructorParams.performanceFeeTimelock == 0 || _constructorParams.feeRecipientTimelock == 0
         ) {
             revert InvalidConstructorParams();
         }
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
+        MIN_DEPOSIT_AMOUNT_TIMELOCK = _constructorParams.minDepositAmountTimelock;
+        MAX_DEPOSIT_CAP_TIMELOCK = _constructorParams.maxDepositCapTimelock;
         MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
         PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
         FEE_RECIPIENT_TIMELOCK = _constructorParams.feeRecipientTimelock;
