@@ -1,16 +1,16 @@
 QueuePerformanceFee_Unit_Test
-├── when caller is not MANAGER
+├── when caller is not OPERATIONS_MULTISIG
 │   └── it should revert with AccessControlUnauthorizedAccount
-└── when caller is MANAGER
+└── when caller is OPERATIONS_MULTISIG
     ├── when performance fee is greater than MAXIMUM_PERFORMANCE_FEE
     │   └── it should revert with InvalidPerformanceFee
     └── when performance fee is less than MAXIMUM_PERFORMANCE_FEE
         └── it should set timelock for performance fee and emit NewPerformanceFeeQueued
 
 SetPerformanceFee_Unit_Test
-├── when caller is not MANAGER
+├── when caller is not OPERATIONS_MULTISIG
 │   └── it should revert with AccessControlUnauthorizedAccount
-└── when caller is MANAGER
+└── when caller is OPERATIONS_MULTISIG
     ├── given unlockTimestamp is greater than current timestamp
     │   └── it should revert with TimelockNotExpired
     └── given unlockTimestamp is not greater than current timestamp

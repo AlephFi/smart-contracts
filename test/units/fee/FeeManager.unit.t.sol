@@ -136,7 +136,7 @@ contract FeeManagerTest is BaseTest {
     /*//////////////////////////////////////////////////////////////
                         COLLECT FEE TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_collectFees_revertsWhenCallerIsNotManager() public {
+    function test_collectFees_revertsWhenCallerIsNotOperationsMultisig() public {
         // Setup a non-authorized user
         address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
 
@@ -144,13 +144,15 @@ contract FeeManagerTest is BaseTest {
         vm.prank(nonAuthorizedUser);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                nonAuthorizedUser,
+                RolesLibrary.OPERATIONS_MULTISIG
             )
         );
         vault.collectFees();
     }
 
-    function test_collectFees_whenCallerIsManager_shouldSucceed() public {
+    function test_collectFees_whenCallerIsOperationsMultisig_shouldSucceed() public {
         // accumalate fees to recipients
         uint256 _managementShares = 120;
         uint256 _performanceShares = 120;
@@ -168,7 +170,7 @@ contract FeeManagerTest is BaseTest {
         uint256 _expectedPerformanceFeesToCollect = 100;
 
         // collect fees
-        vm.prank(manager);
+        vm.prank(operationsMultisig);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesCollected(_expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
         (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) = vault.collectFees();

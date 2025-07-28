@@ -280,18 +280,26 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /**
      * @notice Queues a new management fee to be set after the timelock period.
      * @param _managementFee The new management fee to be set.
-     * @dev Only callable by the MANAGER role.
+     * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function queueManagementFee(uint32 _managementFee) external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+    function queueManagementFee(uint32 _managementFee)
+        external
+        override(FeeManager)
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
         _queueManagementFee(_getStorage(), _managementFee);
     }
 
     /**
      * @notice Queues a new performance fee to be set after the timelock period.
      * @param _performanceFee The new performance fee to be set.
-     * @dev Only callable by the MANAGER role.
+     * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function queuePerformanceFee(uint32 _performanceFee) external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+    function queuePerformanceFee(uint32 _performanceFee)
+        external
+        override(FeeManager)
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
         _queuePerformanceFee(_getStorage(), _performanceFee);
     }
 
@@ -326,17 +334,17 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
 
     /**
      * @notice Sets the management fee to the queued value after the timelock period.
-     * @dev Only callable by the MANAGER role.
+     * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function setManagementFee() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+    function setManagementFee() external override(FeeManager) onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _setManagementFee(_getStorage());
     }
 
     /**
      * @notice Sets the performance fee to the queued value after the timelock period.
-     * @dev Only callable by the MANAGER role.
+     * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function setPerformanceFee() external override(FeeManager) onlyRole(RolesLibrary.MANAGER) {
+    function setPerformanceFee() external override(FeeManager) onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _setPerformanceFee(_getStorage());
     }
 
@@ -350,12 +358,12 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
 
     /**
      * @notice Collects all pending fees.
-     * @dev Only callable by the MANAGER role.
+     * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
     function collectFees()
         external
         override(FeeManager)
-        onlyRole(RolesLibrary.MANAGER)
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
         returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
     {
         return _collectFees(_getStorage());

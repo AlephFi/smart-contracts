@@ -1,16 +1,16 @@
 QueueManagementFee_Unit_Test
-├── when caller is not MANAGER
+├── when caller is not OPERATIONS_MULTISIG
 │   └── it should revert with AccessControlUnauthorizedAccount
-└── when caller is MANAGER
+└── when caller is OPERATIONS_MULTISIG
     ├── when management fee is greater than MAXIMUM_MANAGEMENT_FEE
     │   └── it should revert with InvalidManagementFee
     └── when management fee is less than MAXIMUM_MANAGEMENT_FEE
         └── it should set timelock for management fee and emit NewManagementFeeQueued
 
 SetManagementFee_Unit_Test
-├── when caller is not MANAGER
+├── when caller is not OPERATIONS_MULTISIG
 │   └── it should revert with AccessControlUnauthorizedAccount
-└── when caller is MANAGER
+└── when caller is OPERATIONS_MULTISIG
     ├── given unlockTimestamp is greater than current timestamp
     │   └── it should revert with TimelockNotExpired
     └── given unlockTimestamp is not greater than current timestamp
