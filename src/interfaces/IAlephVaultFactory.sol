@@ -22,6 +22,8 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IAlephVaultFactory {
+    error InvalidInitializationParams();
+    error InvalidParam();
     error UnsupportedChain();
 
     event VaultDeployed(address indexed vault, address indexed manager, string name);

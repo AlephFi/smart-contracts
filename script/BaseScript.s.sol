@@ -38,4 +38,9 @@ abstract contract BaseScript is Script {
         string memory _config = vm.readFile("config.json");
         return _config;
     }
+
+    function _getFactoryConfig() internal view returns (string memory) {
+        string memory _config = vm.readFile("factoryConfig.json");
+        return _config;
+    }
 }

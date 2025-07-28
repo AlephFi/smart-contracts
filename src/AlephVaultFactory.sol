@@ -31,6 +31,9 @@ import {AlephVaultFactoryStorage, AlephVaultFactoryStorageData} from "@aleph-vau
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
+    uint32 public constant MAX_MANAGEMENT_FEE = 1000; // 10%
+    uint32 public constant MAX_PERFORMANCE_FEE = 5000; // 50%
+
     /**
      * @notice Initializes the factory.
      */
@@ -45,6 +48,14 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         internal
         onlyInitializing
     {
+        if (
+            _initalizationParams.beacon == address(0) || _initalizationParams.oracle == address(0)
+                || _initalizationParams.guardian == address(0) || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.managementFee > MAX_MANAGEMENT_FEE
+                || _initalizationParams.performanceFee > MAX_PERFORMANCE_FEE
+        ) {
+            revert InvalidInitializationParams();
+        }
         __AccessControl_init();
         AlephVaultFactoryStorageData storage _sd = _getStorage();
         _sd.beacon = _initalizationParams.beacon;
@@ -94,22 +105,37 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     }
 
     function setOracle(address _oracle) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        if (_oracle == address(0)) {
+            revert InvalidParam();
+        }
         _getStorage().oracle = _oracle;
     }
 
     function setGuardian(address _guardian) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        if (_guardian == address(0)) {
+            revert InvalidParam();
+        }
         _getStorage().guardian = _guardian;
     }
 
     function setFeeRecipient(address _feeRecipient) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        if (_feeRecipient == address(0)) {
+            revert InvalidParam();
+        }
         _getStorage().feeRecipient = _feeRecipient;
     }
 
     function setManagementFee(uint32 _managementFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        if (_managementFee > MAX_MANAGEMENT_FEE) {
+            revert InvalidParam();
+        }
         _getStorage().managementFee = _managementFee;
     }
 
     function setPerformanceFee(uint32 _performanceFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        if (_performanceFee > MAX_PERFORMANCE_FEE) {
+            revert InvalidParam();
+        }
         _getStorage().performanceFee = _performanceFee;
     }
 
