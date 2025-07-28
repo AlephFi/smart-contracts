@@ -20,7 +20,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IERC7540Deposit {
+    event NewMinDepositAmountQueued(uint256 minDepositAmount);
     event NewMaxDepositCapQueued(uint256 maxDepositCap);
+    event NewMinDepositAmountSet(uint256 minDepositAmount);
     event NewMaxDepositCapSet(uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
     event SettleDeposit(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 amount, uint256 assets);
@@ -33,6 +35,7 @@ interface IERC7540Deposit {
     );
 
     error InsufficientDeposit();
+    error DepositLessThanMinDepositAmount();
     error DepositExceedsMaxDepositCap();
     error NoBatchAvailableForDeposit();
     error OnlyOneRequestPerBatchAllowedForDeposit();
@@ -40,6 +43,12 @@ interface IERC7540Deposit {
 
     error BatchAlreadySettledForDeposit();
     error NoDepositsToSettle();
+
+    /**
+     * @notice Returns the minimum deposit amount.
+     * @return The minimum deposit amount.
+     */
+    function minDepositAmount() external view returns (uint256);
 
     /**
      * @notice Returns the maximum deposit cap.
@@ -100,10 +109,21 @@ interface IERC7540Deposit {
     function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
 
     /**
+     * @notice Queues a new minimum deposit amount.
+     * @param _minDepositAmount The new minimum deposit amount.
+     */
+    function queueMinDepositAmount(uint256 _minDepositAmount) external;
+
+    /**
      * @notice Queues a new maximum deposit cap.
      * @param _maxDepositCap The new maximum deposit cap.
      */
     function queueMaxDepositCap(uint256 _maxDepositCap) external;
+
+    /**
+     * @notice Sets the minimum deposit amount.
+     */
+    function setMinDepositAmount() external;
 
     /**
      * @notice Sets the maximum deposit cap.
