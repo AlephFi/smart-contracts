@@ -53,12 +53,12 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
 
     /// @inheritdoc IERC7540Deposit
     function minDepositAmount() public view returns (uint256) {
-        return _getStorage().minDepositAmount.latest();
+        return _getStorage().minDepositAmount;
     }
 
     /// @inheritdoc IERC7540Deposit
     function maxDepositCap() public view returns (uint256) {
-        return _getStorage().maxDepositCap.latest();
+        return _getStorage().maxDepositCap;
     }
 
     /// @inheritdoc IERC7540Deposit
@@ -167,14 +167,14 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     function _setMinDepositAmount(AlephVaultStorageData storage _sd) internal {
         uint256 _minDepositAmount =
             abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MIN_DEPOSIT_AMOUNT), (uint256));
-        _sd.minDepositAmount.push(Time.timestamp(), _minDepositAmount);
+        _sd.minDepositAmount = _minDepositAmount;
         emit NewMinDepositAmountSet(_minDepositAmount);
     }
 
     function _setMaxDepositCap(AlephVaultStorageData storage _sd) internal {
         uint256 _maxDepositCap =
             abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MAX_DEPOSIT_CAP), (uint256));
-        _sd.maxDepositCap.push(Time.timestamp(), _maxDepositCap);
+        _sd.maxDepositCap = _maxDepositCap;
         emit NewMaxDepositCapSet(_maxDepositCap);
     }
 
@@ -188,11 +188,11 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         if (_amount == 0) {
             revert InsufficientDeposit();
         }
-        uint256 _minDepositAmount = minDepositAmount();
+        uint256 _minDepositAmount = _sd.minDepositAmount;
         if (_minDepositAmount > 0 && _amount < _minDepositAmount) {
             revert DepositLessThanMinDepositAmount();
         }
-        uint256 _maxDepositCap = maxDepositCap();
+        uint256 _maxDepositCap = _sd.maxDepositCap;
         if (_maxDepositCap > 0 && totalAssets() + totalAmountToDeposit() + _amount > _maxDepositCap) {
             revert DepositExceedsMaxDepositCap();
         }
