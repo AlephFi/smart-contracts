@@ -85,11 +85,11 @@ contract ExposedVault is AlephVault {
     }
 
     function setMinDepositAmount(uint256 _minDepositAmount) external {
-        _getStorage().minDepositAmount.push(Time.timestamp(), _minDepositAmount);
+        _getStorage().minDepositAmount = _minDepositAmount;
     }
 
     function setMaxDepositCap(uint256 _maxDepositCap) external {
-        _getStorage().maxDepositCap.push(Time.timestamp(), _maxDepositCap);
+        _getStorage().maxDepositCap = _maxDepositCap;
     }
 
     function setTotalAssets(uint256 _totalAssets) external {
