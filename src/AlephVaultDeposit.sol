@@ -62,7 +62,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     }
 
     /// @inheritdoc IERC7540Deposit
-    function totalAmountToDeposit() external view returns (uint256 _totalAmountToDeposit) {
+    function totalAmountToDeposit() public view returns (uint256 _totalAmountToDeposit) {
         uint48 _currentBatch = currentBatch();
         if (_currentBatch > 0) {
             AlephVaultStorageData storage _sd = _getStorage();
@@ -193,7 +193,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
             revert DepositLessThanMinDepositAmount();
         }
         uint256 _maxDepositCap = maxDepositCap();
-        if (_maxDepositCap > 0 && totalAssets() + _amount > _maxDepositCap) {
+        if (_maxDepositCap > 0 && totalAssets() + totalAmountToDeposit() + _amount > _maxDepositCap) {
             revert DepositExceedsMaxDepositCap();
         }
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];

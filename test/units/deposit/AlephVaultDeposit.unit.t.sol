@@ -43,6 +43,63 @@ contract AlephVaultDepositTest is BaseTest {
         vault.requestDeposit(100);
     }
 
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsZero() public {
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(IERC7540Deposit.InsufficientDeposit.selector);
+        vault.requestDeposit(0);
+    }
+
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsLessThanMinDepositAmount()
+        public
+    {
+        // set min deposit amount to 100
+        vault.setMinDepositAmount(100);
+
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(IERC7540Deposit.DepositLessThanMinDepositAmount.selector);
+        vault.requestDeposit(50);
+    }
+
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap()
+        public
+    {
+        // set max deposit cap to 100
+        vault.setMaxDepositCap(100);
+
+        // set total assets to 100
+        vault.setTotalAssets(100);
+
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
+        vault.requestDeposit(50);
+    }
+
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap_multipleUsers(
+    ) public {
+        // set max deposit cap to 100
+        vault.setMaxDepositCap(100);
+
+        // set total assets to 50
+        vault.setTotalAssets(50);
+
+        // set request deposit
+        vm.warp(block.timestamp + 1 days + 1);
+        vault.setBatchDeposit(vault.currentBatch(), mockUser_1, 30);
+        vm.warp(block.timestamp + 1 days);
+        vault.setBatchDeposit(vault.currentBatch(), mockUser_2, 20);
+
+        // roll block forward
+        vm.warp(block.timestamp + 1 days);
+
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
+        vault.requestDeposit(10);
+    }
+
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {
         // request deposit
         vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
@@ -88,16 +145,6 @@ contract AlephVaultDepositTest is BaseTest {
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(mockUser_1), 0, 100)
         );
         vault.requestDeposit(100);
-    }
-
-    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsZero() public {
-        // roll the block forward to make batch available
-        vm.warp(block.timestamp + 1 days + 1);
-
-        // request deposit
-        vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Deposit.InsufficientDeposit.selector);
-        vault.requestDeposit(0);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_whenDepositedTokenAmountIsNotZero_shouldSucceed_singleUser()
