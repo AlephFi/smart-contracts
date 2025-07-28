@@ -48,6 +48,7 @@ interface IAlephVault {
 
     struct UserInitializationParams {
         string name;
+        string configId;
         address manager;
         address underlyingToken;
         address custodian;

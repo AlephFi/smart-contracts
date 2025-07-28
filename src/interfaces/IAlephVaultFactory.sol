@@ -26,7 +26,7 @@ interface IAlephVaultFactory {
     error InvalidParam();
     error UnsupportedChain();
 
-    event VaultDeployed(address indexed vault, address indexed manager, string name);
+    event VaultDeployed(address indexed vault, address indexed manager, string name, string configId);
 
     struct InitializationParams {
         address beacon;

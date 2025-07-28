@@ -68,6 +68,7 @@ contract AlephVaultFactoryTest is Test {
     function testDeployVaultAndIsValidVault() public {
         IAlephVault.UserInitializationParams memory params = IAlephVault.UserInitializationParams({
             name: name,
+            configId: "test",
             manager: manager,
             underlyingToken: underlyingToken,
             custodian: custodian

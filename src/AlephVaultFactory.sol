@@ -96,7 +96,9 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
 
         address _vault = Create2.deploy(0, _salt, _bytecode);
         _sd.vaults[_vault] = true;
-        emit VaultDeployed(_vault, _initalizationParams.manager, _initalizationParams.name);
+        emit VaultDeployed(
+            _vault, _initalizationParams.manager, _initalizationParams.name, _userInitializationParams.configId
+        );
         return _vault;
     }
 
