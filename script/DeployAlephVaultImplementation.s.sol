@@ -36,21 +36,28 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
         IAlephVault.ConstructorParams memory _constructorParams;
+        string memory _environment = _getEnvironment();
 
         string memory _config = _getConfigFile();
-        address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
-        uint48 _minDepositAmountTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".minDepositAmountTimelock")));
+        address _operationsMultisig =
+            vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".operationsMultisig"));
+        uint48 _minDepositAmountTimelock = uint48(
+            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minDepositAmountTimelock"))
+        );
         uint48 _maxDepositCapTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".maxDepositCapTimelock")));
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".maxDepositCapTimelock")));
         uint48 _managementFeeTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFeeTimelock")));
-        uint48 _performanceFeeTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFeeTimelock")));
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".managementFeeTimelock")));
+        uint48 _performanceFeeTimelock = uint48(
+            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".performanceFeeTimelock"))
+        );
         uint48 _feeRecipientTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
-        uint48 _batchDuration = uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".batchDuration")));
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".feeRecipientTimelock")));
+        uint48 _batchDuration =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".batchDuration")));
 
+        console.log("chainId", _chainId);
+        console.log("environment", _environment);
         console.log("operationsMultisig", _operationsMultisig);
         console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
         console.log("maxDepositCapTimelock", _maxDepositCapTimelock);

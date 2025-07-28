@@ -34,6 +34,11 @@ abstract contract BaseScript is Script {
         return _chainIdFromPrompt;
     }
 
+    function _getEnvironment() internal returns (string memory) {
+        string memory _environment = vm.prompt("Enter environment (prod, staging, nightly, feature)");
+        return _environment;
+    }
+
     function _getConfigFile() internal view returns (string memory) {
         string memory _config = vm.readFile("config.json");
         return _config;
