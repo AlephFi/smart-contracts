@@ -19,12 +19,12 @@ import {AccessControlUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconProxy.sol";
-import {AlephVaultFactoryStorage, AlephVaultFactoryStorageData} from "./AlephVaultFactoryStorage.sol";
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
-import {IAlephVaultFactory} from "./interfaces/IAlephVaultFactory.sol";
 import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
-import {AlephVault} from "./AlephVault.sol";
-import {RolesLibrary} from "./RolesLibrary.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
+import {AlephVaultFactoryStorage, AlephVaultFactoryStorageData} from "@aleph-vault/AlephVaultFactoryStorage.sol";
 
 /**
  * @author Othentic Labs LTD.

@@ -26,7 +26,7 @@ import {BaseScript} from "./BaseScript.s.sol";
  */
 
 // Use to Deploy only an AlephVault implementation.
-// forge script DeployAlephVaultImplementation --broadcast -vvvv --verify --etherscan-api-key $ETHERSCAN_API_KEY
+// forge script DeployAlephVaultImplementation --broadcast -vvvv --verify
 contract DeployAlephVaultImplementation is BaseScript {
     function setUp() public {}
 
@@ -38,15 +38,21 @@ contract DeployAlephVaultImplementation is BaseScript {
         IAlephVault.ConstructorParams memory _constructorParams;
         string memory _config = _getConfigFile();
         address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
-        address _oracle = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".oracle"));
-        address _guardian = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".guardian"));
+        uint48 _managementFeeTimelock =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFeeTimelock")));
+        uint48 _performanceFeeTimelock =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFeeTimelock")));
+        uint48 _feeRecipientTimelock =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
         console.log("operationsMultisig", _operationsMultisig);
-        console.log("oracle", _oracle);
-        console.log("guardian", _guardian);
+        console.log("managementFeeTimelock", _managementFeeTimelock);
+        console.log("performanceFeeTimelock", _performanceFeeTimelock);
+        console.log("feeRecipientTimelock", _feeRecipientTimelock);
         _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: _operationsMultisig,
-            oracle: _oracle,
-            guardian: _guardian
+            managementFeeTimelock: _managementFeeTimelock,
+            performanceFeeTimelock: _performanceFeeTimelock,
+            feeRecipientTimelock: _feeRecipientTimelock
         });
 
         AlephVault _vault = new AlephVault(_constructorParams);

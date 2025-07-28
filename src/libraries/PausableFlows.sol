@@ -15,7 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-library PausableFlowsLibrary {
+library PausableFlows {
     bytes4 internal constant DEPOSIT_REQUEST_FLOW = bytes4(keccak256("DEPOSIT_REQUEST_FLOW"));
     bytes4 internal constant REDEEM_REQUEST_FLOW = bytes4(keccak256("REDEEM_REQUEST_FLOW"));
     bytes4 internal constant SETTLE_DEPOSIT_FLOW = bytes4(keccak256("SETTLE_DEPOSIT_FLOW"));

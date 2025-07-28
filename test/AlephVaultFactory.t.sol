@@ -16,8 +16,18 @@ contract AlephVaultFactoryTest is Test {
     address guardian = address(0x9ABC);
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
+    address feeRecipient = makeAddr("feeRecipient");
+    uint48 managementFeeTimelock = 7 days;
+    uint48 performanceFeeTimelock = 7 days;
+    uint48 feeRecipientTimelock = 7 days;
+
     AlephVault vaultImpl = new AlephVault(
-        IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
+        IAlephVault.ConstructorParams({
+            operationsMultisig: operationsMultisig,
+            managementFeeTimelock: managementFeeTimelock,
+            performanceFeeTimelock: performanceFeeTimelock,
+            feeRecipientTimelock: feeRecipientTimelock
+        })
     );
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
 
@@ -37,8 +47,13 @@ contract AlephVaultFactoryTest is Test {
         IAlephVault.InitializationParams memory params = IAlephVault.InitializationParams({
             name: name,
             manager: manager,
+            oracle: oracle,
+            guardian: guardian,
             underlyingToken: underlyingToken,
-            custodian: custodian
+            custodian: custodian,
+            feeRecipient: feeRecipient,
+            managementFee: 0,
+            performanceFee: 0
         });
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));

@@ -15,39 +15,19 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC7540Redeem} from "./interfaces/IERC7540Redeem.sol";
-import {AlephVaultStorage, AlephVaultStorageData} from "./AlephVaultStorage.sol";
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
-import {AlephPausable} from "./AlephPausable.sol";
-import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
+import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
-    using SafeERC20 for IERC20;
+abstract contract AlephVaultRedeem is IERC7540Redeem {
     using Checkpoints for Checkpoints.Trace256;
-
-    function __AlephVaultRedeem_init(address _manager) internal onlyInitializing {
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.REDEEM_REQUEST_FLOW] = true;
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.SETTLE_REDEEM_FLOW] = true;
-        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.REDEEM_REQUEST_FLOW, operationsMultisig());
-        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.SETTLE_REDEEM_FLOW, operationsMultisig());
-    }
-
-    function operationsMultisig() public view virtual returns (address);
-
-    function guardian() public view virtual returns (address);
 
     /**
      * @notice Returns the current batch ID.
@@ -71,7 +51,43 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
     function totalShares() public view virtual returns (uint256);
 
     /// @inheritdoc IERC7540Redeem
-    function settleRedeem(uint256 _newTotalAssets) external virtual;
+    function totalSharesToRedeem() external view returns (uint256 _totalSharesToRedeem) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _redeemSettleId = _sd.redeemSettleId;
+            for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
+                _totalSharesToRedeem += _sd.batches[_redeemSettleId].totalSharesToRedeem;
+            }
+        }
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function totalSharesToRedeemAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalSharesToRedeem;
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function usersToRedeemAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToRedeem;
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function redeemRequestOf(address _user) external view returns (uint256 _totalSharesToRedeem) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _redeemSettleId = _sd.redeemSettleId;
+            for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
+                _totalSharesToRedeem += _sd.batches[_redeemSettleId].redeemRequest[_user];
+            }
+        }
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].redeemRequest[_user];
+    }
 
     /**
      * @dev Returns the storage struct for the vault.
@@ -94,15 +110,6 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
     }
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint256 _shares)
-        external
-        whenFlowNotPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW)
-        returns (uint48 _batchId)
-    {
-        return _requestRedeem(_shares);
-    }
-
-    /// @inheritdoc IERC7540Redeem
     function pendingRedeemRequest(uint48 _batchId) external view returns (uint256 _shares) {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
@@ -112,60 +119,11 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
         return _batch.redeemRequest[msg.sender];
     }
 
-    /**
-     * @dev Internal function to settle all redeems for batches up to the current batch.
-     * @param _newTotalAssets The new total assets after settlement.
-     */
-    function _settleRedeem(uint256 _newTotalAssets) internal {
-        AlephVaultStorageData storage _sd = _getStorage();
-        uint48 _redeemSettleId = _sd.redeemSettleId;
-        uint48 _currentBatchId = currentBatch();
-        if (_currentBatchId == _redeemSettleId) {
-            revert NoRedeemsToSettle();
-        }
-        uint48 _timestamp = Time.timestamp();
-        uint256 _sharesToSettle;
-        for (_redeemSettleId; _redeemSettleId < _currentBatchId; _redeemSettleId++) {
-            uint256 _totalAssets = _redeemSettleId == _sd.redeemSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
-            _sharesToSettle += _settleRedeemForBatch(_sd, _redeemSettleId, _timestamp, _totalAssets);
-        }
-        emit SettleRedeem(_sd.redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
-        _sd.redeemSettleId = _currentBatchId;
-    }
+    /// @inheritdoc IERC7540Redeem
+    function requestRedeem(uint256 _shares) external virtual returns (uint48 _batchId);
 
-    /**
-     * @dev Internal function to settle redeems for a specific batch.
-     * @param _sd The storage struct.
-     * @param _batchId The batch ID to settle.
-     * @param _timestamp The timestamp of settlement.
-     * @param _totalAssets The total assets at settlement.
-     * @return _totalSharesToRedeem The total shares settled for the batch.
-     */
-    function _settleRedeemForBatch(
-        AlephVaultStorageData storage _sd,
-        uint48 _batchId,
-        uint48 _timestamp,
-        uint256 _totalAssets
-    ) internal returns (uint256) {
-        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
-        if (_batch.totalSharesToRedeem == 0) {
-            return 0;
-        }
-        uint256 _totalShares = totalShares();
-        uint256 _totalAassetsToRedeem;
-        IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
-        for (uint256 i = 0; i < _batch.usersToRedeem.length; i++) {
-            address _user = _batch.usersToRedeem[i];
-            uint256 _sharesToBurnPerUser = _batch.redeemRequest[_user];
-            uint256 _assets = ERC4626Math.previewRedeem(_sharesToBurnPerUser, _totalAssets, _totalShares);
-            _totalAassetsToRedeem += _assets;
-            _underlyingToken.safeTransfer(_user, _assets);
-        }
-        _sd.shares.push(_timestamp, _totalShares - _batch.totalSharesToRedeem);
-        _sd.assets.push(_timestamp, _totalAssets - _totalAassetsToRedeem);
-        emit SettleRedeemBatch(_batchId, _totalAassetsToRedeem, _batch.totalSharesToRedeem, _totalAssets, _totalShares);
-        return _batch.totalSharesToRedeem;
-    }
+    /// @inheritdoc IERC7540Redeem
+    function settleRedeem(uint256 _newTotalAssets) external virtual;
 
     /**
      * @dev Internal function to handle a redeem request.
@@ -174,27 +132,26 @@ abstract contract AlephVaultRedeem is IERC7540Redeem, AlephPausable {
      */
     function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
-        address _user = msg.sender;
-        uint256 _shares = sharesOf(_user);
-        if (_shares < _sharesToRedeem) {
-            revert InsufficientSharesToRedeem();
-        }
-        uint48 _lastRedeemBatchId = _sd.lastRedeemBatchId[_user];
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForRedeem(); // need to wait for the first batch to be available
         }
+        uint48 _lastRedeemBatchId = _sd.lastRedeemBatchId[msg.sender];
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
-        _sd.lastRedeemBatchId[_user] = _currentBatchId;
+        uint256 _shares = sharesOf(msg.sender);
+        if (_shares < _sharesToRedeem) {
+            revert InsufficientSharesToRedeem();
+        }
+        _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.redeemRequest[_user] += _sharesToRedeem;
+        _batch.redeemRequest[msg.sender] = _sharesToRedeem;
         _batch.totalSharesToRedeem += _sharesToRedeem;
-        _batch.usersToRedeem.push(_user);
-        _sd.sharesOf[_user].push(Time.timestamp(), sharesOf(_user) - _sharesToRedeem);
+        _batch.usersToRedeem.push(msg.sender);
+        _sd.sharesOf[msg.sender].push(Time.timestamp(), _shares - _sharesToRedeem);
         // we will update the total shares and assets in the _settleRedeemForBatch function
-        emit RedeemRequest(_user, _sharesToRedeem, _currentBatchId);
+        emit RedeemRequest(msg.sender, _sharesToRedeem, _currentBatchId);
         return _currentBatchId;
     }
 }

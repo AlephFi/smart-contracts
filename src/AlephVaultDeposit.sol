@@ -15,39 +15,22 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC7540Deposit} from "./interfaces/IERC7540Deposit.sol";
-import {AlephVaultStorage, AlephVaultStorageData} from "./AlephVaultStorage.sol";
-import {IAlephVault} from "./interfaces/IAlephVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC4626Math} from "./libraries/ERC4626Math.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {Checkpoints} from "./libraries/Checkpoints.sol";
-import {AlephPausable} from "./AlephPausable.sol";
-import {PausableFlowsLibrary} from "./PausableFlowsLibrary.sol";
+import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
+abstract contract AlephVaultDeposit is IERC7540Deposit {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
-
-    function __AlephVaultDeposit_init(address _manager) internal onlyInitializing {
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW] = true;
-        _getPausableStorage().flowsPauseStates[PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW] = true;
-        _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW, operationsMultisig());
-        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, _manager);
-        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, guardian());
-        _grantRole(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW, operationsMultisig());
-    }
-
-    function operationsMultisig() public view virtual returns (address);
-
-    function guardian() public view virtual returns (address);
 
     /**
      * @notice Returns the current batch ID.
@@ -64,14 +47,44 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
      */
     function totalShares() public view virtual returns (uint256);
 
-    /**
-     * @notice Returns the number of shares owned by a user.
-     * @param _user The address of the user.
-     */
-    function sharesOf(address _user) public view virtual returns (uint256);
+    /// @inheritdoc IERC7540Deposit
+    function totalAmountToDeposit() external view returns (uint256 _totalAmountToDeposit) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _depositSettleId = _sd.depositSettleId;
+            for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
+                _totalAmountToDeposit += _sd.batches[_depositSettleId].totalAmountToDeposit;
+            }
+        }
+    }
 
     /// @inheritdoc IERC7540Deposit
-    function settleDeposit(uint256 _newTotalAssets) external virtual;
+    function totalAmountToDepositAt(uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].totalAmountToDeposit;
+    }
+
+    /// @inheritdoc IERC7540Deposit
+    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().batches[_batchId].usersToDeposit;
+    }
+
+    /// @inheritdoc IERC7540Deposit
+    function depositRequestOf(address _user) external view returns (uint256 _totalAmountToDeposit) {
+        uint48 _currentBatch = currentBatch();
+        if (_currentBatch > 0) {
+            AlephVaultStorageData storage _sd = _getStorage();
+            uint48 _depositSettleId = _sd.depositSettleId;
+            for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
+                _totalAmountToDeposit += _sd.batches[_depositSettleId].depositRequest[_user];
+            }
+        }
+    }
+
+    /// @inheritdoc IERC7540Deposit
+    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
+        return _getStorage().batches[_batchId].depositRequest[_user];
+    }
 
     /**
      * @dev Returns the storage struct for the vault.
@@ -94,15 +107,6 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
     }
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(uint256 _amount)
-        external
-        whenFlowNotPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW)
-        returns (uint48 _batchId)
-    {
-        return _requestDeposit(_amount);
-    }
-
-    /// @inheritdoc IERC7540Deposit
     function pendingDepositRequest(uint48 _batchId) external view returns (uint256 _amount) {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
@@ -112,60 +116,11 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
         return _batch.depositRequest[msg.sender];
     }
 
-    /**
-     * @dev Internal function to settle all deposits for batches up to the current batch.
-     * @param _newTotalAssets The new total assets after settlement.
-     */
-    function _settleDeposit(uint256 _newTotalAssets) internal {
-        AlephVaultStorageData storage _sd = _getStorage();
-        uint48 _depositSettleId = _sd.depositSettleId;
-        uint48 _currentBatchId = currentBatch();
-        if (_currentBatchId == _depositSettleId) {
-            revert NoDepositsToSettle();
-        }
-        uint48 _timestamp = Time.timestamp();
-        uint256 _amountToSettle;
-        for (_depositSettleId; _depositSettleId < _currentBatchId; _depositSettleId++) {
-            uint256 _totalAssets = _depositSettleId == _sd.depositSettleId ? _newTotalAssets : totalAssets(); // if the batch is the first batch, use the new total assets, otherwise use the old total assets
-            _amountToSettle += _settleDepositForBatch(_sd, _depositSettleId, _timestamp, _totalAssets);
-        }
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
-        emit SettleDeposit(_sd.depositSettleId, _currentBatchId, _amountToSettle, _newTotalAssets);
-        _sd.depositSettleId = _currentBatchId;
-    }
+    /// @inheritdoc IERC7540Deposit
+    function requestDeposit(uint256 _amount) external virtual returns (uint48 _batchId);
 
-    /**
-     * @dev Internal function to settle deposits for a specific batch.
-     * @param _sd The storage struct.
-     * @param _batchId The batch ID to settle.
-     * @param _timestamp The timestamp of settlement.
-     * @param _totalAssets The total assets at settlement.
-     * @return The total amount settled for the batch.
-     */
-    function _settleDepositForBatch(
-        AlephVaultStorageData storage _sd,
-        uint48 _batchId,
-        uint48 _timestamp,
-        uint256 _totalAssets
-    ) internal returns (uint256) {
-        IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
-        if (_batch.totalAmountToDeposit == 0) {
-            return 0;
-        }
-        uint256 _totalShares = totalShares();
-        uint256 _totalSharesToMint;
-        for (uint256 i = 0; i < _batch.usersToDeposit.length; i++) {
-            address _user = _batch.usersToDeposit[i];
-            uint256 _amount = _batch.depositRequest[_user];
-            uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalAssets);
-            _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
-            _totalSharesToMint += _sharesToMintPerUser;
-        }
-        _sd.shares.push(_timestamp, _totalShares + _totalSharesToMint);
-        _sd.assets.push(_timestamp, _totalAssets + _batch.totalAmountToDeposit);
-        emit SettleDepositBatch(_batchId, _batch.totalAmountToDeposit, _totalSharesToMint, _totalAssets, _totalShares);
-        return _batch.totalAmountToDeposit;
-    }
+    /// @inheritdoc IERC7540Deposit
+    function settleDeposit(uint256 _newTotalAssets) external virtual;
 
     /**
      * @dev Internal function to handle a deposit request.
@@ -174,8 +129,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
      */
     function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
-        address _user = msg.sender;
-        uint48 _lastDepositBatchId = _sd.lastDepositBatchId[_user];
+        if (_amount == 0) {
+            revert InsufficientDeposit();
+        }
+        uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForDeposit(); // need to wait for the first batch to be available
@@ -183,19 +140,20 @@ abstract contract AlephVaultDeposit is IERC7540Deposit, AlephPausable {
         if (_lastDepositBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
-        _sd.lastDepositBatchId[_user] = _currentBatchId;
+        _sd.lastDepositBatchId[msg.sender] = _currentBatchId;
+        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
+        _batch.depositRequest[msg.sender] = _amount;
+        _batch.totalAmountToDeposit += _amount;
+        _batch.usersToDeposit.push(msg.sender);
+        emit DepositRequest(msg.sender, _amount, _currentBatchId);
+
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
-        _underlyingToken.safeTransferFrom(_user, address(this), _amount);
+        _underlyingToken.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _depositedAmount = _underlyingToken.balanceOf(address(this)) - _balanceBefore;
-        if (_depositedAmount == 0) {
-            revert InsufficientDeposit();
+        if (_depositedAmount != _amount) {
+            revert DepositRequestFailed();
         }
-        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.depositRequest[_user] += _depositedAmount;
-        _batch.totalAmountToDeposit += _depositedAmount;
-        _batch.usersToDeposit.push(_user);
-        emit DepositRequest(_user, _depositedAmount, _currentBatchId);
         return _currentBatchId;
     }
 }

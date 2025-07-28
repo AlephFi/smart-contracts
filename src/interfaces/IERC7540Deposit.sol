@@ -30,18 +30,13 @@ interface IERC7540Deposit {
         uint256 totalShares
     );
 
-    error OnlyOneRequestPerBatchAllowedForDeposit();
     error InsufficientDeposit();
-    error BatchAlreadySettledForDeposit();
     error NoBatchAvailableForDeposit();
-    error NoDepositsToSettle();
+    error OnlyOneRequestPerBatchAllowedForDeposit();
+    error DepositRequestFailed();
 
-    /**
-     * @notice Requests a deposit of assets into the vault for the current batch.
-     * @param _amount The amount of assets to deposit.
-     * @return _batchId The batch ID for the deposit.
-     */
-    function requestDeposit(uint256 _amount) external returns (uint48 _batchId);
+    error BatchAlreadySettledForDeposit();
+    error NoDepositsToSettle();
 
     /**
      * @notice Returns the pending deposit amount for the caller in a specific batch.
@@ -59,6 +54,48 @@ interface IERC7540Deposit {
      * @notice Returns the total shares that would be minted for all pending deposits.
      */
     function pendingTotalSharesToDeposit() external view returns (uint256 _totalSharesToDeposit);
+
+    /**
+     * @notice Returns the total amount of unsettled deposit requests.
+     * @return The total amount of unsettled deposit requests.
+     */
+    function totalAmountToDeposit() external view returns (uint256);
+
+    /**
+     * @notice Returns the total amount of deposit requests at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The total amount of deposit requests at the given batch ID.
+     */
+    function totalAmountToDepositAt(uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the users that have requested to deposit at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The users that have requested to deposit at the given batch ID.
+     */
+    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory);
+
+    /**
+     * @notice Returns the deposit request of a user.
+     * @param _user The user to query.
+     * @return The deposit request of the user.
+     */
+    function depositRequestOf(address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns the deposit request of a user at a specific batch ID.
+     * @param _user The user to query.
+     * @param _batchId The batch ID to query.
+     * @return The deposit request of the user at the given batch ID.
+     */
+    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Requests a deposit of assets into the vault for the current batch.
+     * @param _amount The amount of assets to deposit.
+     * @return _batchId The batch ID for the deposit.
+     */
+    function requestDeposit(uint256 _amount) external returns (uint48 _batchId);
 
     /**
      * @notice Settles all pending deposits up to the current batch.

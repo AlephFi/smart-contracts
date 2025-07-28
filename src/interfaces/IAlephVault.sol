@@ -20,21 +20,28 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IAlephVault {
+    error InvalidConstructorParams();
     error InvalidInitializationParams();
 
     event MetadataUriSet(string metadataUri);
 
     struct ConstructorParams {
         address operationsMultisig;
-        address oracle;
-        address guardian;
+        uint48 managementFeeTimelock;
+        uint48 performanceFeeTimelock;
+        uint48 feeRecipientTimelock;
     }
 
     struct InitializationParams {
         string name;
         address manager;
+        address oracle;
+        address guardian;
         address underlyingToken;
         address custodian;
+        address feeRecipient;
+        uint32 managementFee;
+        uint32 performanceFee;
     }
 
     struct BatchData {
@@ -50,10 +57,22 @@ interface IAlephVault {
     // View functions
 
     /**
-     * @notice Returns the operations multisig of the vault.
-     * @return The operations multisig.
+     * @notice Returns the name of the vault.
+     * @return The name.
      */
-    function operationsMultisig() external view returns (address);
+    function name() external view returns (string memory);
+
+    /**
+     * @notice Returns the manager of the vault.
+     * @return The manager.
+     */
+    function manager() external view returns (address);
+
+    /**
+     * @notice Returns the oracle of the vault.
+     * @return The oracle.
+     */
+    function oracle() external view returns (address);
 
     /**
      * @notice Returns the guardian of the vault.
@@ -66,6 +85,30 @@ interface IAlephVault {
      * @return The underlying token.
      */
     function underlyingToken() external view returns (address);
+
+    /**
+     * @notice Returns the custodian of the vault.
+     * @return The custodian.
+     */
+    function custodian() external view returns (address);
+
+    /**
+     * @notice Returns the fee recipient of the vault.
+     * @return The fee recipient.
+     */
+    function feeRecipient() external view returns (address);
+
+    /**
+     * @notice Returns the management fee of the vault.
+     * @return The management fee.
+     */
+    function managementFee() external view returns (uint32);
+
+    /**
+     * @notice Returns the performance fee of the vault.
+     * @return The performance fee.
+     */
+    function performanceFee() external view returns (uint32);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.
@@ -130,16 +173,36 @@ interface IAlephVault {
     function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
 
     /**
+     * @notice Returns the current price per share of the vault.
+     * @return The current price per share.
+     */
+    function pricePerShare() external view returns (uint256);
+
+    /**
+     * @notice Returns the price per share at a specific timestamp.
+     * @param _timestamp The timestamp to query.
+     * @return The price per share at the given timestamp.
+     */
+    function pricePerShareAt(uint48 _timestamp) external view returns (uint256);
+
+    /**
+     * @notice Returns the current high water mark of the vault.
+     * @return The current high water mark.
+     */
+    function highWaterMark() external view returns (uint256);
+
+    /**
+     * @notice Returns the high water mark at a specific timestamp.
+     * @param _timestamp The timestamp to query.
+     * @return The high water mark at the given timestamp.
+     */
+    function highWaterMarkAt(uint48 _timestamp) external view returns (uint256);
+
+    /**
      * @notice Returns the metadata URL of the vault.
      * @return The metadata URL.
      */
     function metadataUri() external view returns (string memory);
-
-    /**
-     * @notice Returns the name of the vault.
-     * @return The name.
-     */
-    function name() external view returns (string memory);
 
     /**
      * @notice Sets the metadata URL of the vault.

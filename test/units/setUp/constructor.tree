@@ -1,0 +1,11 @@
+Constructor_Unit_Test
+├── when operationsMultisig passed is address(0)
+│   └── it should revert with InvalidConstructorParams
+├── when managementFeeTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when performanceFeeTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when feeRecipientTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+└── when all params are valid
+    └── it should set the constructor params

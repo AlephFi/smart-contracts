@@ -26,8 +26,9 @@ import {IERC7540Deposit} from "../src/interfaces/IERC7540Deposit.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
-import {PausableFlowsLibrary} from "../src/PausableFlowsLibrary.sol";
+import {PausableFlows} from "../src/libraries/PausableFlows.sol";
 import {IAlephPausable} from "../src/interfaces/IAlephPausable.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -44,8 +45,12 @@ contract AlephVaultTest is Test {
     address public operationsMultisig = makeAddr("operationsMultisig");
     address public operator = makeAddr("operator");
     address public custodian = makeAddr("custodian");
+    address public feeRecipient = makeAddr("feeRecipient");
     address public oracle = makeAddr("oracle");
     address public guardian = makeAddr("guardian");
+    uint48 public managementFeeTimelock = 7 days;
+    uint48 public performanceFeeTimelock = 7 days;
+    uint48 public feeRecipientTimelock = 7 days;
 
     TestToken public underlyingToken = new TestToken();
 
@@ -55,59 +60,132 @@ contract AlephVaultTest is Test {
         underlyingToken.mint(user2, 1000);
         underlyingToken.mint(manager, 10_000);
         vault = new ExposedVault(
-            IAlephVault.ConstructorParams({operationsMultisig: operationsMultisig, oracle: oracle, guardian: guardian})
+            IAlephVault.ConstructorParams({
+                operationsMultisig: operationsMultisig,
+                managementFeeTimelock: managementFeeTimelock,
+                performanceFeeTimelock: performanceFeeTimelock,
+                feeRecipientTimelock: feeRecipientTimelock
+            })
         );
         vault.initialize(
             IAlephVault.InitializationParams({
                 name: "test",
                 manager: manager,
+                oracle: oracle,
+                guardian: guardian,
                 underlyingToken: address(underlyingToken),
-                custodian: custodian
+                custodian: custodian,
+                feeRecipient: feeRecipient,
+                managementFee: 0,
+                performanceFee: 0
             })
         );
         vm.startPrank(manager);
-        vault.unpause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
-        vault.unpause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
-        vault.unpause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
-        vault.unpause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
+        vault.unpause(PausableFlows.DEPOSIT_REQUEST_FLOW);
+        vault.unpause(PausableFlows.REDEEM_REQUEST_FLOW);
+        vault.unpause(PausableFlows.SETTLE_DEPOSIT_FLOW);
+        vault.unpause(PausableFlows.SETTLE_REDEEM_FLOW);
         vm.stopPrank();
     }
 
+    function test_settleDeposit_dilution_thereIsNoDilution() public {
+        // --- Batch 1 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch1 = vault.currentBatch();
+        assertEq(batch1, 1);
+        uint256 amount1a = 100;
+        userDepositRequest(user, amount1a);
+
+        // --- Batch 2 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch2 = vault.currentBatch();
+        assertEq(batch2, 2);
+        uint256 amount2b = 100;
+        userDepositRequest(user2, amount2b);
+
+        // Settle batch 2
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch3 = vault.currentBatch();
+        assertEq(batch3, 3);
+        // Oracle value after batch 2 deposits
+        vm.prank(oracle);
+        vault.settleDeposit(0);
+        uint256 _sharesToMintUser = ERC4626Math.previewDeposit(amount1a, vault.totalShares(), vault.totalAssets());
+        uint256 _sharesToMintUser2 = ERC4626Math.previewDeposit(amount2b, vault.totalShares(), vault.totalAssets());
+        assertEq(vault.sharesOf(user), _sharesToMintUser);
+        assertEq(vault.sharesOf(user2), _sharesToMintUser2);
+        assertEq(_sharesToMintUser, _sharesToMintUser2);
+        assertEq(vault.totalAssets(), amount1a + amount2b);
+        assertEq(vault.totalShares(), _sharesToMintUser + _sharesToMintUser2);
+        assertEq(vault.assetsOf(user), amount1a);
+        assertEq(vault.assetsOf(user2), amount2b);
+        uint256 profit = 10;
+        uint256 totalAssetsAfterBatch2 = amount1a + amount2b + profit;
+
+        // --- Batch 4 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch4 = vault.currentBatch();
+        assertEq(batch4, 4);
+        userDepositRequest(user, amount1a);
+
+        // --- Batch 5 ---
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch5 = vault.currentBatch();
+        assertEq(batch5, 5);
+        userDepositRequest(user2, amount2b);
+
+        // Settle batch 5
+        vm.warp(block.timestamp + batchDuration);
+        uint48 batch6 = vault.currentBatch();
+        assertEq(batch6, 6);
+
+        vm.prank(oracle);
+        vault.settleDeposit(totalAssetsAfterBatch2);
+        uint256 _newSharesToMintUser =
+            _sharesToMintUser + ERC4626Math.previewDeposit(amount1a, vault.totalShares(), vault.totalAssets());
+        uint256 _newSharesToMintUser2 =
+            _sharesToMintUser2 + ERC4626Math.previewDeposit(amount2b, vault.totalShares(), vault.totalAssets());
+        assertEq(vault.sharesOf(user), _newSharesToMintUser);
+        assertEq(vault.sharesOf(user2), _newSharesToMintUser2);
+        assertEq(vault.totalShares(), _newSharesToMintUser + _newSharesToMintUser2);
+        assertEq(vault.totalAssets(), totalAssetsAfterBatch2 + amount1a + amount2b);
+    }
+
     function test_pauseAndUnpauseSettleDepositFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_DEPOSIT_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_DEPOSIT_FLOW), true);
+        vault.pause(PausableFlows.SETTLE_DEPOSIT_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_DEPOSIT_FLOW), true);
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.settleDeposit(100);
     }
 
     function test_pauseAndUnpauseSettleRedeemFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_REDEEM_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.SETTLE_REDEEM_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.SETTLE_REDEEM_FLOW), true);
+        vault.pause(PausableFlows.SETTLE_REDEEM_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.SETTLE_REDEEM_FLOW), true);
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.settleRedeem(100);
     }
 
     function test_pauseAndUnpauseRedeemRequestFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.REDEEM_REQUEST_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.REDEEM_REQUEST_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.REDEEM_REQUEST_FLOW), true);
+        vault.pause(PausableFlows.REDEEM_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.REDEEM_REQUEST_FLOW), true);
         vm.prank(user);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.requestRedeem(100);
     }
 
     function test_pauseAndUnpauseDepositRequestFlow() public {
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), false);
+        assertEq(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW), false);
         vm.prank(manager);
-        vault.pause(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW);
-        assertEq(vault.isFlowPaused(PausableFlowsLibrary.DEPOSIT_REQUEST_FLOW), true);
+        vault.pause(PausableFlows.DEPOSIT_REQUEST_FLOW);
+        assertEq(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW), true);
         vm.prank(user);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.requestDeposit(100);
