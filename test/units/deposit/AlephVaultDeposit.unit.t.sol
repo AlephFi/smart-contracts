@@ -91,9 +91,6 @@ contract AlephVaultDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
         vault.setBatchDeposit(vault.currentBatch(), mockUser_2, 20);
 
-        // roll block forward
-        vm.warp(block.timestamp + 1 days);
-
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);

@@ -76,6 +76,10 @@ interface IERC7540Deposit {
     /**
      * @notice Returns the total amount of unsettled deposit requests.
      * @return The total amount of unsettled deposit requests.
+     * @dev Please note that this function will return the deposit amount for all batches including the current batch.
+     * However, if these deposit requests are settled in this batch, the amount requested in this batch will NOT be settled.
+     * It will be settled in the next settlement batch. So if you're using this function to check if the deposit request for settlement,
+     * please be aware of this nuance.
      */
     function totalAmountToDeposit() external view returns (uint256);
 
