@@ -50,12 +50,15 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
      */
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
         if (
-            _constructorParams.operationsMultisig == address(0) || _constructorParams.managementFeeTimelock == 0
+            _constructorParams.operationsMultisig == address(0) || _constructorParams.minDepositAmountTimelock == 0
+                || _constructorParams.maxDepositCapTimelock == 0 || _constructorParams.managementFeeTimelock == 0
                 || _constructorParams.performanceFeeTimelock == 0 || _constructorParams.feeRecipientTimelock == 0
         ) {
             revert InvalidConstructorParams();
         }
         OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
+        MIN_DEPOSIT_AMOUNT_TIMELOCK = _constructorParams.minDepositAmountTimelock;
+        MAX_DEPOSIT_CAP_TIMELOCK = _constructorParams.maxDepositCapTimelock;
         MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
         PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
         FEE_RECIPIENT_TIMELOCK = _constructorParams.feeRecipientTimelock;
@@ -249,6 +252,32 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /**
+     * @notice Queues a new minimum deposit amount to be set after the timelock period.
+     * @param _minDepositAmount The new minimum deposit amount to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueMinDepositAmount(uint256 _minDepositAmount)
+        external
+        override(AlephVaultDeposit)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _queueMinDepositAmount(_getStorage(), _minDepositAmount);
+    }
+
+    /**
+     * @notice Queues a new maximum deposit cap to be set after the timelock period.
+     * @param _maxDepositCap The new maximum deposit cap to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueMaxDepositCap(uint256 _maxDepositCap)
+        external
+        override(AlephVaultDeposit)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _queueMaxDepositCap(_getStorage(), _maxDepositCap);
+    }
+
+    /**
      * @notice Queues a new management fee to be set after the timelock period.
      * @param _managementFee The new management fee to be set.
      * @dev Only callable by the MANAGER role.
@@ -277,6 +306,22 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
     {
         _queueFeeRecipient(_getStorage(), _feeRecipient);
+    }
+
+    /**
+     * @notice Sets the minimum deposit amount to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setMinDepositAmount() external override(AlephVaultDeposit) onlyRole(RolesLibrary.MANAGER) {
+        _setMinDepositAmount(_getStorage());
+    }
+
+    /**
+     * @notice Sets the maximum deposit cap to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setMaxDepositCap() external override(AlephVaultDeposit) onlyRole(RolesLibrary.MANAGER) {
+        _setMaxDepositCap(_getStorage());
     }
 
     /**

@@ -38,6 +38,10 @@ contract DeployAlephVaultImplementation is BaseScript {
         IAlephVault.ConstructorParams memory _constructorParams;
         string memory _config = _getConfigFile();
         address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
+        uint48 _minDepositAmountTimelock =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".minDepositAmountTimelock")));
+        uint48 _maxDepositCapTimelock =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".maxDepositCapTimelock")));
         uint48 _managementFeeTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFeeTimelock")));
         uint48 _performanceFeeTimelock =
@@ -45,11 +49,15 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 _feeRecipientTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
         console.log("operationsMultisig", _operationsMultisig);
+        console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
+        console.log("maxDepositCapTimelock", _maxDepositCapTimelock);
         console.log("managementFeeTimelock", _managementFeeTimelock);
         console.log("performanceFeeTimelock", _performanceFeeTimelock);
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
         _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: _operationsMultisig,
+            minDepositAmountTimelock: _minDepositAmountTimelock,
+            maxDepositCapTimelock: _maxDepositCapTimelock,
             managementFeeTimelock: _managementFeeTimelock,
             performanceFeeTimelock: _performanceFeeTimelock,
             feeRecipientTimelock: _feeRecipientTimelock

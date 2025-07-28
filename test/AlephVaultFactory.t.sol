@@ -17,6 +17,8 @@ contract AlephVaultFactoryTest is Test {
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
     address feeRecipient = makeAddr("feeRecipient");
+    uint48 minDepositAmountTimelock = 7 days;
+    uint48 maxDepositCapTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
     uint48 performanceFeeTimelock = 7 days;
     uint48 feeRecipientTimelock = 7 days;
@@ -24,6 +26,8 @@ contract AlephVaultFactoryTest is Test {
     AlephVault vaultImpl = new AlephVault(
         IAlephVault.ConstructorParams({
             operationsMultisig: operationsMultisig,
+            minDepositAmountTimelock: minDepositAmountTimelock,
+            maxDepositCapTimelock: maxDepositCapTimelock,
             managementFeeTimelock: managementFeeTimelock,
             performanceFeeTimelock: performanceFeeTimelock,
             feeRecipientTimelock: feeRecipientTimelock

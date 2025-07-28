@@ -20,6 +20,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IERC7540Deposit {
+    event NewMinDepositAmountQueued(uint256 minDepositAmount);
+    event NewMaxDepositCapQueued(uint256 maxDepositCap);
+    event NewMinDepositAmountSet(uint256 minDepositAmount);
+    event NewMaxDepositCapSet(uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
     event SettleDeposit(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 amount, uint256 assets);
     event SettleDepositBatch(
@@ -31,12 +35,26 @@ interface IERC7540Deposit {
     );
 
     error InsufficientDeposit();
+    error DepositLessThanMinDepositAmount();
+    error DepositExceedsMaxDepositCap();
     error NoBatchAvailableForDeposit();
     error OnlyOneRequestPerBatchAllowedForDeposit();
     error DepositRequestFailed();
 
     error BatchAlreadySettledForDeposit();
     error NoDepositsToSettle();
+
+    /**
+     * @notice Returns the minimum deposit amount.
+     * @return The minimum deposit amount.
+     */
+    function minDepositAmount() external view returns (uint256);
+
+    /**
+     * @notice Returns the maximum deposit cap.
+     * @return The maximum deposit cap.
+     */
+    function maxDepositCap() external view returns (uint256);
 
     /**
      * @notice Returns the pending deposit amount for the caller in a specific batch.
@@ -58,6 +76,10 @@ interface IERC7540Deposit {
     /**
      * @notice Returns the total amount of unsettled deposit requests.
      * @return The total amount of unsettled deposit requests.
+     * @dev Please note that this function will return the deposit amount for all batches including the current batch.
+     * However, if these deposit requests are settled in this batch, the amount requested in this batch will NOT be settled.
+     * It will be settled in the next settlement batch. So if you're using this function to check if the deposit request for settlement,
+     * please be aware of this nuance.
      */
     function totalAmountToDeposit() external view returns (uint256);
 
@@ -89,6 +111,28 @@ interface IERC7540Deposit {
      * @return The deposit request of the user at the given batch ID.
      */
     function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Queues a new minimum deposit amount.
+     * @param _minDepositAmount The new minimum deposit amount.
+     */
+    function queueMinDepositAmount(uint256 _minDepositAmount) external;
+
+    /**
+     * @notice Queues a new maximum deposit cap.
+     * @param _maxDepositCap The new maximum deposit cap.
+     */
+    function queueMaxDepositCap(uint256 _maxDepositCap) external;
+
+    /**
+     * @notice Sets the minimum deposit amount.
+     */
+    function setMinDepositAmount() external;
+
+    /**
+     * @notice Sets the maximum deposit cap.
+     */
+    function setMaxDepositCap() external;
 
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.

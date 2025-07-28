@@ -84,6 +84,14 @@ contract ExposedVault is AlephVault {
         _sd.batches[_batchId].totalSharesToRedeem += _shares;
     }
 
+    function setMinDepositAmount(uint256 _minDepositAmount) external {
+        _getStorage().minDepositAmount = _minDepositAmount;
+    }
+
+    function setMaxDepositCap(uint256 _maxDepositCap) external {
+        _getStorage().maxDepositCap = _maxDepositCap;
+    }
+
     function setTotalAssets(uint256 _totalAssets) external {
         _getStorage().assets.push(Time.timestamp(), _totalAssets);
     }

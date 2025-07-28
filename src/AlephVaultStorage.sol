@@ -34,6 +34,8 @@ struct AlephVaultStorageData {
     uint48 lastFeePaidId;
     uint48 depositSettleId;
     uint48 redeemSettleId;
+    uint256 minDepositAmount;
+    uint256 maxDepositCap;
     Checkpoints.Trace256 highWaterMark;
     Checkpoints.Trace256 assets;
     Checkpoints.Trace256 shares;
