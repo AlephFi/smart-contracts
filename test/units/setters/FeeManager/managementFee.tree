@@ -13,5 +13,5 @@ SetManagementFee_Unit_Test
 └── when caller is MANAGER
     ├── given unlockTimestamp is greater than current timestamp
     │   └── it should revert with TimelockNotExpired
-    └── given unlockTimestamp is not greater thancurrent timestamp
+    └── given unlockTimestamp is not greater than current timestamp
         └── it should set management fee and emit ManagementFeeSet
