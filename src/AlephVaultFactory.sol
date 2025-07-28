@@ -46,17 +46,38 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         onlyInitializing
     {
         __AccessControl_init();
-        _getStorage().beacon = _initalizationParams.beacon;
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.beacon = _initalizationParams.beacon;
+        _sd.oracle = _initalizationParams.oracle;
+        _sd.guardian = _initalizationParams.guardian;
+        _sd.feeRecipient = _initalizationParams.feeRecipient;
+        _sd.managementFee = _initalizationParams.managementFee;
+        _sd.performanceFee = _initalizationParams.performanceFee;
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, msg.sender);
     }
 
     /**
      * @notice Deploys a new vault.
-     * @param _initalizationParams Struct containing all initialization parameters.
+     * @param _userInitializationParams Struct containing all user initialization parameters.
      * @return The address of the new vault.
      */
-    function deployVault(IAlephVault.InitializationParams calldata _initalizationParams) external returns (address) {
-        bytes32 _salt = keccak256(abi.encodePacked(_initalizationParams.manager, _initalizationParams.name));
+    function deployVault(IAlephVault.UserInitializationParams calldata _userInitializationParams)
+        external
+        returns (address)
+    {
+        bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
+        IAlephVault.InitializationParams memory _initalizationParams = IAlephVault.InitializationParams({
+            name: _userInitializationParams.name,
+            manager: _userInitializationParams.manager,
+            oracle: _sd.oracle,
+            guardian: _sd.guardian,
+            underlyingToken: _userInitializationParams.underlyingToken,
+            custodian: _userInitializationParams.custodian,
+            feeRecipient: _sd.feeRecipient,
+            managementFee: _sd.managementFee,
+            performanceFee: _sd.performanceFee
+        });
         bytes memory _bytecode = abi.encodePacked(
             type(BeaconProxy).creationCode,
             abi.encode(_sd.beacon, abi.encodeCall(AlephVault.initialize, (_initalizationParams)))
@@ -70,6 +91,26 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
 
     function isValidVault(address _vault) external view returns (bool) {
         return _getStorage().vaults[_vault];
+    }
+
+    function setOracle(address _oracle) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().oracle = _oracle;
+    }
+
+    function setGuardian(address _guardian) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().guardian = _guardian;
+    }
+
+    function setFeeRecipient(address _feeRecipient) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().feeRecipient = _feeRecipient;
+    }
+
+    function setManagementFee(uint32 _managementFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().managementFee = _managementFee;
+    }
+
+    function setPerformanceFee(uint32 _performanceFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().performanceFee = _performanceFee;
     }
 
     // Internal function to get the storage of the factory.

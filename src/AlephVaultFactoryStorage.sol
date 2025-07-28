@@ -18,12 +18,17 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 struct AlephVaultFactoryStorageData {
     mapping(address vault => bool isValid) vaults;
     address beacon;
+    address oracle;
+    address guardian;
+    address feeRecipient;
+    uint32 managementFee;
+    uint32 performanceFee;
 }
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
 library AlephVaultFactoryStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.vault.factory")) - 1;
 

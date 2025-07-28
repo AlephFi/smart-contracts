@@ -30,15 +30,31 @@ import {BaseScript} from "./BaseScript.s.sol";
  */
 
 // Use to Deploy only an AlephVaultFactory.
-// forge script DeployAlephVaultFactory --sig="run(address, address)" <_proxyOwner> <_beacon> --broadcast -vvvv --verify
+// forge script DeployAlephVaultFactory --sig="run(address, address, address, address, address, uint32, uint32)" <_proxyOwner> <_beacon> <_oracle> <_guardian> <_feeRecipient> <_managementFee> <_performanceFee> --broadcast -vvvv --verify
 contract DeployAlephVaultFactory is BaseScript {
     function setUp() public {}
 
-    function run(address _proxyOwner, address _beacon) public {
+    function run(
+        address _proxyOwner,
+        address _beacon,
+        address _oracle,
+        address _guardian,
+        address _feeRecipient,
+        uint32 _managementFee,
+        uint32 _performanceFee
+    ) public {
         string memory _chainId = _getChainId();
         vm.createSelectFork(_chainId);
         bytes memory _initializeArgs = abi.encodeWithSelector(
-            AlephVaultFactory.initialize.selector, IAlephVaultFactory.InitializationParams({beacon: _beacon})
+            AlephVaultFactory.initialize.selector,
+            IAlephVaultFactory.InitializationParams({
+                beacon: _beacon,
+                oracle: _oracle,
+                guardian: _guardian,
+                feeRecipient: _feeRecipient,
+                managementFee: _managementFee,
+                performanceFee: _performanceFee
+            })
         );
 
         uint256 _privateKey = _getPrivateKey();

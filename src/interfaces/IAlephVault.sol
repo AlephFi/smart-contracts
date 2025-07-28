@@ -46,6 +46,13 @@ interface IAlephVault {
         uint32 performanceFee;
     }
 
+    struct UserInitializationParams {
+        string name;
+        address manager;
+        address underlyingToken;
+        address custodian;
+    }
+
     struct BatchData {
         uint48 batchId;
         uint256 totalAmountToDeposit;
