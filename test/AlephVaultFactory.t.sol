@@ -42,6 +42,7 @@ contract AlephVaultFactoryTest is Test {
         factory.initialize(
             IAlephVaultFactory.InitializationParams({
                 beacon: address(beacon),
+                operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 guardian: guardian,
                 feeRecipient: feeRecipient,
@@ -56,6 +57,7 @@ contract AlephVaultFactoryTest is Test {
         factory.initialize(
             IAlephVaultFactory.InitializationParams({
                 beacon: address(beacon),
+                operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 guardian: guardian,
                 feeRecipient: feeRecipient,

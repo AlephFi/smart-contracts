@@ -40,6 +40,7 @@ contract DeployAlephVaultFactory is BaseScript {
         IAlephVaultFactory.InitializationParams memory _initializationParams;
 
         string memory _config = _getFactoryConfig();
+        address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
         address _oracle = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".oracle"));
         address _guardian = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".guardian"));
         address _feeRecipient = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".feeRecipient"));
@@ -48,6 +49,7 @@ contract DeployAlephVaultFactory is BaseScript {
 
         console.log("proxyOwner", _proxyOwner);
         console.log("beacon", _beacon);
+        console.log("operationsMultisig", _operationsMultisig);
         console.log("oracle", _oracle);
         console.log("guardian", _guardian);
         console.log("feeRecipient", _feeRecipient);
@@ -56,6 +58,7 @@ contract DeployAlephVaultFactory is BaseScript {
 
         _initializationParams = IAlephVaultFactory.InitializationParams({
             beacon: _beacon,
+            operationsMultisig: _operationsMultisig,
             oracle: _oracle,
             guardian: _guardian,
             feeRecipient: _feeRecipient,
