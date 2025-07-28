@@ -49,8 +49,9 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         onlyInitializing
     {
         if (
-            _initalizationParams.beacon == address(0) || _initalizationParams.oracle == address(0)
-                || _initalizationParams.guardian == address(0) || _initalizationParams.feeRecipient == address(0)
+            _initalizationParams.beacon == address(0) || _initalizationParams.operationsMultisig == address(0)
+                || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
+                || _initalizationParams.feeRecipient == address(0)
                 || _initalizationParams.managementFee > MAX_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAX_PERFORMANCE_FEE
         ) {
