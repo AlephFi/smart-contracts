@@ -21,6 +21,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -31,6 +32,8 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 abstract contract AlephVaultDeposit is IERC7540Deposit {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
+
+    uint48 public immutable MAX_DEPOSIT_CAP_TIMELOCK;
 
     /**
      * @notice Returns the current batch ID.
@@ -46,6 +49,11 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
      * @notice Returns the total shares issued by the vault.
      */
     function totalShares() public view virtual returns (uint256);
+
+    /// @inheritdoc IERC7540Deposit
+    function maxDepositCap() public view returns (uint256) {
+        return _getStorage().maxDepositCap.latest();
+    }
 
     /// @inheritdoc IERC7540Deposit
     function totalAmountToDeposit() external view returns (uint256 _totalAmountToDeposit) {
@@ -117,10 +125,31 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     }
 
     /// @inheritdoc IERC7540Deposit
+    function queueMaxDepositCap(uint256 _maxDepositCap) external virtual;
+
+    /// @inheritdoc IERC7540Deposit
+    function setMaxDepositCap() external virtual;
+
+    /// @inheritdoc IERC7540Deposit
     function requestDeposit(uint256 _amount) external virtual returns (uint48 _batchId);
 
     /// @inheritdoc IERC7540Deposit
     function settleDeposit(uint256 _newTotalAssets) external virtual;
+
+    function _queueMaxDepositCap(AlephVaultStorageData storage _sd, uint256 _maxDepositCap) internal {
+        _sd.timelocks[TimelockRegistry.MAX_DEPOSIT_CAP] = TimelockRegistry.Timelock({
+            unlockTimestamp: Time.timestamp() + MAX_DEPOSIT_CAP_TIMELOCK,
+            newValue: abi.encode(_maxDepositCap)
+        });
+        emit NewMaxDepositCapQueued(_maxDepositCap);
+    }
+
+    function _setMaxDepositCap(AlephVaultStorageData storage _sd) internal {
+        uint256 _maxDepositCap =
+            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MAX_DEPOSIT_CAP), (uint256));
+        _sd.maxDepositCap.push(Time.timestamp(), _maxDepositCap);
+        emit NewMaxDepositCapSet(_maxDepositCap);
+    }
 
     /**
      * @dev Internal function to handle a deposit request.
@@ -131,6 +160,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         AlephVaultStorageData storage _sd = _getStorage();
         if (_amount == 0) {
             revert InsufficientDeposit();
+        }
+        uint256 _maxDepositCap = maxDepositCap();
+        if (_maxDepositCap > 0 && totalAssets() + _amount > _maxDepositCap) {
+            revert DepositExceedsMaxDepositCap();
         }
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();

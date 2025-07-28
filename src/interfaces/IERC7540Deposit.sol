@@ -20,6 +20,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IERC7540Deposit {
+    event NewMaxDepositCapQueued(uint256 maxDepositCap);
+    event NewMaxDepositCapSet(uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
     event SettleDeposit(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 amount, uint256 assets);
     event SettleDepositBatch(
@@ -31,12 +33,19 @@ interface IERC7540Deposit {
     );
 
     error InsufficientDeposit();
+    error DepositExceedsMaxDepositCap();
     error NoBatchAvailableForDeposit();
     error OnlyOneRequestPerBatchAllowedForDeposit();
     error DepositRequestFailed();
 
     error BatchAlreadySettledForDeposit();
     error NoDepositsToSettle();
+
+    /**
+     * @notice Returns the maximum deposit cap.
+     * @return The maximum deposit cap.
+     */
+    function maxDepositCap() external view returns (uint256);
 
     /**
      * @notice Returns the pending deposit amount for the caller in a specific batch.
@@ -89,6 +98,17 @@ interface IERC7540Deposit {
      * @return The deposit request of the user at the given batch ID.
      */
     function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Queues a new maximum deposit cap.
+     * @param _maxDepositCap The new maximum deposit cap.
+     */
+    function queueMaxDepositCap(uint256 _maxDepositCap) external;
+
+    /**
+     * @notice Sets the maximum deposit cap.
+     */
+    function setMaxDepositCap() external;
 
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.

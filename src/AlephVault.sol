@@ -249,6 +249,19 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /**
+     * @notice Queues a new maximum deposit cap to be set after the timelock period.
+     * @param _maxDepositCap The new maximum deposit cap to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueMaxDepositCap(uint256 _maxDepositCap)
+        external
+        override(AlephVaultDeposit)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _queueMaxDepositCap(_getStorage(), _maxDepositCap);
+    }
+
+    /**
      * @notice Queues a new management fee to be set after the timelock period.
      * @param _managementFee The new management fee to be set.
      * @dev Only callable by the MANAGER role.
@@ -277,6 +290,14 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
     {
         _queueFeeRecipient(_getStorage(), _feeRecipient);
+    }
+
+    /**
+     * @notice Sets the maximum deposit cap to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setMaxDepositCap() external override(AlephVaultDeposit) onlyRole(RolesLibrary.MANAGER) {
+        _setMaxDepositCap(_getStorage());
     }
 
     /**
