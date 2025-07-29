@@ -16,7 +16,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 struct AlephVaultFactoryStorageData {
-    mapping(address vault => bool isValid) vaults;
     address beacon;
     address operationsMultisig;
     address oracle;
@@ -24,6 +23,7 @@ struct AlephVaultFactoryStorageData {
     address feeRecipient;
     uint32 managementFee;
     uint32 performanceFee;
+    mapping(address vault => bool isValid) vaults;
 }
 
 /**
