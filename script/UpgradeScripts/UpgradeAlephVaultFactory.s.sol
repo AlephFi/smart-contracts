@@ -21,6 +21,7 @@ import {
     TransparentUpgradeableProxy,
     ITransparentUpgradeableProxy
 } from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ProxyAdmin} from "lib/openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 import {AlephVaultFactory} from "@aleph-vault/AlephVaultFactory.sol";
 /**
@@ -31,6 +32,8 @@ import {AlephVaultFactory} from "@aleph-vault/AlephVaultFactory.sol";
 // Use only to upgrade AlephVaultFactory.
 // forge script UpgradeAlephVaultFactory --sig="run()" --broadcast -vvvv --verify
 contract UpgradeAlephVaultFactory is BaseScript {
+    bytes32 constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+
     function setUp() public {}
 
     function run() public {
@@ -43,7 +46,9 @@ contract UpgradeAlephVaultFactory is BaseScript {
         address _proxy = _getProxy(_chainId, _environment);
         AlephVaultFactory _factoryImpl = new AlephVaultFactory();
 
-        ITransparentUpgradeableProxy(_proxy).upgradeToAndCall(address(_factoryImpl), "");
+        address _proxyAdmin = address(uint160(uint256(vm.load(_proxy, ADMIN_SLOT))));
+
+        ProxyAdmin(_proxyAdmin).upgradeAndCall(ITransparentUpgradeableProxy(payable(_proxy)), address(_factoryImpl), "");
         console.log("AlephVaultFactory upgraded to", address(_factoryImpl));
 
         _writeDeploymentConfig(
