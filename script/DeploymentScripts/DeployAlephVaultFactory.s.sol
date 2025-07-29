@@ -16,14 +16,14 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
-import {AlephVaultFactory} from "../src/AlephVaultFactory.sol";
 import {console} from "forge-std/console.sol";
 import {
     TransparentUpgradeableProxy,
     ITransparentUpgradeableProxy
 } from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
-import {BaseScript} from "./BaseScript.s.sol";
+import {BaseScript} from "@aleph-script/BaseScript.s.sol";
+import {AlephVaultFactory} from "@aleph-vault/AlephVaultFactory.sol";
+import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service

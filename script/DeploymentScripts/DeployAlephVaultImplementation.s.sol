@@ -16,10 +16,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
-import {AlephVault} from "../src/AlephVault.sol";
 import {console} from "forge-std/console.sol";
-import {IAlephVault} from "../src/interfaces/IAlephVault.sol";
-import {BaseScript} from "./BaseScript.s.sol";
+import {BaseScript} from "@aleph-script/BaseScript.s.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service

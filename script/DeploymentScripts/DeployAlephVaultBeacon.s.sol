@@ -18,7 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Script, console} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {UpgradeableBeacon} from "lib/openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {BaseScript} from "./BaseScript.s.sol";
+import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service

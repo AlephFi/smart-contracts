@@ -76,7 +76,7 @@ check_file_exists "factoryConfig.json"
 
 # Welcome message
 echo -e "\n${BOLD}${CYAN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BOLD}${CYAN}║            Aleph Vault Infrastructure Deployment            ║${NC}"
+echo -e "${BOLD}${CYAN}║            Aleph Vault Infrastructure Deployment           ║${NC}"
 echo -e "${BOLD}${CYAN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 echo -e "${YELLOW}This script will deploy the following contracts:${NC}"
 echo -e "  • ${BLUE}Vault Implementation${NC}"

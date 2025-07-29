@@ -28,11 +28,11 @@
     },
     "feature": {
       "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-      "vaultImplementationAddress": "0x1e5e298f5495e7D7a6708f9e20F3584C21684BF3",
-      "factoryImplementationAddress": "0x9A5a502f8ff0B9742019A2bD442378868E613511",
-      "vaultBeaconAddress": "0x90E6377822AF410DDA2e0b29D14F4DcFdFb1480f",
-      "factoryProxyAddress": "0x27Cd98981DCCF7C57496Aa3c5E80BBFD77f9c0f8"
+      "factoryProxyOwner": "0x7D3b0D0D3883A2EeE68Fcc0D242e945dD6eEF6bb",
+      "vaultImplementationAddress": "0x7636b902EC0EDA618A3aEFCf870a4D4271Ec066A",
+      "factoryImplementationAddress": "0x6675F6D9664833e8A6f3ddef54026E9A74d348E4",
+      "vaultBeaconAddress": "0xDEe2386Eed88e6F84588D8DdF51Cc980Fa258E34",
+      "factoryProxyAddress": "0xD1b73252b33109426d6a2d6c78f1B802D7A401DC"
     }
   },
   "11155111": {

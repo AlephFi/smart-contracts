@@ -79,6 +79,25 @@ abstract contract BaseScript is Script {
         return _proxyOwner;
     }
 
+    function _getProxy(string memory _chainId, string memory _environment) internal view returns (address) {
+        string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
+        string memory _proxyKey = string.concat(".", _chainId, ".", _environment, ".factoryProxyAddress");
+        address _proxy = vm.parseJsonAddress(_deploymentConfig, _proxyKey);
+        return _proxy;
+    }
+
+    function _getFactoryImplementation(string memory _chainId, string memory _environment)
+        internal
+        view
+        returns (address)
+    {
+        string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
+        string memory _implementationKey =
+            string.concat(".", _chainId, ".", _environment, ".factoryImplementationAddress");
+        address _implementation = vm.parseJsonAddress(_deploymentConfig, _implementationKey);
+        return _implementation;
+    }
+
     function _getDeploymentConfigFilePath() internal pure returns (string memory) {
         return "deploymentConfig.json";
     }
