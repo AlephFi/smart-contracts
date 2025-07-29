@@ -39,25 +39,41 @@ contract AlephVaultFactoryTest is Test {
         // Set chainid to 560048 for supported chain
         vm.chainId(560_048);
         factory = new AlephVaultFactory();
-        factory.initialize(IAlephVaultFactory.InitializationParams({beacon: address(beacon)}));
+        factory.initialize(
+            IAlephVaultFactory.InitializationParams({
+                beacon: address(beacon),
+                operationsMultisig: operationsMultisig,
+                oracle: oracle,
+                guardian: guardian,
+                feeRecipient: feeRecipient,
+                managementFee: 0,
+                performanceFee: 0
+            })
+        );
     }
 
     function testInitializeOnlyOnce() public {
         vm.expectRevert(); // Should revert on second initialize
-        factory.initialize(IAlephVaultFactory.InitializationParams({beacon: address(beacon)}));
+        factory.initialize(
+            IAlephVaultFactory.InitializationParams({
+                beacon: address(beacon),
+                operationsMultisig: operationsMultisig,
+                oracle: oracle,
+                guardian: guardian,
+                feeRecipient: feeRecipient,
+                managementFee: 0,
+                performanceFee: 0
+            })
+        );
     }
 
     function testDeployVaultAndIsValidVault() public {
-        IAlephVault.InitializationParams memory params = IAlephVault.InitializationParams({
+        IAlephVault.UserInitializationParams memory params = IAlephVault.UserInitializationParams({
             name: name,
+            configId: "test",
             manager: manager,
-            oracle: oracle,
-            guardian: guardian,
             underlyingToken: underlyingToken,
-            custodian: custodian,
-            feeRecipient: feeRecipient,
-            managementFee: 0,
-            performanceFee: 0
+            custodian: custodian
         });
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));

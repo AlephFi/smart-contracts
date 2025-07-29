@@ -37,9 +37,37 @@ contract DeployAlephVaultFactory is BaseScript {
     function run(address _proxyOwner, address _beacon) public {
         string memory _chainId = _getChainId();
         vm.createSelectFork(_chainId);
-        bytes memory _initializeArgs = abi.encodeWithSelector(
-            AlephVaultFactory.initialize.selector, IAlephVaultFactory.InitializationParams({beacon: _beacon})
-        );
+        IAlephVaultFactory.InitializationParams memory _initializationParams;
+
+        string memory _config = _getFactoryConfig();
+        address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
+        address _oracle = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".oracle"));
+        address _guardian = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".guardian"));
+        address _feeRecipient = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".feeRecipient"));
+        uint32 _managementFee = uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFee")));
+        uint32 _performanceFee = uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFee")));
+
+        console.log("proxyOwner", _proxyOwner);
+        console.log("beacon", _beacon);
+        console.log("operationsMultisig", _operationsMultisig);
+        console.log("oracle", _oracle);
+        console.log("guardian", _guardian);
+        console.log("feeRecipient", _feeRecipient);
+        console.log("managementFee", _managementFee);
+        console.log("performanceFee", _performanceFee);
+
+        _initializationParams = IAlephVaultFactory.InitializationParams({
+            beacon: _beacon,
+            operationsMultisig: _operationsMultisig,
+            oracle: _oracle,
+            guardian: _guardian,
+            feeRecipient: _feeRecipient,
+            managementFee: _managementFee,
+            performanceFee: _performanceFee
+        });
+
+        bytes memory _initializeArgs =
+            abi.encodeWithSelector(AlephVaultFactory.initialize.selector, _initializationParams);
 
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);

@@ -36,6 +36,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
         IAlephVault.ConstructorParams memory _constructorParams;
+
         string memory _config = _getConfigFile();
         address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
         uint48 _minDepositAmountTimelock =
@@ -48,12 +49,14 @@ contract DeployAlephVaultImplementation is BaseScript {
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFeeTimelock")));
         uint48 _feeRecipientTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
+
         console.log("operationsMultisig", _operationsMultisig);
         console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
         console.log("maxDepositCapTimelock", _maxDepositCapTimelock);
         console.log("managementFeeTimelock", _managementFeeTimelock);
         console.log("performanceFeeTimelock", _performanceFeeTimelock);
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
+
         _constructorParams = IAlephVault.ConstructorParams({
             operationsMultisig: _operationsMultisig,
             minDepositAmountTimelock: _minDepositAmountTimelock,
