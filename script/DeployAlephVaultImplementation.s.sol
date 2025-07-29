@@ -39,8 +39,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         string memory _environment = _getEnvironment();
 
         string memory _config = _getConfigFile();
-        address _operationsMultisig =
-            vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".operationsMultisig"));
         uint48 _minDepositAmountTimelock = uint48(
             vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minDepositAmountTimelock"))
         );
@@ -58,7 +56,6 @@ contract DeployAlephVaultImplementation is BaseScript {
 
         console.log("chainId", _chainId);
         console.log("environment", _environment);
-        console.log("operationsMultisig", _operationsMultisig);
         console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
         console.log("maxDepositCapTimelock", _maxDepositCapTimelock);
         console.log("managementFeeTimelock", _managementFeeTimelock);
@@ -67,7 +64,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("batchDuration", _batchDuration);
 
         _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: _operationsMultisig,
             minDepositAmountTimelock: _minDepositAmountTimelock,
             maxDepositCapTimelock: _maxDepositCapTimelock,
             managementFeeTimelock: _managementFeeTimelock,

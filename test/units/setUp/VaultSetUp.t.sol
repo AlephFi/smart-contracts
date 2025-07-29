@@ -29,24 +29,8 @@ contract VaultSetUpTest is BaseTest {
     /*//////////////////////////////////////////////////////////////
                            CONSTRUCTOR TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_constructor_when_operationsMultisig_passed_is_address_0() public {
-        IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: address(0),
-            minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
-            maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
-            managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
-            performanceFeeTimelock: defaultConstructorParams.performanceFeeTimelock,
-            feeRecipientTimelock: defaultConstructorParams.feeRecipientTimelock,
-            batchDuration: defaultConstructorParams.batchDuration
-        });
-
-        vm.expectRevert(IAlephVault.InvalidConstructorParams.selector);
-        new ExposedVault(_constructorParams);
-    }
-
     function test_constructor_when_minDepositAmountTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
             minDepositAmountTimelock: 0,
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
@@ -61,7 +45,6 @@ contract VaultSetUpTest is BaseTest {
 
     function test_constructor_when_maxDepositCapTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
             minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
             maxDepositCapTimelock: 0,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
@@ -76,7 +59,6 @@ contract VaultSetUpTest is BaseTest {
 
     function test_constructor_when_managementFeeTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
             minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: 0,
@@ -91,7 +73,6 @@ contract VaultSetUpTest is BaseTest {
 
     function test_constructor_when_performanceFeeTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
             minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
@@ -106,7 +87,6 @@ contract VaultSetUpTest is BaseTest {
 
     function test_constructor_when_feeRecipientTimelock_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
             minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
@@ -121,7 +101,6 @@ contract VaultSetUpTest is BaseTest {
 
     function test_constructor_when_batchDuration_passed_is_0() public {
         IAlephVault.ConstructorParams memory _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: defaultConstructorParams.operationsMultisig,
             minDepositAmountTimelock: defaultConstructorParams.minDepositAmountTimelock,
             maxDepositCapTimelock: defaultConstructorParams.maxDepositCapTimelock,
             managementFeeTimelock: defaultConstructorParams.managementFeeTimelock,
@@ -137,7 +116,6 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_all_params_are_valid() public {
         vault = new ExposedVault(defaultConstructorParams);
 
-        assertEq(vault.OPERATIONS_MULTISIG(), defaultConstructorParams.operationsMultisig);
         assertEq(vault.MIN_DEPOSIT_AMOUNT_TIMELOCK(), defaultConstructorParams.minDepositAmountTimelock);
         assertEq(vault.MAX_DEPOSIT_CAP_TIMELOCK(), defaultConstructorParams.maxDepositCapTimelock);
         assertEq(vault.MANAGEMENT_FEE_TIMELOCK(), defaultConstructorParams.managementFeeTimelock);
@@ -153,6 +131,27 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: address(0),
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            underlyingToken: defaultInitializationParams.underlyingToken,
+            custodian: defaultInitializationParams.custodian,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: defaultInitializationParams.managementFee,
+            performanceFee: defaultInitializationParams.performanceFee
+        });
+
+        vault = new ExposedVault(defaultConstructorParams);
+
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_operationsMultisig_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            name: defaultInitializationParams.name,
+            manager: defaultInitializationParams.manager,
+            operationsMultisig: address(0),
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             underlyingToken: defaultInitializationParams.underlyingToken,
@@ -172,6 +171,7 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: address(0),
             guardian: defaultInitializationParams.guardian,
             underlyingToken: defaultInitializationParams.underlyingToken,
@@ -191,6 +191,7 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: address(0),
             underlyingToken: defaultInitializationParams.underlyingToken,
@@ -210,6 +211,7 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             underlyingToken: address(0),
@@ -229,6 +231,7 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             underlyingToken: defaultInitializationParams.underlyingToken,
@@ -248,6 +251,7 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             underlyingToken: defaultInitializationParams.underlyingToken,
@@ -267,6 +271,7 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             underlyingToken: defaultInitializationParams.underlyingToken,
@@ -285,6 +290,7 @@ contract VaultSetUpTest is BaseTest {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             underlyingToken: defaultInitializationParams.underlyingToken,
@@ -313,23 +319,23 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.managementFee(), defaultInitializationParams.managementFee);
         assertEq(vault.performanceFee(), defaultInitializationParams.performanceFee);
 
-        assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(RolesLibrary.ORACLE, defaultInitializationParams.oracle));
         assertTrue(vault.hasRole(RolesLibrary.GUARDIAN, defaultInitializationParams.guardian));
 
         assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.guardian));
-        assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.guardian));
-        assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.guardian));
-        assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.guardian));
-        assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultConstructorParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.operationsMultisig));
 
         assertTrue(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW));
         assertTrue(vault.isFlowPaused(PausableFlows.SETTLE_DEPOSIT_FLOW));

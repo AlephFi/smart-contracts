@@ -18,6 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 struct AlephVaultFactoryStorageData {
     mapping(address vault => bool isValid) vaults;
     address beacon;
+    address operationsMultisig;
     address oracle;
     address guardian;
     address feeRecipient;

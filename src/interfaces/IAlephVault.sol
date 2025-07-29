@@ -26,7 +26,6 @@ interface IAlephVault {
     event MetadataUriSet(string metadataUri);
 
     struct ConstructorParams {
-        address operationsMultisig;
         uint48 minDepositAmountTimelock;
         uint48 maxDepositCapTimelock;
         uint48 managementFeeTimelock;
@@ -38,6 +37,7 @@ interface IAlephVault {
     struct InitializationParams {
         string name;
         address manager;
+        address operationsMultisig;
         address oracle;
         address guardian;
         address underlyingToken;

@@ -60,6 +60,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         __AccessControl_init();
         AlephVaultFactoryStorageData storage _sd = _getStorage();
         _sd.beacon = _initalizationParams.beacon;
+        _sd.operationsMultisig = _initalizationParams.operationsMultisig;
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
@@ -81,6 +82,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         AlephVaultFactoryStorageData storage _sd = _getStorage();
         IAlephVault.InitializationParams memory _initalizationParams = IAlephVault.InitializationParams({
             name: _userInitializationParams.name,
+            operationsMultisig: _sd.operationsMultisig,
             manager: _userInitializationParams.manager,
             oracle: _sd.oracle,
             guardian: _sd.guardian,
@@ -105,6 +107,16 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
 
     function isValidVault(address _vault) external view returns (bool) {
         return _getStorage().vaults[_vault];
+    }
+
+    function setOperationsMultisig(address _operationsMultisig) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        if (_operationsMultisig == address(0)) {
+            revert InvalidParam();
+        }
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _revokeRole(RolesLibrary.OPERATIONS_MULTISIG, _sd.operationsMultisig);
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _operationsMultisig);
+        _sd.operationsMultisig = _operationsMultisig;
     }
 
     function setOracle(address _oracle) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {

@@ -52,7 +52,6 @@ contract BaseTest is Test {
     TestToken public underlyingToken = new TestToken();
 
     IAlephVault.ConstructorParams public defaultConstructorParams = IAlephVault.ConstructorParams({
-        operationsMultisig: makeAddr("operationsMultisig"),
         minDepositAmountTimelock: 7 days,
         maxDepositCapTimelock: 7 days,
         managementFeeTimelock: 7 days,
@@ -64,6 +63,7 @@ contract BaseTest is Test {
     IAlephVault.InitializationParams public defaultInitializationParams = IAlephVault.InitializationParams({
         name: "test",
         manager: makeAddr("manager"),
+        operationsMultisig: makeAddr("operationsMultisig"),
         oracle: makeAddr("oracle"),
         guardian: makeAddr("guardian"),
         underlyingToken: address(underlyingToken),
@@ -78,7 +78,6 @@ contract BaseTest is Test {
         IAlephVault.InitializationParams memory _initializationParams
     ) public {
         // set up constructor params
-        operationsMultisig = _constructorParams.operationsMultisig;
         minDepositAmountTimelock = _constructorParams.minDepositAmountTimelock;
         maxDepositCapTimelock = _constructorParams.maxDepositCapTimelock;
         managementFeeTimelock = _constructorParams.managementFeeTimelock;
@@ -91,6 +90,7 @@ contract BaseTest is Test {
 
         // set up initialization params
         manager = _initializationParams.manager;
+        operationsMultisig = _initializationParams.operationsMultisig;
         oracle = _initializationParams.oracle;
         guardian = _initializationParams.guardian;
         custodian = _initializationParams.custodian;

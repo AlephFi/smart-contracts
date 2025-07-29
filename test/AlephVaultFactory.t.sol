@@ -26,7 +26,6 @@ contract AlephVaultFactoryTest is Test {
 
     AlephVault vaultImpl = new AlephVault(
         IAlephVault.ConstructorParams({
-            operationsMultisig: operationsMultisig,
             minDepositAmountTimelock: minDepositAmountTimelock,
             maxDepositCapTimelock: maxDepositCapTimelock,
             managementFeeTimelock: managementFeeTimelock,

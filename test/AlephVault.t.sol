@@ -63,7 +63,6 @@ contract AlephVaultTest is Test {
         underlyingToken.mint(manager, 10_000);
         vault = new ExposedVault(
             IAlephVault.ConstructorParams({
-                operationsMultisig: operationsMultisig,
                 minDepositAmountTimelock: minDepositAmountTimelock,
                 maxDepositCapTimelock: maxDepositCapTimelock,
                 managementFeeTimelock: managementFeeTimelock,
@@ -76,6 +75,7 @@ contract AlephVaultTest is Test {
             IAlephVault.InitializationParams({
                 name: "test",
                 manager: manager,
+                operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 guardian: guardian,
                 underlyingToken: address(underlyingToken),
