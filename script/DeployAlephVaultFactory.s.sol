@@ -30,41 +30,44 @@ import {BaseScript} from "./BaseScript.s.sol";
  */
 
 // Use to Deploy only an AlephVaultFactory.
-// forge script DeployAlephVaultFactory --sig="run(address, address)" <_proxyOwner> <_beacon> --broadcast -vvvv --verify
+// forge script DeployAlephVaultFactory --sig="run()" --broadcast -vvvv --verify
 contract DeployAlephVaultFactory is BaseScript {
     function setUp() public {}
 
-    function run(address _proxyOwner, address _beacon) public {
+    function run() public {
         string memory _chainId = _getChainId();
         vm.createSelectFork(_chainId);
+        string memory _environment = _getEnvironment();
+
+        address _beacon = _getBeacon(_chainId, _environment);
+        address _proxyOwner = _getProxyOwner(_chainId, _environment);
+
         IAlephVaultFactory.InitializationParams memory _initializationParams;
 
         string memory _config = _getFactoryConfig();
-        address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
-        address _oracle = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".oracle"));
-        address _guardian = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".guardian"));
-        address _feeRecipient = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".feeRecipient"));
-        uint32 _managementFee = uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFee")));
-        uint32 _performanceFee = uint32(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFee")));
-
-        console.log("proxyOwner", _proxyOwner);
-        console.log("beacon", _beacon);
-        console.log("operationsMultisig", _operationsMultisig);
-        console.log("oracle", _oracle);
-        console.log("guardian", _guardian);
-        console.log("feeRecipient", _feeRecipient);
-        console.log("managementFee", _managementFee);
-        console.log("performanceFee", _performanceFee);
-
         _initializationParams = IAlephVaultFactory.InitializationParams({
             beacon: _beacon,
-            operationsMultisig: _operationsMultisig,
-            oracle: _oracle,
-            guardian: _guardian,
-            feeRecipient: _feeRecipient,
-            managementFee: _managementFee,
-            performanceFee: _performanceFee
+            operationsMultisig: vm.parseJsonAddress(
+                _config, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
+            ),
+            oracle: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".oracle")),
+            guardian: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".guardian")),
+            feeRecipient: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".feeRecipient")),
+            managementFee: uint32(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".managementFee"))
+            ),
+            performanceFee: uint32(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".performanceFee"))
+            )
         });
+
+        console.log("beacon", _beacon);
+        console.log("operationsMultisig", _initializationParams.operationsMultisig);
+        console.log("oracle", _initializationParams.oracle);
+        console.log("guardian", _initializationParams.guardian);
+        console.log("feeRecipient", _initializationParams.feeRecipient);
+        console.log("managementFee", _initializationParams.managementFee);
+        console.log("performanceFee", _initializationParams.performanceFee);
 
         bytes memory _initializeArgs =
             abi.encodeWithSelector(AlephVaultFactory.initialize.selector, _initializationParams);
@@ -78,6 +81,11 @@ contract DeployAlephVaultFactory is BaseScript {
         );
 
         console.log("Factory deployed at:", address(_proxy));
+
+        _writeDeploymentConfig(
+            _chainId, _environment, ".factoryImplementationAddress", vm.toString(address(_factoryImpl))
+        );
+        _writeDeploymentConfig(_chainId, _environment, ".factoryProxyAddress", vm.toString(address(_proxy)));
 
         vm.stopBroadcast();
     }

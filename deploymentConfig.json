@@ -1,0 +1,64 @@
+{
+  "1": {
+    "prod": {
+      "vaultBeaconOwner": "",
+      "factoryProxyOwner": "",
+      "vaultImplementationAddress": "",
+      "factoryImplementationAddress": "",
+      "vaultBeaconAddress": "",
+      "factoryProxyAddress": ""
+    }
+  },
+  "560048": {
+    "staging": {
+      "vaultBeaconOwner": "",
+      "factoryProxyOwner": "",
+      "vaultImplementationAddress": "",
+      "factoryImplementationAddress": "",
+      "vaultBeaconAddress": "",
+      "factoryProxyAddress": ""
+    },
+    "nightly": {
+      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultImplementationAddress": "0xF868b7c4C2a591FEEE1eEfD8E84D5EaE481D3282",
+      "factoryImplementationAddress": "0x222757Ce11081CB2a92A3439faa72d4cC8c9C533",
+      "vaultBeaconAddress": "0x26d45b7A2550E760285850532DD1AD45D9415dC2",
+      "factoryProxyAddress": "0xb0245255CD2804F5D16ac58D499FbBdD468E0895"
+    },
+    "feature": {
+      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultImplementationAddress": "0x1e5e298f5495e7D7a6708f9e20F3584C21684BF3",
+      "factoryImplementationAddress": "0x9A5a502f8ff0B9742019A2bD442378868E613511",
+      "vaultBeaconAddress": "0x90E6377822AF410DDA2e0b29D14F4DcFdFb1480f",
+      "factoryProxyAddress": "0x27Cd98981DCCF7C57496Aa3c5E80BBFD77f9c0f8"
+    }
+  },
+  "11155111": {
+    "staging": {
+      "vaultBeaconOwner": "",
+      "factoryProxyOwner": "",
+      "vaultImplementationAddress": "",
+      "factoryImplementationAddress": "",
+      "vaultBeaconAddress": "",
+      "factoryProxyAddress": ""
+    },
+    "nightly": {
+      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultImplementationAddress": "",
+      "factoryImplementationAddress": "",
+      "vaultBeaconAddress": "",
+      "factoryProxyAddress": ""
+    },
+    "feature": {
+      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultImplementationAddress": "",
+      "factoryImplementationAddress": "",
+      "vaultBeaconAddress": "",
+      "factoryProxyAddress": ""
+    }
+  }
+}

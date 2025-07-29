@@ -27,6 +27,7 @@ interface IAlephVaultFactory {
     error UnsupportedChain();
 
     event VaultDeployed(address indexed vault, address indexed manager, string name, string configId);
+    event OperationsMultisigSet(address indexed operationsMultisig);
     event OracleSet(address indexed oracle);
     event GuardianSet(address indexed guardian);
     event FeeRecipientSet(address indexed feeRecipient);

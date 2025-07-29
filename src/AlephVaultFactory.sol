@@ -117,6 +117,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _revokeRole(RolesLibrary.OPERATIONS_MULTISIG, _sd.operationsMultisig);
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _operationsMultisig);
         _sd.operationsMultisig = _operationsMultisig;
+        emit OperationsMultisigSet(_operationsMultisig);
     }
 
     function setOracle(address _oracle) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {

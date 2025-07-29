@@ -75,6 +75,8 @@ contract DeployAlephVaultImplementation is BaseScript {
         AlephVault _vault = new AlephVault(_constructorParams);
         console.log("Vault implementation deployed at:", address(_vault));
 
+        _writeDeploymentConfig(_chainId, _environment, ".vaultImplementationAddress", vm.toString(address(_vault)));
+
         vm.stopBroadcast();
     }
 }
