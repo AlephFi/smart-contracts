@@ -11,7 +11,7 @@ SettleRedeem_Unit_Test
             ├── when lastFeePaidId is less than currentBatchId
             │   └── it should call _accumulateFees
             ├── when _sharesToSettle is 0
-            │   └── it should update lastRedeemBatchId and not emit SettleRedeemBatch and update total assets and total shares
+            │   └── it should update lastRedeemBatchId, total assets and total shares and not emit SettleRedeemBatch
             └── when _sharesToSettle is greater than 0
                 ├── given vault has insufficient balance
                 │   └── it should revert with ERC20InsufficientBalance

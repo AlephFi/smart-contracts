@@ -85,8 +85,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.lastFeePaidId(), vault.currentBatch());
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsZero_shouldNotSetAssetsAndShares(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsZero_shouldNotSettleDeposit()
+        public
+    {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 3 days + 1);
 
@@ -101,10 +102,6 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.prank(oracle);
         vault.settleDeposit(0);
-
-        // assert total assets and total shares are the same
-        assertEq(vault.totalAssets(), _totalAssets);
-        assertEq(vault.totalShares(), _totalShares);
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
