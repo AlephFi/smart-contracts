@@ -112,6 +112,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             revert InvalidParam();
         }
         _getStorage().oracle = _oracle;
+        emit OracleSet(_oracle);
     }
 
     function setGuardian(address _guardian) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
@@ -119,6 +120,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             revert InvalidParam();
         }
         _getStorage().guardian = _guardian;
+        emit GuardianSet(_guardian);
     }
 
     function setFeeRecipient(address _feeRecipient) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
@@ -126,6 +128,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             revert InvalidParam();
         }
         _getStorage().feeRecipient = _feeRecipient;
+        emit FeeRecipientSet(_feeRecipient);
     }
 
     function setManagementFee(uint32 _managementFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
@@ -133,6 +136,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             revert InvalidParam();
         }
         _getStorage().managementFee = _managementFee;
+        emit ManagementFeeSet(_managementFee);
     }
 
     function setPerformanceFee(uint32 _performanceFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
@@ -140,6 +144,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             revert InvalidParam();
         }
         _getStorage().performanceFee = _performanceFee;
+        emit PerformanceFeeSet(_performanceFee);
     }
 
     // Internal function to get the storage of the factory.

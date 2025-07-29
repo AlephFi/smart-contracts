@@ -27,6 +27,11 @@ interface IAlephVaultFactory {
     error UnsupportedChain();
 
     event VaultDeployed(address indexed vault, address indexed manager, string name, string configId);
+    event OracleSet(address indexed oracle);
+    event GuardianSet(address indexed guardian);
+    event FeeRecipientSet(address indexed feeRecipient);
+    event ManagementFeeSet(uint32 indexed managementFee);
+    event PerformanceFeeSet(uint32 indexed performanceFee);
 
     struct InitializationParams {
         address beacon;
