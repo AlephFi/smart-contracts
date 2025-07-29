@@ -29,7 +29,7 @@
     "feature": {
       "vaultBeaconOwner": "0x7D3b0D0D3883A2EeE68Fcc0D242e945dD6eEF6bb",
       "factoryProxyOwner": "0x7D3b0D0D3883A2EeE68Fcc0D242e945dD6eEF6bb",
-      "vaultImplementationAddress": "0xedABFfc6E0305F30e80456d7bec3A174E1B34E03",
+      "vaultImplementationAddress": "0xd03dFeF6Fb9D2Bc68c9b368D6672f9532A8F8339",
       "factoryImplementationAddress": "0x2D0F2929E81fdCC3c9Ff2f768F894038e6234123",
       "vaultBeaconAddress": "0x0fBAc410213e9182c68d5e52413207c78c14CC6A",
       "factoryProxyAddress": "0x9623AB2c9607d48fB3d334e1945539d1A778CCA8"
