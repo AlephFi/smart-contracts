@@ -107,6 +107,25 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.depositSettleId(), _currentBatchId);
     }
 
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsZero_whenNewTotalAssetsChanges_shouldUpdateTotalAssets(
+    ) public {
+        // roll the block forward to make future batches available
+        vm.warp(block.timestamp + 3 days + 1);
+
+        // check total assets and total shares
+        uint256 _totalAssets = vault.totalAssets();
+        uint256 _totalShares = vault.totalShares();
+
+        // settle deposit
+        uint256 _newTotalAssets = _totalAssets + 100;
+        vm.prank(oracle);
+        vault.settleDeposit(_newTotalAssets);
+
+        // assert total assets and total shares
+        assertEq(vault.totalAssets(), _newTotalAssets);
+        assertEq(vault.totalShares(), _totalShares);
+    }
+
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_revertsGivenVaultHasInsufficientBalance(
     ) public {
         // roll the block forward to make future batches available
