@@ -99,8 +99,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertEq(vault.lastFeePaidId(), vault.currentBatch());
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsZero_shouldNotSetAssetsAndShares(
-    ) public {
+    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsZero_shouldSettleRedeem()
+        public
+    {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 3 days + 1);
 
@@ -115,10 +116,6 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.prank(oracle);
         vault.settleRedeem(1000);
-
-        // assert total assets and total shares
-        assertEq(vault.totalAssets(), _totalAssets);
-        assertEq(vault.totalShares(), _totalShares);
 
         // assert redeem settle id is equal to current batch id
         assertEq(vault.redeemSettleId(), _currentBatchId);

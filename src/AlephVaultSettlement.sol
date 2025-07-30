@@ -71,9 +71,9 @@ abstract contract AlephVaultSettlement is FeeManager {
             _totalShares += _sharesToMint;
         }
         _sd.depositSettleId = _currentBatchId;
+        _sd.shares.push(_timestamp, _totalShares);
+        _sd.assets.push(_timestamp, _totalAssets);
         if (_amountToSettle > 0) {
-            _sd.shares.push(_timestamp, _totalShares);
-            _sd.assets.push(_timestamp, _totalAssets);
             if (highWaterMark() == 0) {
                 _initializeHighWaterMark(_sd, _totalAssets, _totalShares, _timestamp);
             }
@@ -140,10 +140,8 @@ abstract contract AlephVaultSettlement is FeeManager {
             _totalShares -= _sharesToRedeem;
         }
         _sd.redeemSettleId = _currentBatchId;
-        if (_sharesToSettle > 0) {
-            _sd.shares.push(_timestamp, _totalShares);
-            _sd.assets.push(_timestamp, _totalAssets);
-        }
+        _sd.shares.push(_timestamp, _totalShares);
+        _sd.assets.push(_timestamp, _totalAssets);
         emit IERC7540Redeem.SettleRedeem(_redeemSettleId, _currentBatchId, _sharesToSettle, _newTotalAssets);
     }
 
