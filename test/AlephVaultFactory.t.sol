@@ -22,15 +22,16 @@ contract AlephVaultFactoryTest is Test {
     uint48 managementFeeTimelock = 7 days;
     uint48 performanceFeeTimelock = 7 days;
     uint48 feeRecipientTimelock = 7 days;
+    uint48 batchDuration = 1 days;
 
     AlephVault vaultImpl = new AlephVault(
         IAlephVault.ConstructorParams({
-            operationsMultisig: operationsMultisig,
             minDepositAmountTimelock: minDepositAmountTimelock,
             maxDepositCapTimelock: maxDepositCapTimelock,
             managementFeeTimelock: managementFeeTimelock,
             performanceFeeTimelock: performanceFeeTimelock,
-            feeRecipientTimelock: feeRecipientTimelock
+            feeRecipientTimelock: feeRecipientTimelock,
+            batchDuration: batchDuration
         })
     );
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));

@@ -47,21 +47,23 @@ contract BaseTest is Test {
     uint48 public managementFeeTimelock;
     uint48 public performanceFeeTimelock;
     uint48 public feeRecipientTimelock;
+    uint48 public batchDuration;
 
     TestToken public underlyingToken = new TestToken();
 
     IAlephVault.ConstructorParams public defaultConstructorParams = IAlephVault.ConstructorParams({
-        operationsMultisig: makeAddr("operationsMultisig"),
         minDepositAmountTimelock: 7 days,
         maxDepositCapTimelock: 7 days,
         managementFeeTimelock: 7 days,
         performanceFeeTimelock: 7 days,
-        feeRecipientTimelock: 7 days
+        feeRecipientTimelock: 7 days,
+        batchDuration: 1 days
     });
 
     IAlephVault.InitializationParams public defaultInitializationParams = IAlephVault.InitializationParams({
         name: "test",
         manager: makeAddr("manager"),
+        operationsMultisig: makeAddr("operationsMultisig"),
         oracle: makeAddr("oracle"),
         guardian: makeAddr("guardian"),
         underlyingToken: address(underlyingToken),
@@ -76,18 +78,19 @@ contract BaseTest is Test {
         IAlephVault.InitializationParams memory _initializationParams
     ) public {
         // set up constructor params
-        operationsMultisig = _constructorParams.operationsMultisig;
         minDepositAmountTimelock = _constructorParams.minDepositAmountTimelock;
         maxDepositCapTimelock = _constructorParams.maxDepositCapTimelock;
         managementFeeTimelock = _constructorParams.managementFeeTimelock;
         performanceFeeTimelock = _constructorParams.performanceFeeTimelock;
         feeRecipientTimelock = _constructorParams.feeRecipientTimelock;
+        batchDuration = _constructorParams.batchDuration;
 
         // set up vault
         vault = new ExposedVault(_constructorParams);
 
         // set up initialization params
         manager = _initializationParams.manager;
+        operationsMultisig = _initializationParams.operationsMultisig;
         oracle = _initializationParams.oracle;
         guardian = _initializationParams.guardian;
         custodian = _initializationParams.custodian;

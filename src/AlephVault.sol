@@ -42,26 +42,24 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     using Checkpoints for Checkpoints.Trace256;
     using SafeCast for uint256;
 
-    address public immutable OPERATIONS_MULTISIG;
-
     /**
      * @notice Constructor.
      * @param _constructorParams Struct containing all initialization parameters.
      */
     constructor(IAlephVault.ConstructorParams memory _constructorParams) {
         if (
-            _constructorParams.operationsMultisig == address(0) || _constructorParams.minDepositAmountTimelock == 0
-                || _constructorParams.maxDepositCapTimelock == 0 || _constructorParams.managementFeeTimelock == 0
-                || _constructorParams.performanceFeeTimelock == 0 || _constructorParams.feeRecipientTimelock == 0
+            _constructorParams.minDepositAmountTimelock == 0 || _constructorParams.maxDepositCapTimelock == 0
+                || _constructorParams.managementFeeTimelock == 0 || _constructorParams.performanceFeeTimelock == 0
+                || _constructorParams.feeRecipientTimelock == 0 || _constructorParams.batchDuration == 0
         ) {
             revert InvalidConstructorParams();
         }
-        OPERATIONS_MULTISIG = _constructorParams.operationsMultisig;
         MIN_DEPOSIT_AMOUNT_TIMELOCK = _constructorParams.minDepositAmountTimelock;
         MAX_DEPOSIT_CAP_TIMELOCK = _constructorParams.maxDepositCapTimelock;
         MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
         PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
         FEE_RECIPIENT_TIMELOCK = _constructorParams.feeRecipientTimelock;
+        BATCH_DURATION = _constructorParams.batchDuration;
     }
 
     /**
@@ -80,9 +78,10 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.manager == address(0) || _initalizationParams.oracle == address(0)
-                || _initalizationParams.guardian == address(0) || _initalizationParams.underlyingToken == address(0)
-                || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
+            _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
+                || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
+                || _initalizationParams.underlyingToken == address(0) || _initalizationParams.custodian == address(0)
+                || _initalizationParams.feeRecipient == address(0)
                 || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
@@ -98,12 +97,16 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.performanceFee = _initalizationParams.performanceFee;
         _sd.name = _initalizationParams.name;
         _sd.startTimeStamp = Time.timestamp();
-        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, OPERATIONS_MULTISIG);
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
         _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
-        __AlephVaultDeposit_init(_initalizationParams.manager, _initalizationParams.guardian, OPERATIONS_MULTISIG);
-        __AlephVaultRedeem_init(_initalizationParams.manager, _initalizationParams.guardian, OPERATIONS_MULTISIG);
+        __AlephVaultDeposit_init(
+            _initalizationParams.manager, _initalizationParams.guardian, _initalizationParams.operationsMultisig
+        );
+        __AlephVaultRedeem_init(
+            _initalizationParams.manager, _initalizationParams.guardian, _initalizationParams.operationsMultisig
+        );
     }
 
     /// @inheritdoc IAlephVault

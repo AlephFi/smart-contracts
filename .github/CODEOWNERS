@@ -1,0 +1,4 @@
+# Configuration files require admin approval
+config.json @0xtechdean
+deploymentConfig.json @0xtechdean
+factoryConfig.json @0xtechdean

@@ -37,13 +37,13 @@ abstract contract FeeManager is IFeeManager {
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
     uint48 public immutable FEE_RECIPIENT_TIMELOCK;
+    uint48 public immutable BATCH_DURATION;
 
     uint32 public constant MAXIMUM_MANAGEMENT_FEE = 1000; // 10%
     uint32 public constant MAXIMUM_PERFORMANCE_FEE = 5000; // 50%
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
     uint48 public constant PRICE_DENOMINATOR = 1e6;
-    uint48 public constant BATCH_DURATION = 1 days;
     address public constant MANAGEMENT_FEE_RECIPIENT = address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
     address public constant PERFORMANCE_FEE_RECIPIENT = address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
 

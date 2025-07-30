@@ -1,6 +1,4 @@
 Constructor_Unit_Test
-├── when operationsMultisig passed is address(0)
-│   └── it should revert with InvalidConstructorParams
 ├── when minDepositAmountTimelock passed is 0
 │   └── it should revert with InvalidConstructorParams
 ├── when maxDepositCapTimelock passed is 0
@@ -10,6 +8,8 @@ Constructor_Unit_Test
 ├── when performanceFeeTimelock passed is 0
 │   └── it should revert with InvalidConstructorParams
 ├── when feeRecipientTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when batchDuration passed is 0
 │   └── it should revert with InvalidConstructorParams
 └── when all params are valid
     └── it should set the constructor params
