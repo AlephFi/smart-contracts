@@ -1,18 +1,64 @@
 {
+    "1": {
+        "prod": {
+            "minDepositAmountTimelock": 604800,
+            "maxDepositCapTimelock": 604800,
+            "managementFeeTimelock": 2764800,
+            "performanceFeeTimelock": 2764800,
+            "feeRecipientTimelock": 604800,
+            "batchDuration": 86400
+        }
+    },
     "560048": {
-        "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-        "minDepositAmountTimelock": 17272800,
-        "maxDepositCapTimelock": 17272800,
-        "managementFeeTimelock": 17272800,
-        "performanceFeeTimelock": 17272800,
-        "feeRecipientTimelock": 17272800
+        "staging": {
+            "minDepositAmountTimelock": 604800,
+            "maxDepositCapTimelock": 604800,
+            "managementFeeTimelock": 2764800,
+            "performanceFeeTimelock": 2764800,
+            "feeRecipientTimelock": 604800,
+            "batchDuration": 86400
+        },
+        "nightly": {
+            "minDepositAmountTimelock": 600,
+            "maxDepositCapTimelock": 600,
+            "managementFeeTimelock": 600,
+            "performanceFeeTimelock": 600,
+            "feeRecipientTimelock": 600,
+            "batchDuration": 600
+        },
+        "feature": {
+            "minDepositAmountTimelock": 1,
+            "maxDepositCapTimelock": 1,
+            "managementFeeTimelock": 1,
+            "performanceFeeTimelock": 1,
+            "feeRecipientTimelock": 1,
+            "batchDuration": 1
+        }
     },
     "11155111": {
-        "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-        "minDepositAmountTimelock": 17272800,
-        "maxDepositCapTimelock": 17272800,
-        "managementFeeTimelock": 17272800,
-        "performanceFeeTimelock": 17272800,
-        "feeRecipientTimelock": 17272800
+        "staging": {
+            "minDepositAmountTimelock": 604800,
+            "maxDepositCapTimelock": 604800,
+            "managementFeeTimelock": 2764800,
+            "performanceFeeTimelock": 2764800,
+            "feeRecipientTimelock": 604800,
+            "batchDuration": 86400
+        },
+        "nightly": {
+            "minDepositAmountTimelock": 600,
+            "maxDepositCapTimelock": 600,
+            "managementFeeTimelock": 600,
+            "performanceFeeTimelock": 600,
+            "feeRecipientTimelock": 600,
+            "batchDuration": 600
+        },
+        "feature": {
+            "minDepositAmountTimelock": 1,
+            "maxDepositCapTimelock": 1,
+            "managementFeeTimelock": 1,
+            "performanceFeeTimelock": 1,
+            "feeRecipientTimelock": 1,
+            "batchDuration": 1
+        }
     }
 }

@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 struct AlephVaultFactoryStorageData {
     address beacon;
+    address operationsMultisig;
     address oracle;
     address guardian;
     address feeRecipient;

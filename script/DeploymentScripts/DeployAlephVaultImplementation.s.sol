@@ -16,10 +16,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
-import {AlephVault} from "../src/AlephVault.sol";
 import {console} from "forge-std/console.sol";
-import {IAlephVault} from "../src/interfaces/IAlephVault.sol";
-import {BaseScript} from "./BaseScript.s.sol";
+import {BaseScript} from "@aleph-script/BaseScript.s.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -36,38 +36,46 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
         IAlephVault.ConstructorParams memory _constructorParams;
+        string memory _environment = _getEnvironment();
 
         string memory _config = _getConfigFile();
-        address _operationsMultisig = vm.parseJsonAddress(_config, string.concat(".", _chainId, ".operationsMultisig"));
-        uint48 _minDepositAmountTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".minDepositAmountTimelock")));
+        uint48 _minDepositAmountTimelock = uint48(
+            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minDepositAmountTimelock"))
+        );
         uint48 _maxDepositCapTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".maxDepositCapTimelock")));
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".maxDepositCapTimelock")));
         uint48 _managementFeeTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".managementFeeTimelock")));
-        uint48 _performanceFeeTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".performanceFeeTimelock")));
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".managementFeeTimelock")));
+        uint48 _performanceFeeTimelock = uint48(
+            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".performanceFeeTimelock"))
+        );
         uint48 _feeRecipientTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".feeRecipientTimelock")));
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".feeRecipientTimelock")));
+        uint48 _batchDuration =
+            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".batchDuration")));
 
-        console.log("operationsMultisig", _operationsMultisig);
+        console.log("chainId", _chainId);
+        console.log("environment", _environment);
         console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
         console.log("maxDepositCapTimelock", _maxDepositCapTimelock);
         console.log("managementFeeTimelock", _managementFeeTimelock);
         console.log("performanceFeeTimelock", _performanceFeeTimelock);
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
+        console.log("batchDuration", _batchDuration);
 
         _constructorParams = IAlephVault.ConstructorParams({
-            operationsMultisig: _operationsMultisig,
             minDepositAmountTimelock: _minDepositAmountTimelock,
             maxDepositCapTimelock: _maxDepositCapTimelock,
             managementFeeTimelock: _managementFeeTimelock,
             performanceFeeTimelock: _performanceFeeTimelock,
-            feeRecipientTimelock: _feeRecipientTimelock
+            feeRecipientTimelock: _feeRecipientTimelock,
+            batchDuration: _batchDuration
         });
 
         AlephVault _vault = new AlephVault(_constructorParams);
         console.log("Vault implementation deployed at:", address(_vault));
+
+        _writeDeploymentConfig(_chainId, _environment, ".vaultImplementationAddress", vm.toString(address(_vault)));
 
         vm.stopBroadcast();
     }

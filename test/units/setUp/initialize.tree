@@ -1,6 +1,8 @@
 Initialize_Unit_Test
 ├── when manager passed is address(0)
 │   └── it should revert with InvalidInitializationParams
+├── when operationsMultisig passed is address(0)
+│   └── it should revert with InvalidInitializationParams
 ├── when oracle passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when guardian passed is address(0)
