@@ -131,6 +131,9 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
      * @return _batchId The batch ID for the redeem request.
      */
     function _requestRedeem(uint256 _sharesToRedeem) internal returns (uint48 _batchId) {
+        if (_sharesToRedeem == 0) {
+            revert InsufficientRedeem();
+        }
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {

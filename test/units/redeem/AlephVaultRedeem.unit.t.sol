@@ -41,6 +41,12 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(100);
     }
 
+    function test_requestRedeem_revertsGivenSharesToRedeemIsZero() public {
+        // request redeem
+        vm.expectRevert(IERC7540Redeem.InsufficientRedeem.selector);
+        vault.requestRedeem(0);
+    }
+
     function test_requestRedeem_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {
         // request redeem
         vm.expectRevert(IERC7540Redeem.NoBatchAvailableForRedeem.selector);
