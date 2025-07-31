@@ -15,6 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {KycAuthLibrary} from "@aleph-vault/libraries/KycAuthLibrary.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -137,9 +138,10 @@ interface IERC7540Deposit {
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.
      * @param _amount The amount of assets to deposit.
+     * @param _kycAuthSignature The KYC authentication signature.
      * @return _batchId The batch ID for the deposit.
      */
-    function requestDeposit(uint256 _amount) external returns (uint48 _batchId);
+    function requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature) external returns (uint48 _batchId);
 
     /**
      * @notice Settles all pending deposits up to the current batch.

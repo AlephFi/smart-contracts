@@ -25,6 +25,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {KycAuthLibrary} from "@aleph-vault/libraries/KycAuthLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AlephVaultDeposit} from "@aleph-vault/AlephVaultDeposit.sol";
@@ -375,16 +376,17 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /**
      * @notice Requests a deposit of assets.
      * @param _amount The amount of assets to deposit.
+     * @param _kycAuthSignature The KYC authentication signature.
      * @return _batchId The batch ID of the deposit.
      * @dev Only callable when the deposit request flow is not paused.
      */
-    function requestDeposit(uint256 _amount)
+    function requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature)
         external
         override(AlephVaultDeposit)
         whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
         returns (uint48 _batchId)
     {
-        return _requestDeposit(_amount);
+        return _requestDeposit(_amount, _kycAuthSignature);
     }
 
     /**
