@@ -31,7 +31,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract RequestSettleDepositTest is BaseTest {
+contract RequestSettleDepositRedeemTest is BaseTest {
     function setUp() public override {
         super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);

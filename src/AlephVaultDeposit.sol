@@ -144,7 +144,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     function setMaxDepositCap() external virtual;
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature) external virtual returns (uint48 _batchId);
+    function requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature)
+        external
+        virtual
+        returns (uint48 _batchId);
 
     /// @inheritdoc IERC7540Deposit
     function settleDeposit(uint256 _newTotalAssets) external virtual;
@@ -185,7 +188,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
      * @param _kycAuthSignature The KYC authentication signature.
      * @return _batchId The batch ID for the deposit.
      */
-    function _requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature) internal returns (uint48 _batchId) {
+    function _requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature)
+        internal
+        returns (uint48 _batchId)
+    {
         AlephVaultStorageData storage _sd = _getStorage();
         if (_amount == 0) {
             revert InsufficientDeposit();

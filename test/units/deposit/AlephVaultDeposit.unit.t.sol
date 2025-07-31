@@ -20,6 +20,7 @@ import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IE
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {KycAuthLibrary} from "@aleph-vault/libraries/KycAuthLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -28,9 +29,11 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultDepositTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
+        _setKycAuthSignatures();
     }
 
     function test_requestDeposit_revertsGivenFlowIsPaused() public {
@@ -40,14 +43,14 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
-        vault.requestDeposit(100);
+        vault.requestDeposit(100, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsZero() public {
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.InsufficientDeposit.selector);
-        vault.requestDeposit(0);
+        vault.requestDeposit(0, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsLessThanMinDepositAmount()
@@ -59,7 +62,7 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.DepositLessThanMinDepositAmount.selector);
-        vault.requestDeposit(50);
+        vault.requestDeposit(50, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap()
@@ -74,7 +77,7 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
-        vault.requestDeposit(50);
+        vault.requestDeposit(50, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap_multipleUsers(
@@ -94,13 +97,14 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
-        vault.requestDeposit(10);
+        vault.requestDeposit(10, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {
         // request deposit
+        vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
-        vault.requestDeposit(100);
+        vault.requestDeposit(100, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenLastDepositIdIsNotLessThanCurrentBatchId() public {
@@ -113,19 +117,21 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
-        vault.requestDeposit(100);
+        vault.requestDeposit(100, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenVaultHasInsufficientAllowanceToTransfer() public {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
+        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature = _getKycAuthSignature(mockUser_1, block.number + 1);
+
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(vault), 0, 100)
         );
-        vault.requestDeposit(100);
+        vault.requestDeposit(100, _kycAuthSignature);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenUserHasInsufficientBalanceToTransfer() public {
@@ -141,7 +147,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(mockUser_1), 0, 100)
         );
-        vault.requestDeposit(100);
+        vault.requestDeposit(100, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_whenDepositedTokenAmountIsNotZero_shouldSucceed_singleUser()
@@ -160,7 +166,7 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.DepositRequest(mockUser_1, 100, vault.currentBatch());
-        uint48 _batchId = vault.requestDeposit(100);
+        uint48 _batchId = vault.requestDeposit(100, kycAuthSignature_1);
         vm.stopPrank();
 
         // check the deposit request
@@ -185,7 +191,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.DepositRequest(mockUser_1, 100, vault.currentBatch());
-        uint48 _batchId_user1 = vault.requestDeposit(100);
+        uint48 _batchId_user1 = vault.requestDeposit(100, kycAuthSignature_1);
         vm.stopPrank();
 
         // set user 2 balance to 300 and approve vault to spend
@@ -195,7 +201,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.DepositRequest(mockUser_2, 300, vault.currentBatch());
-        uint48 _batchId_user2 = vault.requestDeposit(300);
+        uint48 _batchId_user2 = vault.requestDeposit(300, kycAuthSignature_2);
         vm.stopPrank();
 
         // check the deposit requests

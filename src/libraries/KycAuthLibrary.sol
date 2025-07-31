@@ -14,6 +14,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$ |                
                         $$/                 
 */
+
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
@@ -33,13 +34,16 @@ library KycAuthLibrary {
     error KycAuthSignatureExpired();
     error InvalidKycAuthSignature();
 
-    function verifyKycAuthSignature(AlephVaultStorageData storage _sd, KycAuthSignature memory _kycAuthSignature) internal view {
+    function verifyKycAuthSignature(AlephVaultStorageData storage _sd, KycAuthSignature memory _kycAuthSignature)
+        internal
+        view
+    {
         if (_kycAuthSignature.expiryBlock < block.number) {
             revert KycAuthSignatureExpired();
         }
         bytes32 _hash = keccak256(abi.encode(msg.sender, address(this), block.chainid, _kycAuthSignature.expiryBlock));
         address _signer = _hash.toEthSignedMessageHash().recover(_kycAuthSignature.authSignature);
-        if (_signer != _sd.guardian) {
+        if (_signer != _sd.kycAuthSigner) {
             revert InvalidKycAuthSignature();
         }
     }

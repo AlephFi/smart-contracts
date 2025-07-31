@@ -23,7 +23,8 @@ import {FeeManager} from "@aleph-vault/FeeManager.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 contract FeeManagerTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }

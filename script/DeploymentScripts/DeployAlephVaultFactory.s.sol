@@ -52,6 +52,7 @@ contract DeployAlephVaultFactory is BaseScript {
             ),
             oracle: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".oracle")),
             guardian: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".guardian")),
+            kycAuthSigner: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".kycAuthSigner")),
             feeRecipient: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".feeRecipient")),
             managementFee: uint32(
                 vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".managementFee"))
@@ -65,6 +66,7 @@ contract DeployAlephVaultFactory is BaseScript {
         console.log("operationsMultisig", _initializationParams.operationsMultisig);
         console.log("oracle", _initializationParams.oracle);
         console.log("guardian", _initializationParams.guardian);
+        console.log("kycAuthSigner", _initializationParams.kycAuthSigner);
         console.log("feeRecipient", _initializationParams.feeRecipient);
         console.log("managementFee", _initializationParams.managementFee);
         console.log("performanceFee", _initializationParams.performanceFee);

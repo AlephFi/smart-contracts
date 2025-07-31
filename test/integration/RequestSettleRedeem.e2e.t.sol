@@ -31,13 +31,15 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract RequestSettleRedeemTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
+            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -46,6 +48,7 @@ contract RequestSettleRedeemTest is BaseTest {
         });
         _setUpNewAlephVault(defaultConstructorParams, _initializationParams);
         _unpauseVaultFlows();
+        _setKycAuthSignatures();
     }
 
     function test_requestSettleRedeem_whenNewTotalAssetsIsConstant() public {

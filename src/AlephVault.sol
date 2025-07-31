@@ -81,8 +81,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
                 || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
-                || _initalizationParams.underlyingToken == address(0) || _initalizationParams.custodian == address(0)
-                || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.kycAuthSigner == address(0) || _initalizationParams.underlyingToken == address(0)
+                || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
                 || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
@@ -91,6 +91,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.manager = _initalizationParams.manager;
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
+        _sd.kycAuthSigner = _initalizationParams.kycAuthSigner;
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
@@ -128,6 +129,11 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /// @inheritdoc IAlephVault
     function guardian() external view returns (address) {
         return _getStorage().guardian;
+    }
+
+    /// @inheritdoc IAlephVault
+    function kycAuthSigner() external view returns (address) {
+        return _getStorage().kycAuthSigner;
     }
 
     function underlyingToken() external view returns (address) {
@@ -253,6 +259,19 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     {
         _getStorage().metadataUri = _metadataUri;
         emit MetadataUriSet(_metadataUri);
+    }
+
+    /// @inheritdoc IAlephVault
+    function setKycAuthSigner(address _kycAuthSigner)
+        external
+        override(IAlephVault)
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
+        if (_kycAuthSigner == address(0)) {
+            revert InvalidKycAuthSigner();
+        }
+        _getStorage().kycAuthSigner = _kycAuthSigner;
+        emit KycAuthSignerSet(_kycAuthSigner);
     }
 
     /**

@@ -22,8 +22,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 interface IAlephVault {
     error InvalidConstructorParams();
     error InvalidInitializationParams();
+    error InvalidKycAuthSigner();
 
     event MetadataUriSet(string metadataUri);
+    event KycAuthSignerSet(address kycAuthSigner);
 
     struct ConstructorParams {
         uint48 minDepositAmountTimelock;
@@ -40,6 +42,7 @@ interface IAlephVault {
         address operationsMultisig;
         address oracle;
         address guardian;
+        address kycAuthSigner;
         address underlyingToken;
         address custodian;
         address feeRecipient;
@@ -90,6 +93,12 @@ interface IAlephVault {
      * @return The guardian.
      */
     function guardian() external view returns (address);
+
+    /**
+     * @notice Returns the KYC authentication signer of the vault.
+     * @return The KYC authentication signer.
+     */
+    function kycAuthSigner() external view returns (address);
 
     /**
      * @notice Returns the underlying token of the vault.
@@ -220,4 +229,10 @@ interface IAlephVault {
      * @param _metadataUrl The new metadata URL.
      */
     function setMetadataUri(string calldata _metadataUrl) external;
+
+    /**
+     * @notice Sets the KYC authentication signer of the vault.
+     * @param _kycAuthSigner The new KYC authentication signer.
+     */
+    function setKycAuthSigner(address _kycAuthSigner) external;
 }

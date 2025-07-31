@@ -25,6 +25,7 @@ struct AlephVaultStorageData {
     address manager;
     address oracle;
     address guardian;
+    address kycAuthSigner;
     address underlyingToken;
     address custodian;
     address feeRecipient;

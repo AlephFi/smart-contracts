@@ -14,6 +14,7 @@ contract AlephVaultFactoryTest is Test {
     address operationsMultisig = address(0x1234);
     address oracle = address(0x5678);
     address guardian = address(0x9ABC);
+    address kycAuthSigner = address(0x1234);
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
     address feeRecipient = makeAddr("feeRecipient");
@@ -46,6 +47,7 @@ contract AlephVaultFactoryTest is Test {
                 operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 guardian: guardian,
+                kycAuthSigner: kycAuthSigner,
                 feeRecipient: feeRecipient,
                 managementFee: 0,
                 performanceFee: 0
@@ -61,6 +63,7 @@ contract AlephVaultFactoryTest is Test {
                 operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 guardian: guardian,
+                kycAuthSigner: kycAuthSigner,
                 feeRecipient: feeRecipient,
                 managementFee: 0,
                 performanceFee: 0

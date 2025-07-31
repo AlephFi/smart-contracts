@@ -20,6 +20,7 @@ struct AlephVaultFactoryStorageData {
     address operationsMultisig;
     address oracle;
     address guardian;
+    address kycAuthSigner;
     address feeRecipient;
     uint32 managementFee;
     uint32 performanceFee;
