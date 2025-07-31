@@ -100,6 +100,27 @@ contract AlephVaultDepositTest is BaseTest {
         vault.requestDeposit(10, kycAuthSignature_1);
     }
 
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenKycAuthSignatureIsExpired() public {
+        // set kyc auth signature expiry block to 1
+        kycAuthSignature_1.expiryBlock = 0;
+
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(KycAuthLibrary.KycAuthSignatureExpired.selector);
+        vault.requestDeposit(100, kycAuthSignature_1);
+    }
+
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenKycAuthSignatureIsInvalid() public {
+        // make invalid sig
+        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
+            _getKycAuthSignature(makeAddr("invalid user"), block.number + 1);
+
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(KycAuthLibrary.InvalidKycAuthSignature.selector);
+        vault.requestDeposit(100, _kycAuthSignature);
+    }
+
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {
         // request deposit
         vm.prank(mockUser_1);
@@ -124,14 +145,12 @@ contract AlephVaultDepositTest is BaseTest {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
-        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature = _getKycAuthSignature(mockUser_1, block.number + 1);
-
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(vault), 0, 100)
         );
-        vault.requestDeposit(100, _kycAuthSignature);
+        vault.requestDeposit(100, kycAuthSignature_1);
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenUserHasInsufficientBalanceToTransfer() public {
