@@ -26,7 +26,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract SettleDepositTest is BaseTest {
+contract RequestSettleDepositTest is BaseTest {
     function setUp() public {
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
