@@ -112,11 +112,11 @@ contract FeeManagerTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(_newHighWaterMark);
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.FeesAccumulated(7, 50, timestamp);
+        emit IFeeManager.FeesAccumulated(7, 40, timestamp);
         uint256 _totalSharesMinted = vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
 
         // assert total shares minted
-        assertEq(_totalSharesMinted, 46);
+        assertEq(_totalSharesMinted, 38);
 
         // check lastFeePaidId is updated
         assertEq(vault.lastFeePaidId(), currentBatchId);
@@ -130,7 +130,7 @@ contract FeeManagerTest is BaseTest {
 
         // check fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.PERFORMANCE_FEE_RECIPIENT();
-        assertEq(vault.sharesOf(performanceFeeRecipient), 41);
+        assertEq(vault.sharesOf(performanceFeeRecipient), 33);
     }
 
     /*//////////////////////////////////////////////////////////////

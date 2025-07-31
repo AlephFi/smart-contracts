@@ -141,7 +141,7 @@ contract ExposedVault is AlephVault {
         uint256 _profitPerShare = _getPricePerShare(_newTotalAssets, _totalShares) - _highWaterMark;
         uint48 _performanceFeeRate = _sd.performanceFee;
         uint256 _performanceFeeAmount = (_profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil))
-            .mulDiv(uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil);
+            .mulDiv(uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
         return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
     }
 }
