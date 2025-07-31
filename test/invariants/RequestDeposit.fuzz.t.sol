@@ -68,7 +68,10 @@ contract RequestDepositTest is BaseTest {
         assertGt(_userBalanceBefore, underlyingToken.balanceOf(_user));
     }
 
-    function test_requestDeposit_totalAmountToDepositMustAlwaysIncrease_multipleUsers(uint8 _iterations, bytes32 _depositSeed) public {
+    function test_requestDeposit_totalAmountToDepositMustAlwaysIncrease_multipleUsers(
+        uint8 _iterations,
+        bytes32 _depositSeed
+    ) public {
         vm.assume(_iterations > 0);
 
         // get batch id
@@ -98,6 +101,7 @@ contract RequestDepositTest is BaseTest {
 
             // assert user invariant
             assertGt(_userBalanceBefore, underlyingToken.balanceOf(_user));
+            assertLt(vault.totalAmountToDepositAt(_batchId), vault.totalAmountToDepositAt(vault.currentBatch()));
         }
 
         // assert vault invariant
@@ -105,7 +109,11 @@ contract RequestDepositTest is BaseTest {
         assertGt(underlyingToken.balanceOf(address(vault)), _vaultBalanceBefore);
     }
 
-    function test_requestDeposit_totalAmountToDepositMustAlwaysIncrease_multipleUsers_multipleBatches(uint8 _iterations, uint8 _batches, bytes32 _depositSeed) public {
+    function test_requestDeposit_totalAmountToDepositMustAlwaysIncrease_multipleUsers_multipleBatches(
+        uint8 _iterations,
+        uint8 _batches,
+        bytes32 _depositSeed
+    ) public {
         vm.assume(_iterations > 0);
         vm.assume(_iterations < 50);
         vm.assume(_batches > 0);
@@ -116,7 +124,7 @@ contract RequestDepositTest is BaseTest {
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
-        
+
         // get vault balance before deposits
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
 

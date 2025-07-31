@@ -56,7 +56,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         if (_currentBatch > 0) {
             AlephVaultStorageData storage _sd = _getStorage();
             uint48 _redeemSettleId = _sd.redeemSettleId;
-            for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
+            for (_redeemSettleId; _redeemSettleId <= _currentBatch; _redeemSettleId++) {
                 _totalSharesToRedeem += _sd.batches[_redeemSettleId].totalSharesToRedeem;
             }
         }
