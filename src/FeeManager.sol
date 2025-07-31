@@ -231,8 +231,9 @@ abstract contract FeeManager is IFeeManager {
             uint256 _profitPerShare = _pricePerShare - _highWaterMark;
             uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
             uint48 _performanceFeeRate = _sd.performanceFee;
-            _performanceFeeAmount =
-                _profit.mulDiv(uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
+            _performanceFeeAmount = _profit.mulDiv(
+                uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
+            );
             _sd.highWaterMark.push(_timestamp, _pricePerShare);
             emit NewHighWaterMarkSet(_pricePerShare);
         }
