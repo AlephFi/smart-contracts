@@ -20,12 +20,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IERC7540Redeem {
-    error InsufficientSharesToRedeem();
-    error BatchAlreadyRedeemed();
-    error NoRedeemsToSettle();
-    error OnlyOneRequestPerBatchAllowedForRedeem();
-    error NoBatchAvailableForRedeem();
-
     event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 shares, uint256 assets);
 
     event SettleRedeemBatch(
@@ -37,6 +31,13 @@ interface IERC7540Redeem {
     );
 
     event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);
+
+    error InsufficientRedeem();
+    error InsufficientSharesToRedeem();
+    error BatchAlreadyRedeemed();
+    error NoRedeemsToSettle();
+    error OnlyOneRequestPerBatchAllowedForRedeem();
+    error NoBatchAvailableForRedeem();
 
     /**
      * @notice Returns the pending redeem shares for the caller in a specific batch.
