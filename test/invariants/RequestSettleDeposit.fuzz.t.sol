@@ -19,6 +19,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
+import {KycAuthLibrary} from "@aleph-vault/libraries/KycAuthLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -27,7 +28,8 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract RequestSettleDepositTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
@@ -54,7 +56,9 @@ contract RequestSettleDepositTest is BaseTest {
         vm.startPrank(_user);
         underlyingToken.mint(address(_user), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
-        vault.requestDeposit(_depositAmount);
+        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
+            _getKycAuthSignature(_user, type(uint256).max);
+        vault.requestDeposit(_depositAmount, _kycAuthSignature);
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -102,7 +106,9 @@ contract RequestSettleDepositTest is BaseTest {
         vm.startPrank(_user);
         underlyingToken.mint(address(_user), _depositAmount * 2);
         underlyingToken.approve(address(vault), _depositAmount * 2);
-        vault.requestDeposit(_depositAmount);
+        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
+            _getKycAuthSignature(_user, type(uint256).max);
+        vault.requestDeposit(_depositAmount, _kycAuthSignature);
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -114,7 +120,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // request deposit
         vm.prank(_user);
-        vault.requestDeposit(_depositAmount);
+        vault.requestDeposit(_depositAmount, _kycAuthSignature);
 
         // get vault state before deposit
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
@@ -151,7 +157,9 @@ contract RequestSettleDepositTest is BaseTest {
         vm.startPrank(_firstUser);
         underlyingToken.mint(_firstUser, _firstDepositAmount);
         underlyingToken.approve(address(vault), _firstDepositAmount);
-        vault.requestDeposit(_firstDepositAmount);
+        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
+            _getKycAuthSignature(_firstUser, type(uint256).max);
+        vault.requestDeposit(_firstDepositAmount, _kycAuthSignature);
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -173,7 +181,9 @@ contract RequestSettleDepositTest is BaseTest {
             vm.startPrank(_user);
             underlyingToken.mint(_user, _depositAmount);
             underlyingToken.approve(address(vault), _depositAmount);
-            vault.requestDeposit(_depositAmount);
+            KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
+                _getKycAuthSignature(_user, type(uint256).max);
+            vault.requestDeposit(_depositAmount, _kycAuthSignature);
             vm.stopPrank();
         }
 
@@ -210,7 +220,9 @@ contract RequestSettleDepositTest is BaseTest {
         vm.startPrank(_firstUser);
         underlyingToken.mint(_firstUser, _firstDepositAmount);
         underlyingToken.approve(address(vault), _firstDepositAmount);
-        vault.requestDeposit(_firstDepositAmount);
+        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
+            _getKycAuthSignature(_firstUser, type(uint256).max);
+        vault.requestDeposit(_firstDepositAmount, _kycAuthSignature);
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -236,7 +248,9 @@ contract RequestSettleDepositTest is BaseTest {
                     vm.startPrank(_user);
                     underlyingToken.mint(_user, _depositAmount);
                     underlyingToken.approve(address(vault), _depositAmount);
-                    vault.requestDeposit(_depositAmount);
+                    KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
+                        _getKycAuthSignature(_user, type(uint256).max);
+                    vault.requestDeposit(_depositAmount, _kycAuthSignature);
                     vm.stopPrank();
                 }
             }
