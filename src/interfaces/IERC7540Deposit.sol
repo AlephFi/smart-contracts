@@ -22,6 +22,11 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IERC7540Deposit {
+    struct RequestDepositParams {
+        uint256 amount;
+        AuthLibrary.AuthSignature authSignature;
+    }
+
     event NewMinDepositAmountQueued(uint256 minDepositAmount);
     event NewMaxDepositCapQueued(uint256 maxDepositCap);
     event NewMinDepositAmountSet(uint256 minDepositAmount);
@@ -138,13 +143,10 @@ interface IERC7540Deposit {
 
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.
-     * @param _amount The amount of assets to deposit.
-     * @param _authSignature The KYC authentication signature.
+     * @param _requestDepositParams The parameters for the deposit request.
      * @return _batchId The batch ID for the deposit.
      */
-    function requestDeposit(uint256 _amount, AuthLibrary.AuthSignature memory _authSignature)
-        external
-        returns (uint48 _batchId);
+    function requestDeposit(RequestDepositParams calldata _requestDepositParams) external returns (uint48 _batchId);
 
     /**
      * @notice Settles all pending deposits up to the current batch.

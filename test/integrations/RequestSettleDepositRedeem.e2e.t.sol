@@ -56,9 +56,9 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_1 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(100 ether, authSignature_1);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 100 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(200 ether, authSignature_2);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 200 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount = 300 ether;
 
         // assert deposit requests
@@ -166,9 +166,9 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_1 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(100 ether, authSignature_1);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 100 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(200 ether, authSignature_2);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 200 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount_1 = 300 ether;
 
         // assert deposit requests
@@ -182,9 +182,9 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_2 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(200 ether, authSignature_1);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 200 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(300 ether, authSignature_2);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 300 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount_2 = 500 ether;
 
         // assert deposit requests
@@ -218,9 +218,9 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_3 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(300 ether, authSignature_1);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 300 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(400 ether, authSignature_2);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 400 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount_3 = 700 ether;
 
         // assert deposit requests

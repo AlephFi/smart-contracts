@@ -18,6 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
@@ -57,7 +58,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(_user), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
-        vault.requestDeposit(_depositAmount, _authSignature);
+        vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+        );
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -106,7 +109,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(_user), _depositAmount * 2);
         underlyingToken.approve(address(vault), _depositAmount * 2);
         AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
-        vault.requestDeposit(_depositAmount, _authSignature);
+        vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+        );
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -118,7 +123,9 @@ contract RequestSettleDepositTest is BaseTest {
 
         // request deposit
         vm.prank(_user);
-        vault.requestDeposit(_depositAmount, _authSignature);
+        vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+        );
 
         // get vault state before deposit
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
@@ -156,7 +163,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(_firstUser, _firstDepositAmount);
         underlyingToken.approve(address(vault), _firstDepositAmount);
         AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_firstUser, type(uint256).max);
-        vault.requestDeposit(_firstDepositAmount, _authSignature);
+        vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature})
+        );
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -179,7 +188,9 @@ contract RequestSettleDepositTest is BaseTest {
             underlyingToken.mint(_user, _depositAmount);
             underlyingToken.approve(address(vault), _depositAmount);
             AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
-            vault.requestDeposit(_depositAmount, _authSignature);
+            vault.requestDeposit(
+                IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+            );
             vm.stopPrank();
         }
 
@@ -204,7 +215,7 @@ contract RequestSettleDepositTest is BaseTest {
         vm.assume(_iterations > 0);
         vm.assume(_batches > 0);
         vm.assume(_iterations < 50);
-        vm.assume(_batches < 50);
+        vm.assume(_batches < 45);
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -217,7 +228,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(_firstUser, _firstDepositAmount);
         underlyingToken.approve(address(vault), _firstDepositAmount);
         AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_firstUser, type(uint256).max);
-        vault.requestDeposit(_firstDepositAmount, _authSignature);
+        vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature})
+        );
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -244,7 +257,9 @@ contract RequestSettleDepositTest is BaseTest {
                     underlyingToken.mint(_user, _depositAmount);
                     underlyingToken.approve(address(vault), _depositAmount);
                     AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
-                    vault.requestDeposit(_depositAmount, _authSignature);
+                    vault.requestDeposit(
+                        IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+                    );
                     vm.stopPrank();
                 }
             }

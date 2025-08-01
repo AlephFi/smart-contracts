@@ -216,7 +216,7 @@ contract AlephVaultTest is Test {
         assertEq(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW), true);
         vm.prank(user);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
-        vault.requestDeposit(100, authSignature);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 100, authSignature: authSignature}));
         vm.stopPrank();
     }
 
@@ -225,7 +225,7 @@ contract AlephVaultTest is Test {
         uint256 _amount = 100;
         underlyingToken.approve(address(vault), _amount);
         vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
-        vault.requestDeposit(_amount, authSignature);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: _amount, authSignature: authSignature}));
         vm.stopPrank();
     }
 
@@ -277,12 +277,13 @@ contract AlephVaultTest is Test {
 
     function test_requestMoreThanOneInTheSameBatchDeposit() public {
         vm.warp(block.timestamp + batchDuration); // Move forward by one batch
-        uint256 _amount = 100;
+        IERC7540Deposit.RequestDepositParams memory _requestDepositParams =
+            IERC7540Deposit.RequestDepositParams({amount: 100, authSignature: authSignature});
         vm.startPrank(user);
-        underlyingToken.approve(address(vault), _amount * 2);
-        vault.requestDeposit(_amount, authSignature);
+        underlyingToken.approve(address(vault), _requestDepositParams.amount * 2);
+        vault.requestDeposit(_requestDepositParams);
         vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
-        vault.requestDeposit(_amount, authSignature);
+        vault.requestDeposit(_requestDepositParams);
         vm.stopPrank();
     }
 
@@ -592,7 +593,12 @@ contract AlephVaultTest is Test {
     function userDepositRequest(address _user, uint256 _amount) private {
         vm.startPrank(_user);
         underlyingToken.approve(address(vault), _amount);
-        vault.requestDeposit(_amount, _user == user ? authSignature : authSignature2);
+        vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({
+                amount: _amount,
+                authSignature: _user == user ? authSignature : authSignature2
+            })
+        );
         vm.stopPrank();
     }
 }

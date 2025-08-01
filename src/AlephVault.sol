@@ -23,9 +23,9 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
-import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AlephVaultDeposit} from "@aleph-vault/AlephVaultDeposit.sol";
@@ -394,18 +394,17 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
 
     /**
      * @notice Requests a deposit of assets.
-     * @param _amount The amount of assets to deposit.
-     * @param _authSignature The KYC authentication signature.
+     * @param _requestDepositParams The parameters for the deposit request.
      * @return _batchId The batch ID of the deposit.
      * @dev Only callable when the deposit request flow is not paused.
      */
-    function requestDeposit(uint256 _amount, AuthLibrary.AuthSignature memory _authSignature)
+    function requestDeposit(IERC7540Deposit.RequestDepositParams calldata _requestDepositParams)
         external
         override(AlephVaultDeposit)
         whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
         returns (uint48 _batchId)
     {
-        return _requestDeposit(_amount, _authSignature);
+        return _requestDeposit(_requestDepositParams);
     }
 
     /**

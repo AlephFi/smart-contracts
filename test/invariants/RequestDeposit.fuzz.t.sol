@@ -64,7 +64,9 @@ contract RequestDepositTest is BaseTest {
         AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
 
         // request deposit
-        uint48 _depositBatchId = vault.requestDeposit(_depositAmount, _authSignature);
+        uint48 _depositBatchId = vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+        );
         vm.stopPrank();
 
         // assert invariant
@@ -104,7 +106,9 @@ contract RequestDepositTest is BaseTest {
             AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
 
             // request deposit
-            vault.requestDeposit(_depositAmount, _authSignature);
+            vault.requestDeposit(
+                IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+            );
             vm.stopPrank();
 
             // assert user invariant
@@ -159,7 +163,9 @@ contract RequestDepositTest is BaseTest {
                 AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
 
                 // request deposit
-                vault.requestDeposit(_depositAmount, _authSignature);
+                vault.requestDeposit(
+                    IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+                );
                 vm.stopPrank();
 
                 // assert user invariant
