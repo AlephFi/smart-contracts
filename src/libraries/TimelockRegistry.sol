@@ -19,7 +19,8 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
- * @dev This library manages the timelock for various storage variables.
+ * @author Othentic Labs LTD.
+ * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 library TimelockRegistry {
     struct Timelock {

@@ -51,7 +51,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         if (
             _initalizationParams.beacon == address(0) || _initalizationParams.operationsMultisig == address(0)
                 || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
-                || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.authSigner == address(0) || _initalizationParams.feeRecipient == address(0)
                 || _initalizationParams.managementFee > MAX_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAX_PERFORMANCE_FEE
         ) {
@@ -63,6 +63,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.operationsMultisig = _initalizationParams.operationsMultisig;
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
+        _sd.authSigner = _initalizationParams.authSigner;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
         _sd.managementFee = _initalizationParams.managementFee;
         _sd.performanceFee = _initalizationParams.performanceFee;
@@ -86,6 +87,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             manager: _userInitializationParams.manager,
             oracle: _sd.oracle,
             guardian: _sd.guardian,
+            authSigner: _sd.authSigner,
             underlyingToken: _userInitializationParams.underlyingToken,
             custodian: _userInitializationParams.custodian,
             feeRecipient: _sd.feeRecipient,
@@ -134,6 +136,14 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         }
         _getStorage().guardian = _guardian;
         emit GuardianSet(_guardian);
+    }
+
+    function setAuthSigner(address _authSigner) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        if (_authSigner == address(0)) {
+            revert InvalidParam();
+        }
+        _getStorage().authSigner = _authSigner;
+        emit AuthSignerSet(_authSigner);
     }
 
     function setFeeRecipient(address _feeRecipient) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {

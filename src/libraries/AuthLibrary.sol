@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+/*
+  ______   __                      __       
+ /      \ /  |                    /  |      
+/$$$$$$  |$$ |  ______    ______  $$ |____  
+$$ |__$$ |$$ | /      \  /      \ $$      \ 
+$$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
+$$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
+$$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
+$$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
+                        $$ |                
+                        $$ |                
+                        $$/                 
+*/
+
+import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
+
+/**
+ * @author Othentic Labs LTD.
+ * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ */
+library AuthLibrary {
+    using ECDSA for bytes32;
+    using MessageHashUtils for bytes32;
+
+    struct AuthSignature {
+        bytes authSignature;
+        uint256 expiryBlock;
+    }
+
+    error AuthSignatureExpired();
+    error InvalidAuthSignature();
+
+    function verifyAuthSignature(AlephVaultStorageData storage _sd, AuthSignature memory _authSignature)
+        internal
+        view
+    {
+        if (_authSignature.expiryBlock < block.number) {
+            revert AuthSignatureExpired();
+        }
+        bytes32 _hash = keccak256(abi.encode(msg.sender, address(this), block.chainid, _authSignature.expiryBlock));
+        address _signer = _hash.toEthSignedMessageHash().recover(_authSignature.authSignature);
+        if (_signer != _sd.authSigner) {
+            revert InvalidAuthSignature();
+        }
+    }
+}

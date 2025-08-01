@@ -22,8 +22,11 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 interface IAlephVault {
     error InvalidConstructorParams();
     error InvalidInitializationParams();
+    error InvalidAuthSigner();
 
     event MetadataUriSet(string metadataUri);
+    event IsAuthEnabledSet(bool isAuthEnabled);
+    event AuthSignerSet(address authSigner);
 
     struct ConstructorParams {
         uint48 minDepositAmountTimelock;
@@ -40,6 +43,7 @@ interface IAlephVault {
         address operationsMultisig;
         address oracle;
         address guardian;
+        address authSigner;
         address underlyingToken;
         address custodian;
         address feeRecipient;
@@ -90,6 +94,12 @@ interface IAlephVault {
      * @return The guardian.
      */
     function guardian() external view returns (address);
+
+    /**
+     * @notice Returns the KYC authentication signer of the vault.
+     * @return The KYC authentication signer.
+     */
+    function authSigner() external view returns (address);
 
     /**
      * @notice Returns the underlying token of the vault.
@@ -210,6 +220,12 @@ interface IAlephVault {
     function highWaterMarkAt(uint48 _timestamp) external view returns (uint256);
 
     /**
+     * @notice Returns the status of the KYC authentication.
+     * @return The status of the KYC authentication.
+     */
+    function isAuthEnabled() external view returns (bool);
+
+    /**
      * @notice Returns the metadata URL of the vault.
      * @return The metadata URL.
      */
@@ -220,4 +236,16 @@ interface IAlephVault {
      * @param _metadataUrl The new metadata URL.
      */
     function setMetadataUri(string calldata _metadataUrl) external;
+
+    /**
+     * @notice Sets the status of the KYC authentication.
+     * @param _isAuthEnabled The new status of the KYC authentication.
+     */
+    function setIsAuthEnabled(bool _isAuthEnabled) external;
+
+    /**
+     * @notice Sets the KYC authentication signer of the vault.
+     * @param _authSigner The new KYC authentication signer.
+     */
+    function setAuthSigner(address _authSigner) external;
 }

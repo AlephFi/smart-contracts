@@ -28,7 +28,8 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract RequestRedeemTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
