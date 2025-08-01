@@ -25,6 +25,7 @@ interface IAlephVault {
     error InvalidAuthSigner();
 
     event MetadataUriSet(string metadataUri);
+    event IsAuthEnabledSet(bool isAuthEnabled);
     event AuthSignerSet(address authSigner);
 
     struct ConstructorParams {
@@ -219,6 +220,12 @@ interface IAlephVault {
     function highWaterMarkAt(uint48 _timestamp) external view returns (uint256);
 
     /**
+     * @notice Returns the status of the KYC authentication.
+     * @return The status of the KYC authentication.
+     */
+    function isAuthEnabled() external view returns (bool);
+
+    /**
      * @notice Returns the metadata URL of the vault.
      * @return The metadata URL.
      */
@@ -229,6 +236,12 @@ interface IAlephVault {
      * @param _metadataUrl The new metadata URL.
      */
     function setMetadataUri(string calldata _metadataUrl) external;
+
+    /**
+     * @notice Sets the status of the KYC authentication.
+     * @param _isAuthEnabled The new status of the KYC authentication.
+     */
+    function setIsAuthEnabled(bool _isAuthEnabled) external;
 
     /**
      * @notice Sets the KYC authentication signer of the vault.

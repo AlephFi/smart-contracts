@@ -202,7 +202,9 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         ) {
             revert DepositExceedsMaxDepositCap();
         }
-        AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.authSignature);
+        if (_sd.isAuthEnabled) {
+            AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.authSignature);
+        }
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {

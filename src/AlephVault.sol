@@ -98,6 +98,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.managementFee = _initalizationParams.managementFee;
         _sd.performanceFee = _initalizationParams.performanceFee;
         _sd.name = _initalizationParams.name;
+        _sd.isAuthEnabled = true;
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
@@ -252,6 +253,11 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
+    function isAuthEnabled() external view returns (bool) {
+        return _getStorage().isAuthEnabled;
+    }
+
+    /// @inheritdoc IAlephVault
     function setMetadataUri(string calldata _metadataUri)
         external
         override(IAlephVault)
@@ -259,6 +265,12 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     {
         _getStorage().metadataUri = _metadataUri;
         emit MetadataUriSet(_metadataUri);
+    }
+
+    /// @inheritdoc IAlephVault
+    function setIsAuthEnabled(bool _isAuthEnabled) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
+        _getStorage().isAuthEnabled = _isAuthEnabled;
+        emit IsAuthEnabledSet(_isAuthEnabled);
     }
 
     /// @inheritdoc IAlephVault
