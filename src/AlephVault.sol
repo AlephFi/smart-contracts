@@ -25,7 +25,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
-import {KycAuthLibrary} from "@aleph-vault/libraries/KycAuthLibrary.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AlephVaultDeposit} from "@aleph-vault/AlephVaultDeposit.sol";
@@ -81,7 +81,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
                 || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
-                || _initalizationParams.kycAuthSigner == address(0) || _initalizationParams.underlyingToken == address(0)
+                || _initalizationParams.authSigner == address(0) || _initalizationParams.underlyingToken == address(0)
                 || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
                 || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
@@ -91,7 +91,7 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.manager = _initalizationParams.manager;
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
-        _sd.kycAuthSigner = _initalizationParams.kycAuthSigner;
+        _sd.authSigner = _initalizationParams.authSigner;
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
@@ -132,8 +132,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
-    function kycAuthSigner() external view returns (address) {
-        return _getStorage().kycAuthSigner;
+    function authSigner() external view returns (address) {
+        return _getStorage().authSigner;
     }
 
     function underlyingToken() external view returns (address) {
@@ -262,16 +262,16 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
-    function setKycAuthSigner(address _kycAuthSigner)
+    function setAuthSigner(address _authSigner)
         external
         override(IAlephVault)
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
     {
-        if (_kycAuthSigner == address(0)) {
-            revert InvalidKycAuthSigner();
+        if (_authSigner == address(0)) {
+            revert InvalidAuthSigner();
         }
-        _getStorage().kycAuthSigner = _kycAuthSigner;
-        emit KycAuthSignerSet(_kycAuthSigner);
+        _getStorage().authSigner = _authSigner;
+        emit AuthSignerSet(_authSigner);
     }
 
     /**
@@ -395,17 +395,17 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /**
      * @notice Requests a deposit of assets.
      * @param _amount The amount of assets to deposit.
-     * @param _kycAuthSignature The KYC authentication signature.
+     * @param _authSignature The KYC authentication signature.
      * @return _batchId The batch ID of the deposit.
      * @dev Only callable when the deposit request flow is not paused.
      */
-    function requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature)
+    function requestDeposit(uint256 _amount, AuthLibrary.AuthSignature memory _authSignature)
         external
         override(AlephVaultDeposit)
         whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
         returns (uint48 _batchId)
     {
-        return _requestDeposit(_amount, _kycAuthSignature);
+        return _requestDeposit(_amount, _authSignature);
     }
 
     /**

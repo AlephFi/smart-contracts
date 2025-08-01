@@ -7,7 +7,7 @@ Initialize_Unit_Test
 │   └── it should revert with InvalidInitializationParams
 ├── when guardian passed is address(0)
 │   └── it should revert with InvalidInitializationParams
-├── when kycAuthSigner passed is address(0)
+├── when authSigner passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when underlyingToken passed is address(0)
 │   └── it should revert with InvalidInitializationParams

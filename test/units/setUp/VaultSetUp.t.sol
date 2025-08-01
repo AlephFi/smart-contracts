@@ -134,7 +134,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -155,7 +155,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: address(0),
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -176,7 +176,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: address(0),
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -197,7 +197,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: address(0),
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -211,14 +211,14 @@ contract VaultSetUpTest is BaseTest {
         vault.initialize(_initializationParams);
     }
 
-    function test_initialize_when_kycAuthSigner_passed_is_address_0() public {
+    function test_initialize_when_authSigner_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: address(0),
+            authSigner: address(0),
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -239,7 +239,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: address(0),
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -260,7 +260,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: address(0),
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -281,7 +281,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: address(0),
@@ -302,7 +302,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -322,7 +322,7 @@ contract VaultSetUpTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -343,7 +343,7 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.manager(), defaultInitializationParams.manager);
         assertEq(vault.oracle(), defaultInitializationParams.oracle);
         assertEq(vault.guardian(), defaultInitializationParams.guardian);
-        assertEq(vault.kycAuthSigner(), defaultInitializationParams.kycAuthSigner);
+        assertEq(vault.authSigner(), defaultInitializationParams.authSigner);
         assertEq(vault.underlyingToken(), defaultInitializationParams.underlyingToken);
         assertEq(vault.custodian(), defaultInitializationParams.custodian);
         assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);

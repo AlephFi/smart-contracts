@@ -39,7 +39,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
-            kycAuthSigner: defaultInitializationParams.kycAuthSigner,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,

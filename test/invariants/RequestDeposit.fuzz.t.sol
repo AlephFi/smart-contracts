@@ -20,7 +20,7 @@ import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IE
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
-import {KycAuthLibrary} from "@aleph-vault/libraries/KycAuthLibrary.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -60,11 +60,11 @@ contract RequestDepositTest is BaseTest {
         uint256 _userBalanceBefore = underlyingToken.balanceOf(_user);
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
 
-        // get kyc auth signature
-        KycAuthLibrary.KycAuthSignature memory _kycAuthSignature = _getKycAuthSignature(_user, type(uint256).max);
+        // get  auth signature
+        AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
 
         // request deposit
-        uint48 _depositBatchId = vault.requestDeposit(_depositAmount, _kycAuthSignature);
+        uint48 _depositBatchId = vault.requestDeposit(_depositAmount, _authSignature);
         vm.stopPrank();
 
         // assert invariant
@@ -100,11 +100,11 @@ contract RequestDepositTest is BaseTest {
             // get user balance before deposit
             uint256 _userBalanceBefore = underlyingToken.balanceOf(_user);
 
-            // get kyc auth signature
-            KycAuthLibrary.KycAuthSignature memory _kycAuthSignature = _getKycAuthSignature(_user, type(uint256).max);
+            // get  auth signature
+            AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
 
             // request deposit
-            vault.requestDeposit(_depositAmount, _kycAuthSignature);
+            vault.requestDeposit(_depositAmount, _authSignature);
             vm.stopPrank();
 
             // assert user invariant
@@ -155,12 +155,11 @@ contract RequestDepositTest is BaseTest {
                 // get user balance before deposit
                 uint256 _userBalanceBefore = underlyingToken.balanceOf(_user);
 
-                // get kyc auth signature
-                KycAuthLibrary.KycAuthSignature memory _kycAuthSignature =
-                    _getKycAuthSignature(_user, type(uint256).max);
+                // get  auth signature
+                AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
 
                 // request deposit
-                vault.requestDeposit(_depositAmount, _kycAuthSignature);
+                vault.requestDeposit(_depositAmount, _authSignature);
                 vm.stopPrank();
 
                 // assert user invariant

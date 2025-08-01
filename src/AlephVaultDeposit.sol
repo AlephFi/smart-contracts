@@ -21,7 +21,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
-import {KycAuthLibrary} from "@aleph-vault/libraries/KycAuthLibrary.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
@@ -144,7 +144,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     function setMaxDepositCap() external virtual;
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature)
+    function requestDeposit(uint256 _amount, AuthLibrary.AuthSignature memory _authSignature)
         external
         virtual
         returns (uint48 _batchId);
@@ -185,10 +185,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     /**
      * @dev Internal function to handle a deposit request.
      * @param _amount The amount to deposit.
-     * @param _kycAuthSignature The KYC authentication signature.
+     * @param _authSignature The KYC authentication signature.
      * @return _batchId The batch ID for the deposit.
      */
-    function _requestDeposit(uint256 _amount, KycAuthLibrary.KycAuthSignature memory _kycAuthSignature)
+    function _requestDeposit(uint256 _amount, AuthLibrary.AuthSignature memory _authSignature)
         internal
         returns (uint48 _batchId)
     {
@@ -204,7 +204,7 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         if (_maxDepositCap > 0 && totalAssets() + totalAmountToDeposit() + _amount > _maxDepositCap) {
             revert DepositExceedsMaxDepositCap();
         }
-        KycAuthLibrary.verifyKycAuthSignature(_sd, _kycAuthSignature);
+        AuthLibrary.verifyAuthSignature(_sd, _authSignature);
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();
         if (_currentBatchId == 0) {

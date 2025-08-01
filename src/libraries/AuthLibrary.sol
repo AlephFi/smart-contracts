@@ -20,31 +20,32 @@ import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptogra
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
- * @dev This library verifies the KYC authentication signature.
+ * @author Othentic Labs LTD.
+ * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-library KycAuthLibrary {
+library AuthLibrary {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    struct KycAuthSignature {
+    struct AuthSignature {
         bytes authSignature;
         uint256 expiryBlock;
     }
 
-    error KycAuthSignatureExpired();
-    error InvalidKycAuthSignature();
+    error AuthSignatureExpired();
+    error InvalidAuthSignature();
 
-    function verifyKycAuthSignature(AlephVaultStorageData storage _sd, KycAuthSignature memory _kycAuthSignature)
+    function verifyAuthSignature(AlephVaultStorageData storage _sd, AuthSignature memory _authSignature)
         internal
         view
     {
-        if (_kycAuthSignature.expiryBlock < block.number) {
-            revert KycAuthSignatureExpired();
+        if (_authSignature.expiryBlock < block.number) {
+            revert AuthSignatureExpired();
         }
-        bytes32 _hash = keccak256(abi.encode(msg.sender, address(this), block.chainid, _kycAuthSignature.expiryBlock));
-        address _signer = _hash.toEthSignedMessageHash().recover(_kycAuthSignature.authSignature);
-        if (_signer != _sd.kycAuthSigner) {
-            revert InvalidKycAuthSignature();
+        bytes32 _hash = keccak256(abi.encode(msg.sender, address(this), block.chainid, _authSignature.expiryBlock));
+        address _signer = _hash.toEthSignedMessageHash().recover(_authSignature.authSignature);
+        if (_signer != _sd.authSigner) {
+            revert InvalidAuthSignature();
         }
     }
 }

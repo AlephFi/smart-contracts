@@ -11,11 +11,11 @@ RequestDeposit_Unit_Test
             ├── when max deposit cap is set and amount requested to deposit makes total assets greater than max deposit cap
             │   └── it should revert with DepositExceedsMaxDepositCap
             └── when max deposit cap is set and amount requested to deposit does not make total assets greater than max deposit cap OR max deposit cap is not set
-                ├── when kyc auth signature is expired
-                │   └── it should revert with KycAuthSignatureExpired
-                ├── when kyc auth signature is invalid
-                │   └── it should revert with InvalidKycAuthSignature
-                └── when kyc auth signature is not expired and is valid
+                ├── when  auth signature is expired
+                │   └── it should revert with AuthSignatureExpired
+                ├── when  auth signature is invalid
+                │   └── it should revert with InvalidAuthSignature
+                └── when  auth signature is not expired and is valid
                     ├── when current batch id is 0
                     │   └── it should revert with NoBatchAvailableForDeposit
                     └── when current batch id is not 0

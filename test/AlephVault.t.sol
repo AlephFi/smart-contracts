@@ -28,7 +28,7 @@ import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IE
 import {IERC7540Redeem} from "../src/interfaces/IERC7540Redeem.sol";
 import {IAlephVaultFactory} from "../src/interfaces/IAlephVaultFactory.sol";
 import {PausableFlows} from "../src/libraries/PausableFlows.sol";
-import {KycAuthLibrary} from "../src/libraries/KycAuthLibrary.sol";
+import {AuthLibrary} from "../src/libraries/AuthLibrary.sol";
 import {IAlephPausable} from "../src/interfaces/IAlephPausable.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 
@@ -57,8 +57,8 @@ contract AlephVaultTest is Test {
     uint48 public feeRecipientTimelock = 7 days;
     uint48 public batchDuration = 1 days;
 
-    KycAuthLibrary.KycAuthSignature public kycAuthSignature;
-    KycAuthLibrary.KycAuthSignature public kycAuthSignature2;
+    AuthLibrary.AuthSignature public authSignature;
+    AuthLibrary.AuthSignature public authSignature2;
 
     TestToken public underlyingToken = new TestToken();
 
@@ -77,23 +77,21 @@ contract AlephVaultTest is Test {
                 batchDuration: batchDuration
             })
         );
-        (address _kycAuthSigner, uint256 _kycAuthSignerPrivateKey) = makeAddrAndKey("kycAuthSigner");
+        (address _authSigner, uint256 _authSignerPrivateKey) = makeAddrAndKey("authSigner");
 
-        bytes32 _kycAuthMessage_1 =
+        bytes32 _authMessage_1 =
             keccak256(abi.encode(user, address(vault), block.chainid, type(uint256).max)).toEthSignedMessageHash();
-        (uint8 _v_1, bytes32 _r_1, bytes32 _s_1) = vm.sign(_kycAuthSignerPrivateKey, _kycAuthMessage_1);
+        (uint8 _v_1, bytes32 _r_1, bytes32 _s_1) = vm.sign(_authSignerPrivateKey, _authMessage_1);
         bytes memory _authSignature_1 = abi.encodePacked(_r_1, _s_1, _v_1);
 
-        bytes32 _kycAuthMessage_2 =
+        bytes32 _authMessage_2 =
             keccak256(abi.encode(user2, address(vault), block.chainid, type(uint256).max)).toEthSignedMessageHash();
-        (uint8 _v_2, bytes32 _r_2, bytes32 _s_2) = vm.sign(_kycAuthSignerPrivateKey, _kycAuthMessage_2);
+        (uint8 _v_2, bytes32 _r_2, bytes32 _s_2) = vm.sign(_authSignerPrivateKey, _authMessage_2);
         bytes memory _authSignature_2 = abi.encodePacked(_r_2, _s_2, _v_2);
 
-        kycAuthSignature =
-            KycAuthLibrary.KycAuthSignature({authSignature: _authSignature_1, expiryBlock: type(uint256).max});
+        authSignature = AuthLibrary.AuthSignature({authSignature: _authSignature_1, expiryBlock: type(uint256).max});
 
-        kycAuthSignature2 =
-            KycAuthLibrary.KycAuthSignature({authSignature: _authSignature_2, expiryBlock: type(uint256).max});
+        authSignature2 = AuthLibrary.AuthSignature({authSignature: _authSignature_2, expiryBlock: type(uint256).max});
 
         vault.initialize(
             IAlephVault.InitializationParams({
@@ -102,7 +100,7 @@ contract AlephVaultTest is Test {
                 operationsMultisig: operationsMultisig,
                 oracle: oracle,
                 guardian: guardian,
-                kycAuthSigner: _kycAuthSigner,
+                authSigner: _authSigner,
                 underlyingToken: address(underlyingToken),
                 custodian: custodian,
                 feeRecipient: feeRecipient,
@@ -218,7 +216,7 @@ contract AlephVaultTest is Test {
         assertEq(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW), true);
         vm.prank(user);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
-        vault.requestDeposit(100, kycAuthSignature);
+        vault.requestDeposit(100, authSignature);
         vm.stopPrank();
     }
 
@@ -227,7 +225,7 @@ contract AlephVaultTest is Test {
         uint256 _amount = 100;
         underlyingToken.approve(address(vault), _amount);
         vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
-        vault.requestDeposit(_amount, kycAuthSignature);
+        vault.requestDeposit(_amount, authSignature);
         vm.stopPrank();
     }
 
@@ -282,9 +280,9 @@ contract AlephVaultTest is Test {
         uint256 _amount = 100;
         vm.startPrank(user);
         underlyingToken.approve(address(vault), _amount * 2);
-        vault.requestDeposit(_amount, kycAuthSignature);
+        vault.requestDeposit(_amount, authSignature);
         vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
-        vault.requestDeposit(_amount, kycAuthSignature);
+        vault.requestDeposit(_amount, authSignature);
         vm.stopPrank();
     }
 
@@ -594,7 +592,7 @@ contract AlephVaultTest is Test {
     function userDepositRequest(address _user, uint256 _amount) private {
         vm.startPrank(_user);
         underlyingToken.approve(address(vault), _amount);
-        vault.requestDeposit(_amount, _user == user ? kycAuthSignature : kycAuthSignature2);
+        vault.requestDeposit(_amount, _user == user ? authSignature : authSignature2);
         vm.stopPrank();
     }
 }
