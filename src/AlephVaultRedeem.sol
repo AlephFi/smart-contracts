@@ -51,7 +51,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     function totalShares() public view virtual returns (uint256);
 
     /// @inheritdoc IERC7540Redeem
-    function totalSharesToRedeem() external view returns (uint256 _totalSharesToRedeem) {
+    function totalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
         uint48 _currentBatch = currentBatch();
         if (_currentBatch > 0) {
             AlephVaultStorageData storage _sd = _getStorage();
@@ -87,6 +87,11 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     /// @inheritdoc IERC7540Redeem
     function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256) {
         return _getStorage().batches[_batchId].redeemRequest[_user];
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256) {
+        return ERC4626Math.previewRedeem(totalSharesToRedeem(), _newTotalAssets, totalShares());
     }
 
     /**
