@@ -26,7 +26,7 @@ interface IFeeManager {
     event NewManagementFeeSet(uint32 managementFee);
     event NewPerformanceFeeSet(uint32 performanceFee);
     event NewFeeRecipientSet(address feeRecipient);
-    event FeesAccumulated(uint256 managementFee, uint256 performanceFee, uint48 timestamp);
+    event FeesAccumulated(uint48 lastFeePaidId, uint48 currentBatchId, uint256 managementFee, uint256 performanceFee);
     event NewHighWaterMarkSet(uint256 highWaterMark);
     event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
 

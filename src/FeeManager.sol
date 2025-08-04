@@ -186,7 +186,7 @@ abstract contract FeeManager is IFeeManager {
                     _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
                 );
             }
-            emit FeesAccumulated(_managementFeeAmount, _performanceFeeAmount, _timestamp);
+            emit FeesAccumulated(_lastFeePaidId, _currentBatchId, _managementFeeAmount, _performanceFeeAmount);
             return _managementSharesToMint + _performanceSharesToMint;
         }
         return 0;

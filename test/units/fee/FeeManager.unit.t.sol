@@ -70,7 +70,7 @@ contract FeeManagerTest is BaseTest {
 
         // accumalate fees
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.FeesAccumulated(7, 0, timestamp);
+        emit IFeeManager.FeesAccumulated(0, 100, 7, 0);
         uint256 _totalSharesMinted = vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
 
         // assert total shares minted
@@ -113,7 +113,7 @@ contract FeeManagerTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(_newHighWaterMark);
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.FeesAccumulated(7, 50, timestamp);
+        emit IFeeManager.FeesAccumulated(0, 100, 7, 50);
         uint256 _totalSharesMinted = vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
 
         // assert total shares minted
