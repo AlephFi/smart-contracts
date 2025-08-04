@@ -92,13 +92,6 @@ interface IERC7540Redeem {
     function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
 
     /**
-     * @notice Returns the total amount for redemption.
-     * @param _newTotalAssets The new total assets before settlement.
-     * @return The total amount for redemption.
-     */
-    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256);
-
-    /**
      * @notice Requests to redeem shares from the vault for the current batch.
      * @param _shares The number of shares to redeem.
      * @return _batchId The batch ID for the redeem request.

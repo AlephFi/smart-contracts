@@ -89,11 +89,6 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
         return _getStorage().batches[_batchId].redeemRequest[_user];
     }
 
-    /// @inheritdoc IERC7540Redeem
-    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256) {
-        return ERC4626Math.previewRedeem(totalSharesToRedeem(), _newTotalAssets, totalShares());
-    }
-
     /**
      * @dev Returns the storage struct for the vault.
      */

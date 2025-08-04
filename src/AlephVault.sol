@@ -248,6 +248,15 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
+    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256) {
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint256 _totalShares = totalShares();
+        _totalShares += _getManagementFeeShares(_sd, _newTotalAssets, _totalShares, currentBatch(), _sd.lastFeePaidId)
+            + _getPerformanceFeeShares(_sd, _newTotalAssets, _totalShares);
+        return ERC4626Math.previewRedeem(totalSharesToRedeem(), _newTotalAssets, _totalShares);
+    }
+
+    /// @inheritdoc IAlephVault
     function metadataUri() external view returns (string memory) {
         return _getStorage().metadataUri;
     }

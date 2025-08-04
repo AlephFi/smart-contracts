@@ -175,8 +175,7 @@ abstract contract FeeManager is IFeeManager {
             uint256 _totalShares = totalShares();
             uint256 _managementFeeAmount =
                 _calculateManagementFeeAmount(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
-            uint256 _performanceFeeAmount =
-                _calculatePerformanceFeeAmount(_sd, _newTotalAssets, _totalShares, _timestamp);
+            uint256 _performanceFeeAmount = _checkPerformanceFeeAmount(_sd, _newTotalAssets, _totalShares, _timestamp);
             uint256 _managementSharesToMint =
                 ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
             uint256 _performanceSharesToMint =
@@ -219,7 +218,7 @@ abstract contract FeeManager is IFeeManager {
      * @param _newTotalAssets The new total assets after collection.
      * @return _performanceFeeAmount The performance fee to be collected.
      */
-    function _calculatePerformanceFeeAmount(
+    function _checkPerformanceFeeAmount(
         AlephVaultStorageData storage _sd,
         uint256 _newTotalAssets,
         uint256 _totalShares,
@@ -228,15 +227,26 @@ abstract contract FeeManager is IFeeManager {
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
         uint256 _highWaterMark = highWaterMark();
         if (_pricePerShare > _highWaterMark) {
-            uint256 _profitPerShare = _pricePerShare - _highWaterMark;
-            uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
-            uint48 _performanceFeeRate = _sd.performanceFee;
-            _performanceFeeAmount = _profit.mulDiv(
-                uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
+            _performanceFeeAmount = _calculatePerformanceFeeAmount(
+                _pricePerShare, _highWaterMark, _newTotalAssets, _totalShares, _sd.performanceFee
             );
             _sd.highWaterMark.push(_timestamp, _pricePerShare);
             emit NewHighWaterMarkSet(_pricePerShare);
         }
+    }
+
+    function _calculatePerformanceFeeAmount(
+        uint256 _pricePerShare,
+        uint256 _highWaterMark,
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint48 _performanceFeeRate
+    ) internal view returns (uint256 _performanceFeeAmount) {
+        uint256 _profitPerShare = _pricePerShare - _highWaterMark;
+        uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
+        _performanceFeeAmount = _profit.mulDiv(
+            uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
+        );
     }
 
     function _initializeHighWaterMark(
@@ -248,6 +258,35 @@ abstract contract FeeManager is IFeeManager {
         uint256 _pricePerShare = _getPricePerShare(_totalAssets, _totalShares);
         _sd.highWaterMark.push(_timestamp, _pricePerShare);
         emit NewHighWaterMarkSet(_pricePerShare);
+    }
+
+    function _getManagementFeeShares(
+        AlephVaultStorageData storage _sd,
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint48 _currentBatchId,
+        uint48 _lastFeePaidId
+    ) internal view returns (uint256 _managementFeeShares) {
+        return ERC4626Math.previewDeposit(
+            _calculateManagementFeeAmount(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId),
+            _totalShares,
+            _newTotalAssets
+        );
+    }
+
+    function _getPerformanceFeeShares(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint256 _totalShares)
+        internal
+        view
+        returns (uint256 _performanceFeeShares)
+    {
+        uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
+        uint256 _highWaterMark = highWaterMark();
+        uint256 _performanceFeeAmount = _pricePerShare > _highWaterMark
+            ? _calculatePerformanceFeeAmount(
+                _pricePerShare, _highWaterMark, _newTotalAssets, _totalShares, _sd.performanceFee
+            )
+            : 0;
+        return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
     }
 
     /**
