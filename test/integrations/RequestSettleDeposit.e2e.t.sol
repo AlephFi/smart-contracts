@@ -167,7 +167,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
         uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
         uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare = Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        uint256 _expectedPricePerShare =
+            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -257,7 +258,12 @@ contract RequestSettleDepositTest is BaseTest {
         );
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
-            0, _settleBatchId, _depositAmount, _expectedTotalAssets, _expectedTotalShares, Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares)
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _expectedTotalAssets,
+            _expectedTotalShares,
+            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares)
         );
         vault.settleDeposit(_newTotalAssets);
         vm.stopPrank();
@@ -325,7 +331,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
         uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
         uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare = Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        uint256 _expectedPricePerShare =
+            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -484,7 +491,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
         uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
         uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare = Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        uint256 _expectedPricePerShare =
+            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -660,7 +668,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
         uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
         uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare = Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        uint256 _expectedPricePerShare =
+            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
 
         // settle deposit
         vm.startPrank(oracle);
