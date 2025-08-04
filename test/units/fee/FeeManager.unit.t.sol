@@ -169,16 +169,18 @@ contract FeeManagerTest is BaseTest {
         // expected fees to collect
         uint256 _expectedManagementFeesToCollect = 100;
         uint256 _expectedPerformanceFeesToCollect = 100;
+        uint256 _expectedTotalFeesToCollect = _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect;
+
+        // set vault balance
+        underlyingToken.mint(address(vault), _expectedTotalFeesToCollect);
+        uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
+        uint256 _feeRecipientBalanceBefore = underlyingToken.balanceOf(vault.feeRecipient());
 
         // collect fees
         vm.prank(operationsMultisig);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesCollected(_expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
-        (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) = vault.collectFees();
-
-        // check fees are calculated correctly
-        assertEq(_managementFeesToCollect, _expectedManagementFeesToCollect);
-        assertEq(_performanceFeesToCollect, _expectedPerformanceFeesToCollect);
+        vault.collectFees();
 
         // check recipient shares are burned
         assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), 0);
@@ -190,10 +192,10 @@ contract FeeManagerTest is BaseTest {
         );
         assertEq(vault.totalShares(), _totalShares - _managementShares - _performanceShares);
 
-        // check fee recipient is approved to collect fees
+        // check fee is collected
+        assertEq(underlyingToken.balanceOf(address(vault)), _vaultBalanceBefore - _expectedTotalFeesToCollect);
         assertEq(
-            underlyingToken.allowance(address(vault), vault.feeRecipient()),
-            _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect
+            underlyingToken.balanceOf(vault.feeRecipient()), _feeRecipientBalanceBefore + _expectedTotalFeesToCollect
         );
     }
 }

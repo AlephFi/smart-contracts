@@ -69,5 +69,5 @@ interface IFeeManager {
     /**
      * @notice Collects all pending fees.
      */
-    function collectFees() external returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect);
+    function collectFees() external;
 }

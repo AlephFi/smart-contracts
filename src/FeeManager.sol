@@ -88,10 +88,7 @@ abstract contract FeeManager is IFeeManager {
     function setFeeRecipient() external virtual;
 
     ///@inheritdoc IFeeManager
-    function collectFees()
-        external
-        virtual
-        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect);
+    function collectFees() external virtual;
 
     /**
      * @dev Internal function to queue a new management fee.
@@ -269,25 +266,19 @@ abstract contract FeeManager is IFeeManager {
     /**
      * @dev Internal function to collect all pending fees.
      */
-    function _collectFees(AlephVaultStorageData storage _sd)
-        internal
-        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
-    {
+    function _collectFees(AlephVaultStorageData storage _sd) internal {
         uint256 _managementShares = sharesOf(MANAGEMENT_FEE_RECIPIENT);
         uint256 _performanceShares = sharesOf(PERFORMANCE_FEE_RECIPIENT);
         uint256 _totalShares = totalShares();
         uint256 _totalAssets = totalAssets();
-        _managementFeesToCollect = ERC4626Math.previewRedeem(_managementShares, _totalAssets, _totalShares);
-        _performanceFeesToCollect = ERC4626Math.previewRedeem(_performanceShares, _totalAssets, _totalShares);
+        uint256 _managementFeesToCollect = ERC4626Math.previewRedeem(_managementShares, _totalAssets, _totalShares);
+        uint256 _performanceFeesToCollect = ERC4626Math.previewRedeem(_performanceShares, _totalAssets, _totalShares);
         uint48 _timestamp = Time.timestamp();
         _sd.sharesOf[MANAGEMENT_FEE_RECIPIENT].push(_timestamp, 0);
         _sd.sharesOf[PERFORMANCE_FEE_RECIPIENT].push(_timestamp, 0);
         _sd.shares.push(_timestamp, _totalShares - _managementShares - _performanceShares);
         _sd.assets.push(_timestamp, _totalAssets - _managementFeesToCollect - _performanceFeesToCollect);
-        IERC20(_sd.underlyingToken).safeIncreaseAllowance(
-            _sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect
-        );
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect);
         emit FeesCollected(_managementFeesToCollect, _performanceFeesToCollect);
-        return (_managementFeesToCollect, _performanceFeesToCollect);
     }
 }
