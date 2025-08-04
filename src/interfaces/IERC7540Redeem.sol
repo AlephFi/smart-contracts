@@ -20,11 +20,18 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IERC7540Redeem {
-    event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 shares, uint256 assets);
+    event SettleRedeem(
+        uint48 indexed fromBatchId,
+        uint48 indexed toBatchId,
+        uint256 sharesToSettle,
+        uint256 totalAssets,
+        uint256 totalShares,
+        uint256 pricePerShare
+    );
 
     event SettleRedeemBatch(
         uint48 indexed batchId,
-        uint256 totalAassetsToRedeem,
+        uint256 totalAssetsToRedeem,
         uint256 totalSharesToRedeem,
         uint256 totalAssets,
         uint256 totalShares

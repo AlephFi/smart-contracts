@@ -395,13 +395,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
      * @notice Collects all pending fees.
      * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function collectFees()
-        external
-        override(FeeManager)
-        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
-        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
-    {
-        return _collectFees(_getStorage());
+    function collectFees() external override(FeeManager) onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _collectFees(_getStorage());
     }
 
     /**
