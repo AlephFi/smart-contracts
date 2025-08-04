@@ -32,7 +32,14 @@ interface IERC7540Deposit {
     event NewMinDepositAmountSet(uint256 minDepositAmount);
     event NewMaxDepositCapSet(uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
-    event SettleDeposit(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 amount, uint256 assets);
+    event SettleDeposit(
+        uint48 indexed fromBatchId,
+        uint48 indexed toBatchId,
+        uint256 amountToSettle,
+        uint256 totalAssets,
+        uint256 totalShares,
+        uint256 pricePerShare
+    );
     event SettleDepositBatch(
         uint48 indexed batchId,
         uint256 totalAmountToDeposit,
