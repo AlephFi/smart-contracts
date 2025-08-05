@@ -31,13 +31,15 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultRedeemSettlementTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             name: defaultInitializationParams.name,
             manager: defaultInitializationParams.manager,
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
             underlyingToken: defaultInitializationParams.underlyingToken,
             custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
@@ -161,7 +163,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Redeem.SettleRedeemBatch(_currentBatchId - 1, 300, 300, 1000, 1000);
-        emit IERC7540Redeem.SettleRedeem(0, _currentBatchId, 300, 1000);
+        emit IERC7540Redeem.SettleRedeem(0, _currentBatchId, 300, 700, 700, vault.PRICE_DENOMINATOR());
         vault.settleRedeem(1000);
         vm.stopPrank();
 
@@ -203,7 +205,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IERC7540Redeem.SettleRedeemBatch(_currentBatchId - 2, 300, 300, 1000, 1000);
         emit IERC7540Redeem.SettleRedeemBatch(_currentBatchId - 1, 500, 500, 700, 700);
-        emit IERC7540Redeem.SettleRedeem(0, _currentBatchId, 800, 1000);
+        emit IERC7540Redeem.SettleRedeem(0, _currentBatchId, 800, 200, 200, vault.PRICE_DENOMINATOR());
         vault.settleRedeem(1000);
         vm.stopPrank();
 

@@ -15,6 +15,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+/**
+ * @author Othentic Labs LTD.
+ * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ */
 library RolesLibrary {
     bytes4 internal constant ORACLE = bytes4(keccak256("ORACLE"));
     bytes4 internal constant GUARDIAN = bytes4(keccak256("GUARDIAN"));

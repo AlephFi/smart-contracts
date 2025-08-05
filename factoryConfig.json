@@ -1,54 +1,60 @@
 {
-    "560048" : {
-        "staging" : {
-            "operationsMultisig" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "feeRecipient" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "managementFee" : 500,
-            "performanceFee" : 0
+    "560048": {
+        "staging": {
+            "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "feeRecipient": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "managementFee": 500,
+            "performanceFee": 0
         },
-        "nightly" : {
-            "operationsMultisig" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "feeRecipient" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "managementFee" : 500,
-            "performanceFee" : 0
+        "nightly": {
+            "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "feeRecipient": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "managementFee": 500,
+            "performanceFee": 0
         },
-        "feature" : {
-            "operationsMultisig" : "0x7D3b0D0D3883A2EeE68Fcc0D242e945dD6eEF6bb",
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "feeRecipient" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "managementFee" : 500,
-            "performanceFee" : 0
+        "feature": {
+            "operationsMultisig": "0x7D3b0D0D3883A2EeE68Fcc0D242e945dD6eEF6bb",
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "feeRecipient": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "managementFee": 500,
+            "performanceFee": 0
         }
     },
-    "11155111" : {
-        "staging" : {
-            "operationsMultisig" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "feeRecipient" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "managementFee" : 500,
-            "performanceFee" : 0
+    "11155111": {
+        "staging": {
+            "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "feeRecipient": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "managementFee": 500,
+            "performanceFee": 0
         },
-        "nightly" : {
-            "operationsMultisig" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "feeRecipient" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "managementFee" : 500,
-            "performanceFee" : 0
+        "nightly": {
+            "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "feeRecipient": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "managementFee": 500,
+            "performanceFee": 0
         },
-        "feature" : {
-            "operationsMultisig" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "feeRecipient" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "managementFee" : 500,
-            "performanceFee" : 0
+        "feature": {
+            "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "feeRecipient": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "managementFee": 500,
+            "performanceFee": 0
         }
     },
     "84532" : {

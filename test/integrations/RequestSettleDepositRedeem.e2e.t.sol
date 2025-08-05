@@ -31,10 +31,12 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-contract RequestSettleDepositTest is BaseTest {
-    function setUp() public {
+contract RequestSettleDepositRedeemTest is BaseTest {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
+        _setAuthSignatures();
     }
 
     function test_requestSettleDeposit_requestSettleRedeem() public {
@@ -54,9 +56,9 @@ contract RequestSettleDepositTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_1 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(100 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 100 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(200 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 200 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount = 300 ether;
 
         // assert deposit requests
@@ -164,9 +166,9 @@ contract RequestSettleDepositTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_1 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(100 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 100 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(200 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 200 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount_1 = 300 ether;
 
         // assert deposit requests
@@ -180,9 +182,9 @@ contract RequestSettleDepositTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_2 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(200 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 200 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(300 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 300 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount_2 = 500 ether;
 
         // assert deposit requests
@@ -216,9 +218,9 @@ contract RequestSettleDepositTest is BaseTest {
         // requestdeposit
         uint48 _requestBatchId_3 = vault.currentBatch();
         vm.prank(mockUser_1);
-        vault.requestDeposit(300 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 300 ether, authSignature: authSignature_1}));
         vm.prank(mockUser_2);
-        vault.requestDeposit(400 ether);
+        vault.requestDeposit(IERC7540Deposit.RequestDepositParams({amount: 400 ether, authSignature: authSignature_2}));
         uint256 _totalDepositAmount_3 = 700 ether;
 
         // assert deposit requests

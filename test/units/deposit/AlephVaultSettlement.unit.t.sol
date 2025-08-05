@@ -31,7 +31,8 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultDepositSettlementTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
@@ -169,7 +170,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDepositBatch(_currentBatchId - 1, 300, 300, 0, 0);
         emit IFeeManager.NewHighWaterMarkSet(vault.PRICE_DENOMINATOR());
-        emit IERC7540Deposit.SettleDeposit(0, _currentBatchId, 300, 0);
+        emit IERC7540Deposit.SettleDeposit(0, _currentBatchId, 300, 300, 300, vault.PRICE_DENOMINATOR());
         vault.settleDeposit(0);
         vm.stopPrank();
 
@@ -225,7 +226,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         emit IERC7540Deposit.SettleDepositBatch(1, 100, 100, 0, 0);
         emit IERC7540Deposit.SettleDepositBatch(2, 500, 500, 100, 100);
         emit IFeeManager.NewHighWaterMarkSet(vault.PRICE_DENOMINATOR());
-        emit IERC7540Deposit.SettleDeposit(0, _currentBatchId, 600, 0);
+        emit IERC7540Deposit.SettleDeposit(0, _currentBatchId, 600, 600, 600, vault.PRICE_DENOMINATOR());
         vault.settleDeposit(0);
         vm.stopPrank();
 

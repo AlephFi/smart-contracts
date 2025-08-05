@@ -26,7 +26,8 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultRedeemTest is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
@@ -39,6 +40,12 @@ contract AlephVaultRedeemTest is BaseTest {
         // request redeem
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.requestRedeem(100);
+    }
+
+    function test_requestRedeem_revertsGivenSharesToRedeemIsZero() public {
+        // request redeem
+        vm.expectRevert(IERC7540Redeem.InsufficientRedeem.selector);
+        vault.requestRedeem(0);
     }
 
     function test_requestRedeem_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {

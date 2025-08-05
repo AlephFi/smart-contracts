@@ -22,9 +22,11 @@ import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 struct AlephVaultStorageData {
     string name;
     string metadataUri;
+    bool isAuthEnabled;
     address manager;
     address oracle;
     address guardian;
+    address authSigner;
     address underlyingToken;
     address custodian;
     address feeRecipient;

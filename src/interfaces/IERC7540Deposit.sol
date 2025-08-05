@@ -15,17 +15,31 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 interface IERC7540Deposit {
+    struct RequestDepositParams {
+        uint256 amount;
+        AuthLibrary.AuthSignature authSignature;
+    }
+
     event NewMinDepositAmountQueued(uint256 minDepositAmount);
     event NewMaxDepositCapQueued(uint256 maxDepositCap);
     event NewMinDepositAmountSet(uint256 minDepositAmount);
     event NewMaxDepositCapSet(uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
-    event SettleDeposit(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint256 amount, uint256 assets);
+    event SettleDeposit(
+        uint48 indexed fromBatchId,
+        uint48 indexed toBatchId,
+        uint256 amountToSettle,
+        uint256 totalAssets,
+        uint256 totalShares,
+        uint256 pricePerShare
+    );
     event SettleDepositBatch(
         uint48 indexed batchId,
         uint256 totalAmountToDeposit,
@@ -136,10 +150,10 @@ interface IERC7540Deposit {
 
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.
-     * @param _amount The amount of assets to deposit.
+     * @param _requestDepositParams The parameters for the deposit request.
      * @return _batchId The batch ID for the deposit.
      */
-    function requestDeposit(uint256 _amount) external returns (uint48 _batchId);
+    function requestDeposit(RequestDepositParams calldata _requestDepositParams) external returns (uint48 _batchId);
 
     /**
      * @notice Settles all pending deposits up to the current batch.

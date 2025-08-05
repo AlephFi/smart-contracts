@@ -18,8 +18,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Test, console} from "forge-std/Test.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
 import {TestToken} from "@aleph-test/exposes/TestToken.sol";
 
@@ -29,6 +31,7 @@ import {TestToken} from "@aleph-test/exposes/TestToken.sol";
  */
 contract BaseTest is Test {
     using SafeERC20 for IERC20;
+    using MessageHashUtils for bytes32;
 
     address public mockUser_1 = makeAddr("mockUser_1");
     address public mockUser_2 = makeAddr("mockUser_2");
@@ -40,6 +43,7 @@ contract BaseTest is Test {
     address public feeRecipient;
     address public oracle;
     address public guardian;
+    address public authSigner;
     uint32 public managementFee;
     uint32 public performanceFee;
     uint48 public minDepositAmountTimelock;
@@ -49,29 +53,44 @@ contract BaseTest is Test {
     uint48 public feeRecipientTimelock;
     uint48 public batchDuration;
 
+    uint256 public authSignerPrivateKey;
+
+    AuthLibrary.AuthSignature public authSignature_1;
+    AuthLibrary.AuthSignature public authSignature_2;
+
     TestToken public underlyingToken = new TestToken();
 
-    IAlephVault.ConstructorParams public defaultConstructorParams = IAlephVault.ConstructorParams({
-        minDepositAmountTimelock: 7 days,
-        maxDepositCapTimelock: 7 days,
-        managementFeeTimelock: 7 days,
-        performanceFeeTimelock: 7 days,
-        feeRecipientTimelock: 7 days,
-        batchDuration: 1 days
-    });
+    IAlephVault.ConstructorParams public defaultConstructorParams;
 
-    IAlephVault.InitializationParams public defaultInitializationParams = IAlephVault.InitializationParams({
-        name: "test",
-        manager: makeAddr("manager"),
-        operationsMultisig: makeAddr("operationsMultisig"),
-        oracle: makeAddr("oracle"),
-        guardian: makeAddr("guardian"),
-        underlyingToken: address(underlyingToken),
-        custodian: makeAddr("custodian"),
-        feeRecipient: makeAddr("feeRecipient"),
-        managementFee: 200, // 2%
-        performanceFee: 2000 // 20%
-    });
+    IAlephVault.InitializationParams public defaultInitializationParams;
+
+    function setUp() public virtual {
+        (address _authSigner, uint256 _authSignerPrivateKey) = makeAddrAndKey("authSigner");
+        authSignerPrivateKey = _authSignerPrivateKey;
+
+        defaultConstructorParams = IAlephVault.ConstructorParams({
+            minDepositAmountTimelock: 7 days,
+            maxDepositCapTimelock: 7 days,
+            managementFeeTimelock: 7 days,
+            performanceFeeTimelock: 7 days,
+            feeRecipientTimelock: 7 days,
+            batchDuration: 1 days
+        });
+
+        defaultInitializationParams = IAlephVault.InitializationParams({
+            name: "test",
+            manager: makeAddr("manager"),
+            operationsMultisig: makeAddr("operationsMultisig"),
+            oracle: makeAddr("oracle"),
+            guardian: makeAddr("guardian"),
+            authSigner: _authSigner,
+            underlyingToken: address(underlyingToken),
+            custodian: makeAddr("custodian"),
+            feeRecipient: makeAddr("feeRecipient"),
+            managementFee: 200, // 2%
+            performanceFee: 2000 // 20%
+        });
+    }
 
     function _setUpNewAlephVault(
         IAlephVault.ConstructorParams memory _constructorParams,
@@ -93,6 +112,7 @@ contract BaseTest is Test {
         operationsMultisig = _initializationParams.operationsMultisig;
         oracle = _initializationParams.oracle;
         guardian = _initializationParams.guardian;
+        authSigner = _initializationParams.authSigner;
         custodian = _initializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
         managementFee = _initializationParams.managementFee;
@@ -109,5 +129,21 @@ contract BaseTest is Test {
         vault.unpause(PausableFlows.SETTLE_DEPOSIT_FLOW);
         vault.unpause(PausableFlows.SETTLE_REDEEM_FLOW);
         vm.stopPrank();
+    }
+
+    function _setAuthSignatures() public {
+        authSignature_1 = _getAuthSignature(mockUser_1, type(uint256).max);
+        authSignature_2 = _getAuthSignature(mockUser_2, type(uint256).max);
+    }
+
+    function _getAuthSignature(address _user, uint256 _expiryBlock)
+        internal
+        returns (AuthLibrary.AuthSignature memory)
+    {
+        bytes32 _authMessage = keccak256(abi.encode(_user, address(vault), block.chainid, _expiryBlock));
+        bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
+        (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(authSignerPrivateKey, _ethSignedMessage);
+        bytes memory _authSignature = abi.encodePacked(_r, _s, _v);
+        return AuthLibrary.AuthSignature({authSignature: _authSignature, expiryBlock: _expiryBlock});
     }
 }

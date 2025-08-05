@@ -23,6 +23,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
@@ -80,8 +81,8 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         if (
             _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
                 || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
-                || _initalizationParams.underlyingToken == address(0) || _initalizationParams.custodian == address(0)
-                || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.authSigner == address(0) || _initalizationParams.underlyingToken == address(0)
+                || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
                 || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
@@ -90,12 +91,14 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
         _sd.manager = _initalizationParams.manager;
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
+        _sd.authSigner = _initalizationParams.authSigner;
         _sd.underlyingToken = _initalizationParams.underlyingToken;
         _sd.custodian = _initalizationParams.custodian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
         _sd.managementFee = _initalizationParams.managementFee;
         _sd.performanceFee = _initalizationParams.performanceFee;
         _sd.name = _initalizationParams.name;
+        _sd.isAuthEnabled = true;
         _sd.startTimeStamp = Time.timestamp();
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
@@ -127,6 +130,11 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     /// @inheritdoc IAlephVault
     function guardian() external view returns (address) {
         return _getStorage().guardian;
+    }
+
+    /// @inheritdoc IAlephVault
+    function authSigner() external view returns (address) {
+        return _getStorage().authSigner;
     }
 
     function underlyingToken() external view returns (address) {
@@ -240,8 +248,22 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     }
 
     /// @inheritdoc IAlephVault
+    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256) {
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint256 _totalShares = totalShares();
+        _totalShares += _getManagementFeeShares(_sd, _newTotalAssets, _totalShares, currentBatch(), _sd.lastFeePaidId)
+            + _getPerformanceFeeShares(_sd, _newTotalAssets, _totalShares);
+        return ERC4626Math.previewRedeem(totalSharesToRedeem(), _newTotalAssets, _totalShares);
+    }
+
+    /// @inheritdoc IAlephVault
     function metadataUri() external view returns (string memory) {
         return _getStorage().metadataUri;
+    }
+
+    /// @inheritdoc IAlephVault
+    function isAuthEnabled() external view returns (bool) {
+        return _getStorage().isAuthEnabled;
     }
 
     /// @inheritdoc IAlephVault
@@ -252,6 +274,25 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
     {
         _getStorage().metadataUri = _metadataUri;
         emit MetadataUriSet(_metadataUri);
+    }
+
+    /// @inheritdoc IAlephVault
+    function setIsAuthEnabled(bool _isAuthEnabled) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
+        _getStorage().isAuthEnabled = _isAuthEnabled;
+        emit IsAuthEnabledSet(_isAuthEnabled);
+    }
+
+    /// @inheritdoc IAlephVault
+    function setAuthSigner(address _authSigner)
+        external
+        override(IAlephVault)
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
+        if (_authSigner == address(0)) {
+            revert InvalidAuthSigner();
+        }
+        _getStorage().authSigner = _authSigner;
+        emit AuthSignerSet(_authSigner);
     }
 
     /**
@@ -363,28 +404,23 @@ contract AlephVault is IAlephVault, AlephVaultDeposit, AlephVaultRedeem, AlephPa
      * @notice Collects all pending fees.
      * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function collectFees()
-        external
-        override(FeeManager)
-        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
-        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
-    {
-        return _collectFees(_getStorage());
+    function collectFees() external override(FeeManager) onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _collectFees(_getStorage());
     }
 
     /**
      * @notice Requests a deposit of assets.
-     * @param _amount The amount of assets to deposit.
+     * @param _requestDepositParams The parameters for the deposit request.
      * @return _batchId The batch ID of the deposit.
      * @dev Only callable when the deposit request flow is not paused.
      */
-    function requestDeposit(uint256 _amount)
+    function requestDeposit(IERC7540Deposit.RequestDepositParams calldata _requestDepositParams)
         external
         override(AlephVaultDeposit)
         whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
         returns (uint48 _batchId)
     {
-        return _requestDeposit(_amount);
+        return _requestDeposit(_requestDepositParams);
     }
 
     /**

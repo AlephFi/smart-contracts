@@ -21,6 +21,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
@@ -143,7 +144,10 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
     function setMaxDepositCap() external virtual;
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(uint256 _amount) external virtual returns (uint48 _batchId);
+    function requestDeposit(RequestDepositParams calldata _requestDepositParams)
+        external
+        virtual
+        returns (uint48 _batchId);
 
     /// @inheritdoc IERC7540Deposit
     function settleDeposit(uint256 _newTotalAssets) external virtual;
@@ -180,21 +184,26 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
 
     /**
      * @dev Internal function to handle a deposit request.
-     * @param _amount The amount to deposit.
+     * @param _requestDepositParams The parameters for the deposit request.
      * @return _batchId The batch ID for the deposit.
      */
-    function _requestDeposit(uint256 _amount) internal returns (uint48 _batchId) {
+    function _requestDeposit(RequestDepositParams calldata _requestDepositParams) internal returns (uint48 _batchId) {
         AlephVaultStorageData storage _sd = _getStorage();
-        if (_amount == 0) {
+        if (_requestDepositParams.amount == 0) {
             revert InsufficientDeposit();
         }
         uint256 _minDepositAmount = _sd.minDepositAmount;
-        if (_minDepositAmount > 0 && _amount < _minDepositAmount) {
+        if (_minDepositAmount > 0 && _requestDepositParams.amount < _minDepositAmount) {
             revert DepositLessThanMinDepositAmount();
         }
         uint256 _maxDepositCap = _sd.maxDepositCap;
-        if (_maxDepositCap > 0 && totalAssets() + totalAmountToDeposit() + _amount > _maxDepositCap) {
+        if (
+            _maxDepositCap > 0 && totalAssets() + totalAmountToDeposit() + _requestDepositParams.amount > _maxDepositCap
+        ) {
             revert DepositExceedsMaxDepositCap();
+        }
+        if (_sd.isAuthEnabled) {
+            AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.authSignature);
         }
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = currentBatch();
@@ -206,16 +215,16 @@ abstract contract AlephVaultDeposit is IERC7540Deposit {
         }
         _sd.lastDepositBatchId[msg.sender] = _currentBatchId;
         IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.depositRequest[msg.sender] = _amount;
-        _batch.totalAmountToDeposit += _amount;
+        _batch.depositRequest[msg.sender] = _requestDepositParams.amount;
+        _batch.totalAmountToDeposit += _requestDepositParams.amount;
         _batch.usersToDeposit.push(msg.sender);
-        emit DepositRequest(msg.sender, _amount, _currentBatchId);
+        emit DepositRequest(msg.sender, _requestDepositParams.amount, _currentBatchId);
 
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
-        _underlyingToken.safeTransferFrom(msg.sender, address(this), _amount);
+        _underlyingToken.safeTransferFrom(msg.sender, address(this), _requestDepositParams.amount);
         uint256 _depositedAmount = _underlyingToken.balanceOf(address(this)) - _balanceBefore;
-        if (_depositedAmount != _amount) {
+        if (_depositedAmount != _requestDepositParams.amount) {
             revert DepositRequestFailed();
         }
         return _currentBatchId;

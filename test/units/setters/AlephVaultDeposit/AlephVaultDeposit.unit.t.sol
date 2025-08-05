@@ -23,7 +23,8 @@ import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 contract AlephVaultDeposit_Unit_Test is BaseTest {
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
     }
 

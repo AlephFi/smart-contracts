@@ -88,10 +88,7 @@ abstract contract FeeManager is IFeeManager {
     function setFeeRecipient() external virtual;
 
     ///@inheritdoc IFeeManager
-    function collectFees()
-        external
-        virtual
-        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect);
+    function collectFees() external virtual;
 
     /**
      * @dev Internal function to queue a new management fee.
@@ -175,8 +172,7 @@ abstract contract FeeManager is IFeeManager {
             uint256 _totalShares = totalShares();
             uint256 _managementFeeAmount =
                 _calculateManagementFeeAmount(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
-            uint256 _performanceFeeAmount =
-                _calculatePerformanceFeeAmount(_sd, _newTotalAssets, _totalShares, _timestamp);
+            uint256 _performanceFeeAmount = _checkPerformanceFeeAmount(_sd, _newTotalAssets, _totalShares, _timestamp);
             uint256 _managementSharesToMint =
                 ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
             uint256 _performanceSharesToMint =
@@ -189,7 +185,7 @@ abstract contract FeeManager is IFeeManager {
                     _timestamp, sharesOf(PERFORMANCE_FEE_RECIPIENT) + _performanceSharesToMint
                 );
             }
-            emit FeesAccumulated(_managementFeeAmount, _performanceFeeAmount, _timestamp);
+            emit FeesAccumulated(_lastFeePaidId, _currentBatchId, _managementFeeAmount, _performanceFeeAmount);
             return _managementSharesToMint + _performanceSharesToMint;
         }
         return 0;
@@ -207,9 +203,8 @@ abstract contract FeeManager is IFeeManager {
         uint48 _batchesElapsed
     ) internal view returns (uint256 _managementFeeAmount) {
         uint48 _managementFeeRate = _sd.managementFee;
-        uint256 _annualFees = _newTotalAssets.mulDiv(
-            uint256(_managementFeeRate), uint256(BPS_DENOMINATOR - _managementFeeRate), Math.Rounding.Ceil
-        );
+        uint256 _annualFees =
+            _newTotalAssets.mulDiv(uint256(_managementFeeRate), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
         _managementFeeAmount =
             _annualFees.mulDiv(uint256(_batchesElapsed * BATCH_DURATION), uint256(ONE_YEAR), Math.Rounding.Ceil);
     }
@@ -220,7 +215,7 @@ abstract contract FeeManager is IFeeManager {
      * @param _newTotalAssets The new total assets after collection.
      * @return _performanceFeeAmount The performance fee to be collected.
      */
-    function _calculatePerformanceFeeAmount(
+    function _checkPerformanceFeeAmount(
         AlephVaultStorageData storage _sd,
         uint256 _newTotalAssets,
         uint256 _totalShares,
@@ -229,15 +224,26 @@ abstract contract FeeManager is IFeeManager {
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
         uint256 _highWaterMark = highWaterMark();
         if (_pricePerShare > _highWaterMark) {
-            uint256 _profitPerShare = _pricePerShare - _highWaterMark;
-            uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
-            uint48 _performanceFeeRate = _sd.performanceFee;
-            _performanceFeeAmount = _profit.mulDiv(
-                uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
+            _performanceFeeAmount = _calculatePerformanceFeeAmount(
+                _pricePerShare, _highWaterMark, _newTotalAssets, _totalShares, _sd.performanceFee
             );
             _sd.highWaterMark.push(_timestamp, _pricePerShare);
             emit NewHighWaterMarkSet(_pricePerShare);
         }
+    }
+
+    function _calculatePerformanceFeeAmount(
+        uint256 _pricePerShare,
+        uint256 _highWaterMark,
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint48 _performanceFeeRate
+    ) internal view returns (uint256 _performanceFeeAmount) {
+        uint256 _profitPerShare = _pricePerShare - _highWaterMark;
+        uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
+        _performanceFeeAmount = _profit.mulDiv(
+            uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
+        );
     }
 
     function _initializeHighWaterMark(
@@ -249,6 +255,35 @@ abstract contract FeeManager is IFeeManager {
         uint256 _pricePerShare = _getPricePerShare(_totalAssets, _totalShares);
         _sd.highWaterMark.push(_timestamp, _pricePerShare);
         emit NewHighWaterMarkSet(_pricePerShare);
+    }
+
+    function _getManagementFeeShares(
+        AlephVaultStorageData storage _sd,
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint48 _currentBatchId,
+        uint48 _lastFeePaidId
+    ) internal view returns (uint256 _managementFeeShares) {
+        return ERC4626Math.previewDeposit(
+            _calculateManagementFeeAmount(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId),
+            _totalShares,
+            _newTotalAssets
+        );
+    }
+
+    function _getPerformanceFeeShares(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint256 _totalShares)
+        internal
+        view
+        returns (uint256 _performanceFeeShares)
+    {
+        uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
+        uint256 _highWaterMark = highWaterMark();
+        uint256 _performanceFeeAmount = _pricePerShare > _highWaterMark
+            ? _calculatePerformanceFeeAmount(
+                _pricePerShare, _highWaterMark, _newTotalAssets, _totalShares, _sd.performanceFee
+            )
+            : 0;
+        return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
     }
 
     /**
@@ -270,25 +305,19 @@ abstract contract FeeManager is IFeeManager {
     /**
      * @dev Internal function to collect all pending fees.
      */
-    function _collectFees(AlephVaultStorageData storage _sd)
-        internal
-        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
-    {
+    function _collectFees(AlephVaultStorageData storage _sd) internal {
         uint256 _managementShares = sharesOf(MANAGEMENT_FEE_RECIPIENT);
         uint256 _performanceShares = sharesOf(PERFORMANCE_FEE_RECIPIENT);
         uint256 _totalShares = totalShares();
         uint256 _totalAssets = totalAssets();
-        _managementFeesToCollect = ERC4626Math.previewRedeem(_managementShares, _totalAssets, _totalShares);
-        _performanceFeesToCollect = ERC4626Math.previewRedeem(_performanceShares, _totalAssets, _totalShares);
+        uint256 _managementFeesToCollect = ERC4626Math.previewRedeem(_managementShares, _totalAssets, _totalShares);
+        uint256 _performanceFeesToCollect = ERC4626Math.previewRedeem(_performanceShares, _totalAssets, _totalShares);
         uint48 _timestamp = Time.timestamp();
         _sd.sharesOf[MANAGEMENT_FEE_RECIPIENT].push(_timestamp, 0);
         _sd.sharesOf[PERFORMANCE_FEE_RECIPIENT].push(_timestamp, 0);
         _sd.shares.push(_timestamp, _totalShares - _managementShares - _performanceShares);
         _sd.assets.push(_timestamp, _totalAssets - _managementFeesToCollect - _performanceFeesToCollect);
-        IERC20(_sd.underlyingToken).safeIncreaseAllowance(
-            _sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect
-        );
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect);
         emit FeesCollected(_managementFeesToCollect, _performanceFeesToCollect);
-        return (_managementFeesToCollect, _performanceFeesToCollect);
     }
 }
