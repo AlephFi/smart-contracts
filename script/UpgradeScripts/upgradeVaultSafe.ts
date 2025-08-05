@@ -37,7 +37,7 @@ async function main() {
     const safeApiKey = process.env.SAFE_API_KEY;
 
     if (!chainId || !environment || !rpcUrl || !privateKey || !safeApiKey) {
-        throw new Error('CHAIN_ID, ENVIRONMENT, RPC_URL, and PRIVATE_KEY must be set in environment variables');
+        throw new Error('CHAIN_ID, ENVIRONMENT, RPC_URL, PRIVATE_KEY, and SAFE_API_KEY must be set in environment variables');
     }
 
     execSync(`forge script DeployAlephVaultImplementation --broadcast -vvvv --verify`, {
@@ -55,6 +55,18 @@ async function main() {
 
     const beaconInterface = new Interface(BEACON_ABI);
     const txData = beaconInterface.encodeFunctionData('upgradeTo', [chainConfig.vaultImplementationAddress]);
+
+    console.log("================================================")
+    console.log("VAULT IMPLEMENTATION ADDRESS")
+    console.log("================================================")
+    console.log(chainConfig.vaultImplementationAddress);
+    console.log("================================================")
+
+    console.log("================================================")
+    console.log("TX DATA")
+    console.log("================================================")
+    console.log(txData);
+    console.log("================================================")
 
     const safeKitOwner = await Safe.init({
         provider: rpcUrl,
@@ -75,6 +87,11 @@ async function main() {
 
     const safeTxHash = await safeKitOwner.getTransactionHash(safeTransaction)
     const signatureOwner = await safeKitOwner.signHash(safeTxHash)
+
+    console.log("SAFE TX HASH")
+    console.log("================================================")
+    console.log(safeTxHash);
+    console.log("================================================")
 
     const apiKit = new SafeApiKit({
         chainId: BigInt(chainId),
