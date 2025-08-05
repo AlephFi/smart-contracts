@@ -1,12 +1,12 @@
 # Aleph Protocol
-This repository contains the core smart contracts for Aleph Protocol. 
+Aleph is an Infrastructure-as-a-Service platform, enabling fund managers to launch and manage on-chain financial vehicles at scale. 
 
+This repository contains the core smart contracts for Aleph Protocol. 
 
 [![Tests](https://github.com/Othentic-Labs/Aleph/actions/workflows/test.yml/badge.svg)](https://github.com/Othentic-Labs/Aleph//actions/workflows/test.yml)
 
 
-Aleph is an Infrastructure-as-a-Service platform, enabling fund managers to launch and manage on-chain financial vehicles at scale. 
-
+## Architecture
 At the core of the system are Aleph Vaults which are ERC-7540 compliant smart contracts that support asynchronous deposits and redemptions of ERC-20 tokens. Vault shares are minted or burned during batch-based settlements, triggered by oracle with latest NAV (Net Asset Value) inputs. All vaults are upgradeable and deployed deterministically using the Beacon Proxy pattern via a factory.
 
 **Key Features**
@@ -19,7 +19,7 @@ At the core of the system are Aleph Vaults which are ERC-7540 compliant smart co
 <img width="1868" height="755" alt="image" src="https://github.com/user-attachments/assets/159f0d2a-e47c-4afb-b4f6-7eb32636dce2" />
 
 
-# Smart Contracts
+## Smart Contracts
 ## Vault Factory Contract
 
 The AlephVaultFactory is responsible for deploying Aleph vaults. 
@@ -63,13 +63,27 @@ The Vault contract implements the following interfaces:
 The FeeManager module calculates and handles:
 
 - Continuous management fee accumulation for each batch settlement
-- NAV-triggered performance fees
-- Aleph Fee shares minted to feeRecipient
+- Aleph Fee shares minted to feeRecipient address
 
-## Usage
+## Getting Started
+### Prerequisites
+
+- [Foundry](https://getfoundry.sh/) for smart contract development
+- Node.js 16+ for any additional tooling
+
+### Installation
 ```
+git clone https://github.com/Othentic-Labs/Aleph.git
+cd Aleph
+forge install
 forge build
 forge test
 ```
 
 ## Licensing
+
+## Resources
+
+- [ERC-7540 Standard](https://eips.ethereum.org/EIPS/eip-7540)
+- [Foundry Documentation](https://book.getfoundry.sh/)
+- Aleph Protocol Documentation
