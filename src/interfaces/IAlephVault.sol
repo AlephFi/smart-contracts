@@ -220,6 +220,13 @@ interface IAlephVault {
     function highWaterMarkAt(uint48 _timestamp) external view returns (uint256);
 
     /**
+     * @notice Returns the total amount for redemption.
+     * @param _newTotalAssets The new total assets before settlement.
+     * @return The total amount for redemption.
+     */
+    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256);
+
+    /**
      * @notice Returns the status of the KYC authentication.
      * @return The status of the KYC authentication.
      */

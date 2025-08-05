@@ -51,7 +51,7 @@ abstract contract AlephVaultRedeem is IERC7540Redeem {
     function totalShares() public view virtual returns (uint256);
 
     /// @inheritdoc IERC7540Redeem
-    function totalSharesToRedeem() external view returns (uint256 _totalSharesToRedeem) {
+    function totalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
         uint48 _currentBatch = currentBatch();
         if (_currentBatch > 0) {
             AlephVaultStorageData storage _sd = _getStorage();
