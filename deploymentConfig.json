@@ -11,42 +11,68 @@
   },
   "560048": {
     "staging": {
-      "vaultBeaconOwner": "",
-      "factoryProxyOwner": "",
-      "vaultImplementationAddress": "",
-      "factoryImplementationAddress": "",
-      "vaultBeaconAddress": "",
-      "factoryProxyAddress": ""
+      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultImplementationAddress": "0x9696dBdE26731bE4043D0A6D0Ee5439b3649Cb69",
+      "factoryImplementationAddress": "0x6908F4C0418BBFEC26354716346cb5012AAB4585",
+      "vaultBeaconAddress": "0xA7cD94CC2fC013FCE0BAF20f225FcF0D5509BFb5",
+      "factoryProxyAddress": "0xD5dc82F6569e93e55FfA71083E13ae9d7DB24b34"
     },
     "nightly": {
       "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-      "vaultImplementationAddress": "0xF868b7c4C2a591FEEE1eEfD8E84D5EaE481D3282",
-      "factoryImplementationAddress": "0x222757Ce11081CB2a92A3439faa72d4cC8c9C533",
-      "vaultBeaconAddress": "0x26d45b7A2550E760285850532DD1AD45D9415dC2",
-      "factoryProxyAddress": "0xb0245255CD2804F5D16ac58D499FbBdD468E0895"
+      "vaultImplementationAddress": "0x9D2a98aa87f082BFEc11E32159C65aef90693D67",
+      "factoryImplementationAddress": "0xDd38C3B1550ca276f363750Fe40686D34d756723",
+      "vaultBeaconAddress": "0x899831AB33b629fE2014d167BE3964e16D60B5da",
+      "factoryProxyAddress": "0xD8b1F1F4D9b6983cE490ca5EAC770C23c20D012c"
     },
     "feature": {
-      "vaultBeaconOwner": "0x7D3b0D0D3883A2EeE68Fcc0D242e945dD6eEF6bb",
-      "factoryProxyOwner": "0x7D3b0D0D3883A2EeE68Fcc0D242e945dD6eEF6bb",
-      "vaultImplementationAddress": "0x8DFD98a862CE140a913B211B2C815Da21e8a031B",
-      "factoryImplementationAddress": "0xA948Ddc49C37eAEAC9aC81cD4372CD064B893825",
-      "vaultBeaconAddress": "0x355615bE6aEbcB650c494c273cDFD66545C7e389",
-      "factoryProxyAddress": "0x38028D47066ae8468caAFD9cfAb00aE928796A1B"
+      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultImplementationAddress": "0xe24C796A03E8f531Cea0bC900EcaAA6Dc6b581eC",
+      "factoryImplementationAddress": "0x80953798531448782cb5f685bf7191b61D1Da6d5",
+      "vaultBeaconAddress": "0xF8445cC701dEa8aB8b90e8063227055EC13cD4dE",
+      "factoryProxyAddress": "0x018310e70d32F7850EE719Cc35f3258C57069636"
     }
   },
   "11155111": {
     "staging": {
-      "vaultBeaconOwner": "",
-      "factoryProxyOwner": "",
+      "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
+      "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
+      "vaultImplementationAddress": "0x222757Ce11081CB2a92A3439faa72d4cC8c9C533",
+      "factoryImplementationAddress": "0xDd38C3B1550ca276f363750Fe40686D34d756723",
+      "vaultBeaconAddress": "0x899831AB33b629fE2014d167BE3964e16D60B5da",
+      "factoryProxyAddress": "0xD8b1F1F4D9b6983cE490ca5EAC770C23c20D012c"
+    },
+    "nightly": {
+      "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
+      "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
+      "vaultImplementationAddress": "0xff69EB15Ea773E0afFBBf8269806005EBFCEc7af",
+      "factoryImplementationAddress": "0x80953798531448782cb5f685bf7191b61D1Da6d5",
+      "vaultBeaconAddress": "0xF8445cC701dEa8aB8b90e8063227055EC13cD4dE",
+      "factoryProxyAddress": "0x018310e70d32F7850EE719Cc35f3258C57069636"
+    },
+    "feature": {
+      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultImplementationAddress": "0x74230E04B2203A38d3a7c1e36c2EBe44e723e9EB",
+      "factoryImplementationAddress": "0x6A92036A0C88bDFC3edC53Fd5933567Cf581e418",
+      "vaultBeaconAddress": "0xc3cAE1519D921d49663f3E6f46305a9a26b0aF90",
+      "factoryProxyAddress": "0xF9FEcd5160D2aae60101817c43cf73F6F7Ff813B"
+    }
+  },
+  "84532": {
+    "staging": {
+      "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
+      "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "vaultImplementationAddress": "",
       "factoryImplementationAddress": "",
       "vaultBeaconAddress": "",
       "factoryProxyAddress": ""
     },
     "nightly": {
-      "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-      "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+      "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
+      "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "vaultImplementationAddress": "",
       "factoryImplementationAddress": "",
       "vaultBeaconAddress": "",
