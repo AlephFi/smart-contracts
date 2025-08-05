@@ -11,5 +11,8 @@ broadcast/
 # Docs
 docs/
 
+# node modules
+node_modules/
+
 # Dotenv file
 .env

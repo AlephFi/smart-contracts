@@ -1,0 +1,20 @@
+{
+    "name": "aleph-scripts",
+    "version": "1.0.0",
+    "description": "TypeScript scripts for Aleph",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc",
+        "upgrade-vault": "ts-node script/UpgradeScripts/upgradeVaultSafe.ts"
+    },
+    "dependencies": {
+        "@safe-global/api-kit": "^4.0.0",
+        "@safe-global/protocol-kit": "^6.1.0",
+        "@safe-global/types-kit": "^3.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    }
+}
