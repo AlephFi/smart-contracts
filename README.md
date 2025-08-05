@@ -1,4 +1,10 @@
-# Aleph Protocol 
+# Aleph Protocol
+This repository contains the core smart contracts for Aleph Protocol. 
+
+
+[![Tests](https://github.com/Othentic-Labs/Aleph/actions/workflows/test.yml/badge.svg)](https://github.com/Othentic-Labs/Aleph//actions/workflows/test.yml)
+
+
 Aleph is an Infrastructure-as-a-Service platform, enabling fund managers to launch and manage on-chain financial vehicles at scale. 
 
 At the core of the system are Aleph Vaults which are ERC-7540 compliant smart contracts that support asynchronous deposits and redemptions of ERC-20 tokens. Vault shares are minted or burned during batch-based settlements, triggered by oracle with latest NAV (Net Asset Value) inputs. All vaults are upgradeable and deployed deterministically using the Beacon Proxy pattern via a factory.
@@ -65,3 +71,5 @@ The FeeManager module calculates and handles:
 forge build
 forge test
 ```
+
+## Licensing
