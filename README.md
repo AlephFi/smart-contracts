@@ -22,16 +22,16 @@ At the core of the system are Aleph Vaults which are ERC-7540 compliant smart co
 ## Smart Contracts
 ## Vault Factory Contract
 
-The AlephVaultFactory is responsible for deploying Aleph vaults. 
+The [AlephVaultFactory](https://github.com/Othentic-Labs/Aleph/blob/main/src/AlephVaultFactory.sol) is responsible for deploying Aleph vaults. 
 
 **Key features:**
-- Uses CREATE2 for deterministic vault addresses
+- Deploy vaults with deterministic addresses (CREATE2)
 - Manages protocol-level parameters (oracle, fees, guardian, etc.)
 - Enforces caps on performance and management fees
 - Access-controlled via Operations Multisig
 
 ## Vault Contract
-Aleph Vaults are upgradeable contracts that manage deposit, share issuance, redemption, and NAV settlement flows.
+[AlephVault](https://github.com/Othentic-Labs/Aleph/blob/main/src/AlephVault.sol) are upgradeable contracts that manage user deposit, share issuance, redemption, and NAV settlement flows.
 
 ### Interfaces Implemented
 
@@ -55,12 +55,11 @@ The Vault contract implements the following interfaces:
 - Tracks per-user redeem requests
 
 **IERC20**
-- Standard ERC-20 transfer, approve, balanceOf methods
-- Vault Shares are issued as ERC-20 tokens
-
+- Vault shares issued as Standard ERC-20 tokens
+- Full compatibility with existing DeFi infrastructure
   
 ## Fee Manager Contract
-The FeeManager module calculates and handles:
+The [FeeManager](https://github.com/Othentic-Labs/Aleph/blob/main/src/FeeManager.sol) module calculates and handles Platform fees using:
 
 - Continuous management fee accumulation for each batch settlement
 - Aleph Fee shares minted to feeRecipient address
