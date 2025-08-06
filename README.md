@@ -26,8 +26,7 @@ The [AlephVaultFactory](https://github.com/Othentic-Labs/Aleph/blob/main/src/Ale
 
 **Key features:**
 - Deploy vaults with deterministic addresses (CREATE2)
-- Manages protocol-level parameters (oracle, fees, guardian, etc.)
-- Enforces caps on performance and management fees
+- Manages default protocol-level parameters (oracle, fees, guardian, etc.)
 - Access-controlled via Operations Multisig
 
 ## Vault Contract
@@ -40,35 +39,33 @@ The Vault contract implements the following interfaces:
 **IAlephVault**
 
 - Vault configuration including manager, oracle, custodian addresses 
-- View methods for `totalAssets`, `sharesOf`, `assetsOf`
-- KYC authSigner support
+- View methods for Asset & Share information (totalAssets, sharesOf, assetsOf, pricePerShare), Roles & Config (custodian, oracle, guardian, etc.), highWaterMark, and other vault-level configurations.
+- AuthSigner support for KYC and Allocator whitelisting by Manager
 
 **IERC7540Deposit**
 
-- Handles async deposit using `requestDeposit(uint256 amount)` and `settleDeposit(uint256 newNAV)` - called by the Oracle
+- Handles async deposit using `requestDeposit` and `settleDeposit`
 - Tracks per-user deposits per batch
 - Exposes pending and estimated shares
 
 **IERC7540Redeem**
 
-- Handles async redeem using `requestRedeem(uint256 shares)` and `settleRedeem(uint256 newNAV)`
+- Handles async redeem using `requestRedeem` and `settleRedeem`
 - Tracks per-user redeem requests
 
-**IERC20**
-- Vault shares issued as Standard ERC-20 tokens
-- Full compatibility with existing DeFi infrastructure
-  
+An Oracle contract calls settleDeposit or settleRedeem to settle pending deposits and withdrawals.
+
 ## Fee Manager Contract
 The [FeeManager](https://github.com/Othentic-Labs/Aleph/blob/main/src/FeeManager.sol) module calculates and handles Platform fees using:
 
 - Continuous management fee accumulation for each batch settlement
-- Aleph Fee shares minted to feeRecipient address
+- Aleph Fee shares are minted to MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT address
+- Upon fee collection, the amount is transfered to the fee recipient address
 
 ## Getting Started
 ### Prerequisites
 
 - [Foundry](https://getfoundry.sh/) for smart contract development
-- Node.js 16+ for any additional tooling
 
 ### Installation
 ```
