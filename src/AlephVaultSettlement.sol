@@ -117,7 +117,12 @@ abstract contract AlephVaultSettlement is FeeManager {
             _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
         }
         emit IERC7540Deposit.SettleDepositBatch(
-            _batchId, _batch.totalAmountToDeposit, _totalSharesToMint, _totalAssets, _totalShares
+            _batchId,
+            _batch.totalAmountToDeposit,
+            _totalSharesToMint,
+            _totalAssets,
+            _totalShares,
+            _getPricePerShare(_totalAssets + _batch.totalAmountToDeposit, _totalShares + _totalSharesToMint)
         );
         return (_batch.totalAmountToDeposit, _totalSharesToMint);
     }
@@ -186,7 +191,12 @@ abstract contract AlephVaultSettlement is FeeManager {
             _underlyingToken.safeTransfer(_user, _assets);
         }
         emit IERC7540Redeem.SettleRedeemBatch(
-            _batchId, _totalAssetsToRedeem, _batch.totalSharesToRedeem, _totalAssets, _totalShares
+            _batchId,
+            _totalAssetsToRedeem,
+            _batch.totalSharesToRedeem,
+            _totalAssets,
+            _totalShares,
+            _getPricePerShare(_totalAssets - _totalAssetsToRedeem, _totalShares - _batch.totalSharesToRedeem)
         );
         return (_totalAssetsToRedeem, _batch.totalSharesToRedeem);
     }

@@ -18,8 +18,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Test, console} from "forge-std/Test.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
@@ -63,6 +65,24 @@ contract BaseTest is Test {
     IAlephVault.ConstructorParams public defaultConstructorParams;
 
     IAlephVault.InitializationParams public defaultInitializationParams;
+
+    struct SettleDepositExpectations {
+        uint256 expectedTotalAssets;
+        uint256 expectedTotalShares;
+        uint256 newSharesToMint;
+        uint256 managementFeeShares;
+        uint256 performanceFeeShares;
+        uint256 expectedPricePerShare;
+    }
+
+    struct SettleRedeemExpectations {
+        uint256 expectedTotalAssets;
+        uint256 expectedTotalShares;
+        uint256 assetsToWithdraw;
+        uint256 managementFeeShares;
+        uint256 performanceFeeShares;
+        uint256 expectedPricePerShare;
+    }
 
     function setUp() public virtual {
         (address _authSigner, uint256 _authSignerPrivateKey) = makeAddrAndKey("authSigner");
@@ -145,5 +165,55 @@ contract BaseTest is Test {
         (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(authSignerPrivateKey, _ethSignedMessage);
         bytes memory _authSignature = abi.encodePacked(_r, _s, _v);
         return AuthLibrary.AuthSignature({authSignature: _authSignature, expiryBlock: _expiryBlock});
+    }
+
+    function _getSettleDepositExpectations(
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint256 _depositAmount,
+        uint48 _batchesElapsed,
+        uint256 _highWaterMark
+    ) internal view returns (SettleDepositExpectations memory) {
+        uint256 _expectedManagementFeeShares =
+            vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, _batchesElapsed);
+        uint256 _expectedPerformanceFeeShares =
+            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, _highWaterMark);
+        _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
+        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
+        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
+        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
+        return SettleDepositExpectations({
+            expectedTotalAssets: _expectedTotalAssets,
+            expectedTotalShares: _expectedTotalShares,
+            newSharesToMint: _newSharesToMint,
+            managementFeeShares: _expectedManagementFeeShares,
+            performanceFeeShares: _expectedPerformanceFeeShares,
+            expectedPricePerShare: Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares)
+        });
+    }
+
+    function _getSettleRedeemExpectations(
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint256 _userShares,
+        uint48 _batchesElapsed,
+        uint256 _highWaterMark
+    ) internal view returns (SettleRedeemExpectations memory) {
+        uint256 _expectedManagementFeeShares =
+            vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, _batchesElapsed);
+        uint256 _expectedPerformanceFeeShares =
+            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, _highWaterMark);
+        _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
+        uint256 _assetsToWithdraw = ERC4626Math.previewRedeem(_userShares, _newTotalAssets, _totalShares);
+        uint256 _expectedTotalAssets = _newTotalAssets - _assetsToWithdraw;
+        uint256 _expectedTotalShares = _totalShares - _userShares;
+        return SettleRedeemExpectations({
+            expectedTotalAssets: _expectedTotalAssets,
+            expectedTotalShares: _expectedTotalShares,
+            assetsToWithdraw: _assetsToWithdraw,
+            managementFeeShares: _expectedManagementFeeShares,
+            performanceFeeShares: _expectedPerformanceFeeShares,
+            expectedPricePerShare: Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares)
+        });
     }
 }

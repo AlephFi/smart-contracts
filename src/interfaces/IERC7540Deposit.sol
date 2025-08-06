@@ -45,7 +45,8 @@ interface IERC7540Deposit {
         uint256 totalAmountToDeposit,
         uint256 totalSharesToMint,
         uint256 totalAssets,
-        uint256 totalShares
+        uint256 totalShares,
+        uint256 pricePerShare
     );
 
     error InsufficientDeposit();
