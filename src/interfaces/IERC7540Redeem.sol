@@ -34,7 +34,8 @@ interface IERC7540Redeem {
         uint256 totalAssetsToRedeem,
         uint256 totalSharesToRedeem,
         uint256 totalAssets,
-        uint256 totalShares
+        uint256 totalShares,
+        uint256 pricePerShare
     );
 
     event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);

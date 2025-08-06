@@ -168,7 +168,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(_currentBatchId - 1, 300, 300, 0, 0);
+        emit IERC7540Deposit.SettleDepositBatch(_currentBatchId - 1, 300, 300, 0, 0, vault.PRICE_DENOMINATOR());
         emit IFeeManager.NewHighWaterMarkSet(vault.PRICE_DENOMINATOR());
         emit IERC7540Deposit.SettleDeposit(0, _currentBatchId, 300, 300, 300, vault.PRICE_DENOMINATOR());
         vault.settleDeposit(0);
@@ -223,8 +223,8 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(1, 100, 100, 0, 0);
-        emit IERC7540Deposit.SettleDepositBatch(2, 500, 500, 100, 100);
+        emit IERC7540Deposit.SettleDepositBatch(1, 100, 100, 0, 0, vault.PRICE_DENOMINATOR());
+        emit IERC7540Deposit.SettleDepositBatch(2, 500, 500, 100, 100, vault.PRICE_DENOMINATOR());
         emit IFeeManager.NewHighWaterMarkSet(vault.PRICE_DENOMINATOR());
         emit IERC7540Deposit.SettleDeposit(0, _currentBatchId, 600, 600, 600, vault.PRICE_DENOMINATOR());
         vault.settleDeposit(0);

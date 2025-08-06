@@ -32,6 +32,7 @@ contract AlephVault_Unit_Test is BaseTest {
         // set total assets and total shares
         vault.setTotalAssets(1000 ether);
         vault.setTotalShares(1000 ether);
+        vault.setHighWaterMark(vault.PRICE_DENOMINATOR());
 
         // set user shares
         vault.setSharesOf(mockUser_1, 500 ether);

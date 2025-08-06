@@ -85,34 +85,38 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
         uint48 _settleBatchId = vault.currentBatch();
 
-        // initial price per share
-        uint256 _initialPricePerShare = vault.PRICE_DENOMINATOR();
-        uint256 _initialSharesToMint = ERC4626Math.previewDeposit(_depositAmount, 0, 0);
-        uint256 _expectedTotalAssets = _depositAmount;
-        uint256 _expectedTotalShares = _initialSharesToMint;
+        // get settle deposit expectations
+        SettleDepositExpectations memory _params = _getSettleDepositExpectations(0, 0, _depositAmount, 0, 0);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(_requestBatchId, _depositAmount, _initialSharesToMint, 0, 0);
+        emit IERC7540Deposit.SettleDepositBatch(
+            _requestBatchId, _depositAmount, _params.newSharesToMint, 0, 0, _params.expectedPricePerShare
+        );
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewHighWaterMarkSet(_initialPricePerShare);
+        emit IFeeManager.NewHighWaterMarkSet(_params.expectedPricePerShare);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
-            0, _settleBatchId, _depositAmount, _expectedTotalAssets, _expectedTotalShares, _initialPricePerShare
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(0);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _expectedTotalAssets);
-        assertEq(vault.totalShares(), _expectedTotalShares);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _initialSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert high water mark is 1
-        assertEq(vault.highWaterMark(), _initialPricePerShare);
+        assertEq(vault.highWaterMark(), _params.expectedPricePerShare);
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _settleBatchId);
@@ -164,31 +168,38 @@ contract RequestSettleDepositTest is BaseTest {
 
         // same price per share
         uint256 _totalShares = vault.totalShares();
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
-        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
-        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare =
-            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        SettleDepositExpectations memory _params =
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0, 0);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDepositBatch(
-            _requestBatchId, _depositAmount, _newSharesToMint, _newTotalAssets, _totalShares
+            _requestBatchId,
+            _depositAmount,
+            _params.newSharesToMint,
+            _newTotalAssets,
+            _totalShares,
+            _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
-            0, _settleBatchId, _depositAmount, _expectedTotalAssets, _expectedTotalShares, _expectedPricePerShare
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(_newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _expectedTotalAssets);
-        assertEq(vault.totalShares(), _expectedTotalShares);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _newSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert high water mark is same
         assertEq(vault.highWaterMark(), vault.PRICE_DENOMINATOR());
@@ -244,9 +255,8 @@ contract RequestSettleDepositTest is BaseTest {
         // new price per share
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
-        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
-        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
+        SettleDepositExpectations memory _params =
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0, 0);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -254,26 +264,31 @@ contract RequestSettleDepositTest is BaseTest {
         emit IFeeManager.NewHighWaterMarkSet(_newPricePerShare);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDepositBatch(
-            _requestBatchId, _depositAmount, _newSharesToMint, _newTotalAssets, _totalShares
+            _requestBatchId,
+            _depositAmount,
+            _params.newSharesToMint,
+            _newTotalAssets,
+            _totalShares,
+            _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
-            _expectedTotalAssets,
-            _expectedTotalShares,
-            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares)
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(_newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _newTotalAssets + _depositAmount);
-        assertEq(vault.totalShares(), _totalShares + _newSharesToMint);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _newSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert high water mark is new price per share
         assertEq(vault.highWaterMark(), _newPricePerShare);
@@ -328,31 +343,38 @@ contract RequestSettleDepositTest is BaseTest {
 
         // new price per share
         uint256 _totalShares = vault.totalShares();
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
-        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
-        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare =
-            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        SettleDepositExpectations memory _params =
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0, 0);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDepositBatch(
-            _requestBatchId, _depositAmount, _newSharesToMint, _newTotalAssets, _totalShares
+            _requestBatchId,
+            _depositAmount,
+            _params.newSharesToMint,
+            _newTotalAssets,
+            _totalShares,
+            _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
-            0, _settleBatchId, _depositAmount, _expectedTotalAssets, _expectedTotalShares, _expectedPricePerShare
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(_newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _expectedTotalAssets);
-        assertEq(vault.totalShares(), _expectedTotalShares);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _newSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _settleBatchId);
@@ -398,38 +420,42 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
         uint48 _settleBatchId = vault.currentBatch();
 
-        // initial price per share
-        uint256 _initialPricePerShare = vault.PRICE_DENOMINATOR();
-        uint256 _initialSharesToMint = ERC4626Math.previewDeposit(_depositAmount, 0, 0);
-        uint256 _expectedTotalAssets = _depositAmount;
-        uint256 _expectedTotalShares = _initialSharesToMint;
+        // get settle deposit expectations
+        SettleDepositExpectations memory _params = _getSettleDepositExpectations(0, 0, _depositAmount, 0, 0);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(_requestBatchId, _depositAmount, _initialSharesToMint, 0, 0);
+        emit IERC7540Deposit.SettleDepositBatch(
+            _requestBatchId, _depositAmount, _params.newSharesToMint, 0, 0, _params.expectedPricePerShare
+        );
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewHighWaterMarkSet(_initialPricePerShare);
+        emit IFeeManager.NewHighWaterMarkSet(_params.expectedPricePerShare);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
-            0, _settleBatchId, _depositAmount, _expectedTotalAssets, _expectedTotalShares, _initialPricePerShare
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(0);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _expectedTotalAssets);
-        assertEq(vault.totalShares(), _expectedTotalShares);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _initialSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert fee is not accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), 0);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), 0);
+        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
 
         // assert high water mark is 1
-        assertEq(vault.highWaterMark(), _initialPricePerShare);
+        assertEq(vault.highWaterMark(), _params.expectedPricePerShare);
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _settleBatchId);
@@ -486,36 +512,41 @@ contract RequestSettleDepositTest is BaseTest {
 
         // same price per share
         uint256 _totalShares = vault.totalShares();
-        uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 10);
-        _totalShares += _expectedManagementShares;
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
-        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
-        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare =
-            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        SettleDepositExpectations memory _params =
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10, 0);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDepositBatch(
-            _requestBatchId, _depositAmount, _newSharesToMint, _newTotalAssets, _totalShares
+            _requestBatchId,
+            _depositAmount,
+            _params.newSharesToMint,
+            _newTotalAssets,
+            _totalShares + _params.managementFeeShares,
+            _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
-            0, _settleBatchId, _depositAmount, _expectedTotalAssets, _expectedTotalShares, _expectedPricePerShare
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(_newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _expectedTotalAssets);
-        assertEq(vault.totalShares(), _expectedTotalShares);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _newSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert management fee is accumulated but performance fee is not
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementShares);
+        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
         assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), 0);
 
         // assert high water mark is same
@@ -576,12 +607,9 @@ contract RequestSettleDepositTest is BaseTest {
 
         // same price per share
         uint256 _totalShares = vault.totalShares();
-        uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
-        uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 10);
-        uint256 _expectedPerformanceShares =
-            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
-        _totalShares += _expectedManagementShares + _expectedPerformanceShares;
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
+        uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
+        SettleDepositExpectations memory _params =
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10, vault.highWaterMark());
 
         // settle deposit
         vm.startPrank(oracle);
@@ -589,21 +617,35 @@ contract RequestSettleDepositTest is BaseTest {
         emit IFeeManager.NewHighWaterMarkSet(_newPricePerShare);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDepositBatch(
-            _requestBatchId, _depositAmount, _newSharesToMint, _newTotalAssets, _totalShares
+            _requestBatchId,
+            _depositAmount,
+            _params.newSharesToMint,
+            _newTotalAssets,
+            _totalShares + _params.managementFeeShares + _params.performanceFeeShares,
+            _params.expectedPricePerShare
+        );
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Deposit.SettleDeposit(
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(_newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _newTotalAssets + _depositAmount);
-        assertEq(vault.totalShares(), _totalShares + _newSharesToMint);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _newSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert management fee and performance fee are accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _expectedPerformanceShares);
+        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
 
         // assert high water mark has increased
         assertEq(vault.highWaterMark(), _newPricePerShare);
@@ -663,37 +705,42 @@ contract RequestSettleDepositTest is BaseTest {
 
         // same price per share
         uint256 _totalShares = vault.totalShares();
-        uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 10);
-        _totalShares += _expectedManagementShares;
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
-        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
-        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
-        uint256 _expectedPricePerShare =
-            Math.ceilDiv(_expectedTotalAssets * vault.PRICE_DENOMINATOR(), _expectedTotalShares);
+        SettleDepositExpectations memory _params =
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10, 0);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDepositBatch(
-            _requestBatchId, _depositAmount, _newSharesToMint, _newTotalAssets, _totalShares
+            _requestBatchId,
+            _depositAmount,
+            _params.newSharesToMint,
+            _newTotalAssets,
+            _totalShares + _params.managementFeeShares,
+            _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
         emit IERC7540Deposit.SettleDeposit(
-            0, _settleBatchId, _depositAmount, _expectedTotalAssets, _expectedTotalShares, _expectedPricePerShare
+            0,
+            _settleBatchId,
+            _depositAmount,
+            _params.expectedTotalAssets,
+            _params.expectedTotalShares,
+            _params.expectedPricePerShare
         );
         vault.settleDeposit(_newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _expectedTotalAssets);
-        assertEq(vault.totalShares(), _expectedTotalShares);
+        assertEq(vault.totalAssets(), _params.expectedTotalAssets);
+        assertEq(vault.totalShares(), _params.expectedTotalShares);
 
         // assert user shares
-        assertEq(vault.sharesOf(mockUser_1), _newSharesToMint);
+        assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert management fee is accumulated but performance fee is not
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), 0);
+        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
 
         // assert high water mark has not changed
         assertEq(vault.highWaterMark(), vault.PRICE_DENOMINATOR());
