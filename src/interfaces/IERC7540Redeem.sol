@@ -29,6 +29,8 @@ interface IERC7540Redeem {
         uint256 pricePerShare
     );
 
+    event RedeemRequestSettled(address indexed user, uint256 shares, uint256 amount);
+
     event SettleRedeemBatch(
         uint48 indexed batchId,
         uint256 totalAssetsToRedeem,
