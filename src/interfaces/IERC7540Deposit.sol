@@ -40,6 +40,7 @@ interface IERC7540Deposit {
         uint256 totalShares,
         uint256 pricePerShare
     );
+    event DepositRequestSettled(address indexed user, uint256 amount, uint256 shares);
     event SettleDepositBatch(
         uint48 indexed batchId,
         uint256 totalAmountToDeposit,

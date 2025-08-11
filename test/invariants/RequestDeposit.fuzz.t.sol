@@ -42,6 +42,8 @@ contract RequestDepositTest is BaseTest {
         vm.assume(_depositAmount < type(uint96).max);
         // don't use zero address
         vm.assume(_user != address(0));
+        // don't use user as vault
+        vm.assume(_user != address(vault));
 
         // get batch id
         uint48 _batchId = vault.currentBatch();

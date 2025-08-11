@@ -50,6 +50,8 @@ contract RequestSettleDepositTest is BaseTest {
         vm.assume(_newTotalAssets < type(uint96).max);
         // don't use zero address
         vm.assume(_user != address(0));
+        // don't use user as vault
+        vm.assume(_user != address(vault));
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -101,6 +103,8 @@ contract RequestSettleDepositTest is BaseTest {
         vm.assume(_newTotalAssets < type(uint96).max);
         // don't use zero address
         vm.assume(_user != address(0));
+        // don't use user as vault
+        vm.assume(_user != address(vault));
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
