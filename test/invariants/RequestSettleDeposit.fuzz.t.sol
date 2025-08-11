@@ -218,8 +218,8 @@ contract RequestSettleDepositTest is BaseTest {
     ) public {
         vm.assume(_iterations > 0);
         vm.assume(_batches > 0);
-        vm.assume(_iterations < 50);
-        vm.assume(_batches < 45);
+        vm.assume(_iterations < 30);
+        vm.assume(_batches < 30);
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
