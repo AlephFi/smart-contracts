@@ -30,7 +30,6 @@ interface IFeeManager {
     event NewHighWaterMarkSet(uint256 highWaterMark);
     event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
-    error InvalidConstructorParams();
     error InvalidManagementFee();
     error InvalidPerformanceFee();
 

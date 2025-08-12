@@ -33,8 +33,6 @@ interface IERC7540Deposit {
     event NewMaxDepositCapSet(uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
 
-    error InvalidConstructorParams();
-
     error InsufficientDeposit();
     error DepositLessThanMinDepositAmount();
     error DepositExceedsMaxDepositCap();

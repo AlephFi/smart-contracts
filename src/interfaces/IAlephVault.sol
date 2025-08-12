@@ -20,7 +20,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IAlephVault {
-    error InvalidConstructorParams();
     error InvalidInitializationParams();
     error InvalidAuthSigner();
 

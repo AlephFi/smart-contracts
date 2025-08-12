@@ -30,7 +30,12 @@ abstract contract AlephVaultBase {
 
     uint48 public immutable BATCH_DURATION;
 
+    error InvalidConstructorParams();
+
     constructor(uint48 _batchDuration) {
+        if (_batchDuration == 0) {
+            revert InvalidConstructorParams();
+        }
         BATCH_DURATION = _batchDuration;
     }
 
