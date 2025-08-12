@@ -24,7 +24,9 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
-import {AlephVaultFactoryStorage, AlephVaultFactoryStorageData} from "@aleph-vault/AlephVaultFactoryStorage.sol";
+import {
+    AlephVaultFactoryStorage, AlephVaultFactoryStorageData
+} from "@aleph-vault/factory/AlephVaultFactoryStorage.sol";
 
 /**
  * @author Othentic Labs LTD.

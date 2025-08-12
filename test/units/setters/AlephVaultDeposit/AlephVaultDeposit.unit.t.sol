@@ -25,7 +25,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 contract AlephVaultDeposit_Unit_Test is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
+        _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
 
         // check min deposit amount is queued
         bytes4 _key = TimelockRegistry.MIN_DEPOSIT_AMOUNT;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.MIN_DEPOSIT_AMOUNT_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.minDepositAmountTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
         assertEq(_timelock.newValue, abi.encode(100));
@@ -84,7 +84,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
 
         // get min deposit amount timelock params
         bytes4 _key = TimelockRegistry.MIN_DEPOSIT_AMOUNT;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.MIN_DEPOSIT_AMOUNT_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.minDepositAmountTimelock();
 
         // set min deposit amount
         vm.prank(manager);
@@ -98,7 +98,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         vault.queueMinDepositAmount(100);
 
         // roll the block forward to make timelock expired
-        vm.warp(Time.timestamp() + vault.MIN_DEPOSIT_AMOUNT_TIMELOCK() + 1);
+        vm.warp(Time.timestamp() + vault.minDepositAmountTimelock() + 1);
 
         // check min deposit amount is not set
         assertEq(vault.minDepositAmount(), 0);
@@ -139,7 +139,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
 
         // check max deposit cap is queued
         bytes4 _key = TimelockRegistry.MAX_DEPOSIT_CAP;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.MAX_DEPOSIT_CAP_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.maxDepositCapTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
         assertEq(_timelock.newValue, abi.encode(100));
@@ -169,7 +169,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
 
         // get max deposit cap timelock params
         bytes4 _key = TimelockRegistry.MAX_DEPOSIT_CAP;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.MAX_DEPOSIT_CAP_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.maxDepositCapTimelock();
 
         // set max deposit cap
         vm.prank(manager);
@@ -183,7 +183,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         vault.queueMaxDepositCap(100);
 
         // roll the block forward to make timelock expired
-        vm.warp(Time.timestamp() + vault.MAX_DEPOSIT_CAP_TIMELOCK() + 1);
+        vm.warp(Time.timestamp() + vault.maxDepositCapTimelock() + 1);
 
         // check max deposit cap is not set
         assertEq(vault.maxDepositCap(), 0);

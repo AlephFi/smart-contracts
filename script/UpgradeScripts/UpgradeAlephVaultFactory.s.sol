@@ -21,14 +21,14 @@ import {
     TransparentUpgradeableProxy,
     ITransparentUpgradeableProxy
 } from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ProxyAdmin} from "lib/openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
+import {ProxyAdmin} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
-import {AlephVaultFactory} from "@aleph-vault/AlephVaultFactory.sol";
+import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-
 // Use only to upgrade AlephVaultFactory.
 // forge script UpgradeAlephVaultFactory --sig="run()" --broadcast -vvvv --verify
 contract UpgradeAlephVaultFactory is BaseScript {

@@ -2,10 +2,12 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import "../src/AlephVaultFactory.sol";
-import "../src/interfaces/IAlephVault.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {UpgradeableBeacon} from "openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {AlephVault} from "../src/AlephVault.sol";
+import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
+import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 contract AlephVaultFactoryTest is Test {
     AlephVaultFactory factory;
@@ -27,13 +29,12 @@ contract AlephVaultFactoryTest is Test {
 
     AlephVault vaultImpl = new AlephVault(
         IAlephVault.ConstructorParams({
-            minDepositAmountTimelock: minDepositAmountTimelock,
-            maxDepositCapTimelock: maxDepositCapTimelock,
-            managementFeeTimelock: managementFeeTimelock,
-            performanceFeeTimelock: performanceFeeTimelock,
-            feeRecipientTimelock: feeRecipientTimelock,
-            batchDuration: batchDuration
-        })
+            alephVaultDepositImplementation: makeAddr("vaultDepositImplementation"),
+            alephVaultRedeemImplementation: makeAddr("vaultRedeemImplementation"),
+            alephVaultSettlementImplementation: makeAddr("vaultSettlementImplementation"),
+            feeManagerImplementation: makeAddr("feeManagerImplementation")
+        }),
+        batchDuration
     );
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
 

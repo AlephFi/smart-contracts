@@ -34,7 +34,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 contract RequestSettleDepositRedeemTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
+        _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
         _setAuthSignatures();
     }
@@ -115,9 +115,8 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         _newTotalAssets = vault.totalAssets() + 50 ether;
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
-        uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 2);
-        uint256 _expectedPerformanceShares =
-            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
+        uint256 _expectedManagementShares = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 2);
+        uint256 _expectedPerformanceShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected assets to withdraw per user
@@ -142,8 +141,8 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         assertEq(underlyingToken.balanceOf(mockUser_2), 800 ether + _expectedAssetsToWithdraw_user2);
 
         // assert fees are accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _expectedPerformanceShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _expectedManagementShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _expectedPerformanceShares);
 
         // assert high water mark is new price per share
         assertApproxEqAbs(vault.highWaterMark(), _newPricePerShare, 1);
@@ -255,9 +254,8 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         uint256 _newTotalAssets = vault.totalAssets() + 50 ether;
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
-        uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 3);
-        uint256 _expectedPerformanceShares =
-            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
+        uint256 _expectedManagementShares = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 3);
+        uint256 _expectedPerformanceShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected shares to mint per user
@@ -283,7 +281,7 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         // vault does not make profit
         _newTotalAssets = vault.totalAssets();
         _totalShares = vault.totalShares();
-        uint256 _expectedManagementShares_2 = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 1);
+        uint256 _expectedManagementShares_2 = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 1);
         _totalShares += _expectedManagementShares_2;
 
         // expected amount to withdraw per user
@@ -309,9 +307,9 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // assert fees are accumulated
         assertEq(
-            vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementShares + _expectedManagementShares_2
+            vault.sharesOf(vault.managementFeeRecipient()), _expectedManagementShares + _expectedManagementShares_2
         );
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _expectedPerformanceShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _expectedPerformanceShares);
 
         // assert high water mark is new price per share
         assertApproxEqAbs(vault.highWaterMark(), _newPricePerShare, 1);

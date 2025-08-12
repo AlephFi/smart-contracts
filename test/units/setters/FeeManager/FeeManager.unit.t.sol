@@ -25,7 +25,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 contract FeeManager_Unit_Test is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
+        _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
         // check management fee is queued
         bytes4 _key = TimelockRegistry.MANAGEMENT_FEE;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.MANAGEMENT_FEE_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.managementFeeTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
         assertEq(_timelock.newValue, abi.encode(500));
@@ -95,7 +95,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
         // get management fee timelock params
         bytes4 _key = TimelockRegistry.MANAGEMENT_FEE;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.MANAGEMENT_FEE_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.managementFeeTimelock();
 
         // set management fee
         vm.prank(operationsMultisig);
@@ -109,7 +109,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queueManagementFee(500);
 
         // roll the block forward to make timelock expired
-        vm.warp(Time.timestamp() + vault.MANAGEMENT_FEE_TIMELOCK() + 1);
+        vm.warp(Time.timestamp() + vault.managementFeeTimelock() + 1);
 
         // check management fee is not set
         assertEq(vault.managementFee(), defaultInitializationParams.managementFee);
@@ -159,7 +159,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
         // check performance fee is queued
         bytes4 _key = TimelockRegistry.PERFORMANCE_FEE;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.PERFORMANCE_FEE_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.performanceFeeTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
         assertEq(_timelock.newValue, abi.encode(5000));
@@ -191,7 +191,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
         // get performance fee timelock params
         bytes4 _key = TimelockRegistry.PERFORMANCE_FEE;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.PERFORMANCE_FEE_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.performanceFeeTimelock();
 
         // set performance fee
         vm.prank(operationsMultisig);
@@ -205,7 +205,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queuePerformanceFee(5000);
 
         // roll the block forward to make timelock expired
-        vm.warp(Time.timestamp() + vault.PERFORMANCE_FEE_TIMELOCK() + 1);
+        vm.warp(Time.timestamp() + vault.performanceFeeTimelock() + 1);
 
         // check performance fee is not set
         assertEq(vault.performanceFee(), defaultInitializationParams.performanceFee);
@@ -252,7 +252,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
         // check fee recipient is queued
         bytes4 _key = TimelockRegistry.FEE_RECIPIENT;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.FEE_RECIPIENT_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.feeRecipientTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
         assertEq(_timelock.newValue, abi.encode(_feeRecipient));
@@ -286,7 +286,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
         // check fee recipient timelock params
         bytes4 _key = TimelockRegistry.FEE_RECIPIENT;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.FEE_RECIPIENT_TIMELOCK();
+        uint48 _unlockTimestamp = Time.timestamp() + vault.feeRecipientTimelock();
 
         // set fee recipient
         vm.prank(operationsMultisig);
@@ -302,7 +302,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queueFeeRecipient(_feeRecipient);
 
         // roll the block forward to make timelock expired
-        vm.warp(Time.timestamp() + vault.FEE_RECIPIENT_TIMELOCK() + 1);
+        vm.warp(Time.timestamp() + vault.feeRecipientTimelock() + 1);
 
         // check fee recipient is not set
         assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);

@@ -19,20 +19,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-interface IERC7540Redeem {
-    event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);
-
-    error InsufficientRedeem();
-    error InsufficientSharesToRedeem();
-    error BatchAlreadyRedeemed();
-    error NoRedeemsToSettle();
-    error OnlyOneRequestPerBatchAllowedForRedeem();
-    error NoBatchAvailableForRedeem();
-
-    /**
-     * @notice Requests to redeem shares from the vault for the current batch.
-     * @param _shares The number of shares to redeem.
-     * @return _batchId The batch ID for the redeem request.
-     */
-    function requestRedeem(uint256 _shares) external returns (uint48 _batchId);
+library ModulesLibrary {
+    bytes4 internal constant ALEPH_VAULT_DEPOSIT = bytes4(keccak256("ALEPH_VAULT_DEPOSIT"));
+    bytes4 internal constant ALEPH_VAULT_REDEEM = bytes4(keccak256("ALEPH_VAULT_REDEEM"));
+    bytes4 internal constant ALEPH_VAULT_SETTLEMENT = bytes4(keccak256("ALEPH_VAULT_SETTLEMENT"));
+    bytes4 internal constant FEE_MANAGER = bytes4(keccak256("FEE_MANAGER"));
 }

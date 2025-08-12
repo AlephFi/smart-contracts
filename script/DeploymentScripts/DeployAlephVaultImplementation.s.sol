@@ -18,8 +18,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Script, console} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
-import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
+import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
+import {AlephVaultSettlement} from "@aleph-vault/modules/AlephVaultSettlement.sol";
+import {FeeManager} from "@aleph-vault/modules/FeeManager.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -35,7 +39,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         vm.createSelectFork(_chainId);
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
-        IAlephVault.ConstructorParams memory _constructorParams;
         string memory _environment = _getEnvironment();
 
         string memory _config = _getConfigFile();
@@ -63,20 +66,74 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
         console.log("batchDuration", _batchDuration);
 
-        _constructorParams = IAlephVault.ConstructorParams({
-            minDepositAmountTimelock: _minDepositAmountTimelock,
-            maxDepositCapTimelock: _maxDepositCapTimelock,
-            managementFeeTimelock: _managementFeeTimelock,
-            performanceFeeTimelock: _performanceFeeTimelock,
-            feeRecipientTimelock: _feeRecipientTimelock,
-            batchDuration: _batchDuration
-        });
-
-        AlephVault _vault = new AlephVault(_constructorParams);
+        IAlephVault.ConstructorParams memory _constructorParams = _deployModules(
+            _minDepositAmountTimelock,
+            _maxDepositCapTimelock,
+            _managementFeeTimelock,
+            _performanceFeeTimelock,
+            _feeRecipientTimelock,
+            _batchDuration
+        );
+        AlephVault _vault = new AlephVault(_constructorParams, _batchDuration);
         console.log("Vault implementation deployed at:", address(_vault));
 
-        _writeDeploymentConfig(_chainId, _environment, ".vaultImplementationAddress", vm.toString(address(_vault)));
-
+        _writeConfig(_chainId, _environment, address(_vault), _constructorParams);
         vm.stopBroadcast();
+    }
+
+    function _deployModules(
+        uint48 _minDepositAmountTimelock,
+        uint48 _maxDepositCapTimelock,
+        uint48 _managementFeeTimelock,
+        uint48 _performanceFeeTimelock,
+        uint48 _feeRecipientTimelock,
+        uint48 _batchDuration
+    ) internal returns (IAlephVault.ConstructorParams memory _constructorParams) {
+        AlephVaultDeposit _alephVaultDeposit =
+            new AlephVaultDeposit(_minDepositAmountTimelock, _maxDepositCapTimelock, _batchDuration);
+        AlephVaultRedeem _alephVaultRedeem = new AlephVaultRedeem(_batchDuration);
+        AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(_batchDuration);
+        FeeManager _feeManager =
+            new FeeManager(_managementFeeTimelock, _performanceFeeTimelock, _feeRecipientTimelock, _batchDuration);
+
+        _constructorParams = IAlephVault.ConstructorParams({
+            alephVaultDepositImplementation: address(_alephVaultDeposit),
+            alephVaultRedeemImplementation: address(_alephVaultRedeem),
+            alephVaultSettlementImplementation: address(_alephVaultSettlement),
+            feeManagerImplementation: address(_feeManager)
+        });
+    }
+
+    function _writeConfig(
+        string memory _chainId,
+        string memory _environment,
+        address _vaultAddress,
+        IAlephVault.ConstructorParams memory _constructorParams
+    ) internal {
+        _writeDeploymentConfig(_chainId, _environment, ".vaultImplementationAddress", vm.toString(_vaultAddress));
+        _writeDeploymentConfig(
+            _chainId,
+            _environment,
+            ".vaultDepositImplementationAddress",
+            vm.toString(_constructorParams.alephVaultDepositImplementation)
+        );
+        _writeDeploymentConfig(
+            _chainId,
+            _environment,
+            ".vaultRedeemImplementationAddress",
+            vm.toString(_constructorParams.alephVaultRedeemImplementation)
+        );
+        _writeDeploymentConfig(
+            _chainId,
+            _environment,
+            ".vaultSettlementImplementationAddress",
+            vm.toString(_constructorParams.alephVaultSettlementImplementation)
+        );
+        _writeDeploymentConfig(
+            _chainId,
+            _environment,
+            ".feeManagerImplementationAddress",
+            vm.toString(_constructorParams.feeManagerImplementation)
+        );
     }
 }

@@ -31,7 +31,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 contract RequestDepositTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
+        _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
 

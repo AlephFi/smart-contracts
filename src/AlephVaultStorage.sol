@@ -46,6 +46,7 @@ struct AlephVaultStorageData {
     mapping(address user => uint48 batchId) lastRedeemBatchId;
     mapping(address user => Checkpoints.Trace256 shares) sharesOf;
     mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
+    mapping(bytes4 => address) moduleImplementations;
 }
 
 /**

@@ -17,10 +17,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Script, console} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {UpgradeableBeacon} from "lib/openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {UpgradeableBeacon} from "openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
-import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service

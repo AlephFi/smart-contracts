@@ -30,6 +30,7 @@ interface IFeeManager {
     event NewHighWaterMarkSet(uint256 highWaterMark);
     event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
+    error InvalidConstructorParams();
     error InvalidManagementFee();
     error InvalidPerformanceFee();
 
@@ -65,6 +66,49 @@ interface IFeeManager {
      * @notice Sets the fee recipient to the queued value after the timelock period.
      */
     function setFeeRecipient() external;
+
+    /**
+     * @notice Accumulates fees for a given batch.
+     * @param _newTotalAssets The new total assets in the vault.
+     * @param _currentBatchId The current batch ID.
+     * @param _lastFeePaidId The last fee paid ID.
+     * @param _timestamp The timestamp of the current batch.
+     * @return The accumulated fees.
+     */
+    function accumulateFees(uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _lastFeePaidId, uint48 _timestamp)
+        external
+        returns (uint256);
+
+    /**
+     * @notice Initializes the high water mark.
+     * @param _totalAssets The total assets in the vault.
+     * @param _totalShares The total shares in the vault.
+     * @param _timestamp The timestamp of the current batch.
+     */
+    function initializeHighWaterMark(uint256 _totalAssets, uint256 _totalShares, uint48 _timestamp) external;
+
+    /**
+     * @notice Gets the management fee shares.
+     * @param _newTotalAssets The new total assets in the vault.
+     * @param _totalShares The total shares in the vault.
+     * @param _batchesElapsed The number of batches elapsed since the last fee was paid.
+     * @return _managementFeeShares The management fee shares.
+     */
+    function getManagementFeeShares(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)
+        external
+        view
+        returns (uint256 _managementFeeShares);
+
+    /**
+     * @notice Gets the performance fee shares.
+     * @param _newTotalAssets The new total assets in the vault.
+     * @param _totalShares The total shares in the vault.
+     * @return _performanceFeeShares The performance fee shares.
+     */
+    function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares)
+        external
+        view
+        returns (uint256 _performanceFeeShares);
 
     /**
      * @notice Collects all pending fees.

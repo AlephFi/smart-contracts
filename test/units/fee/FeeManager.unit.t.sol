@@ -19,13 +19,12 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
-import {FeeManager} from "@aleph-vault/FeeManager.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 contract FeeManagerTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setUpNewAlephVault(defaultConstructorParams, defaultInitializationParams);
+        _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
 
@@ -39,14 +38,14 @@ contract FeeManagerTest is BaseTest {
         uint48 timestamp = Time.timestamp();
 
         // accumalate fees
-        vault.accumalateFees(0, currentBatchId, lastFeePaidId, timestamp);
+        vault.accumulateFees(0, currentBatchId, lastFeePaidId, timestamp);
 
         // check lastFeePaidId is updated
         assertEq(vault.lastFeePaidId(), currentBatchId);
 
         // check no fees are accumalated
-        address managementFeeRecipient = vault.MANAGEMENT_FEE_RECIPIENT();
-        address performanceFeeRecipient = vault.PERFORMANCE_FEE_RECIPIENT();
+        address managementFeeRecipient = vault.managementFeeRecipient();
+        address performanceFeeRecipient = vault.performanceFeeRecipient();
         assertEq(vault.sharesOf(managementFeeRecipient), 0);
         assertEq(vault.sharesOf(performanceFeeRecipient), 0);
     }
@@ -71,7 +70,7 @@ contract FeeManagerTest is BaseTest {
         // accumalate fees
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(0, 100, 7, 0);
-        uint256 _totalSharesMinted = vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
 
         // assert total shares minted
         assertEq(_totalSharesMinted, 5);
@@ -83,11 +82,11 @@ contract FeeManagerTest is BaseTest {
         assertEq(vault.highWaterMark(), _highWaterMark);
 
         // check fees are accumalated to management fee recipient
-        address managementFeeRecipient = vault.MANAGEMENT_FEE_RECIPIENT();
+        address managementFeeRecipient = vault.managementFeeRecipient();
         assertEq(vault.sharesOf(managementFeeRecipient), 5);
 
         // check no fees are accumalated to performance fee recipient
-        address performanceFeeRecipient = vault.PERFORMANCE_FEE_RECIPIENT();
+        address performanceFeeRecipient = vault.performanceFeeRecipient();
         assertEq(vault.sharesOf(performanceFeeRecipient), 0);
     }
 
@@ -114,7 +113,7 @@ contract FeeManagerTest is BaseTest {
         emit IFeeManager.NewHighWaterMarkSet(_newHighWaterMark);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(0, 100, 7, 50);
-        uint256 _totalSharesMinted = vault.accumalateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
 
         // assert total shares minted
         assertEq(_totalSharesMinted, 46);
@@ -126,11 +125,11 @@ contract FeeManagerTest is BaseTest {
         assertEq(vault.highWaterMark(), _newHighWaterMark);
 
         // check fees are accumalated to management fee recipient
-        address managementFeeRecipient = vault.MANAGEMENT_FEE_RECIPIENT();
+        address managementFeeRecipient = vault.managementFeeRecipient();
         assertEq(vault.sharesOf(managementFeeRecipient), 5);
 
         // check fees are accumalated to performance fee recipient
-        address performanceFeeRecipient = vault.PERFORMANCE_FEE_RECIPIENT();
+        address performanceFeeRecipient = vault.performanceFeeRecipient();
         assertEq(vault.sharesOf(performanceFeeRecipient), 41);
     }
 
@@ -157,8 +156,8 @@ contract FeeManagerTest is BaseTest {
         // accumalate fees to recipients
         uint256 _managementShares = 120;
         uint256 _performanceShares = 120;
-        vault.setSharesOf(vault.MANAGEMENT_FEE_RECIPIENT(), _managementShares);
-        vault.setSharesOf(vault.PERFORMANCE_FEE_RECIPIENT(), _performanceShares);
+        vault.setSharesOf(vault.managementFeeRecipient(), _managementShares);
+        vault.setSharesOf(vault.performanceFeeRecipient(), _performanceShares);
 
         // set total assets and shares
         uint256 _totalAssets = 1000;
@@ -183,8 +182,8 @@ contract FeeManagerTest is BaseTest {
         vault.collectFees();
 
         // check recipient shares are burned
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), 0);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), 0);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), 0);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), 0);
 
         // check total assets and total shares are updated
         assertEq(

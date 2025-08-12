@@ -22,6 +22,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
@@ -47,7 +48,7 @@ contract RequestSettleDepositTest is BaseTest {
             managementFee: 0,
             performanceFee: 0
         });
-        _setUpNewAlephVault(defaultConstructorParams, _initializationParams);
+        _setUpNewAlephVault(defaultConfigParams, _initializationParams);
         _unpauseVaultFlows();
         _setAuthSignatures();
     }
@@ -91,13 +92,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId, _depositAmount, _params.newSharesToMint, 0, 0, _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(_params.expectedPricePerShare);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -174,7 +175,7 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId,
             _depositAmount,
             _params.newSharesToMint,
@@ -183,7 +184,7 @@ contract RequestSettleDepositTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -263,7 +264,7 @@ contract RequestSettleDepositTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(_newPricePerShare);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId,
             _depositAmount,
             _params.newSharesToMint,
@@ -272,7 +273,7 @@ contract RequestSettleDepositTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -349,7 +350,7 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId,
             _depositAmount,
             _params.newSharesToMint,
@@ -358,7 +359,7 @@ contract RequestSettleDepositTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -426,13 +427,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId, _depositAmount, _params.newSharesToMint, 0, 0, _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(_params.expectedPricePerShare);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -451,8 +452,8 @@ contract RequestSettleDepositTest is BaseTest {
         assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert fee is not accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _params.performanceFeeShares);
 
         // assert high water mark is 1
         assertEq(vault.highWaterMark(), _params.expectedPricePerShare);
@@ -518,7 +519,7 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId,
             _depositAmount,
             _params.newSharesToMint,
@@ -527,7 +528,7 @@ contract RequestSettleDepositTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -546,8 +547,8 @@ contract RequestSettleDepositTest is BaseTest {
         assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert management fee is accumulated but performance fee is not
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), 0);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), 0);
 
         // assert high water mark is same
         assertEq(vault.highWaterMark(), vault.PRICE_DENOMINATOR());
@@ -616,7 +617,7 @@ contract RequestSettleDepositTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(_newPricePerShare);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId,
             _depositAmount,
             _params.newSharesToMint,
@@ -625,7 +626,7 @@ contract RequestSettleDepositTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -644,8 +645,8 @@ contract RequestSettleDepositTest is BaseTest {
         assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert management fee and performance fee are accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _params.performanceFeeShares);
 
         // assert high water mark has increased
         assertEq(vault.highWaterMark(), _newPricePerShare);
@@ -711,7 +712,7 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit IERC7540Settlement.SettleDepositBatch(
             _requestBatchId,
             _depositAmount,
             _params.newSharesToMint,
@@ -720,7 +721,7 @@ contract RequestSettleDepositTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.SettleDeposit(
+        emit IERC7540Settlement.SettleDeposit(
             0,
             _settleBatchId,
             _depositAmount,
@@ -739,8 +740,8 @@ contract RequestSettleDepositTest is BaseTest {
         assertEq(vault.sharesOf(mockUser_1), _params.newSharesToMint);
 
         // assert management fee is accumulated but performance fee is not
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _params.performanceFeeShares);
 
         // assert high water mark has not changed
         assertEq(vault.highWaterMark(), vault.PRICE_DENOMINATOR());
@@ -854,10 +855,8 @@ contract RequestSettleDepositTest is BaseTest {
         _newTotalAssets = 1000 ether;
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
-        uint256 _expectedManagementFeeShares =
-            vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 11);
-        uint256 _expectedPerformanceFeeShares =
-            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
+        uint256 _expectedManagementFeeShares = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 11);
+        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
         _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
 
         // expected shares to mint
@@ -878,8 +877,8 @@ contract RequestSettleDepositTest is BaseTest {
         assertEq(vault.sharesOf(mockUser_2), _expectedSharesToMint_user2 + _expectedSharesToMint_3_user2);
 
         // assert fees are accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementFeeShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _expectedPerformanceFeeShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _expectedManagementFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _expectedPerformanceFeeShares);
 
         // assert high water mark has increased
         assertEq(vault.highWaterMark(), _newPricePerShare);
