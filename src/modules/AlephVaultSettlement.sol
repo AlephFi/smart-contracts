@@ -117,7 +117,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalAssets);
             _totalSharesToMint += _sharesToMintPerUser;
             _sd.sharesOf[_user].push(_timestamp, _sharesOf(_user) + _sharesToMintPerUser);
-            emit IERC7540Deposit.DepositRequestSettled(_user, _amount, _sharesToMintPerUser);
+            emit IERC7540Settlement.DepositRequestSettled(_user, _amount, _sharesToMintPerUser);
         }
         emit SettleDepositBatch(
             _batchId,
@@ -192,7 +192,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             uint256 _assets = ERC4626Math.previewRedeem(_sharesToBurnPerUser, _totalAssets, _totalShares);
             _totalAssetsToRedeem += _assets;
             _underlyingToken.safeTransfer(_user, _assets);
-            emit IERC7540Redeem.RedeemRequestSettled(_user, _sharesToBurnPerUser, _assets);
+            emit IERC7540Settlement.RedeemRequestSettled(_user, _sharesToBurnPerUser, _assets);
         }
         emit SettleRedeemBatch(
             _batchId,

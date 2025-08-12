@@ -31,6 +31,8 @@ interface IERC7540Settlement {
         uint256 pricePerShare
     );
 
+    event DepositRequestSettled(address indexed user, uint256 amount, uint256 sharesToMint);
+
     event SettleDepositBatch(
         uint48 indexed batchId,
         uint256 totalAmountToDeposit,
@@ -48,6 +50,8 @@ interface IERC7540Settlement {
         uint256 totalShares,
         uint256 pricePerShare
     );
+
+    event RedeemRequestSettled(address indexed user, uint256 sharesToBurn, uint256 assets);
 
     event SettleRedeemBatch(
         uint48 indexed batchId,
