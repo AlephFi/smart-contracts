@@ -66,6 +66,8 @@ interface IERC7540Settlement {
     error NoDepositsToSettle();
     error NoRedeemsToSettle();
 
+    error DelegateCallFailed(bytes _data);
+
     /**
      * @notice Settles all pending deposits up to the current batch.
      * @param _newTotalAssets The new total assets after settlement.

@@ -216,7 +216,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             abi.encodeCall(IFeeManager.accumulateFees, (_newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp))
         );
         if (!_success) {
-            revert();
+            revert DelegateCallFailed(_data);
         }
         return abi.decode(_data, (uint256));
     }
@@ -227,8 +227,11 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint256 _totalShares,
         uint48 _timestamp
     ) internal {
-        _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
+        (bool _success, bytes memory _data) = _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
             abi.encodeCall(IFeeManager.initializeHighWaterMark, (_totalAssets, _totalShares, _timestamp))
         );
+        if (!_success) {
+            revert DelegateCallFailed(_data);
+        }
     }
 }
