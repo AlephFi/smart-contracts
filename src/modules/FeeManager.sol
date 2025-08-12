@@ -102,31 +102,29 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     }
 
     ///@inheritdoc IFeeManager
-    function getManagementFeeShares(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)
-        external
-        view
-        returns (uint256 _managementFeeShares)
-    {
+    function getManagementFeeShares(
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint48 _batchesElapsed,
+        uint32 _managementFeeRate
+    ) external view returns (uint256 _managementFeeShares) {
         return ERC4626Math.previewDeposit(
-            _calculateManagementFeeAmount(_getStorage(), _newTotalAssets, _batchesElapsed),
+            _calculateManagementFeeAmount(_newTotalAssets, _batchesElapsed, _managementFeeRate),
             _totalShares,
             _newTotalAssets
         );
     }
 
     ///@inheritdoc IFeeManager
-    function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares)
-        external
-        view
-        returns (uint256 _performanceFeeShares)
-    {
+    function getPerformanceFeeShares(
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint32 _performanceFeeRate,
+        uint256 _highWaterMark
+    ) external pure returns (uint256 _performanceFeeShares) {
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
-        uint256 _highWaterMark = _highWaterMark();
-        if (_highWaterMark == 0) {
-            return 0;
-        }
         uint256 _performanceFeeAmount = _pricePerShare > _highWaterMark
-            ? _calculatePerformanceFeeAmount(_pricePerShare, _highWaterMark, _totalShares, _getStorage().performanceFee)
+            ? _calculatePerformanceFeeAmount(_pricePerShare, _highWaterMark, _totalShares, _performanceFeeRate)
             : 0;
         return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
     }
@@ -217,7 +215,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         if (_newTotalAssets > 0) {
             uint256 _totalShares = _totalShares();
             uint256 _managementFeeAmount =
-                _calculateManagementFeeAmount(_sd, _newTotalAssets, _currentBatchId - _lastFeePaidId);
+                _calculateManagementFeeAmount(_newTotalAssets, _currentBatchId - _lastFeePaidId, _sd.managementFee);
             uint256 _performanceFeeAmount = _checkPerformanceFeeAmount(_sd, _newTotalAssets, _totalShares, _timestamp);
             uint256 _managementSharesToMint =
                 ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
@@ -239,16 +237,16 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     /**
      * @dev Internal function to calculate the management fee amount.
-     * @param _sd The storage struct for the vault.
      * @param _newTotalAssets The new total assets after collection.
+     * @param _batchesElapsed The number of batches elapsed since the last fee was paid.
+     * @param _managementFeeRate The management fee rate.
      * @return _managementFeeAmount The management fee to be collected.
      */
-    function _calculateManagementFeeAmount(
-        AlephVaultStorageData storage _sd,
-        uint256 _newTotalAssets,
-        uint48 _batchesElapsed
-    ) internal view returns (uint256 _managementFeeAmount) {
-        uint48 _managementFeeRate = _sd.managementFee;
+    function _calculateManagementFeeAmount(uint256 _newTotalAssets, uint48 _batchesElapsed, uint32 _managementFeeRate)
+        internal
+        view
+        returns (uint256 _managementFeeAmount)
+    {
         uint256 _annualFees =
             _newTotalAssets.mulDiv(uint256(_managementFeeRate), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
         _managementFeeAmount =

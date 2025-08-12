@@ -510,26 +510,18 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint256 _totalShares,
         uint48 _batchesElapsed
     ) internal returns (uint256 _managementFeeShares) {
-        (bool _success, bytes memory _data) = _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
-            abi.encodeCall(IFeeManager.getManagementFeeShares, (_newTotalAssets, _totalShares, _batchesElapsed))
+        return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
+            _newTotalAssets, _totalShares, _batchesElapsed, _sd.managementFee
         );
-        if (!_success) {
-            revert();
-        }
-        return abi.decode(_data, (uint256));
     }
 
     function _getPerformanceFeeShares(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint256 _totalShares)
         internal
         returns (uint256 _performanceFeeShares)
     {
-        (bool _success, bytes memory _data) = _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
-            abi.encodeCall(IFeeManager.getPerformanceFeeShares, (_newTotalAssets, _totalShares))
+        return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
+            _newTotalAssets, _totalShares, _sd.performanceFee, _highWaterMark()
         );
-        if (!_success) {
-            revert();
-        }
-        return abi.decode(_data, (uint256));
     }
 
     /**

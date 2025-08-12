@@ -18,6 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
@@ -134,11 +135,19 @@ contract ExposedVault is AlephVault {
         if (_batchesElapsed == 0) {
             return 0;
         }
-        _delegate(ModulesLibrary.FEE_MANAGER);
+        return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
+            _newTotalAssets, _totalShares, _batchesElapsed, _getStorage().managementFee
+        );
     }
 
     function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares) external returns (uint256) {
-        _delegate(ModulesLibrary.FEE_MANAGER);
+        uint256 _highWaterMark = _highWaterMark();
+        if (_highWaterMark == 0) {
+            return 0;
+        }
+        return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
+            _newTotalAssets, _totalShares, _getStorage().performanceFee, _highWaterMark
+        );
     }
 
     function managementFeeRecipient() external view returns (address) {
