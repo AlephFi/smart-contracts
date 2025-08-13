@@ -25,6 +25,7 @@ struct AlephVaultFactoryStorageData {
     uint32 managementFee;
     uint32 performanceFee;
     mapping(address vault => bool isValid) vaults;
+    mapping(bytes4 => address) moduleImplementations;
 }
 
 /**

@@ -44,21 +44,36 @@ contract DeployAlephVaultFactory is BaseScript {
 
         IAlephVaultFactory.InitializationParams memory _initializationParams;
 
-        string memory _config = _getFactoryConfig();
+        string memory _factoryConfig = _getFactoryConfig();
+        string memory _deploymentConfig = _getDeploymentConfig();
         _initializationParams = IAlephVaultFactory.InitializationParams({
             beacon: _beacon,
             operationsMultisig: vm.parseJsonAddress(
-                _config, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
+                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
             ),
-            oracle: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".oracle")),
-            guardian: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".guardian")),
-            authSigner: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".authSigner")),
-            feeRecipient: vm.parseJsonAddress(_config, string.concat(".", _chainId, ".", _environment, ".feeRecipient")),
+            oracle: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".oracle")),
+            guardian: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".guardian")),
+            authSigner: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".authSigner")),
+            feeRecipient: vm.parseJsonAddress(
+                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".feeRecipient")
+            ),
+            alephVaultDepositImplementation: vm.parseJsonAddress(
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultDepositImplementationAddress")
+            ),
+            alephVaultRedeemImplementation: vm.parseJsonAddress(
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultRedeemImplementationAddress")
+            ),
+            alephVaultSettlementImplementation: vm.parseJsonAddress(
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultSettlementImplementationAddress")
+            ),
+            feeManagerImplementation: vm.parseJsonAddress(
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".feeManagerImplementationAddress")
+            ),
             managementFee: uint32(
-                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".managementFee"))
+                vm.parseJsonUint(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".managementFee"))
             ),
             performanceFee: uint32(
-                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".performanceFee"))
+                vm.parseJsonUint(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".performanceFee"))
             )
         });
 

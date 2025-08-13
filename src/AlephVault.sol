@@ -45,25 +45,9 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Constructor.
-     * @param _constructorParams Struct containing all constructor parameters.
+     * @param _batchDuration The duration of a batch.
      */
-    constructor(ConstructorParams memory _constructorParams, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
-        if (
-            _constructorParams.alephVaultDepositImplementation == address(0)
-                || _constructorParams.alephVaultRedeemImplementation == address(0)
-                || _constructorParams.alephVaultSettlementImplementation == address(0)
-                || _constructorParams.feeManagerImplementation == address(0)
-        ) {
-            revert InvalidConstructorParams();
-        }
-        AlephVaultStorageData storage _sd = _getStorage();
-        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
-            _constructorParams.alephVaultDepositImplementation;
-        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] = _constructorParams.alephVaultRedeemImplementation;
-        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
-            _constructorParams.alephVaultSettlementImplementation;
-        _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _constructorParams.feeManagerImplementation;
-    }
+    constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /**
      * @notice Initializes the vault with the given parameters.
@@ -81,36 +65,54 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initalizationParams.manager == address(0) || _initalizationParams.operationsMultisig == address(0)
-                || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
-                || _initalizationParams.authSigner == address(0) || _initalizationParams.underlyingToken == address(0)
-                || _initalizationParams.custodian == address(0) || _initalizationParams.feeRecipient == address(0)
+            _initalizationParams.userInitializationParams.manager == address(0)
+                || _initalizationParams.operationsMultisig == address(0) || _initalizationParams.oracle == address(0)
+                || _initalizationParams.guardian == address(0) || _initalizationParams.authSigner == address(0)
+                || _initalizationParams.userInitializationParams.underlyingToken == address(0)
+                || _initalizationParams.userInitializationParams.custodian == address(0)
+                || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.moduleInitializationParams.alephVaultDepositImplementation == address(0)
+                || _initalizationParams.moduleInitializationParams.alephVaultRedeemImplementation == address(0)
+                || _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation == address(0)
+                || _initalizationParams.moduleInitializationParams.feeManagerImplementation == address(0)
                 || _initalizationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
             revert InvalidInitializationParams();
         }
-        _sd.manager = _initalizationParams.manager;
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
         _sd.authSigner = _initalizationParams.authSigner;
-        _sd.underlyingToken = _initalizationParams.underlyingToken;
-        _sd.custodian = _initalizationParams.custodian;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
         _sd.managementFee = _initalizationParams.managementFee;
         _sd.performanceFee = _initalizationParams.performanceFee;
-        _sd.name = _initalizationParams.name;
+        _sd.name = _initalizationParams.userInitializationParams.name;
+        _sd.manager = _initalizationParams.userInitializationParams.manager;
+        _sd.underlyingToken = _initalizationParams.userInitializationParams.underlyingToken;
+        _sd.custodian = _initalizationParams.userInitializationParams.custodian;
         _sd.isAuthEnabled = true;
         _sd.startTimeStamp = Time.timestamp();
+        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
+            _initalizationParams.moduleInitializationParams.alephVaultDepositImplementation;
+        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
+            _initalizationParams.moduleInitializationParams.alephVaultRedeemImplementation;
+        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
+            _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation;
+        _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
+            _initalizationParams.moduleInitializationParams.feeManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
-        _grantRole(RolesLibrary.MANAGER, _initalizationParams.manager);
+        _grantRole(RolesLibrary.MANAGER, _initalizationParams.userInitializationParams.manager);
         _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
         __AlephVaultDeposit_init(
-            _initalizationParams.manager, _initalizationParams.guardian, _initalizationParams.operationsMultisig
+            _initalizationParams.userInitializationParams.manager,
+            _initalizationParams.guardian,
+            _initalizationParams.operationsMultisig
         );
         __AlephVaultRedeem_init(
-            _initalizationParams.manager, _initalizationParams.guardian, _initalizationParams.operationsMultisig
+            _initalizationParams.userInitializationParams.manager,
+            _initalizationParams.guardian,
+            _initalizationParams.operationsMultisig
         );
     }
 

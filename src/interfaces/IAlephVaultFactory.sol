@@ -42,6 +42,10 @@ interface IAlephVaultFactory {
         address guardian;
         address authSigner;
         address feeRecipient;
+        address alephVaultDepositImplementation;
+        address alephVaultRedeemImplementation;
+        address alephVaultSettlementImplementation;
+        address feeManagerImplementation;
         uint32 managementFee;
         uint32 performanceFee;
     }

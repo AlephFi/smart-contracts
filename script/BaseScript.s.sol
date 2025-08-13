@@ -46,6 +46,11 @@ abstract contract BaseScript is Script {
         return _config;
     }
 
+    function _getDeploymentConfig() internal view returns (string memory) {
+        string memory _config = vm.readFile("deploymentConfig.json");
+        return _config;
+    }
+
     function _getVaultImplementation(string memory _chainId, string memory _environment)
         internal
         view

@@ -35,17 +35,15 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
     function setUp() public override {
         super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
-            name: defaultInitializationParams.name,
-            manager: defaultInitializationParams.manager,
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            underlyingToken: defaultInitializationParams.underlyingToken,
-            custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
             managementFee: 0, // 0%
-            performanceFee: 0 // 0%
+            performanceFee: 0, // 0%
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
 
         _setUpNewAlephVault(defaultConfigParams, _initializationParams);

@@ -22,6 +22,7 @@ import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconP
 import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
+import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {
@@ -54,6 +55,10 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             _initalizationParams.beacon == address(0) || _initalizationParams.operationsMultisig == address(0)
                 || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
                 || _initalizationParams.authSigner == address(0) || _initalizationParams.feeRecipient == address(0)
+                || _initalizationParams.alephVaultDepositImplementation == address(0)
+                || _initalizationParams.alephVaultRedeemImplementation == address(0)
+                || _initalizationParams.alephVaultSettlementImplementation == address(0)
+                || _initalizationParams.feeManagerImplementation == address(0)
                 || _initalizationParams.managementFee > MAX_MANAGEMENT_FEE
                 || _initalizationParams.performanceFee > MAX_PERFORMANCE_FEE
         ) {
@@ -69,6 +74,13 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.feeRecipient = _initalizationParams.feeRecipient;
         _sd.managementFee = _initalizationParams.managementFee;
         _sd.performanceFee = _initalizationParams.performanceFee;
+        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
+            _initalizationParams.alephVaultDepositImplementation;
+        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
+            _initalizationParams.alephVaultRedeemImplementation;
+        _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
+            _initalizationParams.alephVaultSettlementImplementation;
+        _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initalizationParams.feeManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
     }
 
@@ -83,18 +95,23 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     {
         bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
+        IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
+            .ModuleInitializationParams({
+            alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
+            alephVaultRedeemImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM],
+            alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
+            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]
+        });
         IAlephVault.InitializationParams memory _initalizationParams = IAlephVault.InitializationParams({
-            name: _userInitializationParams.name,
             operationsMultisig: _sd.operationsMultisig,
-            manager: _userInitializationParams.manager,
             oracle: _sd.oracle,
             guardian: _sd.guardian,
             authSigner: _sd.authSigner,
-            underlyingToken: _userInitializationParams.underlyingToken,
-            custodian: _userInitializationParams.custodian,
             feeRecipient: _sd.feeRecipient,
             managementFee: _sd.managementFee,
-            performanceFee: _sd.performanceFee
+            performanceFee: _sd.performanceFee,
+            userInitializationParams: _userInitializationParams,
+            moduleInitializationParams: _moduleInitializationParams
         });
         bytes memory _bytecode = abi.encodePacked(
             type(BeaconProxy).creationCode,
@@ -104,7 +121,10 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         address _vault = Create2.deploy(0, _salt, _bytecode);
         _sd.vaults[_vault] = true;
         emit VaultDeployed(
-            _vault, _initalizationParams.manager, _initalizationParams.name, _userInitializationParams.configId
+            _vault,
+            _userInitializationParams.manager,
+            _userInitializationParams.name,
+            _userInitializationParams.configId
         );
         return _vault;
     }
@@ -170,6 +190,16 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         }
         _getStorage().performanceFee = _performanceFee;
         emit PerformanceFeeSet(_performanceFee);
+    }
+
+    function setModuleImplementation(bytes4 _module, address _implementation)
+        external
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
+        if (_implementation == address(0)) {
+            revert InvalidParam();
+        }
+        _getStorage().moduleImplementations[_module] = _implementation;
     }
 
     // Internal function to get the storage of the factory.

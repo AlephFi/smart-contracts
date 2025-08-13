@@ -111,17 +111,26 @@ contract BaseTest is Test {
         });
 
         defaultInitializationParams = IAlephVault.InitializationParams({
-            name: "test",
-            manager: makeAddr("manager"),
             operationsMultisig: makeAddr("operationsMultisig"),
             oracle: makeAddr("oracle"),
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
-            underlyingToken: address(underlyingToken),
-            custodian: makeAddr("custodian"),
             feeRecipient: makeAddr("feeRecipient"),
             managementFee: 200, // 2%
-            performanceFee: 2000 // 20%
+            performanceFee: 2000, // 20%
+            userInitializationParams: IAlephVault.UserInitializationParams({
+                name: "test",
+                configId: "test-123",
+                manager: makeAddr("manager"),
+                underlyingToken: address(underlyingToken),
+                custodian: makeAddr("custodian")
+            }),
+            moduleInitializationParams: IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: address(0),
+                alephVaultRedeemImplementation: address(0),
+                alephVaultSettlementImplementation: address(0),
+                feeManagerImplementation: address(0)
+            })
         });
     }
 
@@ -138,34 +147,33 @@ contract BaseTest is Test {
         batchDuration = _configParams.batchDuration;
 
         // deploy modules
-        address _vaultDepositImplementation =
-            address(new AlephVaultDeposit(minDepositAmountTimelock, maxDepositCapTimelock, batchDuration));
-        address _vaultRedeemImplementation = address(new AlephVaultRedeem(batchDuration));
-        address _vaultSettlementImplementation = address(new AlephVaultSettlement(batchDuration));
-        address _feeManagerImplementation =
-            address(new FeeManager(managementFeeTimelock, performanceFeeTimelock, feeRecipientTimelock, batchDuration));
+        defaultInitializationParams.moduleInitializationParams = IAlephVault.ModuleInitializationParams({
+            alephVaultDepositImplementation: address(
+                new AlephVaultDeposit(minDepositAmountTimelock, maxDepositCapTimelock, batchDuration)
+            ),
+            alephVaultRedeemImplementation: address(new AlephVaultRedeem(batchDuration)),
+            alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
+            feeManagerImplementation: address(
+                new FeeManager(managementFeeTimelock, performanceFeeTimelock, feeRecipientTimelock, batchDuration)
+            )
+        });
 
         // set up vault
-        vault = new ExposedVault(
-            IAlephVault.ConstructorParams({
-                alephVaultDepositImplementation: _vaultDepositImplementation,
-                alephVaultRedeemImplementation: _vaultRedeemImplementation,
-                alephVaultSettlementImplementation: _vaultSettlementImplementation,
-                feeManagerImplementation: _feeManagerImplementation
-            }),
-            batchDuration
-        );
+        vault = new ExposedVault(batchDuration);
 
         // set up initialization params
-        manager = _initializationParams.manager;
+        manager = _initializationParams.userInitializationParams.manager;
         operationsMultisig = _initializationParams.operationsMultisig;
         oracle = _initializationParams.oracle;
         guardian = _initializationParams.guardian;
         authSigner = _initializationParams.authSigner;
-        custodian = _initializationParams.custodian;
+        custodian = _initializationParams.userInitializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
         managementFee = _initializationParams.managementFee;
         performanceFee = _initializationParams.performanceFee;
+
+        // set up module implementations
+        _initializationParams.moduleInitializationParams = defaultInitializationParams.moduleInitializationParams;
 
         // initialize vault
         vault.initialize(_initializationParams);

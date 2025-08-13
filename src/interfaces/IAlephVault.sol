@@ -27,25 +27,16 @@ interface IAlephVault {
     event IsAuthEnabledSet(bool isAuthEnabled);
     event AuthSignerSet(address authSigner);
 
-    struct ConstructorParams {
-        address alephVaultDepositImplementation;
-        address alephVaultRedeemImplementation;
-        address alephVaultSettlementImplementation;
-        address feeManagerImplementation;
-    }
-
     struct InitializationParams {
-        string name;
-        address manager;
         address operationsMultisig;
         address oracle;
         address guardian;
         address authSigner;
-        address underlyingToken;
-        address custodian;
         address feeRecipient;
         uint32 managementFee;
         uint32 performanceFee;
+        UserInitializationParams userInitializationParams;
+        ModuleInitializationParams moduleInitializationParams;
     }
 
     struct UserInitializationParams {
@@ -54,6 +45,13 @@ interface IAlephVault {
         address manager;
         address underlyingToken;
         address custodian;
+    }
+
+    struct ModuleInitializationParams {
+        address alephVaultDepositImplementation;
+        address alephVaultRedeemImplementation;
+        address alephVaultSettlementImplementation;
+        address feeManagerImplementation;
     }
 
     struct BatchData {

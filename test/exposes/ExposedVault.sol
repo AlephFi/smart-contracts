@@ -17,7 +17,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
@@ -35,9 +34,7 @@ contract ExposedVault is AlephVault {
     using Math for uint256;
     using Checkpoints for Checkpoints.Trace256;
 
-    constructor(IAlephVault.ConstructorParams memory _constructorParams, uint48 _batchDuration)
-        AlephVault(_constructorParams, _batchDuration)
-    {}
+    constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
 
     function depositSettleId() external view returns (uint48) {
         return _getStorage().depositSettleId;

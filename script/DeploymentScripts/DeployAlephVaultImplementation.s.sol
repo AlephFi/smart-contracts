@@ -29,6 +29,13 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
+struct ModuleImplementationAddresses {
+    address alephVaultDepositImplementation;
+    address alephVaultRedeemImplementation;
+    address alephVaultSettlementImplementation;
+    address feeManagerImplementation;
+}
+
 // Use to Deploy only an AlephVault implementation.
 // forge script DeployAlephVaultImplementation --broadcast -vvvv --verify
 contract DeployAlephVaultImplementation is BaseScript {
@@ -66,7 +73,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
         console.log("batchDuration", _batchDuration);
 
-        IAlephVault.ConstructorParams memory _constructorParams = _deployModules(
+        ModuleImplementationAddresses memory _moduleImplementationAddresses = _deployModules(
             _minDepositAmountTimelock,
             _maxDepositCapTimelock,
             _managementFeeTimelock,
@@ -74,10 +81,10 @@ contract DeployAlephVaultImplementation is BaseScript {
             _feeRecipientTimelock,
             _batchDuration
         );
-        AlephVault _vault = new AlephVault(_constructorParams, _batchDuration);
+        AlephVault _vault = new AlephVault(_batchDuration);
         console.log("Vault implementation deployed at:", address(_vault));
 
-        _writeConfig(_chainId, _environment, address(_vault), _constructorParams);
+        _writeConfig(_chainId, _environment, address(_vault), _moduleImplementationAddresses);
         vm.stopBroadcast();
     }
 
@@ -88,7 +95,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 _performanceFeeTimelock,
         uint48 _feeRecipientTimelock,
         uint48 _batchDuration
-    ) internal returns (IAlephVault.ConstructorParams memory _constructorParams) {
+    ) internal returns (ModuleImplementationAddresses memory _moduleImplementationAddresses) {
         AlephVaultDeposit _alephVaultDeposit =
             new AlephVaultDeposit(_minDepositAmountTimelock, _maxDepositCapTimelock, _batchDuration);
         AlephVaultRedeem _alephVaultRedeem = new AlephVaultRedeem(_batchDuration);
@@ -96,7 +103,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         FeeManager _feeManager =
             new FeeManager(_managementFeeTimelock, _performanceFeeTimelock, _feeRecipientTimelock, _batchDuration);
 
-        _constructorParams = IAlephVault.ConstructorParams({
+        _moduleImplementationAddresses = ModuleImplementationAddresses({
             alephVaultDepositImplementation: address(_alephVaultDeposit),
             alephVaultRedeemImplementation: address(_alephVaultRedeem),
             alephVaultSettlementImplementation: address(_alephVaultSettlement),
@@ -108,32 +115,32 @@ contract DeployAlephVaultImplementation is BaseScript {
         string memory _chainId,
         string memory _environment,
         address _vaultAddress,
-        IAlephVault.ConstructorParams memory _constructorParams
+        ModuleImplementationAddresses memory _moduleImplementationAddresses
     ) internal {
         _writeDeploymentConfig(_chainId, _environment, ".vaultImplementationAddress", vm.toString(_vaultAddress));
         _writeDeploymentConfig(
             _chainId,
             _environment,
             ".vaultDepositImplementationAddress",
-            vm.toString(_constructorParams.alephVaultDepositImplementation)
+            vm.toString(_moduleImplementationAddresses.alephVaultDepositImplementation)
         );
         _writeDeploymentConfig(
             _chainId,
             _environment,
             ".vaultRedeemImplementationAddress",
-            vm.toString(_constructorParams.alephVaultRedeemImplementation)
+            vm.toString(_moduleImplementationAddresses.alephVaultRedeemImplementation)
         );
         _writeDeploymentConfig(
             _chainId,
             _environment,
             ".vaultSettlementImplementationAddress",
-            vm.toString(_constructorParams.alephVaultSettlementImplementation)
+            vm.toString(_moduleImplementationAddresses.alephVaultSettlementImplementation)
         );
         _writeDeploymentConfig(
             _chainId,
             _environment,
             ".feeManagerImplementationAddress",
-            vm.toString(_constructorParams.feeManagerImplementation)
+            vm.toString(_moduleImplementationAddresses.feeManagerImplementation)
         );
     }
 }

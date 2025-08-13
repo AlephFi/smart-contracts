@@ -20,6 +20,10 @@ contract AlephVaultFactoryTest is Test {
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
     address feeRecipient = makeAddr("feeRecipient");
+    address alephVaultDepositImplementation = makeAddr("AlephVaultDeposit");
+    address alephVaultRedeemImplementation = makeAddr("AlephVaultRedeem");
+    address alephVaultSettlementImplementation = makeAddr("AlephVaultSettlement");
+    address feeManagerImplementation = makeAddr("FeeManager");
     uint48 minDepositAmountTimelock = 7 days;
     uint48 maxDepositCapTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
@@ -27,15 +31,7 @@ contract AlephVaultFactoryTest is Test {
     uint48 feeRecipientTimelock = 7 days;
     uint48 batchDuration = 1 days;
 
-    AlephVault vaultImpl = new AlephVault(
-        IAlephVault.ConstructorParams({
-            alephVaultDepositImplementation: makeAddr("vaultDepositImplementation"),
-            alephVaultRedeemImplementation: makeAddr("vaultRedeemImplementation"),
-            alephVaultSettlementImplementation: makeAddr("vaultSettlementImplementation"),
-            feeManagerImplementation: makeAddr("feeManagerImplementation")
-        }),
-        batchDuration
-    );
+    AlephVault vaultImpl = new AlephVault(batchDuration);
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
 
     function setUp() public {
@@ -50,6 +46,10 @@ contract AlephVaultFactoryTest is Test {
                 guardian: guardian,
                 authSigner: authSigner,
                 feeRecipient: feeRecipient,
+                alephVaultDepositImplementation: alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: alephVaultSettlementImplementation,
+                feeManagerImplementation: feeManagerImplementation,
                 managementFee: 0,
                 performanceFee: 0
             })
@@ -66,6 +66,10 @@ contract AlephVaultFactoryTest is Test {
                 guardian: guardian,
                 authSigner: authSigner,
                 feeRecipient: feeRecipient,
+                alephVaultDepositImplementation: alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: alephVaultSettlementImplementation,
+                feeManagerImplementation: feeManagerImplementation,
                 managementFee: 0,
                 performanceFee: 0
             })
