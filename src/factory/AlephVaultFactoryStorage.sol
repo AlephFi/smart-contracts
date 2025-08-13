@@ -15,6 +15,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
+
 struct AlephVaultFactoryStorageData {
     address beacon;
     address operationsMultisig;
@@ -24,7 +26,7 @@ struct AlephVaultFactoryStorageData {
     address feeRecipient;
     uint32 managementFee;
     uint32 performanceFee;
-    mapping(address vault => bool isValid) vaults;
+    EnumerableSet.AddressSet vaults;
     mapping(bytes4 => address) moduleImplementations;
 }
 

@@ -83,6 +83,26 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_operationsMultisig_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: address(0),
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            managementFee: defaultInitializationParams.managementFee,
+            performanceFee: defaultInitializationParams.performanceFee,
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_vaultFactory_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: address(0),
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -101,6 +121,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_oracle_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: address(0),
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -119,6 +140,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_guardian_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: address(0),
             authSigner: defaultInitializationParams.authSigner,
@@ -137,6 +159,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_authSigner_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: address(0),
@@ -155,6 +178,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_feeRecipient_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -173,6 +197,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_managementFee_is_greater_than_maxManagementFee() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -191,6 +216,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_performanceFee_is_greater_than_maxPerformanceFee() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -209,6 +235,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_manager_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -233,6 +260,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_underlyingToken_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -257,6 +285,7 @@ contract VaultSetUpTest is BaseTest {
     function test_initialize_when_custodian_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
@@ -294,6 +323,7 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.performanceFee(), defaultInitializationParams.performanceFee);
 
         assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultInitializationParams.operationsMultisig));
+        assertTrue(vault.hasRole(RolesLibrary.VAULT_FACTORY, defaultInitializationParams.vaultFactory));
         assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.userInitializationParams.manager));
         assertTrue(vault.hasRole(RolesLibrary.ORACLE, defaultInitializationParams.oracle));
         assertTrue(vault.hasRole(RolesLibrary.GUARDIAN, defaultInitializationParams.guardian));

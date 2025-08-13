@@ -20,7 +20,11 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
-abstract contract AlephVaultBase {
+/**
+ * @author Othentic Labs LTD.
+ * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ */
+contract AlephVaultBase {
     using Checkpoints for Checkpoints.Trace256;
     using Math for uint256;
 

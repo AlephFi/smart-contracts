@@ -36,6 +36,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,

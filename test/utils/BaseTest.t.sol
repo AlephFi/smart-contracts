@@ -54,6 +54,7 @@ contract BaseTest is Test {
     ExposedVault public vault;
     address public manager;
     address public operationsMultisig;
+    address public vaultFactory;
     address public custodian;
     address public feeRecipient;
     address public oracle;
@@ -112,6 +113,7 @@ contract BaseTest is Test {
 
         defaultInitializationParams = IAlephVault.InitializationParams({
             operationsMultisig: makeAddr("operationsMultisig"),
+            vaultFactory: makeAddr("vaultFactory"),
             oracle: makeAddr("oracle"),
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
@@ -164,6 +166,7 @@ contract BaseTest is Test {
         // set up initialization params
         manager = _initializationParams.userInitializationParams.manager;
         operationsMultisig = _initializationParams.operationsMultisig;
+        vaultFactory = _initializationParams.vaultFactory;
         oracle = _initializationParams.oracle;
         guardian = _initializationParams.guardian;
         authSigner = _initializationParams.authSigner;

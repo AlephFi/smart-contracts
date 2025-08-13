@@ -29,6 +29,7 @@ interface IAlephVault {
 
     struct InitializationParams {
         address operationsMultisig;
+        address vaultFactory;
         address oracle;
         address guardian;
         address authSigner;
@@ -340,4 +341,11 @@ interface IAlephVault {
      * @param _authSigner The new KYC authentication signer.
      */
     function setAuthSigner(address _authSigner) external;
+
+    /**
+     * @notice Migrates the implementation of a module.
+     * @param _module The module to migrate.
+     * @param _newImplementation The new implementation.
+     */
+    function migrateModules(bytes4 _module, address _newImplementation) external;
 }

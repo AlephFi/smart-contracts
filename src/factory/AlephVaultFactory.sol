@@ -20,6 +20,7 @@ import {AccessControlUpgradeable} from
 import {Initializable} from "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconProxy.sol";
 import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
@@ -34,6 +35,8 @@ import {
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     uint32 public constant MAX_MANAGEMENT_FEE = 1000; // 10%
     uint32 public constant MAX_PERFORMANCE_FEE = 5000; // 50%
 
@@ -104,6 +107,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         });
         IAlephVault.InitializationParams memory _initalizationParams = IAlephVault.InitializationParams({
             operationsMultisig: _sd.operationsMultisig,
+            vaultFactory: address(this),
             oracle: _sd.oracle,
             guardian: _sd.guardian,
             authSigner: _sd.authSigner,
@@ -119,7 +123,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         );
 
         address _vault = Create2.deploy(0, _salt, _bytecode);
-        _sd.vaults[_vault] = true;
+        _sd.vaults.add(_vault);
         emit VaultDeployed(
             _vault,
             _userInitializationParams.manager,
@@ -130,7 +134,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     }
 
     function isValidVault(address _vault) external view returns (bool) {
-        return _getStorage().vaults[_vault];
+        return _getStorage().vaults.contains(_vault);
     }
 
     function setOperationsMultisig(address _operationsMultisig) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
@@ -199,7 +203,14 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         if (_implementation == address(0)) {
             revert InvalidParam();
         }
-        _getStorage().moduleImplementations[_module] = _implementation;
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.moduleImplementations[_module] = _implementation;
+        uint256 _len = _sd.vaults.length();
+        for (uint256 i = 0; i < _len; i++) {
+            address _vault = _sd.vaults.at(i);
+            IAlephVault(_vault).migrateModules(_module, _implementation);
+        }
+        emit ModuleImplementationSet(_module, _implementation);
     }
 
     // Internal function to get the storage of the factory.

@@ -66,8 +66,9 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         __AccessControl_init();
         if (
             _initalizationParams.userInitializationParams.manager == address(0)
-                || _initalizationParams.operationsMultisig == address(0) || _initalizationParams.oracle == address(0)
-                || _initalizationParams.guardian == address(0) || _initalizationParams.authSigner == address(0)
+                || _initalizationParams.operationsMultisig == address(0) || _initalizationParams.vaultFactory == address(0)
+                || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
+                || _initalizationParams.authSigner == address(0)
                 || _initalizationParams.userInitializationParams.underlyingToken == address(0)
                 || _initalizationParams.userInitializationParams.custodian == address(0)
                 || _initalizationParams.feeRecipient == address(0)
@@ -101,6 +102,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
             _initalizationParams.moduleInitializationParams.feeManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
+        _grantRole(RolesLibrary.VAULT_FACTORY, _initalizationParams.vaultFactory);
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.userInitializationParams.manager);
         _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
@@ -114,6 +116,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.guardian,
             _initalizationParams.operationsMultisig
         );
+    }
+
+    /// @inheritdoc IAlephVault
+    function migrateModules(bytes4 _module, address _newImplementation) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+        _getStorage().moduleImplementations[_module] = _newImplementation;
     }
 
     /// @inheritdoc IAlephVault

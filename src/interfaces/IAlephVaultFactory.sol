@@ -34,6 +34,7 @@ interface IAlephVaultFactory {
     event FeeRecipientSet(address indexed feeRecipient);
     event ManagementFeeSet(uint32 indexed managementFee);
     event PerformanceFeeSet(uint32 indexed performanceFee);
+    event ModuleImplementationSet(bytes4 indexed module, address indexed implementation);
 
     struct InitializationParams {
         address beacon;
