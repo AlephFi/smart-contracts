@@ -361,41 +361,46 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Queues a new minimum deposit amount to be set after the timelock period.
+     * @param _minDepositAmount The new minimum deposit amount to be set.
      * @dev Only callable by the MANAGER role.
      */
-    function queueMinDepositAmount(uint256) external onlyRole(RolesLibrary.MANAGER) {
+    function queueMinDepositAmount(uint256 _minDepositAmount) external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
     /**
      * @notice Queues a new maximum deposit cap to be set after the timelock period.
+     * @param _maxDepositCap The new maximum deposit cap to be set.
      * @dev Only callable by the MANAGER role.
      */
-    function queueMaxDepositCap(uint256) external onlyRole(RolesLibrary.MANAGER) {
+    function queueMaxDepositCap(uint256 _maxDepositCap) external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
     /**
      * @notice Queues a new management fee to be set after the timelock period.
+     * @param _managementFee The new management fee to be set.
      * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function queueManagementFee(uint32) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+    function queueManagementFee(uint32 _managementFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
     /**
      * @notice Queues a new performance fee to be set after the timelock period.
+     * @param _performanceFee The new performance fee to be set.
      * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function queuePerformanceFee(uint32) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+    function queuePerformanceFee(uint32 _performanceFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
     /**
      * @notice Queues a new fee recipient to be set after the timelock period.
+     * @param _feeRecipient The new fee recipient to be set.
      * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function queueFeeRecipient(address) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+    function queueFeeRecipient(address _feeRecipient) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
@@ -449,21 +454,24 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Requests a deposit of assets.
+     * @param _requestDepositParams The parameters for the deposit request.
+     * @return _batchId The batch ID of the deposit.
      * @dev Only callable when the deposit request flow is not paused.
      */
-    function requestDeposit(IERC7540Deposit.RequestDepositParams calldata)
+    function requestDeposit(IERC7540Deposit.RequestDepositParams calldata _requestDepositParams)
         external
         whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
-        returns (uint48)
+        returns (uint48 _batchId)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
     /**
      * @notice Settles all pending deposits up to the current batch.
+     * @param _newTotalAssets The new total assets after settlement.
      * @dev Only callable by the ORACLE role.
      */
-    function settleDeposit(uint256)
+    function settleDeposit(uint256 _newTotalAssets)
         external
         onlyRole(RolesLibrary.ORACLE)
         whenFlowNotPaused(PausableFlows.SETTLE_DEPOSIT_FLOW)
@@ -473,17 +481,24 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Requests a redeem of shares.
+     * @param _shares The number of shares to redeem.
+     * @return _batchId The batch ID of the redeem.
      * @dev Only callable when the redeem request flow is not paused.
      */
-    function requestRedeem(uint256) external whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW) returns (uint48) {
+    function requestRedeem(uint256 _shares)
+        external
+        whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
+        returns (uint48 _batchId)
+    {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
     /**
      * @notice Settles all pending redeems up to the current batch.
+     *  f* @param _newTotalAssets The new total assets after settlement.
      * @dev Only callable by the ORACLE role.
      */
-    function settleRedeem(uint256)
+    function settleRedeem(uint256 _newTotalAssets)
         external
         onlyRole(RolesLibrary.ORACLE)
         whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
