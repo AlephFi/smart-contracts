@@ -102,4 +102,11 @@ interface IAlephVaultFactory {
      * @param _performanceFee The performance fee.
      */
     function setPerformanceFee(uint32 _performanceFee) external;
+
+    /**
+     * @notice Sets the module implementation.
+     * @param _module The module.
+     * @param _implementation The implementation.
+     */
+    function setModuleImplementation(bytes4 _module, address _implementation) external;
 }
