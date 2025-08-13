@@ -17,10 +17,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
+import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
+import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 
@@ -32,7 +34,7 @@ contract ExposedVault is AlephVault {
     using Math for uint256;
     using Checkpoints for Checkpoints.Trace256;
 
-    constructor(IAlephVault.ConstructorParams memory _initalizationParams) AlephVault(_initalizationParams) {}
+    constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
 
     function depositSettleId() external view returns (uint48) {
         return _getStorage().depositSettleId;
@@ -116,14 +118,11 @@ contract ExposedVault is AlephVault {
         _getStorage().performanceFee = _performanceFee;
     }
 
-    function accumalateFees(uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _lastFeePaidId, uint48 _timestamp)
-        external
-        returns (uint256)
-    {
-        return _accumulateFees(_getStorage(), _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+    function accumulateFees(uint256, uint48, uint48, uint48) external returns (uint256) {
+        _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
-    function getManagementFeeSharesAccumulated(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)
+    function getManagementFeeShares(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)
         external
         view
         returns (uint256)
@@ -131,23 +130,71 @@ contract ExposedVault is AlephVault {
         if (_batchesElapsed == 0) {
             return 0;
         }
-        uint256 _managementFeeAmount = _calculateManagementFeeAmount(_getStorage(), _newTotalAssets, _batchesElapsed);
-        return ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
+        return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
+            _newTotalAssets, _totalShares, _batchesElapsed, _getStorage().managementFee
+        );
     }
 
-    function getPerformanceFeeSharesAccumulated(uint256 _newTotalAssets, uint256 _totalShares, uint256 _highWaterMark)
-        external
-        view
-        returns (uint256)
-    {
+    function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares) external view returns (uint256) {
+        uint256 _highWaterMark = _highWaterMark();
         if (_highWaterMark == 0) {
             return 0;
         }
-        AlephVaultStorageData storage _sd = _getStorage();
-        uint256 _profitPerShare = _getPricePerShare(_newTotalAssets, _totalShares) - _highWaterMark;
-        uint48 _performanceFeeRate = _sd.performanceFee;
-        uint256 _performanceFeeAmount = (_profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil))
-            .mulDiv(uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil);
-        return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
+        return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
+            _newTotalAssets, _totalShares, _getStorage().performanceFee, _highWaterMark
+        );
+    }
+
+    function managementFeeRecipient() external pure returns (address) {
+        return address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
+    }
+
+    function performanceFeeRecipient() external pure returns (address) {
+        return address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
+    }
+
+    function minDepositAmountTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
+            .delegatecall(abi.encodeWithSignature("MIN_DEPOSIT_AMOUNT_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
+    function maxDepositCapTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
+            .delegatecall(abi.encodeWithSignature("MAX_DEPOSIT_CAP_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
+    function managementFeeTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
+            .delegatecall(abi.encodeWithSignature("MANAGEMENT_FEE_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
+    function performanceFeeTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
+            .delegatecall(abi.encodeWithSignature("PERFORMANCE_FEE_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
+    function feeRecipientTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
+            .delegatecall(abi.encodeWithSignature("FEE_RECIPIENT_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
     }
 }

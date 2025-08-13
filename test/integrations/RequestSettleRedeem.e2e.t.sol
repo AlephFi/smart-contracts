@@ -22,6 +22,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
@@ -35,19 +36,18 @@ contract RequestSettleRedeemTest is BaseTest {
     function setUp() public override {
         super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
-            name: defaultInitializationParams.name,
-            manager: defaultInitializationParams.manager,
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            underlyingToken: defaultInitializationParams.underlyingToken,
-            custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
             managementFee: 0,
-            performanceFee: 0
+            performanceFee: 0,
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
-        _setUpNewAlephVault(defaultConstructorParams, _initializationParams);
+        _setUpNewAlephVault(defaultConfigParams, _initializationParams);
         _unpauseVaultFlows();
         _setAuthSignatures();
     }
@@ -92,7 +92,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -100,7 +100,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(
+        emit IERC7540Settlement.SettleRedeemBatch(
             _requestBatchId,
             _params.assetsToWithdraw,
             _userShares,
@@ -109,7 +109,7 @@ contract RequestSettleRedeemTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeem(
+        emit IERC7540Settlement.SettleRedeem(
             0,
             _settleBatchId,
             _userShares,
@@ -169,7 +169,7 @@ contract RequestSettleRedeemTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -177,7 +177,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(
+        emit IERC7540Settlement.SettleRedeemBatch(
             _requestBatchId,
             _params.assetsToWithdraw,
             _userShares,
@@ -186,7 +186,7 @@ contract RequestSettleRedeemTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeem(
+        emit IERC7540Settlement.SettleRedeem(
             0,
             _settleBatchId,
             _userShares,
@@ -248,7 +248,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -256,7 +256,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(
+        emit IERC7540Settlement.SettleRedeemBatch(
             _requestBatchId,
             _params.assetsToWithdraw,
             _userShares,
@@ -265,7 +265,7 @@ contract RequestSettleRedeemTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeem(
+        emit IERC7540Settlement.SettleRedeem(
             0,
             _settleBatchId,
             _userShares,
@@ -329,7 +329,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -337,7 +337,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(
+        emit IERC7540Settlement.SettleRedeemBatch(
             _requestBatchId,
             _params.assetsToWithdraw,
             _userShares,
@@ -346,7 +346,7 @@ contract RequestSettleRedeemTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeem(
+        emit IERC7540Settlement.SettleRedeem(
             0,
             _settleBatchId,
             _userShares,
@@ -365,10 +365,10 @@ contract RequestSettleRedeemTest is BaseTest {
         assertEq(underlyingToken.balanceOf(mockUser_1), _params.assetsToWithdraw);
 
         // assert management fee is accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _params.managementFeeShares);
 
         // assert performance fee is not accumulated
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _params.performanceFeeShares);
     }
 
     function test_requestSettleRedeem_whenNewTotalAssetsIncreases_withFees() public {
@@ -416,7 +416,7 @@ contract RequestSettleRedeemTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10, vault.highWaterMark());
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -426,7 +426,7 @@ contract RequestSettleRedeemTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(_newPricePerShare);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(
+        emit IERC7540Settlement.SettleRedeemBatch(
             _requestBatchId,
             _params.assetsToWithdraw,
             _userShares,
@@ -435,7 +435,7 @@ contract RequestSettleRedeemTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeem(
+        emit IERC7540Settlement.SettleRedeem(
             0,
             _settleBatchId,
             _userShares,
@@ -454,8 +454,8 @@ contract RequestSettleRedeemTest is BaseTest {
         assertEq(underlyingToken.balanceOf(mockUser_1), _params.assetsToWithdraw);
 
         // assert management fee and performance fee are accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _params.performanceFeeShares);
 
         // assert high water mark has increased
         assertEq(vault.highWaterMark(), _newPricePerShare);
@@ -509,7 +509,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -517,7 +517,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(
+        emit IERC7540Settlement.SettleRedeemBatch(
             _requestBatchId,
             _params.assetsToWithdraw,
             _userShares,
@@ -526,7 +526,7 @@ contract RequestSettleRedeemTest is BaseTest {
             _params.expectedPricePerShare
         );
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeem(
+        emit IERC7540Settlement.SettleRedeem(
             0,
             _settleBatchId,
             _userShares,
@@ -545,10 +545,10 @@ contract RequestSettleRedeemTest is BaseTest {
         assertEq(underlyingToken.balanceOf(mockUser_1), _params.assetsToWithdraw);
 
         // assert management fee is accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _params.managementFeeShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _params.managementFeeShares);
 
         // assert performance fee is not accumulated
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _params.performanceFeeShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _params.performanceFeeShares);
     }
 
     function test_requestSettleRedeem_multipleBatches() public {
@@ -617,9 +617,8 @@ contract RequestSettleRedeemTest is BaseTest {
         uint256 _newTotalAssets = 2200 ether;
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = _newTotalAssets * vault.PRICE_DENOMINATOR() / _totalShares;
-        uint256 _expectedManagementShares = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 3);
-        uint256 _expectedPerformanceShares =
-            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, vault.highWaterMark());
+        uint256 _expectedManagementShares = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 3);
+        uint256 _expectedPerformanceShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected assets to withdraw per user
@@ -638,8 +637,8 @@ contract RequestSettleRedeemTest is BaseTest {
         assertEq(vault.totalShares(), _totalShares - _totalRedeemShares_1 - _totalRedeemShares_2);
 
         // assert fees are accumulated
-        assertEq(vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementShares);
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _expectedPerformanceShares);
+        assertEq(vault.sharesOf(vault.managementFeeRecipient()), _expectedManagementShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _expectedPerformanceShares);
 
         // assert user assets are received
         assertEq(underlyingToken.balanceOf(mockUser_1), _expectedAssetsToWithdraw_user1);
@@ -674,7 +673,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // vault does not make profit
         _newTotalAssets = vault.totalAssets();
         _totalShares = vault.totalShares();
-        uint256 _expectedManagementShares_2 = vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, 2);
+        uint256 _expectedManagementShares_2 = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 2);
         _totalShares += _expectedManagementShares_2;
 
         // expected assets to withdraw
@@ -702,9 +701,9 @@ contract RequestSettleRedeemTest is BaseTest {
 
         // assert fees are accumulated
         assertEq(
-            vault.sharesOf(vault.MANAGEMENT_FEE_RECIPIENT()), _expectedManagementShares + _expectedManagementShares_2
+            vault.sharesOf(vault.managementFeeRecipient()), _expectedManagementShares + _expectedManagementShares_2
         );
-        assertEq(vault.sharesOf(vault.PERFORMANCE_FEE_RECIPIENT()), _expectedPerformanceShares);
+        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), _expectedPerformanceShares);
 
         // assert high water mark hasn't updated
         assertEq(vault.highWaterMark(), _newPricePerShare);

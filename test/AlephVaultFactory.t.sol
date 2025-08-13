@@ -2,10 +2,12 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import "../src/AlephVaultFactory.sol";
-import "../src/interfaces/IAlephVault.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {UpgradeableBeacon} from "openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {AlephVault} from "../src/AlephVault.sol";
+import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
+import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 contract AlephVaultFactoryTest is Test {
     AlephVaultFactory factory;
@@ -18,6 +20,10 @@ contract AlephVaultFactoryTest is Test {
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
     address feeRecipient = makeAddr("feeRecipient");
+    address alephVaultDepositImplementation = makeAddr("AlephVaultDeposit");
+    address alephVaultRedeemImplementation = makeAddr("AlephVaultRedeem");
+    address alephVaultSettlementImplementation = makeAddr("AlephVaultSettlement");
+    address feeManagerImplementation = makeAddr("FeeManager");
     uint48 minDepositAmountTimelock = 7 days;
     uint48 maxDepositCapTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
@@ -25,16 +31,7 @@ contract AlephVaultFactoryTest is Test {
     uint48 feeRecipientTimelock = 7 days;
     uint48 batchDuration = 1 days;
 
-    AlephVault vaultImpl = new AlephVault(
-        IAlephVault.ConstructorParams({
-            minDepositAmountTimelock: minDepositAmountTimelock,
-            maxDepositCapTimelock: maxDepositCapTimelock,
-            managementFeeTimelock: managementFeeTimelock,
-            performanceFeeTimelock: performanceFeeTimelock,
-            feeRecipientTimelock: feeRecipientTimelock,
-            batchDuration: batchDuration
-        })
-    );
+    AlephVault vaultImpl = new AlephVault(batchDuration);
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
 
     function setUp() public {
@@ -49,6 +46,10 @@ contract AlephVaultFactoryTest is Test {
                 guardian: guardian,
                 authSigner: authSigner,
                 feeRecipient: feeRecipient,
+                alephVaultDepositImplementation: alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: alephVaultSettlementImplementation,
+                feeManagerImplementation: feeManagerImplementation,
                 managementFee: 0,
                 performanceFee: 0
             })
@@ -65,6 +66,10 @@ contract AlephVaultFactoryTest is Test {
                 guardian: guardian,
                 authSigner: authSigner,
                 feeRecipient: feeRecipient,
+                alephVaultDepositImplementation: alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: alephVaultSettlementImplementation,
+                feeManagerImplementation: feeManagerImplementation,
                 managementFee: 0,
                 performanceFee: 0
             })

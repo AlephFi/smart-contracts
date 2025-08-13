@@ -34,6 +34,7 @@ interface IAlephVaultFactory {
     event FeeRecipientSet(address indexed feeRecipient);
     event ManagementFeeSet(uint32 indexed managementFee);
     event PerformanceFeeSet(uint32 indexed performanceFee);
+    event ModuleImplementationSet(bytes4 indexed module, address indexed implementation);
 
     struct InitializationParams {
         address beacon;
@@ -42,6 +43,10 @@ interface IAlephVaultFactory {
         address guardian;
         address authSigner;
         address feeRecipient;
+        address alephVaultDepositImplementation;
+        address alephVaultRedeemImplementation;
+        address alephVaultSettlementImplementation;
+        address feeManagerImplementation;
         uint32 managementFee;
         uint32 performanceFee;
     }
@@ -97,4 +102,11 @@ interface IAlephVaultFactory {
      * @param _performanceFee The performance fee.
      */
     function setPerformanceFee(uint32 _performanceFee) external;
+
+    /**
+     * @notice Sets the module implementation.
+     * @param _module The module.
+     * @param _implementation The implementation.
+     */
+    function setModuleImplementation(bytes4 _module, address _implementation) external;
 }

@@ -24,6 +24,10 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
+import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
+import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
+import {AlephVaultSettlement} from "@aleph-vault/modules/AlephVaultSettlement.sol";
+import {FeeManager} from "@aleph-vault/modules/FeeManager.sol";
 import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
 import {TestToken} from "@aleph-test/exposes/TestToken.sol";
 
@@ -35,12 +39,22 @@ contract BaseTest is Test {
     using SafeERC20 for IERC20;
     using MessageHashUtils for bytes32;
 
+    struct ConfigParams {
+        uint48 minDepositAmountTimelock;
+        uint48 maxDepositCapTimelock;
+        uint48 managementFeeTimelock;
+        uint48 performanceFeeTimelock;
+        uint48 feeRecipientTimelock;
+        uint48 batchDuration;
+    }
+
     address public mockUser_1 = makeAddr("mockUser_1");
     address public mockUser_2 = makeAddr("mockUser_2");
 
     ExposedVault public vault;
     address public manager;
     address public operationsMultisig;
+    address public vaultFactory;
     address public custodian;
     address public feeRecipient;
     address public oracle;
@@ -62,7 +76,7 @@ contract BaseTest is Test {
 
     TestToken public underlyingToken = new TestToken();
 
-    IAlephVault.ConstructorParams public defaultConstructorParams;
+    ConfigParams public defaultConfigParams;
 
     IAlephVault.InitializationParams public defaultInitializationParams;
 
@@ -88,7 +102,7 @@ contract BaseTest is Test {
         (address _authSigner, uint256 _authSignerPrivateKey) = makeAddrAndKey("authSigner");
         authSignerPrivateKey = _authSignerPrivateKey;
 
-        defaultConstructorParams = IAlephVault.ConstructorParams({
+        defaultConfigParams = ConfigParams({
             minDepositAmountTimelock: 7 days,
             maxDepositCapTimelock: 7 days,
             managementFeeTimelock: 7 days,
@@ -98,45 +112,71 @@ contract BaseTest is Test {
         });
 
         defaultInitializationParams = IAlephVault.InitializationParams({
-            name: "test",
-            manager: makeAddr("manager"),
             operationsMultisig: makeAddr("operationsMultisig"),
+            vaultFactory: makeAddr("vaultFactory"),
             oracle: makeAddr("oracle"),
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
-            underlyingToken: address(underlyingToken),
-            custodian: makeAddr("custodian"),
             feeRecipient: makeAddr("feeRecipient"),
             managementFee: 200, // 2%
-            performanceFee: 2000 // 20%
+            performanceFee: 2000, // 20%
+            userInitializationParams: IAlephVault.UserInitializationParams({
+                name: "test",
+                configId: "test-123",
+                manager: makeAddr("manager"),
+                underlyingToken: address(underlyingToken),
+                custodian: makeAddr("custodian")
+            }),
+            moduleInitializationParams: IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: makeAddr("AlephVaultDeposit"),
+                alephVaultRedeemImplementation: makeAddr("AlephVaultRedeem"),
+                alephVaultSettlementImplementation: makeAddr("AlephVaultSettlement"),
+                feeManagerImplementation: makeAddr("FeeManager")
+            })
         });
     }
 
     function _setUpNewAlephVault(
-        IAlephVault.ConstructorParams memory _constructorParams,
+        ConfigParams memory _configParams,
         IAlephVault.InitializationParams memory _initializationParams
     ) public {
-        // set up constructor params
-        minDepositAmountTimelock = _constructorParams.minDepositAmountTimelock;
-        maxDepositCapTimelock = _constructorParams.maxDepositCapTimelock;
-        managementFeeTimelock = _constructorParams.managementFeeTimelock;
-        performanceFeeTimelock = _constructorParams.performanceFeeTimelock;
-        feeRecipientTimelock = _constructorParams.feeRecipientTimelock;
-        batchDuration = _constructorParams.batchDuration;
+        // set up config params
+        minDepositAmountTimelock = _configParams.minDepositAmountTimelock;
+        maxDepositCapTimelock = _configParams.maxDepositCapTimelock;
+        managementFeeTimelock = _configParams.managementFeeTimelock;
+        performanceFeeTimelock = _configParams.performanceFeeTimelock;
+        feeRecipientTimelock = _configParams.feeRecipientTimelock;
+        batchDuration = _configParams.batchDuration;
+
+        // deploy modules
+        defaultInitializationParams.moduleInitializationParams = IAlephVault.ModuleInitializationParams({
+            alephVaultDepositImplementation: address(
+                new AlephVaultDeposit(minDepositAmountTimelock, maxDepositCapTimelock, batchDuration)
+            ),
+            alephVaultRedeemImplementation: address(new AlephVaultRedeem(batchDuration)),
+            alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
+            feeManagerImplementation: address(
+                new FeeManager(managementFeeTimelock, performanceFeeTimelock, feeRecipientTimelock, batchDuration)
+            )
+        });
 
         // set up vault
-        vault = new ExposedVault(_constructorParams);
+        vault = new ExposedVault(batchDuration);
 
         // set up initialization params
-        manager = _initializationParams.manager;
+        manager = _initializationParams.userInitializationParams.manager;
         operationsMultisig = _initializationParams.operationsMultisig;
+        vaultFactory = _initializationParams.vaultFactory;
         oracle = _initializationParams.oracle;
         guardian = _initializationParams.guardian;
         authSigner = _initializationParams.authSigner;
-        custodian = _initializationParams.custodian;
+        custodian = _initializationParams.userInitializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
         managementFee = _initializationParams.managementFee;
         performanceFee = _initializationParams.performanceFee;
+
+        // set up module implementations
+        _initializationParams.moduleInitializationParams = defaultInitializationParams.moduleInitializationParams;
 
         // initialize vault
         vault.initialize(_initializationParams);
@@ -158,6 +198,7 @@ contract BaseTest is Test {
 
     function _getAuthSignature(address _user, uint256 _expiryBlock)
         internal
+        view
         returns (AuthLibrary.AuthSignature memory)
     {
         bytes32 _authMessage = keccak256(abi.encode(_user, address(vault), block.chainid, _expiryBlock));
@@ -171,13 +212,11 @@ contract BaseTest is Test {
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint256 _depositAmount,
-        uint48 _batchesElapsed,
-        uint256 _highWaterMark
+        uint48 _batchesElapsed
     ) internal view returns (SettleDepositExpectations memory) {
         uint256 _expectedManagementFeeShares =
-            vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, _batchesElapsed);
-        uint256 _expectedPerformanceFeeShares =
-            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, _highWaterMark);
+            vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
+        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
         _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
         uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
         uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
@@ -196,13 +235,11 @@ contract BaseTest is Test {
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint256 _userShares,
-        uint48 _batchesElapsed,
-        uint256 _highWaterMark
+        uint48 _batchesElapsed
     ) internal view returns (SettleRedeemExpectations memory) {
         uint256 _expectedManagementFeeShares =
-            vault.getManagementFeeSharesAccumulated(_newTotalAssets, _totalShares, _batchesElapsed);
-        uint256 _expectedPerformanceFeeShares =
-            vault.getPerformanceFeeSharesAccumulated(_newTotalAssets, _totalShares, _highWaterMark);
+            vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
+        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
         _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
         uint256 _assetsToWithdraw = ERC4626Math.previewRedeem(_userShares, _newTotalAssets, _totalShares);
         uint256 _expectedTotalAssets = _newTotalAssets - _assetsToWithdraw;

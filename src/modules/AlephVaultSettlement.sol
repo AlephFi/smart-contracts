@@ -18,32 +18,34 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
-import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
-import {FeeManager} from "@aleph-vault/FeeManager.sol";
+import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
-abstract contract AlephVaultSettlement is FeeManager {
+contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace256;
 
-    /**
-     * @notice Returns the current batch ID.
-     */
-    function currentBatch() public view virtual returns (uint48);
+    constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
-    /**
-     * @notice Returns the current high water mark of the vault.
-     * @return The current high water mark.
-     */
-    function highWaterMark() public view virtual override returns (uint256);
+    /// @inheritdoc IERC7540Settlement
+    function settleDeposit(uint256 _newTotalAssets) external {
+        _settleDeposit(_getStorage(), _newTotalAssets);
+    }
+
+    /// @inheritdoc IERC7540Settlement
+    function settleRedeem(uint256 _newTotalAssets) external {
+        _settleRedeem(_getStorage(), _newTotalAssets);
+    }
 
     /**
      * @dev Internal function to settle all deposits for batches up to the current batch.
@@ -51,15 +53,15 @@ abstract contract AlephVaultSettlement is FeeManager {
      */
     function _settleDeposit(AlephVaultStorageData storage _sd, uint256 _newTotalAssets) internal {
         uint48 _depositSettleId = _sd.depositSettleId;
-        uint48 _currentBatchId = currentBatch();
+        uint48 _currentBatchId = _currentBatch();
         if (_currentBatchId == _depositSettleId) {
-            revert IERC7540Deposit.NoDepositsToSettle();
+            revert NoDepositsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
         uint48 _lastFeePaidId = _sd.lastFeePaidId;
-        uint256 _totalShares = totalShares();
+        uint256 _totalShares = _totalShares();
         if (_currentBatchId > _lastFeePaidId) {
-            _totalShares += _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+            _totalShares += _getAccumulatedFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
         }
         uint256 _amountToSettle;
         uint256 _totalAssets = _newTotalAssets;
@@ -74,12 +76,12 @@ abstract contract AlephVaultSettlement is FeeManager {
         _sd.shares.push(_timestamp, _totalShares);
         _sd.assets.push(_timestamp, _totalAssets);
         if (_amountToSettle > 0) {
-            if (highWaterMark() == 0) {
+            if (_highWaterMark() == 0) {
                 _initializeHighWaterMark(_sd, _totalAssets, _totalShares, _timestamp);
             }
             IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         }
-        emit IERC7540Deposit.SettleDeposit(
+        emit SettleDeposit(
             _depositSettleId,
             _currentBatchId,
             _amountToSettle,
@@ -114,10 +116,10 @@ abstract contract AlephVaultSettlement is FeeManager {
             uint256 _amount = _batch.depositRequest[_user];
             uint256 _sharesToMintPerUser = ERC4626Math.previewDeposit(_amount, _totalShares, _totalAssets);
             _totalSharesToMint += _sharesToMintPerUser;
-            _sd.sharesOf[_user].push(_timestamp, sharesOf(_user) + _sharesToMintPerUser);
-            emit IERC7540Deposit.DepositRequestSettled(_user, _amount, _sharesToMintPerUser);
+            _sd.sharesOf[_user].push(_timestamp, _sharesOf(_user) + _sharesToMintPerUser);
+            emit IERC7540Settlement.DepositRequestSettled(_user, _amount, _sharesToMintPerUser);
         }
-        emit IERC7540Deposit.SettleDepositBatch(
+        emit SettleDepositBatch(
             _batchId,
             _batch.totalAmountToDeposit,
             _totalSharesToMint,
@@ -134,15 +136,15 @@ abstract contract AlephVaultSettlement is FeeManager {
      */
     function _settleRedeem(AlephVaultStorageData storage _sd, uint256 _newTotalAssets) internal {
         uint48 _redeemSettleId = _sd.redeemSettleId;
-        uint48 _currentBatchId = currentBatch();
+        uint48 _currentBatchId = _currentBatch();
         if (_currentBatchId == _redeemSettleId) {
-            revert IERC7540Redeem.NoRedeemsToSettle();
+            revert NoRedeemsToSettle();
         }
         uint48 _timestamp = Time.timestamp();
         uint48 _lastFeePaidId = _sd.lastFeePaidId;
-        uint256 _totalShares = totalShares();
+        uint256 _totalShares = _totalShares();
         if (_currentBatchId > _lastFeePaidId) {
-            _totalShares += _accumulateFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
+            _totalShares += _getAccumulatedFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
         }
         uint256 _sharesToSettle;
         uint256 _totalAssets = _newTotalAssets;
@@ -155,7 +157,7 @@ abstract contract AlephVaultSettlement is FeeManager {
         _sd.redeemSettleId = _currentBatchId;
         _sd.shares.push(_timestamp, _totalShares);
         _sd.assets.push(_timestamp, _totalAssets);
-        emit IERC7540Redeem.SettleRedeem(
+        emit SettleRedeem(
             _redeemSettleId,
             _currentBatchId,
             _sharesToSettle,
@@ -190,9 +192,9 @@ abstract contract AlephVaultSettlement is FeeManager {
             uint256 _assets = ERC4626Math.previewRedeem(_sharesToBurnPerUser, _totalAssets, _totalShares);
             _totalAssetsToRedeem += _assets;
             _underlyingToken.safeTransfer(_user, _assets);
-            emit IERC7540Redeem.RedeemRequestSettled(_user, _sharesToBurnPerUser, _assets);
+            emit IERC7540Settlement.RedeemRequestSettled(_user, _sharesToBurnPerUser, _assets);
         }
-        emit IERC7540Redeem.SettleRedeemBatch(
+        emit SettleRedeemBatch(
             _batchId,
             _totalAssetsToRedeem,
             _batch.totalSharesToRedeem,
@@ -201,5 +203,35 @@ abstract contract AlephVaultSettlement is FeeManager {
             _getPricePerShare(_totalAssets - _totalAssetsToRedeem, _totalShares - _batch.totalSharesToRedeem)
         );
         return (_totalAssetsToRedeem, _batch.totalSharesToRedeem);
+    }
+
+    function _getAccumulatedFees(
+        AlephVaultStorageData storage _sd,
+        uint256 _newTotalAssets,
+        uint48 _currentBatchId,
+        uint48 _lastFeePaidId,
+        uint48 _timestamp
+    ) internal returns (uint256) {
+        (bool _success, bytes memory _data) = _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
+            abi.encodeCall(IFeeManager.accumulateFees, (_newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp))
+        );
+        if (!_success) {
+            revert DelegateCallFailed(_data);
+        }
+        return abi.decode(_data, (uint256));
+    }
+
+    function _initializeHighWaterMark(
+        AlephVaultStorageData storage _sd,
+        uint256 _totalAssets,
+        uint256 _totalShares,
+        uint48 _timestamp
+    ) internal {
+        (bool _success, bytes memory _data) = _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
+            abi.encodeCall(IFeeManager.initializeHighWaterMark, (_totalAssets, _totalShares, _timestamp))
+        );
+        if (!_success) {
+            revert DelegateCallFailed(_data);
+        }
     }
 }

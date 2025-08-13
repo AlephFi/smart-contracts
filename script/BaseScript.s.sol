@@ -46,6 +46,11 @@ abstract contract BaseScript is Script {
         return _config;
     }
 
+    function _getDeploymentConfig() internal view returns (string memory) {
+        string memory _config = vm.readFile("deploymentConfig.json");
+        return _config;
+    }
+
     function _getVaultImplementation(string memory _chainId, string memory _environment)
         internal
         view
@@ -56,6 +61,17 @@ abstract contract BaseScript is Script {
             string.concat(".", _chainId, ".", _environment, ".vaultImplementationAddress");
         address _vaultImplementation = vm.parseJsonAddress(_deploymentConfig, _implementationKey);
         return _vaultImplementation;
+    }
+
+    function _getModuleImplementation(string memory _chainId, string memory _environment, string memory _module)
+        internal
+        view
+        returns (address)
+    {
+        string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
+        string memory _implementationKey = string.concat(".", _chainId, ".", _environment, ".", _module);
+        address _implementation = vm.parseJsonAddress(_deploymentConfig, _implementationKey);
+        return _implementation;
     }
 
     function _getBeaconOwner(string memory _chainId, string memory _environment) internal view returns (address) {

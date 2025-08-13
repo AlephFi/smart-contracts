@@ -22,6 +22,7 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
@@ -34,20 +35,19 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
     function setUp() public override {
         super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
-            name: defaultInitializationParams.name,
-            manager: defaultInitializationParams.manager,
             operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            underlyingToken: defaultInitializationParams.underlyingToken,
-            custodian: defaultInitializationParams.custodian,
             feeRecipient: defaultInitializationParams.feeRecipient,
             managementFee: 0, // 0%
-            performanceFee: 0 // 0%
+            performanceFee: 0, // 0%
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
 
-        _setUpNewAlephVault(defaultConstructorParams, _initializationParams);
+        _setUpNewAlephVault(defaultConfigParams, _initializationParams);
         _unpauseVaultFlows();
     }
 
@@ -107,10 +107,6 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 3 days + 1);
 
-        // check total assets and total shares
-        uint256 _totalAssets = vault.totalAssets();
-        uint256 _totalShares = vault.totalShares();
-
         // assert redeem settle id is less than current batch id
         uint48 _currentBatchId = vault.currentBatch();
         assertLt(vault.redeemSettleId(), _currentBatchId);
@@ -162,8 +158,8 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(_currentBatchId - 1, 300, 300, 1000, 1000, vault.PRICE_DENOMINATOR());
-        emit IERC7540Redeem.SettleRedeem(0, _currentBatchId, 300, 700, 700, vault.PRICE_DENOMINATOR());
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 300, 300, 1000, 1000, vault.PRICE_DENOMINATOR());
+        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 300, 700, 700, vault.PRICE_DENOMINATOR());
         vault.settleRedeem(1000);
         vm.stopPrank();
 
@@ -203,9 +199,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.SettleRedeemBatch(_currentBatchId - 2, 300, 300, 1000, 1000, vault.PRICE_DENOMINATOR());
-        emit IERC7540Redeem.SettleRedeemBatch(_currentBatchId - 1, 500, 500, 700, 700, vault.PRICE_DENOMINATOR());
-        emit IERC7540Redeem.SettleRedeem(0, _currentBatchId, 800, 200, 200, vault.PRICE_DENOMINATOR());
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 2, 300, 300, 1000, 1000, vault.PRICE_DENOMINATOR());
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 500, 500, 700, 700, vault.PRICE_DENOMINATOR());
+        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 800, 200, 200, vault.PRICE_DENOMINATOR());
         vault.settleRedeem(1000);
         vm.stopPrank();
 

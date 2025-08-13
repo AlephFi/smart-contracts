@@ -17,10 +17,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Script, console} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {UpgradeableBeacon} from "lib/openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {UpgradeableBeacon} from "openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
-import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
+import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
+import {AlephVault} from "@aleph-vault/AlephVault.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -44,6 +46,31 @@ contract UpgradeAlephVault is BaseScript {
         _beacon.upgradeTo(_vaultImplementation);
         console.log("AlephVault upgraded to", _vaultImplementation);
 
+        _updateModuleImplementations(_chainId, _environment);
+
         vm.stopBroadcast();
+    }
+
+    function _updateModuleImplementations(string memory _chainId, string memory _environment) internal {
+        address _vaultFactory = _getProxy(_chainId, _environment);
+        address _vaultDepositImplementation =
+            _getModuleImplementation(_chainId, _environment, "vaultDepositImplementationAddress");
+        address _vaultRedeemImplementation =
+            _getModuleImplementation(_chainId, _environment, "vaultRedeemImplementationAddress");
+        address _vaultSettlementImplementation =
+            _getModuleImplementation(_chainId, _environment, "vaultSettlementImplementationAddress");
+        address _feeManagerImplementation =
+            _getModuleImplementation(_chainId, _environment, "feeManagerImplementationAddress");
+
+        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
+            ModulesLibrary.ALEPH_VAULT_DEPOSIT, _vaultDepositImplementation
+        );
+        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
+            ModulesLibrary.ALEPH_VAULT_REDEEM, _vaultRedeemImplementation
+        );
+        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
+            ModulesLibrary.ALEPH_VAULT_SETTLEMENT, _vaultSettlementImplementation
+        );
+        IAlephVaultFactory(_vaultFactory).setModuleImplementation(ModulesLibrary.FEE_MANAGER, _feeManagerImplementation);
     }
 }

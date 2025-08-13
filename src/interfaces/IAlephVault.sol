@@ -20,7 +20,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IAlephVault {
-    error InvalidConstructorParams();
     error InvalidInitializationParams();
     error InvalidAuthSigner();
 
@@ -28,27 +27,17 @@ interface IAlephVault {
     event IsAuthEnabledSet(bool isAuthEnabled);
     event AuthSignerSet(address authSigner);
 
-    struct ConstructorParams {
-        uint48 minDepositAmountTimelock;
-        uint48 maxDepositCapTimelock;
-        uint48 managementFeeTimelock;
-        uint48 performanceFeeTimelock;
-        uint48 feeRecipientTimelock;
-        uint48 batchDuration;
-    }
-
     struct InitializationParams {
-        string name;
-        address manager;
         address operationsMultisig;
+        address vaultFactory;
         address oracle;
         address guardian;
         address authSigner;
-        address underlyingToken;
-        address custodian;
         address feeRecipient;
         uint32 managementFee;
         uint32 performanceFee;
+        UserInitializationParams userInitializationParams;
+        ModuleInitializationParams moduleInitializationParams;
     }
 
     struct UserInitializationParams {
@@ -57,6 +46,13 @@ interface IAlephVault {
         address manager;
         address underlyingToken;
         address custodian;
+    }
+
+    struct ModuleInitializationParams {
+        address alephVaultDepositImplementation;
+        address alephVaultRedeemImplementation;
+        address alephVaultSettlementImplementation;
+        address feeManagerImplementation;
     }
 
     struct BatchData {
@@ -220,11 +216,101 @@ interface IAlephVault {
     function highWaterMarkAt(uint48 _timestamp) external view returns (uint256);
 
     /**
+     * @notice Returns the minimum deposit amount.
+     * @return The minimum deposit amount.
+     */
+    function minDepositAmount() external view returns (uint256);
+
+    /**
+     * @notice Returns the maximum deposit cap.
+     * @return The maximum deposit cap.
+     */
+    function maxDepositCap() external view returns (uint256);
+
+    /**
+     * @notice Returns the total amount of unsettled deposit requests.
+     * @return The total amount of unsettled deposit requests.
+     * @dev Please note that this function will return the deposit amount for all batches including the current batch.
+     * However, if these deposit requests are settled in this batch, the amount requested in this batch will NOT be settled.
+     * It will be settled in the next settlement batch. So if you're using this function to check if the deposit request for settlement,
+     * please be aware of this nuance.
+     */
+    function totalAmountToDeposit() external view returns (uint256);
+
+    /**
+     * @notice Returns the total amount of deposit requests at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The total amount of deposit requests at the given batch ID.
+     */
+    function totalAmountToDepositAt(uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the users that have requested to deposit at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The users that have requested to deposit at the given batch ID.
+     */
+    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory);
+
+    /**
+     * @notice Returns the deposit request of a user.
+     * @param _user The user to query.
+     * @return The deposit request of the user.
+     */
+    function depositRequestOf(address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns the deposit request of a user at a specific batch ID.
+     * @param _user The user to query.
+     * @param _batchId The batch ID to query.
+     * @return The deposit request of the user at the given batch ID.
+     */
+    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total shares to redeem at the current batch.
+     * @return The total shares to redeem at the current batch.
+     */
+    function totalSharesToRedeem() external view returns (uint256);
+
+    /**
+     * @notice Returns the total shares to redeem at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The total shares to redeem at the given batch ID.
+     */
+    function totalSharesToRedeemAt(uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the users that have requested to redeem at a specific batch ID.
+     * @param _batchId The batch ID to query.
+     * @return The users that have requested to redeem at the given batch ID.
+     */
+    function usersToRedeemAt(uint48 _batchId) external view returns (address[] memory);
+
+    /**
+     * @notice Returns the redeem request of a user.
+     * @param _user The user to query.
+     * @return The redeem request of the user.
+     */
+    function redeemRequestOf(address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns the redeem request of a user at a specific batch ID.
+     * @param _user The user to query.
+     * @param _batchId The batch ID to query.
+     * @return The redeem request of the user at the given batch ID.
+     */
+    function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
      * @notice Returns the total amount for redemption.
      * @param _newTotalAssets The new total assets before settlement.
      * @return The total amount for redemption.
+     * @dev Please note that this function will return the redemption amount for all batches including the current batch.
+     * However, if these redemption requests are settled in this batch, the amount requested in this batch will NOT be settled.
+     * It will be settled in the next settlement batch. So if you're using this function to check if the redemption request for settlement,
+     * please be aware of this nuance.
      */
-    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256);
+    function totalAmountForRedemption(uint256 _newTotalAssets) external returns (uint256);
 
     /**
      * @notice Returns the status of the KYC authentication.
@@ -255,4 +341,11 @@ interface IAlephVault {
      * @param _authSigner The new KYC authentication signer.
      */
     function setAuthSigner(address _authSigner) external;
+
+    /**
+     * @notice Migrates the implementation of a module.
+     * @param _module The module to migrate.
+     * @param _newImplementation The new implementation.
+     */
+    function migrateModules(bytes4 _module, address _newImplementation) external;
 }
