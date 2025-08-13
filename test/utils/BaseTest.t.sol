@@ -126,10 +126,10 @@ contract BaseTest is Test {
                 custodian: makeAddr("custodian")
             }),
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
-                alephVaultDepositImplementation: address(0),
-                alephVaultRedeemImplementation: address(0),
-                alephVaultSettlementImplementation: address(0),
-                feeManagerImplementation: address(0)
+                alephVaultDepositImplementation: makeAddr("AlephVaultDeposit"),
+                alephVaultRedeemImplementation: makeAddr("AlephVaultRedeem"),
+                alephVaultSettlementImplementation: makeAddr("AlephVaultSettlement"),
+                feeManagerImplementation: makeAddr("FeeManager")
             })
         });
     }
