@@ -85,7 +85,7 @@ contract RequestSettleDepositTest is BaseTest {
         uint48 _settleBatchId = vault.currentBatch();
 
         // get settle deposit expectations
-        SettleDepositExpectations memory _params = _getSettleDepositExpectations(0, 0, _depositAmount, 0, 0);
+        SettleDepositExpectations memory _params = _getSettleDepositExpectations(0, 0, _depositAmount, 0);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -168,7 +168,7 @@ contract RequestSettleDepositTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleDepositExpectations memory _params =
-            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0, 0);
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -255,7 +255,7 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
         SettleDepositExpectations memory _params =
-            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0, 0);
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -343,7 +343,7 @@ contract RequestSettleDepositTest is BaseTest {
         // new price per share
         uint256 _totalShares = vault.totalShares();
         SettleDepositExpectations memory _params =
-            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0, 0);
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 0);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -420,7 +420,7 @@ contract RequestSettleDepositTest is BaseTest {
         uint48 _settleBatchId = vault.currentBatch();
 
         // get settle deposit expectations
-        SettleDepositExpectations memory _params = _getSettleDepositExpectations(0, 0, _depositAmount, 0, 0);
+        SettleDepositExpectations memory _params = _getSettleDepositExpectations(0, 0, _depositAmount, 0);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -512,7 +512,7 @@ contract RequestSettleDepositTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleDepositExpectations memory _params =
-            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10, 0);
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -608,7 +608,7 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
         SettleDepositExpectations memory _params =
-            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10, vault.highWaterMark());
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -705,7 +705,7 @@ contract RequestSettleDepositTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleDepositExpectations memory _params =
-            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10, 0);
+            _getSettleDepositExpectations(_newTotalAssets, _totalShares, _depositAmount, 10);
 
         // settle deposit
         vm.startPrank(oracle);

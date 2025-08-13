@@ -195,6 +195,7 @@ contract BaseTest is Test {
 
     function _getAuthSignature(address _user, uint256 _expiryBlock)
         internal
+        view
         returns (AuthLibrary.AuthSignature memory)
     {
         bytes32 _authMessage = keccak256(abi.encode(_user, address(vault), block.chainid, _expiryBlock));
@@ -208,9 +209,8 @@ contract BaseTest is Test {
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint256 _depositAmount,
-        uint48 _batchesElapsed,
-        uint256 _highWaterMark
-    ) internal returns (SettleDepositExpectations memory) {
+        uint48 _batchesElapsed
+    ) internal view returns (SettleDepositExpectations memory) {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
         uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
@@ -232,9 +232,8 @@ contract BaseTest is Test {
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint256 _userShares,
-        uint48 _batchesElapsed,
-        uint256 _highWaterMark
-    ) internal returns (SettleRedeemExpectations memory) {
+        uint48 _batchesElapsed
+    ) internal view returns (SettleRedeemExpectations memory) {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
         uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);

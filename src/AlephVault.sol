@@ -312,7 +312,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalAmountForRedemption(uint256 _newTotalAssets) external returns (uint256) {
+    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint256 _totalShares = totalShares();
         _totalShares += _getManagementFeeShares(_sd, _newTotalAssets, _totalShares, currentBatch() - _sd.lastFeePaidId)
@@ -511,7 +511,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint48 _batchesElapsed
-    ) internal returns (uint256 _managementFeeShares) {
+    ) internal view returns (uint256 _managementFeeShares) {
         return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
             _newTotalAssets, _totalShares, _batchesElapsed, _sd.managementFee
         );
@@ -519,6 +519,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     function _getPerformanceFeeShares(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint256 _totalShares)
         internal
+        view
         returns (uint256 _performanceFeeShares)
     {
         return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(

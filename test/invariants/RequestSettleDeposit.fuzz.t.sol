@@ -166,9 +166,9 @@ contract RequestSettleDepositTest is BaseTest {
         vm.startPrank(_firstUser);
         underlyingToken.mint(_firstUser, _firstDepositAmount);
         underlyingToken.approve(address(vault), _firstDepositAmount);
-        AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_firstUser, type(uint256).max);
+        AuthLibrary.AuthSignature memory _authSignature_1 = _getAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature})
+            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature_1})
         );
         vm.stopPrank();
 
@@ -231,9 +231,9 @@ contract RequestSettleDepositTest is BaseTest {
         vm.startPrank(_firstUser);
         underlyingToken.mint(_firstUser, _firstDepositAmount);
         underlyingToken.approve(address(vault), _firstDepositAmount);
-        AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_firstUser, type(uint256).max);
+        AuthLibrary.AuthSignature memory _authSignature_1 = _getAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature})
+            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature_1})
         );
         vm.stopPrank();
 

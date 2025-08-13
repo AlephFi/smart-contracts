@@ -58,65 +58,65 @@ abstract contract AlephVaultBase {
     /**
      * @dev Returns the shares of a user.
      * @param _user The user to get the shares of.
-     * @return _userShares The shares of the user.
+     * @return The shares of the user.
      */
-    function _sharesOf(address _user) internal view returns (uint256 _userShares) {
+    function _sharesOf(address _user) internal view returns (uint256) {
         return _getStorage().sharesOf[_user].latest();
     }
 
     /**
      * @dev Returns the current batch.
-     * @return _currentBatch The current batch.
+     * @return The current batch.
      */
-    function _currentBatch() internal view returns (uint48 _currentBatch) {
+    function _currentBatch() internal view returns (uint48) {
         AlephVaultStorageData storage _sd = _getStorage();
         return (Time.timestamp() - _sd.startTimeStamp) / BATCH_DURATION;
     }
 
     /**
      * @dev Returns the high water mark.
-     * @return _highWaterMark The high water mark.
+     * @return The high water mark.
      */
-    function _highWaterMark() internal view returns (uint256 _highWaterMark) {
+    function _highWaterMark() internal view returns (uint256) {
         return _getStorage().highWaterMark.latest();
     }
 
     /**
      * @dev Returns the total amount to deposit.
-     * @return _totalAmountToDeposit The total amount to deposit.
+     * @return The total amount to deposit.
      */
-    function _totalAmountToDeposit() internal view returns (uint256 _totalAmountToDeposit) {
-        uint48 _currentBatch = _currentBatch();
-        if (_currentBatch > 0) {
+    function _totalAmountToDeposit() internal view returns (uint256) {
+        uint256 _amountToDeposit;
+        uint48 _currentBatchId = _currentBatch();
+        if (_currentBatchId > 0) {
             AlephVaultStorageData storage _sd = _getStorage();
             uint48 _depositSettleId = _sd.depositSettleId;
-            for (_depositSettleId; _depositSettleId <= _currentBatch; _depositSettleId++) {
-                _totalAmountToDeposit += _sd.batches[_depositSettleId].totalAmountToDeposit;
+            for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
+                _amountToDeposit += _sd.batches[_depositSettleId].totalAmountToDeposit;
             }
         }
+        return _amountToDeposit;
     }
 
     /**
      * @dev Internal function to get the price per share.
-     * @param _totalAssets The total assets in the vault.
-     * @param _totalShares The total shares in the vault.
-     * @return _pricePerShare The price per share.
+     * @param _assets The total assets in the vault.
+     * @param _shares The total shares in the vault.
+     * @return The price per share.
      */
-    function _getPricePerShare(uint256 _totalAssets, uint256 _totalShares)
-        public
-        pure
-        returns (uint256 _pricePerShare)
-    {
-        if (_totalShares > 0) {
-            _pricePerShare = _totalAssets.mulDiv(PRICE_DENOMINATOR, _totalShares, Math.Rounding.Ceil);
+    function _getPricePerShare(uint256 _assets, uint256 _shares) public pure returns (uint256) {
+        uint256 _pricePerShare;
+        if (_shares > 0) {
+            _pricePerShare = _assets.mulDiv(PRICE_DENOMINATOR, _shares, Math.Rounding.Ceil);
         }
+        return _pricePerShare;
     }
 
     /**
      * @dev Returns the storage struct for the vault.
-     * @return sd The storage struct.
+     * @return _sd The storage struct.
      */
-    function _getStorage() internal pure returns (AlephVaultStorageData storage sd) {
-        return AlephVaultStorage.load();
+    function _getStorage() internal pure returns (AlephVaultStorageData storage _sd) {
+        _sd = AlephVaultStorage.load();
     }
 }

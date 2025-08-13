@@ -91,7 +91,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -168,7 +168,7 @@ contract RequestSettleRedeemTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -247,7 +247,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 0);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -328,7 +328,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -415,7 +415,7 @@ contract RequestSettleRedeemTest is BaseTest {
         uint256 _totalShares = vault.totalShares();
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets * vault.PRICE_DENOMINATOR(), _totalShares);
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10, vault.highWaterMark());
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);
@@ -508,7 +508,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleRedeemExpectations memory _params =
-            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10, 0);
+            _getSettleRedeemExpectations(_newTotalAssets, _totalShares, _userShares, 10);
 
         // set vault balance
         underlyingToken.mint(address(vault), _params.assetsToWithdraw);

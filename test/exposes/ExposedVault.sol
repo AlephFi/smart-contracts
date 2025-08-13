@@ -127,6 +127,7 @@ contract ExposedVault is AlephVault {
 
     function getManagementFeeShares(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)
         external
+        view
         returns (uint256)
     {
         if (_batchesElapsed == 0) {
@@ -137,7 +138,7 @@ contract ExposedVault is AlephVault {
         );
     }
 
-    function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares) external returns (uint256) {
+    function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares) external view returns (uint256) {
         uint256 _highWaterMark = _highWaterMark();
         if (_highWaterMark == 0) {
             return 0;
@@ -147,11 +148,11 @@ contract ExposedVault is AlephVault {
         );
     }
 
-    function managementFeeRecipient() external view returns (address) {
+    function managementFeeRecipient() external pure returns (address) {
         return address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
     }
 
-    function performanceFeeRecipient() external view returns (address) {
+    function performanceFeeRecipient() external pure returns (address) {
         return address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
     }
 

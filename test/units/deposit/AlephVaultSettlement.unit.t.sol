@@ -93,10 +93,6 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 3 days + 1);
 
-        // check total assets and total shares
-        uint256 _totalAssets = vault.totalAssets();
-        uint256 _totalShares = vault.totalShares();
-
         // assert deposit settle id is less than current batch id
         uint48 _currentBatchId = vault.currentBatch();
         assertLt(vault.depositSettleId(), _currentBatchId);
