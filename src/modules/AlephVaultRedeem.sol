@@ -16,9 +16,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
@@ -28,13 +28,13 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
-    using Checkpoints for Checkpoints.Trace256;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
-        return _requestRedeem(_getStorage(), _shares);
+    function requestRedeem(uint8 _classId, uint8 _seriesId, uint256 _shares) external returns (uint48 _batchId) {
+        return _requestRedeem(_getStorage(), _classId, _seriesId, _shares);
     }
 
     /**
@@ -42,7 +42,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
      * @param _sharesToRedeem The number of shares to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function _requestRedeem(AlephVaultStorageData storage _sd, uint256 _sharesToRedeem)
+    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint8 _seriesId, uint256 _sharesToRedeem)
         internal
         returns (uint48 _batchId)
     {
@@ -57,16 +57,16 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
-        uint256 _shares = _sharesOf(msg.sender);
-        if (_shares < _sharesToRedeem) {
+        if (_sharesOf(_classId, _seriesId, msg.sender) < _sharesToRedeem) {
             revert InsufficientSharesToRedeem();
         }
         _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.redeemRequest[msg.sender] = _sharesToRedeem;
-        _batch.totalSharesToRedeem += _sharesToRedeem;
-        _batch.usersToRedeem.push(msg.sender);
-        _sd.sharesOf[msg.sender].push(Time.timestamp(), _shares - _sharesToRedeem);
+        IAlephVault.RedeemRequests storage _redeemRequests =
+            _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_currentBatchId];
+        _redeemRequests.redeemRequest[msg.sender] = _sharesToRedeem;
+        _redeemRequests.totalSharesToRedeem += _sharesToRedeem;
+        _redeemRequests.usersToRedeem.add(msg.sender);
+        _sd.shareClasses[_classId].shareSeries[_seriesId].sharesOf[msg.sender] -= _sharesToRedeem;
         // we will update the total shares and assets in the _settleRedeemForBatch function
         emit RedeemRequest(msg.sender, _sharesToRedeem, _currentBatchId);
         return _currentBatchId;

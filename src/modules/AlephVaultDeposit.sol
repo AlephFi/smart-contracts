@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
@@ -32,6 +33,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
  */
 contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     using SafeERC20 for IERC20;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     uint48 public immutable MIN_DEPOSIT_AMOUNT_TIMELOCK;
     uint48 public immutable MAX_DEPOSIT_CAP_TIMELOCK;
@@ -47,13 +49,13 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     }
 
     /// @inheritdoc IERC7540Deposit
-    function queueMinDepositAmount(uint256 _minDepositAmount) external {
-        _queueMinDepositAmount(_getStorage(), _minDepositAmount);
+    function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external {
+        _queueMinDepositAmount(_getStorage(), _classId, _minDepositAmount);
     }
 
     /// @inheritdoc IERC7540Deposit
-    function queueMaxDepositCap(uint256 _maxDepositCap) external {
-        _queueMaxDepositCap(_getStorage(), _maxDepositCap);
+    function queueMaxDepositCap(uint8 _classId, uint256 _maxDepositCap) external {
+        _queueMaxDepositCap(_getStorage(), _classId, _maxDepositCap);
     }
 
     /// @inheritdoc IERC7540Deposit
@@ -71,34 +73,36 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         return _requestDeposit(_getStorage(), _requestDepositParams);
     }
 
-    function _queueMinDepositAmount(AlephVaultStorageData storage _sd, uint256 _minDepositAmount) internal {
+    function _queueMinDepositAmount(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minDepositAmount)
+        internal
+    {
         _sd.timelocks[TimelockRegistry.MIN_DEPOSIT_AMOUNT] = TimelockRegistry.Timelock({
             unlockTimestamp: Time.timestamp() + MIN_DEPOSIT_AMOUNT_TIMELOCK,
-            newValue: abi.encode(_minDepositAmount)
+            newValue: abi.encode(_classId, _minDepositAmount)
         });
-        emit NewMinDepositAmountQueued(_minDepositAmount);
+        emit NewMinDepositAmountQueued(_classId, _minDepositAmount);
     }
 
-    function _queueMaxDepositCap(AlephVaultStorageData storage _sd, uint256 _maxDepositCap) internal {
+    function _queueMaxDepositCap(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _maxDepositCap) internal {
         _sd.timelocks[TimelockRegistry.MAX_DEPOSIT_CAP] = TimelockRegistry.Timelock({
             unlockTimestamp: Time.timestamp() + MAX_DEPOSIT_CAP_TIMELOCK,
-            newValue: abi.encode(_maxDepositCap)
+            newValue: abi.encode(_classId, _maxDepositCap)
         });
-        emit NewMaxDepositCapQueued(_maxDepositCap);
+        emit NewMaxDepositCapQueued(_classId, _maxDepositCap);
     }
 
     function _setMinDepositAmount(AlephVaultStorageData storage _sd) internal {
-        uint256 _minDepositAmount =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MIN_DEPOSIT_AMOUNT), (uint256));
-        _sd.minDepositAmount = _minDepositAmount;
-        emit NewMinDepositAmountSet(_minDepositAmount);
+        (uint8 _classId, uint256 _minDepositAmount) =
+            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MIN_DEPOSIT_AMOUNT), (uint8, uint256));
+        _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
+        emit NewMinDepositAmountSet(_classId, _minDepositAmount);
     }
 
     function _setMaxDepositCap(AlephVaultStorageData storage _sd) internal {
-        uint256 _maxDepositCap =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MAX_DEPOSIT_CAP), (uint256));
-        _sd.maxDepositCap = _maxDepositCap;
-        emit NewMaxDepositCapSet(_maxDepositCap);
+        (uint8 _classId, uint256 _maxDepositCap) =
+            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MAX_DEPOSIT_CAP), (uint8, uint256));
+        _sd.shareClasses[_classId].maxDepositCap = _maxDepositCap;
+        emit NewMaxDepositCapSet(_classId, _maxDepositCap);
     }
 
     /**
@@ -113,19 +117,21 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         if (_requestDepositParams.amount == 0) {
             revert InsufficientDeposit();
         }
-        uint256 _minDepositAmount = _sd.minDepositAmount;
+        uint256 _minDepositAmount = _sd.shareClasses[_requestDepositParams.classId].minDepositAmount;
         if (_minDepositAmount > 0 && _requestDepositParams.amount < _minDepositAmount) {
             revert DepositLessThanMinDepositAmount();
         }
-        uint256 _maxDepositCap = _sd.maxDepositCap;
+        uint256 _maxDepositCap = _sd.shareClasses[_requestDepositParams.classId].maxDepositCap;
         if (
             _maxDepositCap > 0
-                && _totalAssets() + _totalAmountToDeposit() + _requestDepositParams.amount > _maxDepositCap
+                && _totalAssetsPerClass(_requestDepositParams.classId)
+                    + _totalAmountToDepositPerClass(_requestDepositParams.classId) + _requestDepositParams.amount
+                    > _maxDepositCap
         ) {
             revert DepositExceedsMaxDepositCap();
         }
         if (_sd.isAuthEnabled) {
-            AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.authSignature);
+            AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.classId, _requestDepositParams.authSignature);
         }
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = _currentBatch();
@@ -136,10 +142,11 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
         _sd.lastDepositBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.depositRequest[msg.sender] = _requestDepositParams.amount;
-        _batch.totalAmountToDeposit += _requestDepositParams.amount;
-        _batch.usersToDeposit.push(msg.sender);
+        IAlephVault.DepositRequests storage _depositRequests =
+            _sd.shareClasses[_requestDepositParams.classId].depositRequests[_currentBatchId];
+        _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
+        _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
+        _depositRequests.usersToDeposit.add(msg.sender);
         emit DepositRequest(msg.sender, _requestDepositParams.amount, _currentBatchId);
 
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);

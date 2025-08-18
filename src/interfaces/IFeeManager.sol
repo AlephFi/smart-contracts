@@ -20,30 +20,33 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IFeeManager {
-    event NewManagementFeeQueued(uint32 managementFee);
-    event NewPerformanceFeeQueued(uint32 performanceFee);
+    event NewManagementFeeQueued(uint8 classId, uint32 managementFee);
+    event NewPerformanceFeeQueued(uint8 classId, uint32 performanceFee);
     event NewFeeRecipientQueued(address feeRecipient);
-    event NewManagementFeeSet(uint32 managementFee);
-    event NewPerformanceFeeSet(uint32 performanceFee);
+    event NewManagementFeeSet(uint8 classId, uint32 managementFee);
+    event NewPerformanceFeeSet(uint8 classId, uint32 performanceFee);
     event NewFeeRecipientSet(address feeRecipient);
     event FeesAccumulated(uint48 lastFeePaidId, uint48 currentBatchId, uint256 managementFee, uint256 performanceFee);
-    event NewHighWaterMarkSet(uint256 highWaterMark);
+    event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark);
     event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
     error InvalidManagementFee();
     error InvalidPerformanceFee();
+    error InvalidShareClassConversion();
 
     /**
      * @notice Queues a new management fee to be set after the timelock period.
+     * @param _classId The ID of the share class to set the management fee for.
      * @param _managementFee The new management fee to be set.
      */
-    function queueManagementFee(uint32 _managementFee) external;
+    function queueManagementFee(uint8 _classId, uint32 _managementFee) external;
 
     /**
      * @notice Queues a new performance fee to be set after the timelock period.
+     * @param _classId The ID of the share class to set the performance fee for.
      * @param _performanceFee The new performance fee to be set.
      */
-    function queuePerformanceFee(uint32 _performanceFee) external;
+    function queuePerformanceFee(uint8 _classId, uint32 _performanceFee) external;
 
     /**
      * @notice Queues a new fee recipient to be set after the timelock period.
@@ -69,22 +72,21 @@ interface IFeeManager {
     /**
      * @notice Accumulates fees for a given batch.
      * @param _newTotalAssets The new total assets in the vault.
+     * @param _totalShares The total shares in the vault.
      * @param _currentBatchId The current batch ID.
      * @param _lastFeePaidId The last fee paid ID.
-     * @param _timestamp The timestamp of the current batch.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @return The accumulated fees.
      */
-    function accumulateFees(uint256 _newTotalAssets, uint48 _currentBatchId, uint48 _lastFeePaidId, uint48 _timestamp)
-        external
-        returns (uint256);
-
-    /**
-     * @notice Initializes the high water mark.
-     * @param _totalAssets The total assets in the vault.
-     * @param _totalShares The total shares in the vault.
-     * @param _timestamp The timestamp of the current batch.
-     */
-    function initializeHighWaterMark(uint256 _totalAssets, uint256 _totalShares, uint48 _timestamp) external;
+    function accumulateFees(
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint48 _currentBatchId,
+        uint48 _lastFeePaidId,
+        uint8 _classId,
+        uint8 _seriesId
+    ) external returns (uint256);
 
     /**
      * @notice Gets the management fee shares.

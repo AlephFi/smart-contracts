@@ -23,14 +23,15 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 
 interface IERC7540Deposit {
     struct RequestDepositParams {
+        uint8 classId;
         uint256 amount;
         AuthLibrary.AuthSignature authSignature;
     }
 
-    event NewMinDepositAmountQueued(uint256 minDepositAmount);
-    event NewMaxDepositCapQueued(uint256 maxDepositCap);
-    event NewMinDepositAmountSet(uint256 minDepositAmount);
-    event NewMaxDepositCapSet(uint256 maxDepositCap);
+    event NewMinDepositAmountQueued(uint8 classId, uint256 minDepositAmount);
+    event NewMaxDepositCapQueued(uint8 classId, uint256 maxDepositCap);
+    event NewMinDepositAmountSet(uint8 classId, uint256 minDepositAmount);
+    event NewMaxDepositCapSet(uint8 classId, uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
 
     error InsufficientDeposit();
@@ -42,15 +43,17 @@ interface IERC7540Deposit {
 
     /**
      * @notice Queues a new minimum deposit amount.
+     * @param _classId The ID of the share class to set the minimum deposit amount for.
      * @param _minDepositAmount The new minimum deposit amount.
      */
-    function queueMinDepositAmount(uint256 _minDepositAmount) external;
+    function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external;
 
     /**
      * @notice Queues a new maximum deposit cap.
+     * @param _classId The ID of the share class to set the maximum deposit cap for.
      * @param _maxDepositCap The new maximum deposit cap.
      */
-    function queueMaxDepositCap(uint256 _maxDepositCap) external;
+    function queueMaxDepositCap(uint8 _classId, uint256 _maxDepositCap) external;
 
     /**
      * @notice Sets the minimum deposit amount.

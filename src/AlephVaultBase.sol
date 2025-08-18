@@ -17,7 +17,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
@@ -25,7 +24,6 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract AlephVaultBase {
-    using Checkpoints for Checkpoints.Trace256;
     using Math for uint256;
 
     uint32 public constant MAXIMUM_MANAGEMENT_FEE = 1000; // 10%
@@ -43,29 +41,83 @@ contract AlephVaultBase {
         BATCH_DURATION = _batchDuration;
     }
 
+    function _totalAssets() internal view returns (uint256) {
+        uint256 _totalAssets;
+        uint8 _shareClassesId = _getStorage().shareClassesId;
+        if (_shareClassesId > 0) {
+            for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+                _totalAssets += _totalAssetsPerClass(_classId);
+            }
+        }
+        return _totalAssets;
+    }
+
+    function _totalShares() internal view returns (uint256) {
+        uint256 _totalShares;
+        uint8 _shareClassesId = _getStorage().shareClassesId;
+        if (_shareClassesId > 0) {
+            for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+                _totalShares += _totalSharesPerClass(_classId);
+            }
+        }
+        return _totalShares;
+    }
+
+    /**
+     * @dev Returns the total assets in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total assets in the vault for the given class.
+     */
+    function _totalAssetsPerClass(uint8 _classId) internal view returns (uint256) {
+        uint256 _totalAssets;
+        for (uint8 _seriesId; _seriesId <= _getStorage().shareClasses[_classId].activeSeries; _seriesId++) {
+            _totalAssets += _totalAssetsPerSeries(_classId, _seriesId);
+        }
+        return _totalAssets;
+    }
+
+    /**
+     * @dev Returns the total shares in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total shares in the vault for the given class.
+     */
+    function _totalSharesPerClass(uint8 _classId) internal view returns (uint256) {
+        uint256 _totalShares;
+        for (uint8 _seriesId; _seriesId <= _getStorage().shareClasses[_classId].activeSeries; _seriesId++) {
+            _totalShares += _totalSharesPerSeries(_classId, _seriesId);
+        }
+        return _totalShares;
+    }
+
     /**
      * @dev Returns the total assets in the vault.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssets() internal view returns (uint256) {
-        return _getStorage().assets.latest();
+    function _totalAssetsPerSeries(uint8 _classId, uint8 _seriesId) internal view returns (uint256) {
+        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].totalAssets;
     }
 
     /**
      * @dev Returns the total shares in the vault.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalShares() internal view returns (uint256) {
-        return _getStorage().shares.latest();
+    function _totalSharesPerSeries(uint8 _classId, uint8 _seriesId) internal view returns (uint256) {
+        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].totalShares;
     }
 
     /**
      * @dev Returns the shares of a user.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @param _user The user to get the shares of.
      * @return The shares of the user.
      */
-    function _sharesOf(address _user) internal view returns (uint256) {
-        return _getStorage().sharesOf[_user].latest();
+    function _sharesOf(uint8 _classId, uint8 _seriesId, address _user) internal view returns (uint256) {
+        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].sharesOf[_user];
     }
 
     /**
@@ -79,24 +131,45 @@ contract AlephVaultBase {
 
     /**
      * @dev Returns the high water mark.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @return The high water mark.
      */
-    function _highWaterMark() internal view returns (uint256) {
-        return _getStorage().highWaterMark.latest();
+    function _highWaterMark(uint8 _classId, uint8 _seriesId) internal view returns (uint256) {
+        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].highWaterMark;
+    }
+
+    /**
+     * @dev Returns the lead high water mark.
+     * @param _classId The ID of the share class.
+     * @return The high water mark of the lead series.
+     */
+    function _leadHighWaterMark(uint8 _classId) internal view returns (uint256) {
+        return _highWaterMark(_classId, 0);
+    }
+
+    /**
+     * @dev Returns the lead price per share.
+     * @param _classId The ID of the share class.
+     * @return The price per share of the lead series.
+     */
+    function _leadPricePerShare(uint8 _classId) internal view returns (uint256) {
+        return _getPricePerShare(_totalAssetsPerSeries(_classId, 0), _totalSharesPerSeries(_classId, 0));
     }
 
     /**
      * @dev Returns the total amount to deposit.
+     * @param _classId The ID of the share class.
      * @return The total amount to deposit.
      */
-    function _totalAmountToDeposit() internal view returns (uint256) {
+    function _totalAmountToDepositPerClass(uint8 _classId) internal view returns (uint256) {
         uint256 _amountToDeposit;
         uint48 _currentBatchId = _currentBatch();
         if (_currentBatchId > 0) {
             AlephVaultStorageData storage _sd = _getStorage();
-            uint48 _depositSettleId = _sd.depositSettleId;
+            uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
             for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
-                _amountToDeposit += _sd.batches[_depositSettleId].totalAmountToDeposit;
+                _amountToDeposit += _sd.shareClasses[_classId].depositRequests[_depositSettleId].totalAmountToDeposit;
             }
         }
         return _amountToDeposit;

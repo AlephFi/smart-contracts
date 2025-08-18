@@ -15,6 +15,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
@@ -22,10 +24,16 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 interface IAlephVault {
     error InvalidInitializationParams();
     error InvalidAuthSigner();
+    error InvalidShareClass();
+    error InvalidShareSeries();
+    error InvalidVaultFee();
 
     event MetadataUriSet(string metadataUri);
     event IsAuthEnabledSet(bool isAuthEnabled);
     event AuthSignerSet(address authSigner);
+    event ShareClassCreated(
+        uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
+    );
 
     struct InitializationParams {
         address operationsMultisig;
@@ -34,8 +42,6 @@ interface IAlephVault {
         address guardian;
         address authSigner;
         address feeRecipient;
-        uint32 managementFee;
-        uint32 performanceFee;
         UserInitializationParams userInitializationParams;
         ModuleInitializationParams moduleInitializationParams;
     }
@@ -55,13 +61,37 @@ interface IAlephVault {
         address feeManagerImplementation;
     }
 
-    struct BatchData {
-        uint48 batchId;
+    struct ShareClass {
+        uint8 activeSeries;
+        uint32 managementFee;
+        uint32 performanceFee;
+        uint48 lastFeePaidId;
+        uint48 depositSettleId;
+        uint48 redeemSettleId;
+        uint256 minDepositAmount;
+        uint256 maxDepositCap;
+        mapping(uint8 => ShareSeries) shareSeries;
+        mapping(uint48 batchId => DepositRequests) depositRequests;
+    }
+
+    struct ShareSeries {
+        uint256 totalAssets;
+        uint256 totalShares;
+        uint256 highWaterMark;
+        EnumerableSet.AddressSet users;
+        mapping(address => uint256) sharesOf;
+        mapping(uint48 batchId => RedeemRequests) redeemRequests;
+    }
+
+    struct DepositRequests {
         uint256 totalAmountToDeposit;
-        uint256 totalSharesToRedeem;
-        address[] usersToDeposit;
-        address[] usersToRedeem;
+        EnumerableSet.AddressSet usersToDeposit;
         mapping(address => uint256) depositRequest;
+    }
+
+    struct RedeemRequests {
+        uint256 totalSharesToRedeem;
+        EnumerableSet.AddressSet usersToRedeem;
         mapping(address => uint256) redeemRequest;
     }
 
@@ -117,15 +147,17 @@ interface IAlephVault {
 
     /**
      * @notice Returns the management fee of the vault.
+     * @param _classId The ID of the share class.
      * @return The management fee.
      */
-    function managementFee() external view returns (uint32);
+    function managementFee(uint8 _classId) external view returns (uint32);
 
     /**
      * @notice Returns the performance fee of the vault.
+     * @param _classId The ID of the share class.
      * @return The performance fee.
      */
-    function performanceFee() external view returns (uint32);
+    function performanceFee(uint8 _classId) external view returns (uint32);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.
@@ -146,110 +178,103 @@ interface IAlephVault {
     function totalShares() external view returns (uint256);
 
     /**
-     * @notice Returns the total assets at a specific timestamp.
-     * @param _timestamp The timestamp to query.
-     * @return The total assets at the given timestamp.
+     * @notice Returns the total assets in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total assets in the vault for the given class.
      */
-    function assetsAt(uint48 _timestamp) external view returns (uint256);
+    function totalAssetsPerClass(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total shares in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total shares in the vault for the given class.
+     */
+    function totalSharesPerClass(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total assets in the vault for a given series.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
+     * @return The total assets in the vault for the given series.
+     */
+    function totalAssetsPerSeries(uint8 _classId, uint8 _seriesId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total shares in the vault for a given series.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
+     * @return The total shares in the vault for the given series.
+     */
+    function totalSharesPerSeries(uint8 _classId, uint8 _seriesId) external view returns (uint256);
 
     /**
      * @notice Returns the amount of assets claimable by a user based on their shares.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @param _user The address of the user.
      * @return The amount of assets claimable by the user.
      */
-    function assetsOf(address _user) external view returns (uint256);
-
-    /**
-     * @notice Returns the amount of assets claimable by a user at a specific timestamp.
-     * @param _user The address of the user.
-     * @param _timestamp The timestamp to query.
-     * @return The amount of assets claimable by the user at the given timestamp.
-     */
-    function assetsOfAt(address _user, uint48 _timestamp) external view returns (uint256);
-
-    /**
-     * @notice Returns the total shares at a specific timestamp.
-     * @param _timestamp The timestamp to query.
-     * @return The total shares at the given timestamp.
-     */
-    function sharesAt(uint48 _timestamp) external view returns (uint256);
+    function assetsOf(uint8 _classId, uint8 _seriesId, address _user) external view returns (uint256);
 
     /**
      * @notice Returns the number of shares owned by a user.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @param _user The address of the user.
      * @return The number of shares owned by the user.
      */
-    function sharesOf(address _user) external view returns (uint256);
-
-    /**
-     * @notice Returns the number of shares owned by a user at a specific timestamp.
-     * @param _user The address of the user.
-     * @param _timestamp The timestamp to query.
-     * @return The number of shares owned by the user at the given timestamp.
-     */
-    function sharesOfAt(address _user, uint48 _timestamp) external view returns (uint256);
+    function sharesOf(uint8 _classId, uint8 _seriesId, address _user) external view returns (uint256);
 
     /**
      * @notice Returns the current price per share of the vault.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @return The current price per share.
      */
-    function pricePerShare() external view returns (uint256);
-
-    /**
-     * @notice Returns the price per share at a specific timestamp.
-     * @param _timestamp The timestamp to query.
-     * @return The price per share at the given timestamp.
-     */
-    function pricePerShareAt(uint48 _timestamp) external view returns (uint256);
+    function pricePerShare(uint8 _classId, uint8 _seriesId) external view returns (uint256);
 
     /**
      * @notice Returns the current high water mark of the vault.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
      * @return The current high water mark.
      */
-    function highWaterMark() external view returns (uint256);
-
-    /**
-     * @notice Returns the high water mark at a specific timestamp.
-     * @param _timestamp The timestamp to query.
-     * @return The high water mark at the given timestamp.
-     */
-    function highWaterMarkAt(uint48 _timestamp) external view returns (uint256);
+    function highWaterMark(uint8 _classId, uint8 _seriesId) external view returns (uint256);
 
     /**
      * @notice Returns the minimum deposit amount.
-     * @return The minimum deposit amount.
+     * @param _classId The ID of the share class.
+     * @return The minimum deposit amount of the share class.
      */
-    function minDepositAmount() external view returns (uint256);
+    function minDepositAmount(uint8 _classId) external view returns (uint256);
 
     /**
      * @notice Returns the maximum deposit cap.
-     * @return The maximum deposit cap.
+     * @param _classId The ID of the share class.
+     * @return The maximum deposit cap of the share class.
      */
-    function maxDepositCap() external view returns (uint256);
+    function maxDepositCap(uint8 _classId) external view returns (uint256);
 
     /**
      * @notice Returns the total amount of unsettled deposit requests.
      * @return The total amount of unsettled deposit requests.
      * @dev Please note that this function will return the deposit amount for all batches including the current batch.
      * However, if these deposit requests are settled in this batch, the amount requested in this batch will NOT be settled.
-     * It will be settled in the next settlement batch. So if you're using this function to check if the deposit request for settlement,
+     * It will be settled in the next settlement batch. So if you're using this function to check for the deposit request for settlement,
      * please be aware of this nuance.
      */
     function totalAmountToDeposit() external view returns (uint256);
 
     /**
-     * @notice Returns the total amount of deposit requests at a specific batch ID.
-     * @param _batchId The batch ID to query.
-     * @return The total amount of deposit requests at the given batch ID.
+     * @notice Returns the total amount of unsettled deposit requests for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total amount of unsettled deposit requests for the given class.
+     * @dev Please note that this function will return the deposit amount for all batches including the current batch.
+     * However, if these deposit requests are settled in this batch, the amount requested in this batch will NOT be settled.
+     * It will be settled in the next settlement batch. So if you're using this function to check for the deposit request for settlement,
+     * please be aware of this nuance.
      */
-    function totalAmountToDepositAt(uint48 _batchId) external view returns (uint256);
-
-    /**
-     * @notice Returns the users that have requested to deposit at a specific batch ID.
-     * @param _batchId The batch ID to query.
-     * @return The users that have requested to deposit at the given batch ID.
-     */
-    function usersToDepositAt(uint48 _batchId) external view returns (address[] memory);
+    function totalAmountToDepositPerClass(uint8 _classId) external view returns (uint256);
 
     /**
      * @notice Returns the deposit request of a user.
@@ -259,32 +284,10 @@ interface IAlephVault {
     function depositRequestOf(address _user) external view returns (uint256);
 
     /**
-     * @notice Returns the deposit request of a user at a specific batch ID.
-     * @param _user The user to query.
-     * @param _batchId The batch ID to query.
-     * @return The deposit request of the user at the given batch ID.
-     */
-    function depositRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
-
-    /**
      * @notice Returns the total shares to redeem at the current batch.
      * @return The total shares to redeem at the current batch.
      */
     function totalSharesToRedeem() external view returns (uint256);
-
-    /**
-     * @notice Returns the total shares to redeem at a specific batch ID.
-     * @param _batchId The batch ID to query.
-     * @return The total shares to redeem at the given batch ID.
-     */
-    function totalSharesToRedeemAt(uint48 _batchId) external view returns (uint256);
-
-    /**
-     * @notice Returns the users that have requested to redeem at a specific batch ID.
-     * @param _batchId The batch ID to query.
-     * @return The users that have requested to redeem at the given batch ID.
-     */
-    function usersToRedeemAt(uint48 _batchId) external view returns (address[] memory);
 
     /**
      * @notice Returns the redeem request of a user.
@@ -292,14 +295,6 @@ interface IAlephVault {
      * @return The redeem request of the user.
      */
     function redeemRequestOf(address _user) external view returns (uint256);
-
-    /**
-     * @notice Returns the redeem request of a user at a specific batch ID.
-     * @param _user The user to query.
-     * @param _batchId The batch ID to query.
-     * @return The redeem request of the user at the given batch ID.
-     */
-    function redeemRequestOfAt(address _user, uint48 _batchId) external view returns (uint256);
 
     /**
      * @notice Returns the total amount for redemption.
@@ -341,6 +336,20 @@ interface IAlephVault {
      * @param _authSigner The new KYC authentication signer.
      */
     function setAuthSigner(address _authSigner) external;
+
+    /**
+     * @notice Creates a new share class.
+     * @param _managementFee The management fee.
+     * @param _performanceFee The performance fee.
+     * @param _minDepositAmount The minimum deposit amount.
+     * @param _maxDepositCap The maximum deposit cap.
+     */
+    function createShareClass(
+        uint32 _managementFee,
+        uint32 _performanceFee,
+        uint256 _minDepositAmount,
+        uint256 _maxDepositCap
+    ) external returns (uint8 _classId);
 
     /**
      * @notice Migrates the implementation of a module.

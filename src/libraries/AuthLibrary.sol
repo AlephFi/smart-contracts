@@ -35,14 +35,15 @@ library AuthLibrary {
     error AuthSignatureExpired();
     error InvalidAuthSignature();
 
-    function verifyAuthSignature(AlephVaultStorageData storage _sd, AuthSignature memory _authSignature)
+    function verifyAuthSignature(AlephVaultStorageData storage _sd, uint8 _classId, AuthSignature memory _authSignature)
         internal
         view
     {
         if (_authSignature.expiryBlock < block.number) {
             revert AuthSignatureExpired();
         }
-        bytes32 _hash = keccak256(abi.encode(msg.sender, address(this), block.chainid, _authSignature.expiryBlock));
+        bytes32 _hash =
+            keccak256(abi.encode(msg.sender, address(this), block.chainid, _classId, _authSignature.expiryBlock));
         address _signer = _hash.toEthSignedMessageHash().recover(_authSignature.authSignature);
         if (_signer != _sd.authSigner) {
             revert InvalidAuthSignature();

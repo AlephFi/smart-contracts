@@ -22,6 +22,13 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IERC7540Settlement {
+    struct SettleDepositBatchParams {
+        uint8 seriesId;
+        uint48 batchId;
+        uint256 totalAssets;
+        uint256 totalShares;
+    }
+
     event SettleDeposit(
         uint48 indexed fromBatchId,
         uint48 indexed toBatchId,
@@ -62,7 +69,7 @@ interface IERC7540Settlement {
         uint256 pricePerShare
     );
 
-    error BatchAlreadySettledForDeposit();
+    error InvalidNewTotalAssets();
     error NoDepositsToSettle();
     error NoRedeemsToSettle();
 
@@ -70,13 +77,15 @@ interface IERC7540Settlement {
 
     /**
      * @notice Settles all pending deposits up to the current batch.
-     * @param _newTotalAssets The new total assets after settlement.
+     * @param _classId The ID of the share class to settle deposits for.
+     * @param _newTotalAssets The new total assets after settlement for each series.
      */
-    function settleDeposit(uint256 _newTotalAssets) external;
+    function settleDeposit(uint8 _classId, uint256[] calldata _newTotalAssets) external;
 
     /**
      * @notice Settles all pending redeems up to the current batch.
-     * @param _newTotalAssets The new total assets after settlement.
+     * @param _classId The ID of the share class to settle redeems for.
+     * @param _newTotalAssets The new total assets after settlement for each series.
      */
-    function settleRedeem(uint256 _newTotalAssets) external;
+    function settleRedeem(uint8 _classId, uint256[] calldata _newTotalAssets) external;
 }
