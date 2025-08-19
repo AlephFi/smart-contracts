@@ -81,7 +81,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
     {
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(IERC7540Redeem.NoRedeemsToSettle.selector);
+        vm.expectRevert(IERC7540Settlement.NoRedeemsToSettle.selector);
         vault.settleRedeem(1000);
     }
 
