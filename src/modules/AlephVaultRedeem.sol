@@ -33,20 +33,20 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint8 _classId, uint8 _seriesId, uint256 _shares) external returns (uint48 _batchId) {
-        return _requestRedeem(_getStorage(), _classId, _seriesId, _shares);
+    function requestRedeem(uint8 _classId, uint256 _amount) external returns (uint48 _batchId) {
+        return _requestRedeem(_getStorage(), _classId, _amount);
     }
 
     /**
      * @dev Internal function to handle a redeem request.
-     * @param _sharesToRedeem The number of shares to redeem.
+     * @param _amountToRedeem The amount of assets to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint8 _seriesId, uint256 _sharesToRedeem)
+    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _amountToRedeem)
         internal
         returns (uint48 _batchId)
     {
-        if (_sharesToRedeem == 0) {
+        if (_amountToRedeem == 0) {
             revert InsufficientRedeem();
         }
         uint48 _currentBatchId = _currentBatch();
@@ -57,18 +57,15 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
-        if (_sharesOf(_classId, _seriesId, msg.sender) < _sharesToRedeem) {
-            revert InsufficientSharesToRedeem();
+        if (_assetsPerClassOf(_classId, msg.sender) < _amountToRedeem) {
+            revert InsufficientAssetsToRedeem();
         }
         _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.RedeemRequests storage _redeemRequests =
-            _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_currentBatchId];
-        _redeemRequests.redeemRequest[msg.sender] = _sharesToRedeem;
-        _redeemRequests.totalSharesToRedeem += _sharesToRedeem;
+        IAlephVault.RedeemRequests storage _redeemRequests = _sd.shareClasses[_classId].redeemRequests[_currentBatchId];
+        _redeemRequests.redeemRequest[msg.sender] = _amountToRedeem;
+        _redeemRequests.totalAmountToRedeem += _amountToRedeem;
         _redeemRequests.usersToRedeem.add(msg.sender);
-        _sd.shareClasses[_classId].shareSeries[_seriesId].sharesOf[msg.sender] -= _sharesToRedeem;
-        // we will update the total shares and assets in the _settleRedeemForBatch function
-        emit RedeemRequest(msg.sender, _sharesToRedeem, _currentBatchId);
+        emit RedeemRequest(msg.sender, _amountToRedeem, _currentBatchId);
         return _currentBatchId;
     }
 }

@@ -246,11 +246,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return ERC4626Math.previewRedeem(
-            sharesOf(_classId, _seriesId, _user),
-            _totalAssetsPerSeries(_classId, _seriesId),
-            _totalSharesPerSeries(_classId, _seriesId)
-        );
+        return _assetsOf(_classId, _seriesId, _user);
     }
 
     /// @inheritdoc IAlephVault
@@ -319,44 +315,44 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function totalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
-        uint48 _currentBatch = currentBatch();
-        if (_currentBatch > 0) {
-            AlephVaultStorageData storage _sd = _getStorage();
-            uint8 _shareClassesId = _sd.shareClassesId;
-            if (_shareClassesId > 0) {
-                for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                    uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
-                    uint8 _activeSeries = _sd.shareClasses[_classId].activeSeries;
-                    for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
-                        for (_redeemSettleId; _redeemSettleId <= _currentBatch; _redeemSettleId++) {
-                            _totalSharesToRedeem += _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_redeemSettleId]
-                                .totalSharesToRedeem;
-                        }
-                    }
-                }
-            }
-        }
+        // uint48 _currentBatch = currentBatch();
+        // if (_currentBatch > 0) {
+        //     AlephVaultStorageData storage _sd = _getStorage();
+        //     uint8 _shareClassesId = _sd.shareClassesId;
+        //     if (_shareClassesId > 0) {
+        //         for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+        //             uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
+        //             uint8 _activeSeries = _sd.shareClasses[_classId].activeSeries;
+        //             for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
+        //                 for (_redeemSettleId; _redeemSettleId <= _currentBatch; _redeemSettleId++) {
+        //                     _totalSharesToRedeem += _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_redeemSettleId]
+        //                         .totalSharesToRedeem;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     /// @inheritdoc IAlephVault
     function redeemRequestOf(address _user) external view returns (uint256 _totalSharesToRedeem) {
-        uint48 _currentBatch = currentBatch();
-        if (_currentBatch > 0) {
-            AlephVaultStorageData storage _sd = _getStorage();
-            uint8 _shareClassesId = _sd.shareClassesId;
-            if (_shareClassesId > 0) {
-                for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                    uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
-                    uint8 _activeSeries = _sd.shareClasses[_classId].activeSeries;
-                    for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
-                        for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
-                            _totalSharesToRedeem += _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_redeemSettleId]
-                                .redeemRequest[_user];
-                        }
-                    }
-                }
-            }
-        }
+        // uint48 _currentBatch = currentBatch();
+        // if (_currentBatch > 0) {
+        //     AlephVaultStorageData storage _sd = _getStorage();
+        //     uint8 _shareClassesId = _sd.shareClassesId;
+        //     if (_shareClassesId > 0) {
+        //         for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+        //             uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
+        //             uint8 _activeSeries = _sd.shareClasses[_classId].activeSeries;
+        //             for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
+        //                 for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
+        //                     _totalSharesToRedeem += _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_redeemSettleId]
+        //                         .redeemRequest[_user];
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     /// @inheritdoc IAlephVault
@@ -575,13 +571,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Requests a redeem of shares.
      * @param _classId The ID of the share class to redeem shares from.
-     * @param _shares The number of shares to redeem.
+     * @param _amount The number of shares to redeem.
      * @return _batchId The batch ID of the redeem.
      * @dev Only callable when the redeem request flow is not paused.
      */
-    function requestRedeem(uint8 _classId, uint8 _seriesId, uint256 _shares)
+    function requestRedeem(uint8 _classId, uint256 _amount)
         external
-        onlyValidShareClassAndSeries(_classId, _seriesId)
+        onlyValidShareClass(_classId)
         whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
         returns (uint48 _batchId)
     {

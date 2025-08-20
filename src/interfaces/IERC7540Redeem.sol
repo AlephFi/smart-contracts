@@ -23,18 +23,15 @@ interface IERC7540Redeem {
     event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);
 
     error InsufficientRedeem();
-    error InsufficientSharesToRedeem();
-    error BatchAlreadyRedeemed();
-    error NoRedeemsToSettle();
+    error InsufficientAssetsToRedeem();
     error OnlyOneRequestPerBatchAllowedForRedeem();
     error NoBatchAvailableForRedeem();
 
     /**
      * @notice Requests to redeem shares from the vault for the current batch.
      * @param _classId The ID of the share class to redeem shares from.
-     * @param _seriesId The ID of the share series to redeem shares from.
-     * @param _shares The number of shares to redeem.
+     * @param _amount The amount of assets to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function requestRedeem(uint8 _classId, uint8 _seriesId, uint256 _shares) external returns (uint48 _batchId);
+    function requestRedeem(uint8 _classId, uint256 _amount) external returns (uint48 _batchId);
 }

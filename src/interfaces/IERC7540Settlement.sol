@@ -29,6 +29,14 @@ interface IERC7540Settlement {
         uint256 totalShares;
     }
 
+    struct SettleRedeemBatchParams {
+        uint8 classId;
+        uint8 activeSeries;
+        uint48 batchId;
+        address underlyingToken;
+        uint256[] newTotalAssets;
+    }
+
     event SettleDeposit(
         uint48 indexed fromBatchId,
         uint48 indexed toBatchId,
@@ -49,25 +57,13 @@ interface IERC7540Settlement {
         uint256 pricePerShare
     );
 
-    event SettleRedeem(
-        uint48 indexed fromBatchId,
-        uint48 indexed toBatchId,
-        uint256 sharesToSettle,
-        uint256 totalAssets,
-        uint256 totalShares,
-        uint256 pricePerShare
+    event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId);
+
+    event RedeemRequestSettled(
+        address indexed user, uint8 indexed classId, uint8 indexed seriesId, uint256 sharesToBurn, uint256 assets
     );
 
-    event RedeemRequestSettled(address indexed user, uint256 sharesToBurn, uint256 assets);
-
-    event SettleRedeemBatch(
-        uint48 indexed batchId,
-        uint256 totalAssetsToRedeem,
-        uint256 totalSharesToRedeem,
-        uint256 totalAssets,
-        uint256 totalShares,
-        uint256 pricePerShare
-    );
+    event SettleRedeemBatch(uint48 indexed batchId, uint256 totalAmountToRedeem);
 
     error InvalidNewTotalAssets();
     error NoDepositsToSettle();

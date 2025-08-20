@@ -150,74 +150,99 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     function _settleRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256[] calldata _newTotalAssets)
         internal
     {
-        // uint48 _redeemSettleId = _sd.redeemSettleId;
-        // uint48 _currentBatchId = _currentBatch();
-        // if (_currentBatchId == _redeemSettleId) {
-        //     revert NoRedeemsToSettle();
-        // }
-        // uint48 _timestamp = Time.timestamp();
-        // uint48 _lastFeePaidId = _sd.lastFeePaidId;
-        // uint256 _totalShares = _totalShares();
-        // if (_currentBatchId > _lastFeePaidId) {
-        //     _totalShares += _getAccumulatedFees(_sd, _newTotalAssets, _currentBatchId, _lastFeePaidId, _timestamp);
-        // }
-        // uint256 _sharesToSettle;
-        // uint256 _totalAssets = _newTotalAssets;
-        // for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
-        //     (uint256 _assets, uint256 _sharesToRedeem) = _settleRedeemForBatch(_sd, _id, _totalAssets, _totalShares);
-        //     _sharesToSettle += _sharesToRedeem;
-        //     _totalAssets -= _assets;
-        //     _totalShares -= _sharesToRedeem;
-        // }
-        // _sd.redeemSettleId = _currentBatchId;
-        // _sd.shares.push(_timestamp, _totalShares);
-        // _sd.assets.push(_timestamp, _totalAssets);
-        // emit SettleRedeem(
-        //     _redeemSettleId,
-        //     _currentBatchId,
-        //     _sharesToSettle,
-        //     _totalAssets,
-        //     _totalShares,
-        //     _getPricePerShare(_totalAssets, _totalShares)
-        // );
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _redeemSettleId = _shareClass.redeemSettleId;
+        uint48 _currentBatchId = _currentBatch();
+        if (_currentBatchId == _redeemSettleId) {
+            revert NoRedeemsToSettle();
+        }
+        uint8 _activeSeries = _shareClass.activeSeries;
+        if (_newTotalAssets.length != _activeSeries + 1) {
+            revert InvalidNewTotalAssets();
+        }
+        _accumulateFees(_shareClass, _classId, _activeSeries, _currentBatchId, _newTotalAssets);
+        address _underlyingToken = _sd.underlyingToken;
+        for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
+            _settleRedeemForBatch(
+                _shareClass,
+                SettleRedeemBatchParams({
+                    batchId: _id,
+                    classId: _classId,
+                    activeSeries: _activeSeries,
+                    underlyingToken: _underlyingToken,
+                    newTotalAssets: _newTotalAssets
+                })
+            );
+        }
+        _shareClass.redeemSettleId = _currentBatchId;
+        emit SettleRedeem(_redeemSettleId, _currentBatchId);
     }
 
     /**
      * @dev Internal function to settle redeems for a specific batch.
-     * @param _sd The storage struct.
-     * @param _batchId The batch ID to settle.
-     * @param _totalAssets The total assets at settlement.
-     * @return _totalSharesToRedeem The total shares settled for the batch.
+     * @param _shareClass The share class to settle.
+     * @param _settleRedeemBatchParams The parameters for the settlement.
      */
     function _settleRedeemForBatch(
-        AlephVaultStorageData storage _sd,
-        uint48 _batchId,
-        uint256 _totalAssets,
-        uint256 _totalShares
-    ) internal returns (uint256, uint256) {
-        // IAlephVault.BatchData storage _batch = _sd.batches[_batchId];
-        // if (_batch.totalSharesToRedeem == 0) {
-        //     return (0, 0);
-        // }
-        // uint256 _totalAssetsToRedeem;
-        // IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
-        // for (uint256 i = 0; i < _batch.usersToRedeem.length; i++) {
-        //     address _user = _batch.usersToRedeem[i];
-        //     uint256 _sharesToBurnPerUser = _batch.redeemRequest[_user];
-        //     uint256 _assets = ERC4626Math.previewRedeem(_sharesToBurnPerUser, _totalAssets, _totalShares);
-        //     _totalAssetsToRedeem += _assets;
-        //     _underlyingToken.safeTransfer(_user, _assets);
-        //     emit IERC7540Settlement.RedeemRequestSettled(_user, _sharesToBurnPerUser, _assets);
-        // }
-        // emit SettleRedeemBatch(
-        //     _batchId,
-        //     _totalAssetsToRedeem,
-        //     _batch.totalSharesToRedeem,
-        //     _totalAssets,
-        //     _totalShares,
-        //     _getPricePerShare(_totalAssets - _totalAssetsToRedeem, _totalShares - _batch.totalSharesToRedeem)
-        // );
-        // return (_totalAssetsToRedeem, _batch.totalSharesToRedeem);
+        IAlephVault.ShareClass storage _shareClass,
+        SettleRedeemBatchParams memory _settleRedeemBatchParams
+    ) internal {
+        IAlephVault.RedeemRequests storage _redeemRequests =
+            _shareClass.redeemRequests[_settleRedeemBatchParams.batchId];
+        uint256 _totalAmountToRedeem = _redeemRequests.totalAmountToRedeem;
+        if (_totalAmountToRedeem > 0) {
+            uint256 _len = _redeemRequests.usersToRedeem.length();
+            for (uint256 _i; _i < _len; _i++) {
+                address _user = _redeemRequests.usersToRedeem.at(_i);
+                uint256 _amount = _redeemRequests.redeemRequest[_user];
+                _settleRedeemForUser(
+                    _shareClass,
+                    _user,
+                    _amount,
+                    _settleRedeemBatchParams.newTotalAssets,
+                    _settleRedeemBatchParams.classId,
+                    _settleRedeemBatchParams.activeSeries
+                );
+                IERC20(_settleRedeemBatchParams.underlyingToken).safeTransfer(_user, _amount);
+            }
+            emit SettleRedeemBatch(_settleRedeemBatchParams.batchId, _totalAmountToRedeem);
+        }
+    }
+
+    function _settleRedeemForUser(
+        IAlephVault.ShareClass storage _shareClass,
+        address _user,
+        uint256 _amount,
+        uint256[] memory _newTotalAssets,
+        uint8 _classId,
+        uint8 _activeSeries
+    ) internal {
+        uint256 _remainingAmount = _amount;
+        for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
+            IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
+            uint256 _sharesInSeries = _sharesOf(_classId, _seriesId, _user);
+            uint256 _amountInSeries =
+                ERC4626Math.previewWithdraw(_sharesInSeries, _shareSeries.totalShares, _newTotalAssets[_seriesId]);
+            if (_amountInSeries < _remainingAmount) {
+                _remainingAmount -= _amountInSeries;
+                _shareSeries.totalAssets -= _amountInSeries;
+                _shareSeries.totalShares -= _sharesInSeries;
+                delete _shareSeries.sharesOf[_user];
+                emit IERC7540Settlement.RedeemRequestSettled(
+                    _user, _classId, _seriesId, _sharesInSeries, _amountInSeries
+                );
+            } else {
+                uint256 _userSharesToBurn =
+                    ERC4626Math.previewWithdraw(_remainingAmount, _shareSeries.totalShares, _newTotalAssets[_seriesId]);
+                _shareSeries.totalAssets -= _remainingAmount;
+                _shareSeries.totalShares -= _userSharesToBurn;
+                _shareSeries.sharesOf[_user] -= _userSharesToBurn;
+                emit IERC7540Settlement.RedeemRequestSettled(
+                    _user, _classId, _seriesId, _userSharesToBurn, _remainingAmount
+                );
+                break;
+            }
+        }
     }
 
     function _getSettlementSeriesId(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint8 _activeSeries)

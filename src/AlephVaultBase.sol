@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
@@ -118,6 +119,23 @@ contract AlephVaultBase {
      */
     function _sharesOf(uint8 _classId, uint8 _seriesId, address _user) internal view returns (uint256) {
         return _getStorage().shareClasses[_classId].shareSeries[_seriesId].sharesOf[_user];
+    }
+
+    function _assetsOf(uint8 _classId, uint8 _seriesId, address _user) internal view returns (uint256) {
+        return ERC4626Math.previewRedeem(
+            _sharesOf(_classId, _seriesId, _user),
+            _totalAssetsPerSeries(_classId, _seriesId),
+            _totalSharesPerSeries(_classId, _seriesId)
+        );
+    }
+
+    function _assetsPerClassOf(uint8 _classId, address _user) internal view returns (uint256) {
+        uint256 _assets;
+        uint8 _activeSeries = _getStorage().shareClasses[_classId].activeSeries;
+        for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
+            _assets += _assetsOf(_classId, _seriesId, _user);
+        }
+        return _assets;
     }
 
     /**

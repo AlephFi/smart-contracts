@@ -72,6 +72,7 @@ interface IAlephVault {
         uint256 maxDepositCap;
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
+        mapping(uint48 batchId => RedeemRequests) redeemRequests;
     }
 
     struct ShareSeries {
@@ -80,7 +81,6 @@ interface IAlephVault {
         uint256 highWaterMark;
         EnumerableSet.AddressSet users;
         mapping(address => uint256) sharesOf;
-        mapping(uint48 batchId => RedeemRequests) redeemRequests;
     }
 
     struct DepositRequests {
@@ -90,7 +90,7 @@ interface IAlephVault {
     }
 
     struct RedeemRequests {
-        uint256 totalSharesToRedeem;
+        uint256 totalAmountToRedeem;
         EnumerableSet.AddressSet usersToRedeem;
         mapping(address => uint256) redeemRequest;
     }
