@@ -62,7 +62,8 @@ interface IAlephVault {
     }
 
     struct ShareClass {
-        uint8 activeSeries;
+        uint8 shareSeriesId;
+        uint8 lastConsolidatedSeriesId;
         uint32 managementFee;
         uint32 performanceFee;
         uint48 lastFeePaidId;
@@ -90,9 +91,9 @@ interface IAlephVault {
     }
 
     struct RedeemRequests {
-        uint256 totalAmountToRedeem;
         EnumerableSet.AddressSet usersToRedeem;
         mapping(address => uint256) redeemRequest;
+        mapping(address => uint8) redeemSeries;
     }
 
     // View functions

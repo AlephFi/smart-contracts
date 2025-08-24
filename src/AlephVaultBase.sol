@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -71,7 +72,12 @@ contract AlephVaultBase {
      */
     function _totalAssetsPerClass(uint8 _classId) internal view returns (uint256) {
         uint256 _totalAssets;
-        for (uint8 _seriesId; _seriesId <= _getStorage().shareClasses[_classId].activeSeries; _seriesId++) {
+        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+        for (
+            uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
+            _seriesId <= _shareClass.shareSeriesId;
+            _seriesId++
+        ) {
             _totalAssets += _totalAssetsPerSeries(_classId, _seriesId);
         }
         return _totalAssets;
@@ -84,7 +90,12 @@ contract AlephVaultBase {
      */
     function _totalSharesPerClass(uint8 _classId) internal view returns (uint256) {
         uint256 _totalShares;
-        for (uint8 _seriesId; _seriesId <= _getStorage().shareClasses[_classId].activeSeries; _seriesId++) {
+        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+        for (
+            uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
+            _seriesId <= _shareClass.shareSeriesId;
+            _seriesId++
+        ) {
             _totalShares += _totalSharesPerSeries(_classId, _seriesId);
         }
         return _totalShares;
@@ -131,8 +142,12 @@ contract AlephVaultBase {
 
     function _assetsPerClassOf(uint8 _classId, address _user) internal view returns (uint256) {
         uint256 _assets;
-        uint8 _activeSeries = _getStorage().shareClasses[_classId].activeSeries;
-        for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
+        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+        for (
+            uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
+            _seriesId <= _shareClass.shareSeriesId;
+            _seriesId++
+        ) {
             _assets += _assetsOf(_classId, _seriesId, _user);
         }
         return _assets;

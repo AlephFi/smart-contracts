@@ -33,20 +33,23 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint8 _classId, uint256 _amount) external returns (uint48 _batchId) {
-        return _requestRedeem(_getStorage(), _classId, _amount);
+    function requestRedeem(uint8 _classId, uint8 _seriesId, uint256 _shares) external returns (uint48 _batchId) {
+        return _requestRedeem(_getStorage(), _classId, _seriesId, _shares);
     }
 
     /**
      * @dev Internal function to handle a redeem request.
-     * @param _amountToRedeem The amount of assets to redeem.
+     * @param _sd The storage struct.
+     * @param _classId The class ID to redeem from.
+     * @param _seriesId The series ID to redeem from.
+     * @param _shares The number of shares to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _amountToRedeem)
+    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint8 _seriesId, uint256 _shares)
         internal
         returns (uint48 _batchId)
     {
-        if (_amountToRedeem == 0) {
+        if (_shares == 0) {
             revert InsufficientRedeem();
         }
         uint48 _currentBatchId = _currentBatch();
@@ -57,15 +60,15 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
-        if (_assetsPerClassOf(_classId, msg.sender) < _amountToRedeem) {
+        if (_sharesOf(_classId, _seriesId, msg.sender) < _shares) {
             revert InsufficientAssetsToRedeem();
         }
         _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.RedeemRequests storage _redeemRequests = _sd.shareClasses[_classId].redeemRequests[_currentBatchId];
-        _redeemRequests.redeemRequest[msg.sender] = _amountToRedeem;
-        _redeemRequests.totalAmountToRedeem += _amountToRedeem;
+        _redeemRequests.redeemRequest[msg.sender] = _shares;
+        _redeemRequests.redeemSeries[msg.sender] = _seriesId;
         _redeemRequests.usersToRedeem.add(msg.sender);
-        emit RedeemRequest(msg.sender, _amountToRedeem, _currentBatchId);
+        emit RedeemRequest(msg.sender, _shares, _currentBatchId);
         return _currentBatchId;
     }
 }

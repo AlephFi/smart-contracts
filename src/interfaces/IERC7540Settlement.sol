@@ -30,9 +30,8 @@ interface IERC7540Settlement {
     }
 
     struct SettleRedeemBatchParams {
-        uint8 classId;
-        uint8 activeSeries;
         uint48 batchId;
+        uint8 classId;
         address underlyingToken;
         uint256[] newTotalAssets;
     }
@@ -63,7 +62,7 @@ interface IERC7540Settlement {
         address indexed user, uint8 indexed classId, uint8 indexed seriesId, uint256 sharesToBurn, uint256 assets
     );
 
-    event SettleRedeemBatch(uint48 indexed batchId, uint256 totalAmountToRedeem);
+    event SettleRedeemBatch(uint48 indexed batchId, address indexed user, uint256 totalAmountToRedeem);
 
     error InvalidNewTotalAssets();
     error NoDepositsToSettle();
