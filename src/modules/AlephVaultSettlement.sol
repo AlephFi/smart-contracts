@@ -49,6 +49,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
 
     /**
      * @dev Internal function to settle all deposits for batches up to the current batch.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class to settle deposits for.
      * @param _newTotalAssets The new total assets after settlement for each series.
      */
@@ -106,6 +107,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _shareClass The share class to settle.
      * @param _settleDepositParams The parameters for the settlement.
      * @return The total amount settled for the batch.
+     * @return The total shares minted for the batch.
      */
     function _settleDepositForBatch(
         IAlephVault.ShareClass storage _shareClass,
@@ -149,6 +151,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
 
     /**
      * @dev Internal function to settle all redeems for batches up to the current batch.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class to settle redeems for.
      * @param _newTotalAssets The new total assets after settlement.
      */
@@ -215,6 +218,18 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         emit SettleRedeemBatch(_settleRedeemBatchParams.batchId, _settleRedeemBatchParams.classId, _totalAmountToRedeem);
     }
 
+    /**
+     * @dev Internal function to settle a redeem for a user.
+     * @param _shareClass The share class to settle.
+     * @param _user The user to settle the redeem for.
+     * @param _shares The shares to settle.
+     * @param _newTotalAssets The new total assets after settlement.
+     * @param _classId The id of the class.
+     * @param _seriesId The id of the series.
+     * @return The series id.
+     * @return The amount to redeem.
+     * @return The shares to redeem.
+     */
     function _settleRedeemForUser(
         IAlephVault.ShareClass storage _shareClass,
         address _user,
@@ -241,6 +256,13 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
     }
 
+    /**
+     * @dev Internal function to get the settlement series id.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     * @param _currentBatchId The current batch id.
+     * @return _seriesId The series id.
+     */
     function _getSettlementSeriesId(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _currentBatchId)
         internal
         returns (uint8 _seriesId)
@@ -257,6 +279,13 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
     }
 
+    /**
+     * @dev Internal function to create a new series.
+     * @param _shareClass The share class to create the new series for.
+     * @param _classId The id of the class.
+     * @param _currentBatchId The current batch id.
+     * @return _seriesId The series id.
+     */
     function _createNewSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _currentBatchId)
         internal
         returns (uint8 _seriesId)
@@ -266,6 +295,14 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         emit NewSeriesCreated(_classId, _seriesId, _currentBatchId);
     }
 
+    /**
+     * @dev Internal function to consolidate series.
+     * @param _shareClass The share class to consolidate.
+     * @param _classId The id of the class.
+     * @param _shareSeriesId The id of the share series.
+     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
+     * @param _currentBatchId The current batch id.
+     */
     function _consolidateSeries(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
@@ -295,6 +332,15 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         );
     }
 
+    /**
+     * @dev Internal function to consolidate user shares.
+     * @param _shareClass The share class to consolidate.
+     * @param _classId The id of the class.
+     * @param _seriesId The id of the series.
+     * @param _currentBatchId The current batch id.
+     * @return _totalAmountToTransfer The total amount to transfer.
+     * @return _totalSharesToTransfer The total shares to transfer.
+     */
     function _consolidateUserShares(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
@@ -333,6 +379,14 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
     }
 
+    /**
+     * @dev Internal function to accumulate fees.
+     * @param _shareClass The share class to accumulate fees for.
+     * @param _classId The id of the class.
+     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
+     * @param _currentBatchId The current batch id.
+     * @param _newTotalAssets The new total assets after settlement.
+     */
     function _accumulateFees(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
@@ -367,6 +421,16 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
     }
 
+    /**
+     * @dev Internal function to get the accumulated fees.
+     * @param _newTotalAssets The new total assets after settlement.
+     * @param _totalShares The total shares in the vault.
+     * @param _currentBatchId The current batch id.
+     * @param _lastFeePaidId The last fee paid id.
+     * @param _classId The id of the class.
+     * @param _seriesId The id of the series.
+     * @return The accumulated fees shares to mint.
+     */
     function _getAccumulatedFees(
         uint256 _newTotalAssets,
         uint256 _totalShares,

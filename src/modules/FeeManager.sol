@@ -140,6 +140,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     /**
      * @dev Internal function to queue a new management fee.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class to set the management fee for.
      * @param _managementFee The new management fee to be set.
      */
@@ -156,6 +157,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     /**
      * @dev Internal function to queue a new performance fee.
+     * @param _sd The storage struct.
      * @param _performanceFee The new performance fee to be set.
      */
     function _queuePerformanceFee(AlephVaultStorageData storage _sd, uint8 _classId, uint32 _performanceFee) internal {
@@ -175,6 +177,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     /**
      * @dev Internal function to queue a new fee recipient.
+     * @param _sd The storage struct.
      * @param _feeRecipient The new fee recipient to be set.
      */
     function _queueFeeRecipient(AlephVaultStorageData storage _sd, address _feeRecipient) internal {
@@ -187,6 +190,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     /**
      * @dev Internal function to set the management fee.
+     * @param _sd The storage struct.
      */
     function _setManagementFee(AlephVaultStorageData storage _sd) internal {
         (uint8 _classId, uint32 _managementFee) =
@@ -197,6 +201,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     /**
      * @dev Internal function to set the performance fee.
+     * @param _sd The storage struct.
      */
     function _setPerformanceFee(AlephVaultStorageData storage _sd) internal {
         (uint8 _classId, uint32 _performanceFee) =
@@ -207,6 +212,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     /**
      * @dev Internal function to set the fee recipient.
+     * @param _sd The storage struct.
      */
     function _setFeeRecipient(AlephVaultStorageData storage _sd) internal {
         address _feeRecipient = abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.FEE_RECIPIENT), (address));
@@ -214,6 +220,17 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         emit NewFeeRecipientSet(_feeRecipient);
     }
 
+    /**
+     * @dev Internal function to accumulate fees.
+     * @param _shareClass The share class.
+     * @param _newTotalAssets The new total assets after collection.
+     * @param _totalShares The total shares in the vault.
+     * @param _currentBatchId The current batch id.
+     * @param _lastFeePaidId The last fee paid id.
+     * @param _classId The id of the class.
+     * @param _seriesId The id of the series.
+     * @return _totalFeeSharesToMint The total fee shares to mint.
+     */
     function _accumulateFees(
         IAlephVault.ShareClass storage _shareClass,
         uint256 _newTotalAssets,
@@ -295,6 +312,14 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         }
     }
 
+    /**
+     * @dev Internal function to calculate the performance fee amount.
+     * @param _pricePerShare The price per share.
+     * @param _highWaterMark The high water mark.
+     * @param _totalShares The total shares in the vault.
+     * @param _performanceFeeRate The performance fee rate.
+     * @return _performanceFeeAmount The performance fee to be collected.
+     */
     function _calculatePerformanceFeeAmount(
         uint256 _pricePerShare,
         uint256 _highWaterMark,

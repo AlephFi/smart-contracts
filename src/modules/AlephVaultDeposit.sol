@@ -73,6 +73,12 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         return _requestDeposit(_getStorage(), _requestDepositParams);
     }
 
+    /**
+     * @dev Internal function to queue a new min deposit amount.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     * @param _minDepositAmount The new min deposit amount.
+     */
     function _queueMinDepositAmount(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minDepositAmount)
         internal
     {
@@ -83,6 +89,12 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         emit NewMinDepositAmountQueued(_classId, _minDepositAmount);
     }
 
+    /**
+     * @dev Internal function to queue a new max deposit cap.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     * @param _maxDepositCap The new max deposit cap.
+     */
     function _queueMaxDepositCap(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _maxDepositCap) internal {
         _sd.timelocks[TimelockRegistry.MAX_DEPOSIT_CAP] = TimelockRegistry.Timelock({
             unlockTimestamp: Time.timestamp() + MAX_DEPOSIT_CAP_TIMELOCK,
@@ -91,6 +103,10 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         emit NewMaxDepositCapQueued(_classId, _maxDepositCap);
     }
 
+    /**
+     * @dev Internal function to set a new min deposit amount.
+     * @param _sd The storage struct.
+     */
     function _setMinDepositAmount(AlephVaultStorageData storage _sd) internal {
         (uint8 _classId, uint256 _minDepositAmount) =
             abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MIN_DEPOSIT_AMOUNT), (uint8, uint256));
@@ -98,6 +114,10 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         emit NewMinDepositAmountSet(_classId, _minDepositAmount);
     }
 
+    /**
+     * @dev Internal function to set a new max deposit cap.
+     * @param _sd The storage struct.
+     */
     function _setMaxDepositCap(AlephVaultStorageData storage _sd) internal {
         (uint8 _classId, uint256 _maxDepositCap) =
             abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MAX_DEPOSIT_CAP), (uint8, uint256));
@@ -107,6 +127,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
 
     /**
      * @dev Internal function to handle a deposit request.
+     * @param _sd The storage struct.
      * @param _requestDepositParams The parameters for the deposit request.
      * @return _batchId The batch ID for the deposit.
      */
