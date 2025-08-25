@@ -24,8 +24,6 @@ struct AlephVaultFactoryStorageData {
     address guardian;
     address authSigner;
     address feeRecipient;
-    uint32 managementFee;
-    uint32 performanceFee;
     EnumerableSet.AddressSet vaults;
     mapping(bytes4 => address) moduleImplementations;
 }

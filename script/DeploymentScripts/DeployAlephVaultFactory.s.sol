@@ -52,8 +52,6 @@ contract DeployAlephVaultFactory is BaseScript {
         console.log("guardian", _initializationParams.guardian);
         console.log("authSigner", _initializationParams.authSigner);
         console.log("feeRecipient", _initializationParams.feeRecipient);
-        console.log("managementFee", _initializationParams.managementFee);
-        console.log("performanceFee", _initializationParams.performanceFee);
 
         bytes memory _initializeArgs =
             abi.encodeWithSelector(AlephVaultFactory.initialize.selector, _initializationParams);
@@ -104,12 +102,6 @@ contract DeployAlephVaultFactory is BaseScript {
             ),
             feeManagerImplementation: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".feeManagerImplementationAddress")
-            ),
-            managementFee: uint32(
-                vm.parseJsonUint(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".managementFee"))
-            ),
-            performanceFee: uint32(
-                vm.parseJsonUint(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".performanceFee"))
             )
         });
     }
