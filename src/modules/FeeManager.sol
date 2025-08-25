@@ -225,24 +225,36 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint8 _classId,
         uint8 _seriesId
     ) internal returns (uint256) {
-        uint256 _managementFeeAmount =
+        FeesAccumulatedParams memory _feesAccumulatedParams;
+        _feesAccumulatedParams.managementFeeAmount =
             _calculateManagementFeeAmount(_newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClass.managementFee);
-        uint256 _performanceFeeAmount = _checkPerformanceFeeAmount(
-            _shareClass.performanceFee, _newTotalAssets, _totalShares, _highWaterMark(_classId, _seriesId)
+        _feesAccumulatedParams.performanceFeeAmount = _checkPerformanceFeeAmount(
+            _shareClass.performanceFee, _newTotalAssets, _totalShares, _shareClass.shareSeries[_seriesId].highWaterMark
         );
-        uint256 _managementSharesToMint =
-            ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets);
-        uint256 _performanceSharesToMint =
-            ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
-        uint256 _totalFeeSharesToMint = _managementSharesToMint + _performanceSharesToMint;
-        _shareClass.shareSeries[_seriesId].sharesOf[MANAGEMENT_FEE_RECIPIENT] += _managementSharesToMint;
-        if (_performanceSharesToMint > 0) {
-            _shareClass.shareSeries[_seriesId].sharesOf[PERFORMANCE_FEE_RECIPIENT] += _performanceSharesToMint;
+        _feesAccumulatedParams.managementFeeSharesToMint =
+            ERC4626Math.previewDeposit(_feesAccumulatedParams.managementFeeAmount, _totalShares, _newTotalAssets);
+        _feesAccumulatedParams.performanceFeeSharesToMint =
+            ERC4626Math.previewDeposit(_feesAccumulatedParams.performanceFeeAmount, _totalShares, _newTotalAssets);
+        uint256 _totalFeeSharesToMint =
+            _feesAccumulatedParams.managementFeeSharesToMint + _feesAccumulatedParams.performanceFeeSharesToMint;
+        _shareClass.shareSeries[_seriesId].sharesOf[MANAGEMENT_FEE_RECIPIENT] +=
+            _feesAccumulatedParams.managementFeeSharesToMint;
+        if (_feesAccumulatedParams.performanceFeeSharesToMint > 0) {
+            _shareClass.shareSeries[_seriesId].sharesOf[PERFORMANCE_FEE_RECIPIENT] +=
+                _feesAccumulatedParams.performanceFeeSharesToMint;
             uint256 _highWaterMark = _getPricePerShare(_newTotalAssets, _totalShares + _totalFeeSharesToMint);
             _shareClass.shareSeries[_seriesId].highWaterMark = _highWaterMark;
-            emit NewHighWaterMarkSet(_classId, _seriesId, _highWaterMark);
+            emit NewHighWaterMarkSet(_classId, _seriesId, _highWaterMark, _currentBatchId);
         }
-        emit FeesAccumulated(_lastFeePaidId, _currentBatchId, _managementFeeAmount, _performanceFeeAmount);
+        emit FeesAccumulated(
+            _lastFeePaidId,
+            _currentBatchId,
+            _classId,
+            _seriesId,
+            _newTotalAssets,
+            _totalShares + _totalFeeSharesToMint,
+            _feesAccumulatedParams
+        );
         return _totalFeeSharesToMint;
     }
 

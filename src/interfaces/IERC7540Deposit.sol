@@ -32,7 +32,7 @@ interface IERC7540Deposit {
     event NewMaxDepositCapQueued(uint8 classId, uint256 maxDepositCap);
     event NewMinDepositAmountSet(uint8 classId, uint256 minDepositAmount);
     event NewMaxDepositCapSet(uint8 classId, uint256 maxDepositCap);
-    event DepositRequest(address indexed user, uint256 amount, uint48 batchId);
+    event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
     error InsufficientDeposit();
     error DepositLessThanMinDepositAmount();

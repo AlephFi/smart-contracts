@@ -20,7 +20,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IERC7540Redeem {
-    event RedeemRequest(address indexed user, uint256 shares, uint48 batchId);
+    event RedeemRequest(address indexed user, uint8 classId, uint8 seriesId, uint256 shares, uint48 batchId);
 
     error InsufficientRedeem();
     error InsufficientAssetsToRedeem();

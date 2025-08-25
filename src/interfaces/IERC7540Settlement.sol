@@ -22,7 +22,8 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IERC7540Settlement {
-    struct SettleDepositBatchParams {
+    struct SettleDepositParams {
+        uint8 classId;
         uint8 seriesId;
         uint48 batchId;
         uint256 totalAssets;
@@ -36,33 +37,58 @@ interface IERC7540Settlement {
         uint256[] newTotalAssets;
     }
 
+    struct UserConsolidationDetails {
+        address user;
+        uint8 classId;
+        uint8 seriesId;
+        uint48 currentBatchId;
+        uint256 shares;
+        uint256 amountToTransfer;
+        uint256 sharesToTransfer;
+    }
+
+    struct DepositRequestParams {
+        address user;
+        uint256 amount;
+        uint256 sharesToMint;
+    }
+
     event SettleDeposit(
         uint48 indexed fromBatchId,
         uint48 indexed toBatchId,
+        uint8 classId,
+        uint8 seriesId,
         uint256 amountToSettle,
         uint256 totalAssets,
-        uint256 totalShares,
-        uint256 pricePerShare
+        uint256 totalShares
     );
 
-    event DepositRequestSettled(address indexed user, uint256 amount, uint256 sharesToMint);
+    event NewSeriesCreated(uint8 classId, uint8 seriesId, uint48 currentBatchId);
+
+    event SeriesConsolidated(uint8 classId, uint8 fromSeriesId, uint8 toSeriesId, uint48 currentBatchId);
+
+    event UserSharesConsolidated(UserConsolidationDetails userConsolidationDetails);
+
+    event DepositRequestSettled(
+        address indexed user, uint8 classId, uint8 seriesId, uint256 amount, uint256 sharesToMint, uint48 currentBatchId
+    );
 
     event SettleDepositBatch(
-        uint48 indexed batchId,
-        uint256 totalAmountToDeposit,
-        uint256 totalSharesToMint,
-        uint256 totalAssets,
-        uint256 totalShares,
-        uint256 pricePerShare
+        uint48 indexed batchId, uint8 classId, uint8 seriesId, uint256 totalAmountToDeposit, uint256 totalSharesToMint
     );
 
-    event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId);
+    event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint8 classId);
 
     event RedeemRequestSettled(
-        address indexed user, uint8 indexed classId, uint8 indexed seriesId, uint256 sharesToBurn, uint256 assets
+        uint48 indexed batchId,
+        address indexed user,
+        uint8 classId,
+        uint8 seriesId,
+        uint256 amountToRedeem,
+        uint256 sharesToBurn
     );
 
-    event SettleRedeemBatch(uint48 indexed batchId, address indexed user, uint256 totalAmountToRedeem);
+    event SettleRedeemBatch(uint48 indexed batchId, uint8 indexed classId, uint256 totalAmountToRedeem);
 
     error InvalidNewTotalAssets();
     error NoDepositsToSettle();

@@ -68,7 +68,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         _redeemRequests.redeemRequest[msg.sender] = _shares;
         _redeemRequests.redeemSeries[msg.sender] = _seriesId;
         _redeemRequests.usersToRedeem.add(msg.sender);
-        emit RedeemRequest(msg.sender, _shares, _currentBatchId);
+        emit RedeemRequest(msg.sender, _classId, _seriesId, _shares, _currentBatchId);
         return _currentBatchId;
     }
 }

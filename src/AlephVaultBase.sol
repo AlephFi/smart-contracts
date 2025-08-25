@@ -28,6 +28,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
 contract AlephVaultBase {
     using Math for uint256;
 
+    uint8 public constant LEAD_SERIES_ID = 0;
     uint32 public constant MAXIMUM_MANAGEMENT_FEE = 1000; // 10%
     uint32 public constant MAXIMUM_PERFORMANCE_FEE = 5000; // 50%
     uint48 public constant PRICE_DENOMINATOR = 1e6;
@@ -71,7 +72,7 @@ contract AlephVaultBase {
      * @return The total assets in the vault for the given class.
      */
     function _totalAssetsPerClass(uint8 _classId) internal view returns (uint256) {
-        uint256 _totalAssets;
+        uint256 _totalAssets = _totalAssetsPerSeries(_classId, LEAD_SERIES_ID);
         IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
         for (
             uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
@@ -89,7 +90,7 @@ contract AlephVaultBase {
      * @return The total shares in the vault for the given class.
      */
     function _totalSharesPerClass(uint8 _classId) internal view returns (uint256) {
-        uint256 _totalShares;
+        uint256 _totalShares = _totalSharesPerSeries(_classId, LEAD_SERIES_ID);
         IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
         for (
             uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
@@ -141,7 +142,7 @@ contract AlephVaultBase {
     }
 
     function _assetsPerClassOf(uint8 _classId, address _user) internal view returns (uint256) {
-        uint256 _assets;
+        uint256 _assets = _assetsOf(_classId, LEAD_SERIES_ID, _user);
         IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
         for (
             uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
@@ -178,7 +179,7 @@ contract AlephVaultBase {
      * @return The high water mark of the lead series.
      */
     function _leadHighWaterMark(uint8 _classId) internal view returns (uint256) {
-        return _highWaterMark(_classId, 0);
+        return _highWaterMark(_classId, LEAD_SERIES_ID);
     }
 
     /**
@@ -187,7 +188,9 @@ contract AlephVaultBase {
      * @return The price per share of the lead series.
      */
     function _leadPricePerShare(uint8 _classId) internal view returns (uint256) {
-        return _getPricePerShare(_totalAssetsPerSeries(_classId, 0), _totalSharesPerSeries(_classId, 0));
+        return _getPricePerShare(
+            _totalAssetsPerSeries(_classId, LEAD_SERIES_ID), _totalSharesPerSeries(_classId, LEAD_SERIES_ID)
+        );
     }
 
     /**

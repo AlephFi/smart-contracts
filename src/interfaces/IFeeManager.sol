@@ -20,14 +20,29 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IFeeManager {
+    struct FeesAccumulatedParams {
+        uint256 managementFeeAmount;
+        uint256 managementFeeSharesToMint;
+        uint256 performanceFeeAmount;
+        uint256 performanceFeeSharesToMint;
+    }
+
     event NewManagementFeeQueued(uint8 classId, uint32 managementFee);
     event NewPerformanceFeeQueued(uint8 classId, uint32 performanceFee);
     event NewFeeRecipientQueued(address feeRecipient);
     event NewManagementFeeSet(uint8 classId, uint32 managementFee);
     event NewPerformanceFeeSet(uint8 classId, uint32 performanceFee);
     event NewFeeRecipientSet(address feeRecipient);
-    event FeesAccumulated(uint48 lastFeePaidId, uint48 currentBatchId, uint256 managementFee, uint256 performanceFee);
-    event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark);
+    event FeesAccumulated(
+        uint48 lastFeePaidId,
+        uint48 currentBatchId,
+        uint8 classId,
+        uint8 seriesId,
+        uint256 newTotalAssets,
+        uint256 newTotalShares,
+        FeesAccumulatedParams feesAccumulatedParams
+    );
+    event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark, uint48 currentBatchId);
     event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
     error InvalidManagementFee();

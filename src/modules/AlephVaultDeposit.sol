@@ -147,7 +147,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
         _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
         _depositRequests.usersToDeposit.add(msg.sender);
-        emit DepositRequest(msg.sender, _requestDepositParams.amount, _currentBatchId);
+        emit DepositRequest(msg.sender, _requestDepositParams.classId, _requestDepositParams.amount, _currentBatchId);
 
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
