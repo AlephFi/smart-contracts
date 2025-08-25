@@ -124,8 +124,8 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         uint256 _maxDepositCap = _sd.shareClasses[_requestDepositParams.classId].maxDepositCap;
         if (
             _maxDepositCap > 0
-                && _totalAssetsPerClass(_requestDepositParams.classId)
-                    + _totalAmountToDepositPerClass(_requestDepositParams.classId) + _requestDepositParams.amount
+                && _totalAssetsPerClass(_sd, _requestDepositParams.classId)
+                    + _totalAmountToDepositPerClass(_sd, _requestDepositParams.classId) + _requestDepositParams.amount
                     > _maxDepositCap
         ) {
             revert DepositExceedsMaxDepositCap();
@@ -134,7 +134,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
             AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.classId, _requestDepositParams.authSignature);
         }
         uint48 _lastDepositBatchId = _sd.lastDepositBatchId[msg.sender];
-        uint48 _currentBatchId = _currentBatch();
+        uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForDeposit(); // need to wait for the first batch to be available
         }

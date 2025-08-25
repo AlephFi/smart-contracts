@@ -65,7 +65,18 @@ interface IERC7540Settlement {
 
     event NewSeriesCreated(uint8 classId, uint8 seriesId, uint48 currentBatchId);
 
-    event SeriesConsolidated(uint8 classId, uint8 fromSeriesId, uint8 toSeriesId, uint48 currentBatchId);
+    event SeriesConsolidated(
+        uint8 classId, uint8 seriesId, uint48 currentBatchId, uint256 amountToTransfer, uint256 sharesToTransfer
+    );
+
+    event AllSeriesConsolidated(
+        uint8 classId,
+        uint8 fromSeriesId,
+        uint8 toSeriesId,
+        uint48 currentBatchId,
+        uint256 totalAmountToTransfer,
+        uint256 totalSharesToTransfer
+    );
 
     event UserSharesConsolidated(UserConsolidationDetails userConsolidationDetails);
 

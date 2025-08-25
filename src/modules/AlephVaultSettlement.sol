@@ -57,7 +57,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _depositSettleId = _shareClass.depositSettleId;
-        uint48 _currentBatchId = _currentBatch();
+        uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId == _depositSettleId) {
             revert NoDepositsToSettle();
         }
@@ -67,7 +67,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             revert InvalidNewTotalAssets();
         }
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
-        uint8 _settlementSeriesId = _getSettlementSeriesId(_shareClass, _classId, _currentBatchId);
+        uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _classId, _currentBatchId);
         SettleDepositParams memory _settleDepositParams = SettleDepositParams({
             classId: _classId,
             seriesId: _settlementSeriesId,
@@ -157,7 +157,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
-        uint48 _currentBatchId = _currentBatch();
+        uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId == _redeemSettleId) {
             revert NoRedeemsToSettle();
         }
@@ -241,21 +241,18 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
     }
 
-    function _getSettlementSeriesId(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _currentBatchId)
+    function _getSettlementSeriesId(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _currentBatchId)
         internal
         returns (uint8 _seriesId)
     {
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         if (_shareClass.performanceFee > 0) {
-            if (_leadHighWaterMark(_classId) > _leadPricePerShare(_classId)) {
+            uint8 _shareSeriesId = _shareClass.shareSeriesId;
+            uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+            if (_shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark > _leadPricePerShare(_sd, _classId)) {
                 _seriesId = _createNewSeries(_shareClass, _classId, _currentBatchId);
-            } else if (_shareClass.shareSeriesId > _shareClass.lastConsolidatedSeriesId) {
-                _consolidateSeries(
-                    _shareClass,
-                    _classId,
-                    _shareClass.shareSeriesId,
-                    _shareClass.lastConsolidatedSeriesId,
-                    _currentBatchId
-                );
+            } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
+                _consolidateSeries(_shareClass, _classId, _shareSeriesId, _lastConsolidatedSeriesId, _currentBatchId);
             }
         }
     }
@@ -283,11 +280,19 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _consolidateUserShares(_shareClass, _classId, _seriesId, _currentBatchId);
             _totalAmountToTransfer += _amountToTransfer;
             _totalSharesToTransfer += _sharesToTransfer;
+            emit SeriesConsolidated(_classId, _seriesId, _currentBatchId, _amountToTransfer, _sharesToTransfer);
         }
         _shareClass.lastConsolidatedSeriesId = _shareSeriesId;
-        _shareClass.shareSeries[0].totalAssets += _totalAmountToTransfer;
-        _shareClass.shareSeries[0].totalShares += _totalSharesToTransfer;
-        emit SeriesConsolidated(_classId, _lastConsolidatedSeriesId + 1, _shareSeriesId, _currentBatchId);
+        _shareClass.shareSeries[LEAD_SERIES_ID].totalAssets += _totalAmountToTransfer;
+        _shareClass.shareSeries[LEAD_SERIES_ID].totalShares += _totalSharesToTransfer;
+        emit AllSeriesConsolidated(
+            _classId,
+            _lastConsolidatedSeriesId + 1,
+            _shareSeriesId,
+            _currentBatchId,
+            _totalAmountToTransfer,
+            _totalSharesToTransfer
+        );
     }
 
     function _consolidateUserShares(
@@ -307,6 +312,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             sharesToTransfer: 0,
             currentBatchId: _currentBatchId
         });
+        _shareSeries.users.add(MANAGEMENT_FEE_RECIPIENT);
+        _shareSeries.users.add(PERFORMANCE_FEE_RECIPIENT);
         uint256 _len = _shareSeries.users.length();
         for (uint256 _i; _i < _len; _i++) {
             _userConsolidationDetails.user = _shareSeries.users.at(_i);
@@ -344,7 +351,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _classId,
                 LEAD_SERIES_ID
             );
-            for (uint8 _i = 1; _i <= _newTotalAssets.length; _i++) {
+            for (uint8 _i = 1; _i < _newTotalAssets.length; _i++) {
                 uint8 _seriesId = _lastConsolidatedSeriesId + _i;
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
                 _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFees(

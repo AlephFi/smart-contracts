@@ -140,7 +140,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function currentBatch() public view returns (uint48) {
-        return _currentBatch();
+        return _currentBatch(_getStorage());
     }
 
     /// @inheritdoc IAlephVault
@@ -194,22 +194,22 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function totalAssets() external view returns (uint256) {
-        return _totalAssets();
+        return _totalAssets(_getStorage());
     }
 
     /// @inheritdoc IAlephVault
     function totalShares() external view returns (uint256) {
-        return _totalShares();
+        return _totalShares(_getStorage());
     }
 
     /// @inheritdoc IAlephVault
     function totalAssetsPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalAssetsPerClass(_classId);
+        return _totalAssetsPerClass(_getStorage(), _classId);
     }
 
     /// @inheritdoc IAlephVault
     function totalSharesPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalSharesPerClass(_classId);
+        return _totalSharesPerClass(_getStorage(), _classId);
     }
 
     /// @inheritdoc IAlephVault
@@ -219,7 +219,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _totalAssetsPerSeries(_classId, _seriesId);
+        return _totalAssetsPerSeries(_getStorage(), _classId, _seriesId);
     }
 
     /// @inheritdoc IAlephVault
@@ -229,7 +229,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _totalSharesPerSeries(_classId, _seriesId);
+        return _totalSharesPerSeries(_getStorage(), _classId, _seriesId);
     }
 
     /// @inheritdoc IAlephVault
@@ -239,7 +239,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _sharesOf(_classId, _seriesId, _user);
+        return _sharesOf(_getStorage(), _classId, _seriesId, _user);
     }
 
     /// @inheritdoc IAlephVault
@@ -249,7 +249,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _assetsOf(_classId, _seriesId, _user);
+        return _assetsOf(_getStorage(), _classId, _seriesId, _user);
     }
 
     /// @inheritdoc IAlephVault
@@ -259,7 +259,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _getPricePerShare(_totalAssetsPerSeries(_classId, _seriesId), _totalSharesPerSeries(_classId, _seriesId));
+        AlephVaultStorageData storage _sd = _getStorage();
+        return _getPricePerShare(
+            _totalAssetsPerSeries(_sd, _classId, _seriesId), _totalSharesPerSeries(_sd, _classId, _seriesId)
+        );
     }
 
     /// @inheritdoc IAlephVault
@@ -269,7 +272,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _highWaterMark(_classId, _seriesId);
+        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].highWaterMark;
     }
 
     /// @inheritdoc IAlephVault
@@ -284,10 +287,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function totalAmountToDeposit() public view returns (uint256 _totalAmountToDeposit) {
-        uint8 _shareClassesId = _getStorage().shareClassesId;
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint8 _shareClassesId = _sd.shareClassesId;
         if (_shareClassesId > 0) {
             for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                _totalAmountToDeposit += _totalAmountToDepositPerClass(_classId);
+                _totalAmountToDeposit += _totalAmountToDepositPerClass(_sd, _classId);
             }
         }
         return _totalAmountToDeposit;
@@ -295,14 +299,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function totalAmountToDepositPerClass(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalAmountToDepositPerClass(_classId);
+        return _totalAmountToDepositPerClass(_getStorage(), _classId);
     }
 
     /// @inheritdoc IAlephVault
     function depositRequestOf(address _user) external view returns (uint256 _totalAmountToDeposit) {
-        uint48 _currentBatch = currentBatch();
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint48 _currentBatch = _currentBatch(_sd);
         if (_currentBatch > 0) {
-            AlephVaultStorageData storage _sd = _getStorage();
             uint8 _shareClassesId = _sd.shareClassesId;
             if (_shareClassesId > 0) {
                 for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
@@ -314,57 +318,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 }
             }
         }
-    }
-
-    /// @inheritdoc IAlephVault
-    function totalSharesToRedeem() public view returns (uint256 _totalSharesToRedeem) {
-        // uint48 _currentBatch = currentBatch();
-        // if (_currentBatch > 0) {
-        //     AlephVaultStorageData storage _sd = _getStorage();
-        //     uint8 _shareClassesId = _sd.shareClassesId;
-        //     if (_shareClassesId > 0) {
-        //         for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-        //             uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
-        //             uint8 _activeSeries = _sd.shareClasses[_classId].activeSeries;
-        //             for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
-        //                 for (_redeemSettleId; _redeemSettleId <= _currentBatch; _redeemSettleId++) {
-        //                     _totalSharesToRedeem += _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_redeemSettleId]
-        //                         .totalSharesToRedeem;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
-    /// @inheritdoc IAlephVault
-    function redeemRequestOf(address _user) external view returns (uint256 _totalSharesToRedeem) {
-        // uint48 _currentBatch = currentBatch();
-        // if (_currentBatch > 0) {
-        //     AlephVaultStorageData storage _sd = _getStorage();
-        //     uint8 _shareClassesId = _sd.shareClassesId;
-        //     if (_shareClassesId > 0) {
-        //         for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-        //             uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
-        //             uint8 _activeSeries = _sd.shareClasses[_classId].activeSeries;
-        //             for (uint8 _seriesId; _seriesId <= _activeSeries; _seriesId++) {
-        //                 for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
-        //                     _totalSharesToRedeem += _sd.shareClasses[_classId].shareSeries[_seriesId].redeemRequests[_redeemSettleId]
-        //                         .redeemRequest[_user];
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
-    /// @inheritdoc IAlephVault
-    function totalAmountForRedemption(uint256 _newTotalAssets) external view returns (uint256) {
-        // AlephVaultStorageData storage _sd = _getStorage();
-        // uint256 _totalShares = _totalShares();
-        // _totalShares += _getManagementFeeShares(_sd, _newTotalAssets, _totalShares, currentBatch() - _sd.lastFeePaidId)
-        //     + _getPerformanceFeeShares(_sd, _newTotalAssets, _totalShares);
-        // return ERC4626Math.previewRedeem(totalSharesToRedeem(), _newTotalAssets, _totalShares);
     }
 
     /// @inheritdoc IAlephVault
@@ -601,27 +554,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
-    }
-
-    function _getManagementFeeShares(
-        AlephVaultStorageData storage _sd,
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
-        uint48 _batchesElapsed
-    ) internal view returns (uint256 _managementFeeShares) {
-        // return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
-        //     _newTotalAssets, _totalShares, _batchesElapsed, _sd.managementFee
-        // );
-    }
-
-    function _getPerformanceFeeShares(AlephVaultStorageData storage _sd, uint256 _newTotalAssets, uint256 _totalShares)
-        internal
-        view
-        returns (uint256 _performanceFeeShares)
-    {
-        // return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
-        //     _newTotalAssets, _totalShares, _sd.performanceFee, _highWaterMark()
-        // );
     }
 
     /**

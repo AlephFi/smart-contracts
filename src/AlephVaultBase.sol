@@ -32,6 +32,8 @@ contract AlephVaultBase {
     uint32 public constant MAXIMUM_MANAGEMENT_FEE = 1000; // 10%
     uint32 public constant MAXIMUM_PERFORMANCE_FEE = 5000; // 50%
     uint48 public constant PRICE_DENOMINATOR = 1e6;
+    address public constant MANAGEMENT_FEE_RECIPIENT = address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
+    address public constant PERFORMANCE_FEE_RECIPIENT = address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
 
     uint48 public immutable BATCH_DURATION;
 
@@ -44,23 +46,33 @@ contract AlephVaultBase {
         BATCH_DURATION = _batchDuration;
     }
 
-    function _totalAssets() internal view returns (uint256) {
+    /**
+     * @dev Returns the total assets in the vault.
+     * @param _sd The storage struct.
+     * @return The total assets in the vault.
+     */
+    function _totalAssets(AlephVaultStorageData storage _sd) internal view returns (uint256) {
         uint256 _totalAssets;
-        uint8 _shareClassesId = _getStorage().shareClassesId;
+        uint8 _shareClassesId = _sd.shareClassesId;
         if (_shareClassesId > 0) {
             for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                _totalAssets += _totalAssetsPerClass(_classId);
+                _totalAssets += _totalAssetsPerClass(_sd, _classId);
             }
         }
         return _totalAssets;
     }
 
-    function _totalShares() internal view returns (uint256) {
+    /**
+     * @dev Returns the total shares in the vault.
+     * @param _sd The storage struct.
+     * @return The total shares in the vault.
+     */
+    function _totalShares(AlephVaultStorageData storage _sd) internal view returns (uint256) {
         uint256 _totalShares;
-        uint8 _shareClassesId = _getStorage().shareClassesId;
+        uint8 _shareClassesId = _sd.shareClassesId;
         if (_shareClassesId > 0) {
             for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                _totalShares += _totalSharesPerClass(_classId);
+                _totalShares += _totalSharesPerClass(_sd, _classId);
             }
         }
         return _totalShares;
@@ -68,141 +80,165 @@ contract AlephVaultBase {
 
     /**
      * @dev Returns the total assets in the vault for a given class.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class.
      * @return The total assets in the vault for the given class.
      */
-    function _totalAssetsPerClass(uint8 _classId) internal view returns (uint256) {
-        uint256 _totalAssets = _totalAssetsPerSeries(_classId, LEAD_SERIES_ID);
-        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+    function _totalAssetsPerClass(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint256) {
+        uint256 _totalAssets = _totalAssetsPerSeries(_sd, _classId, LEAD_SERIES_ID);
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         for (
             uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
             _seriesId <= _shareClass.shareSeriesId;
             _seriesId++
         ) {
-            _totalAssets += _totalAssetsPerSeries(_classId, _seriesId);
+            _totalAssets += _totalAssetsPerSeries(_sd, _classId, _seriesId);
         }
         return _totalAssets;
     }
 
     /**
      * @dev Returns the total shares in the vault for a given class.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class.
      * @return The total shares in the vault for the given class.
      */
-    function _totalSharesPerClass(uint8 _classId) internal view returns (uint256) {
-        uint256 _totalShares = _totalSharesPerSeries(_classId, LEAD_SERIES_ID);
-        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+    function _totalSharesPerClass(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint256) {
+        uint256 _totalShares = _totalSharesPerSeries(_sd, _classId, LEAD_SERIES_ID);
         for (
-            uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
-            _seriesId <= _shareClass.shareSeriesId;
+            uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
+            _seriesId <= _sd.shareClasses[_classId].shareSeriesId;
             _seriesId++
         ) {
-            _totalShares += _totalSharesPerSeries(_classId, _seriesId);
+            _totalShares += _totalSharesPerSeries(_sd, _classId, _seriesId);
         }
         return _totalShares;
     }
 
     /**
      * @dev Returns the total assets in the vault.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssetsPerSeries(uint8 _classId, uint8 _seriesId) internal view returns (uint256) {
-        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].totalAssets;
+    function _totalAssetsPerSeries(AlephVaultStorageData storage _sd, uint8 _classId, uint8 _seriesId)
+        internal
+        view
+        returns (uint256)
+    {
+        return _sd.shareClasses[_classId].shareSeries[_seriesId].totalAssets;
     }
 
     /**
      * @dev Returns the total shares in the vault.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalSharesPerSeries(uint8 _classId, uint8 _seriesId) internal view returns (uint256) {
-        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].totalShares;
+    function _totalSharesPerSeries(AlephVaultStorageData storage _sd, uint8 _classId, uint8 _seriesId)
+        internal
+        view
+        returns (uint256)
+    {
+        return _sd.shareClasses[_classId].shareSeries[_seriesId].totalShares;
     }
 
     /**
      * @dev Returns the shares of a user.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @param _user The user to get the shares of.
      * @return The shares of the user.
      */
-    function _sharesOf(uint8 _classId, uint8 _seriesId, address _user) internal view returns (uint256) {
-        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].sharesOf[_user];
+    function _sharesOf(AlephVaultStorageData storage _sd, uint8 _classId, uint8 _seriesId, address _user)
+        internal
+        view
+        returns (uint256)
+    {
+        return _sd.shareClasses[_classId].shareSeries[_seriesId].sharesOf[_user];
     }
 
-    function _assetsOf(uint8 _classId, uint8 _seriesId, address _user) internal view returns (uint256) {
+    /**
+     * @dev Returns the assets of a user.
+     * @param _sd The storage struct.
+     * @param _classId The ID of the share class.
+     * @param _seriesId The ID of the share series.
+     * @param _user The user to get the assets of.
+     * @return The assets of the user.
+     */
+    function _assetsOf(AlephVaultStorageData storage _sd, uint8 _classId, uint8 _seriesId, address _user)
+        internal
+        view
+        returns (uint256)
+    {
         return ERC4626Math.previewRedeem(
-            _sharesOf(_classId, _seriesId, _user),
-            _totalAssetsPerSeries(_classId, _seriesId),
-            _totalSharesPerSeries(_classId, _seriesId)
+            _sharesOf(_sd, _classId, _seriesId, _user),
+            _totalAssetsPerSeries(_sd, _classId, _seriesId),
+            _totalSharesPerSeries(_sd, _classId, _seriesId)
         );
     }
 
-    function _assetsPerClassOf(uint8 _classId, address _user) internal view returns (uint256) {
-        uint256 _assets = _assetsOf(_classId, LEAD_SERIES_ID, _user);
-        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+    /**
+     * @dev Returns the assets of a user per class.
+     * @param _sd The storage struct.
+     * @param _classId The ID of the share class.
+     * @param _user The user to get the assets of.
+     * @return The assets of the user per class.
+     */
+    function _assetsPerClassOf(AlephVaultStorageData storage _sd, uint8 _classId, address _user)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 _assets = _assetsOf(_sd, _classId, LEAD_SERIES_ID, _user);
         for (
-            uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
-            _seriesId <= _shareClass.shareSeriesId;
+            uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
+            _seriesId <= _sd.shareClasses[_classId].shareSeriesId;
             _seriesId++
         ) {
-            _assets += _assetsOf(_classId, _seriesId, _user);
+            _assets += _assetsOf(_sd, _classId, _seriesId, _user);
         }
         return _assets;
     }
 
     /**
      * @dev Returns the current batch.
+     * @param _sd The storage struct.
      * @return The current batch.
      */
-    function _currentBatch() internal view returns (uint48) {
-        AlephVaultStorageData storage _sd = _getStorage();
+    function _currentBatch(AlephVaultStorageData storage _sd) internal view returns (uint48) {
         return (Time.timestamp() - _sd.startTimeStamp) / BATCH_DURATION;
     }
 
     /**
-     * @dev Returns the high water mark.
-     * @param _classId The ID of the share class.
-     * @param _seriesId The ID of the share series.
-     * @return The high water mark.
-     */
-    function _highWaterMark(uint8 _classId, uint8 _seriesId) internal view returns (uint256) {
-        return _getStorage().shareClasses[_classId].shareSeries[_seriesId].highWaterMark;
-    }
-
-    /**
-     * @dev Returns the lead high water mark.
-     * @param _classId The ID of the share class.
-     * @return The high water mark of the lead series.
-     */
-    function _leadHighWaterMark(uint8 _classId) internal view returns (uint256) {
-        return _highWaterMark(_classId, LEAD_SERIES_ID);
-    }
-
-    /**
      * @dev Returns the lead price per share.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class.
      * @return The price per share of the lead series.
      */
-    function _leadPricePerShare(uint8 _classId) internal view returns (uint256) {
+    function _leadPricePerShare(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint256) {
         return _getPricePerShare(
-            _totalAssetsPerSeries(_classId, LEAD_SERIES_ID), _totalSharesPerSeries(_classId, LEAD_SERIES_ID)
+            _totalAssetsPerSeries(_sd, _classId, LEAD_SERIES_ID), _totalSharesPerSeries(_sd, _classId, LEAD_SERIES_ID)
         );
     }
 
     /**
      * @dev Returns the total amount to deposit.
+     * @param _sd The storage struct.
      * @param _classId The ID of the share class.
      * @return The total amount to deposit.
      */
-    function _totalAmountToDepositPerClass(uint8 _classId) internal view returns (uint256) {
+    function _totalAmountToDepositPerClass(AlephVaultStorageData storage _sd, uint8 _classId)
+        internal
+        view
+        returns (uint256)
+    {
         uint256 _amountToDeposit;
-        uint48 _currentBatchId = _currentBatch();
+        uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId > 0) {
-            AlephVaultStorageData storage _sd = _getStorage();
             uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
             for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
                 _amountToDeposit += _sd.shareClasses[_classId].depositRequests[_depositSettleId].totalAmountToDeposit;

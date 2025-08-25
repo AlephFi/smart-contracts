@@ -40,8 +40,6 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
-    address public constant MANAGEMENT_FEE_RECIPIENT = address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
-    address public constant PERFORMANCE_FEE_RECIPIENT = address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
 
     constructor(
         uint48 _managementFeeTimelock,
@@ -289,7 +287,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint256 _highWaterMark
-    ) internal view returns (uint256 _performanceFeeAmount) {
+    ) internal pure returns (uint256 _performanceFeeAmount) {
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
         if (_pricePerShare > _highWaterMark) {
             _performanceFeeAmount =

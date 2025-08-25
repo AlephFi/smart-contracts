@@ -52,7 +52,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_shares == 0) {
             revert InsufficientRedeem();
         }
-        uint48 _currentBatchId = _currentBatch();
+        uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForRedeem(); // need to wait for the first batch to be available
         }
@@ -60,7 +60,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
-        if (_sharesOf(_classId, _seriesId, msg.sender) < _shares) {
+        if (_sharesOf(_sd, _classId, _seriesId, msg.sender) < _shares) {
             revert InsufficientAssetsToRedeem();
         }
         _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;

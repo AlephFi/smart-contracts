@@ -285,30 +285,6 @@ interface IAlephVault {
     function depositRequestOf(address _user) external view returns (uint256);
 
     /**
-     * @notice Returns the total shares to redeem at the current batch.
-     * @return The total shares to redeem at the current batch.
-     */
-    function totalSharesToRedeem() external view returns (uint256);
-
-    /**
-     * @notice Returns the redeem request of a user.
-     * @param _user The user to query.
-     * @return The redeem request of the user.
-     */
-    function redeemRequestOf(address _user) external view returns (uint256);
-
-    /**
-     * @notice Returns the total amount for redemption.
-     * @param _newTotalAssets The new total assets before settlement.
-     * @return The total amount for redemption.
-     * @dev Please note that this function will return the redemption amount for all batches including the current batch.
-     * However, if these redemption requests are settled in this batch, the amount requested in this batch will NOT be settled.
-     * It will be settled in the next settlement batch. So if you're using this function to check if the redemption request for settlement,
-     * please be aware of this nuance.
-     */
-    function totalAmountForRedemption(uint256 _newTotalAssets) external returns (uint256);
-
-    /**
      * @notice Returns the status of the KYC authentication.
      * @return The status of the KYC authentication.
      */
