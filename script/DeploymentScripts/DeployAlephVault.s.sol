@@ -44,7 +44,11 @@ contract DeployAlephVault is BaseScript {
             configId: vm.envString("VAULT_CONFIG_ID"),
             manager: vm.envAddress("VAULT_MANAGER"),
             underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
-            custodian: vm.envAddress("VAULT_CUSTODIAN")
+            custodian: vm.envAddress("VAULT_CUSTODIAN"),
+            managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
+            performanceFee: uint32(vm.envUint("VAULT_PERFORMANCE_FEE")),
+            minDepositAmount: vm.envUint("VAULT_MIN_DEPOSIT_AMOUNT"),
+            maxDepositCap: vm.envUint("VAULT_MAX_DEPOSIT_CAP")
         });
         address _vault = IAlephVaultFactory(_factory).deployVault(_userInitializationParams);
         console.log("================================================");

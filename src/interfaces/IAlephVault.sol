@@ -52,6 +52,10 @@ interface IAlephVault {
         address manager;
         address underlyingToken;
         address custodian;
+        uint32 managementFee;
+        uint32 performanceFee;
+        uint256 minDepositAmount;
+        uint256 maxDepositCap;
     }
 
     struct ModuleInitializationParams {

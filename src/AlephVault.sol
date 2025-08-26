@@ -95,6 +95,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initalizationParams.moduleInitializationParams.alephVaultRedeemImplementation == address(0)
                 || _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation == address(0)
                 || _initalizationParams.moduleInitializationParams.feeManagerImplementation == address(0)
+                || _initalizationParams.userInitializationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
+                || _initalizationParams.userInitializationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
             revert InvalidInitializationParams();
         }
@@ -130,6 +132,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.userInitializationParams.manager,
             _initalizationParams.guardian,
             _initalizationParams.operationsMultisig
+        );
+        _createShareClass(
+            _sd,
+            _initalizationParams.userInitializationParams.managementFee,
+            _initalizationParams.userInitializationParams.performanceFee,
+            _initalizationParams.userInitializationParams.minDepositAmount,
+            _initalizationParams.userInitializationParams.maxDepositCap
         );
     }
 
@@ -369,16 +378,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         if (_managementFee > MAXIMUM_MANAGEMENT_FEE || _performanceFee > MAXIMUM_PERFORMANCE_FEE) {
             revert InvalidVaultFee();
         }
-        AlephVaultStorageData storage _sd = _getStorage();
-        uint8 _classId = _sd.shareClassesId++;
-        ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        _shareClass.managementFee = _managementFee;
-        _shareClass.performanceFee = _performanceFee;
-        _shareClass.minDepositAmount = _minDepositAmount;
-        _shareClass.maxDepositCap = _maxDepositCap;
-        _shareClass.shareSeries[0].highWaterMark = PRICE_DENOMINATOR;
-        emit ShareClassCreated(_classId, _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
-        return _classId;
+        return _createShareClass(_getStorage(), _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
     }
 
     /**
@@ -554,6 +554,32 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @dev Internal function to create a new share class.
+     * @param _sd The storage struct.
+     * @param _managementFee The management fee.
+     * @param _performanceFee The performance fee.
+     * @param _minDepositAmount The minimum deposit amount.
+     * @param _maxDepositCap The maximum deposit cap.
+     * @return _classId The ID of the new share class.
+     */
+    function _createShareClass(
+        AlephVaultStorageData storage _sd,
+        uint32 _managementFee,
+        uint32 _performanceFee,
+        uint256 _minDepositAmount,
+        uint256 _maxDepositCap
+    ) internal returns (uint8 _classId) {
+        _classId = _sd.shareClassesId++;
+        _sd.shareClasses[_classId].managementFee = _managementFee;
+        _sd.shareClasses[_classId].performanceFee = _performanceFee;
+        _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
+        _sd.shareClasses[_classId].maxDepositCap = _maxDepositCap;
+        _sd.shareClasses[_classId].shareSeries[0].highWaterMark = PRICE_DENOMINATOR;
+        emit ShareClassCreated(_classId, _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
+        return _classId;
     }
 
     /**
