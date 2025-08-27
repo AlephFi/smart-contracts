@@ -49,9 +49,7 @@ contract AlephVaultFactoryTest is Test {
                 alephVaultDepositImplementation: alephVaultDepositImplementation,
                 alephVaultRedeemImplementation: alephVaultRedeemImplementation,
                 alephVaultSettlementImplementation: alephVaultSettlementImplementation,
-                feeManagerImplementation: feeManagerImplementation,
-                managementFee: 0,
-                performanceFee: 0
+                feeManagerImplementation: feeManagerImplementation
             })
         );
     }
@@ -69,9 +67,7 @@ contract AlephVaultFactoryTest is Test {
                 alephVaultDepositImplementation: alephVaultDepositImplementation,
                 alephVaultRedeemImplementation: alephVaultRedeemImplementation,
                 alephVaultSettlementImplementation: alephVaultSettlementImplementation,
-                feeManagerImplementation: feeManagerImplementation,
-                managementFee: 0,
-                performanceFee: 0
+                feeManagerImplementation: feeManagerImplementation
             })
         );
     }
@@ -82,7 +78,11 @@ contract AlephVaultFactoryTest is Test {
             configId: "test",
             manager: manager,
             underlyingToken: underlyingToken,
-            custodian: custodian
+            custodian: custodian,
+            managementFee: 0,
+            performanceFee: 0,
+            minDepositAmount: 0,
+            maxDepositCap: 0
         });
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));

@@ -78,6 +78,8 @@ interface IAlephVault {
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
+        mapping(address user => uint48 batchId) lastDepositBatchId;
+        mapping(address user => uint48 batchId) lastRedeemBatchId;
     }
 
     struct ShareSeries {

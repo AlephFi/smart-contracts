@@ -34,8 +34,6 @@ struct AlephVaultStorageData {
     mapping(uint8 classId => IAlephVault.ShareClass) shareClasses;
     mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
     mapping(bytes4 => address) moduleImplementations;
-    mapping(address user => uint48 batchId) lastDepositBatchId;
-    mapping(address user => uint48 batchId) lastRedeemBatchId;
 }
 
 /**

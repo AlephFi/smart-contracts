@@ -60,8 +60,6 @@ contract BaseTest is Test {
     address public oracle;
     address public guardian;
     address public authSigner;
-    uint32 public managementFee;
-    uint32 public performanceFee;
     uint48 public minDepositAmountTimelock;
     uint48 public maxDepositCapTimelock;
     uint48 public managementFeeTimelock;
@@ -118,14 +116,16 @@ contract BaseTest is Test {
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
             feeRecipient: makeAddr("feeRecipient"),
-            managementFee: 200, // 2%
-            performanceFee: 2000, // 20%
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: "test",
                 configId: "test-123",
                 manager: makeAddr("manager"),
                 underlyingToken: address(underlyingToken),
-                custodian: makeAddr("custodian")
+                custodian: makeAddr("custodian"),
+                managementFee: 200, // 2%
+                performanceFee: 2000, // 20%
+                minDepositAmount: 10 ether,
+                maxDepositCap: 1_000_000 ether
             }),
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: makeAddr("AlephVaultDeposit"),
@@ -172,8 +172,6 @@ contract BaseTest is Test {
         authSigner = _initializationParams.authSigner;
         custodian = _initializationParams.userInitializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
-        managementFee = _initializationParams.managementFee;
-        performanceFee = _initializationParams.performanceFee;
 
         // set up module implementations
         _initializationParams.moduleInitializationParams = defaultInitializationParams.moduleInitializationParams;
