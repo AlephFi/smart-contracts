@@ -118,7 +118,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(AuthLibrary.AuthSignatureExpired.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -130,7 +130,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(AuthLibrary.InvalidAuthSignature.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: _authSignature})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: _authSignature})
         );
     }
 
@@ -139,7 +139,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -154,7 +154,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -165,10 +165,10 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(
-            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(vault), 0, 100)
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(vault), 0, 100 ether)
         );
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -183,10 +183,10 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(
-            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(mockUser_1), 0, 100)
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(mockUser_1), 0, 100 ether)
         );
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -198,25 +198,25 @@ contract AlephVaultDepositTest is BaseTest {
 
         // set user balance to 100
         vm.startPrank(mockUser_1);
-        underlyingToken.mint(address(mockUser_1), 100);
+        underlyingToken.mint(address(mockUser_1), 100 ether);
 
         // set vault allowance to 100
-        underlyingToken.approve(address(vault), 100);
+        underlyingToken.approve(address(vault), 100 ether);
 
         // request deposit
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.DepositRequest(mockUser_1, 1, 100, vault.currentBatch());
+        emit IERC7540Deposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
         uint48 _batchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
         // check the deposit request
-        assertEq(vault.totalAmountToDepositAt(1, _batchId), 100);
-        assertEq(vault.depositRequestOfAt(1, mockUser_1, _batchId), 100);
+        assertEq(vault.totalAmountToDepositAt(1, _batchId), 100 ether);
+        assertEq(vault.depositRequestOfAt(1, mockUser_1, _batchId), 100 ether);
         assertEq(vault.usersToDepositAt(1, _batchId).length, 1);
         assertEq(vault.usersToDepositAt(1, _batchId)[0], mockUser_1);
-        assertEq(underlyingToken.balanceOf(address(vault)), 100);
+        assertEq(underlyingToken.balanceOf(address(vault)), 100 ether);
         assertEq(underlyingToken.balanceOf(address(mockUser_1)), 0);
     }
 
@@ -228,37 +228,37 @@ contract AlephVaultDepositTest is BaseTest {
 
         // set user 1 balance to 100 and approve vault to spend
         vm.startPrank(mockUser_1);
-        underlyingToken.mint(address(mockUser_1), 100);
-        underlyingToken.approve(address(vault), 100);
+        underlyingToken.mint(address(mockUser_1), 100 ether);
+        underlyingToken.approve(address(vault), 100 ether);
 
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.DepositRequest(mockUser_1, 1, 100, vault.currentBatch());
+        emit IERC7540Deposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
         uint48 _batchId_user1 = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
         // set user 2 balance to 300 and approve vault to spend
         vm.startPrank(mockUser_2);
-        underlyingToken.mint(address(mockUser_2), 300);
-        underlyingToken.approve(address(vault), 300);
+        underlyingToken.mint(address(mockUser_2), 300 ether);
+        underlyingToken.approve(address(vault), 300 ether);
 
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.DepositRequest(mockUser_2, 1, 300, vault.currentBatch());
+        emit IERC7540Deposit.DepositRequest(mockUser_2, 1, 300 ether, vault.currentBatch());
         uint48 _batchId_user2 = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 300, authSignature: authSignature_2})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_2})
         );
         vm.stopPrank();
 
         // check the deposit requests
         assertEq(_batchId_user1, _batchId_user2);
-        assertEq(vault.totalAmountToDepositAt(1, _batchId_user1), 100 + 300);
-        assertEq(vault.depositRequestOfAt(1, mockUser_1, _batchId_user1), 100);
-        assertEq(vault.depositRequestOfAt(1, mockUser_2, _batchId_user1), 300);
+        assertEq(vault.totalAmountToDepositAt(1, _batchId_user1), 100 ether + 300 ether);
+        assertEq(vault.depositRequestOfAt(1, mockUser_1, _batchId_user1), 100 ether);
+        assertEq(vault.depositRequestOfAt(1, mockUser_2, _batchId_user1), 300 ether);
         assertEq(vault.usersToDepositAt(1, _batchId_user1).length, 2);
         assertEq(vault.usersToDepositAt(1, _batchId_user1)[0], mockUser_1);
         assertEq(vault.usersToDepositAt(1, _batchId_user1)[1], mockUser_2);
-        assertEq(underlyingToken.balanceOf(address(vault)), 100 + 300);
+        assertEq(underlyingToken.balanceOf(address(vault)), 100 ether + 300 ether);
         assertEq(underlyingToken.balanceOf(address(mockUser_1)), 0);
         assertEq(underlyingToken.balanceOf(address(mockUser_2)), 0);
     }
