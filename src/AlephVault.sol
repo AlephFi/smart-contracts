@@ -534,14 +534,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Requests a redeem of shares.
      * @param _classId The ID of the share class to redeem shares from.
-     * @param _seriesId The ID of the share series to redeem shares from.
-     * @param _shares The number of shares to redeem.
+     * @param _amount The amount to redeem.
      * @return _batchId The batch ID of the redeem.
      * @dev Only callable when the redeem request flow is not paused.
      */
-    function requestRedeem(uint8 _classId, uint8 _seriesId, uint256 _shares)
+    function requestRedeem(uint8 _classId, uint256 _amount)
         external
-        onlyValidShareClassAndSeries(_classId, _seriesId)
+        onlyValidShareClass(_classId)
         whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
         returns (uint48 _batchId)
     {

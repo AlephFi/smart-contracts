@@ -90,7 +90,9 @@ interface IERC7540Settlement {
 
     event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint8 classId);
 
-    event RedeemRequestSettled(
+    event RedeemRequestSettled(uint48 indexed batchId, address indexed user, uint8 classId, uint256 amountToRedeem);
+
+    event RedeemRequestSliceSettled(
         uint48 indexed batchId,
         address indexed user,
         uint8 classId,

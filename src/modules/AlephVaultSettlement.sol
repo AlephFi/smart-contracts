@@ -18,7 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
-import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
@@ -33,6 +33,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  */
 contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     using SafeERC20 for IERC20;
+    using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
@@ -173,7 +174,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         address _underlyingToken = _sd.underlyingToken;
         for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
             _settleRedeemForBatch(
-                _shareClass,
+                _sd,
                 SettleRedeemBatchParams({
                     batchId: _id,
                     classId: _classId,
@@ -188,31 +189,31 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
 
     /**
      * @dev Internal function to settle redeems for a specific batch.
-     * @param _shareClass The share class to settle.
+     * @param _sd The storage struct.
      * @param _settleRedeemBatchParams The parameters for the settlement.
      */
     function _settleRedeemForBatch(
-        IAlephVault.ShareClass storage _shareClass,
+        AlephVaultStorageData storage _sd,
         SettleRedeemBatchParams memory _settleRedeemBatchParams
     ) internal {
         IAlephVault.RedeemRequests storage _redeemRequests =
-            _shareClass.redeemRequests[_settleRedeemBatchParams.batchId];
+            _sd.shareClasses[_settleRedeemBatchParams.classId].redeemRequests[_settleRedeemBatchParams.batchId];
         uint256 _totalAmountToRedeem;
         uint256 _len = _redeemRequests.usersToRedeem.length;
         for (uint256 _i; _i < _len; _i++) {
             address _user = _redeemRequests.usersToRedeem[_i];
-            (uint8 _seriesId, uint256 _amount, uint256 _shares) = _settleRedeemForUser(
-                _shareClass,
+            uint256 _amount = _settleRedeemForUser(
+                _sd,
+                _settleRedeemBatchParams.batchId,
                 _user,
                 _redeemRequests.redeemRequest[_user],
                 _settleRedeemBatchParams.newTotalAssets,
-                _settleRedeemBatchParams.classId,
-                _redeemRequests.redeemSeries[_user]
+                _settleRedeemBatchParams.classId
             );
             _totalAmountToRedeem += _amount;
             IERC20(_settleRedeemBatchParams.underlyingToken).safeTransfer(_user, _amount);
             emit RedeemRequestSettled(
-                _settleRedeemBatchParams.batchId, _user, _settleRedeemBatchParams.classId, _seriesId, _amount, _shares
+                _settleRedeemBatchParams.batchId, _user, _settleRedeemBatchParams.classId, _amount
             );
         }
         emit SettleRedeemBatch(_settleRedeemBatchParams.batchId, _settleRedeemBatchParams.classId, _totalAmountToRedeem);
@@ -220,39 +221,81 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
 
     /**
      * @dev Internal function to settle a redeem for a user.
-     * @param _shareClass The share class to settle.
+     * @param _sd The storage struct.
      * @param _user The user to settle the redeem for.
-     * @param _shares The shares to settle.
+     * @param _amount The amount to settle.
+     * @param _newTotalAssets The new total assets after settlement.
+     * @param _classId The id of the class.
+     * @return _remainingAmount The remaining amount to redeem.
+     */
+    function _settleRedeemForUser(
+        AlephVaultStorageData storage _sd,
+        uint48 _batchId,
+        address _user,
+        uint256 _amount,
+        uint256[] memory _newTotalAssets,
+        uint8 _classId
+    ) internal returns (uint256 _remainingAmount) {
+        _remainingAmount =
+            _amount.mulDiv(_assetsPerClassOf(_sd, _classId, _user), PRICE_DENOMINATOR, Math.Rounding.Floor);
+        _remainingAmount = _settleRedeemSlice(
+            _sd, _batchId, _user, _remainingAmount, _newTotalAssets[LEAD_SERIES_ID], _classId, LEAD_SERIES_ID
+        );
+        uint256 _len = _newTotalAssets.length;
+        uint8 _lastConsolidatedSeriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId;
+        for (uint8 i = 1; i < _len; i++) {
+            _remainingAmount = _settleRedeemSlice(
+                _sd, _batchId, _user, _remainingAmount, _newTotalAssets[i], _classId, _lastConsolidatedSeriesId + i
+            );
+            if (_remainingAmount == 0) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * @dev Internal function to settle a redeem slice.
+     * @param _sd The storage struct.
+     * @param _batchId The id of the batch.
+     * @param _user The user to settle the redeem for.
+     * @param _amount The amount to settle.
      * @param _newTotalAssets The new total assets after settlement.
      * @param _classId The id of the class.
      * @param _seriesId The id of the series.
-     * @return The series id.
-     * @return The amount to redeem.
-     * @return The shares to redeem.
+     * @return _remainingAmount The remaining amount to redeem.
      */
-    function _settleRedeemForUser(
-        IAlephVault.ShareClass storage _shareClass,
+    function _settleRedeemSlice(
+        AlephVaultStorageData storage _sd,
+        uint48 _batchId,
         address _user,
-        uint256 _shares,
-        uint256[] memory _newTotalAssets,
+        uint256 _amount,
+        uint256 _newTotalAssets,
         uint8 _classId,
         uint8 _seriesId
-    ) internal returns (uint8, uint256, uint256) {
-        IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
-        uint256 _amount = ERC4626Math.previewRedeem(_shares, _shareSeries.totalAssets, _shareSeries.totalShares);
-        if (_seriesId > 0 && _seriesId <= _shareClass.lastConsolidatedSeriesId) {
-            IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[LEAD_SERIES_ID];
-            uint256 _sharesInLeadSeries =
-                ERC4626Math.previewWithdraw(_amount, _leadSeries.totalShares, _leadSeries.totalAssets);
-            _leadSeries.totalAssets -= _amount;
-            _leadSeries.totalShares -= _sharesInLeadSeries;
-            _leadSeries.sharesOf[_user] -= _sharesInLeadSeries;
-            return (LEAD_SERIES_ID, _amount, _sharesInLeadSeries);
+    ) internal returns (uint256 _remainingAmount) {
+        _remainingAmount = _amount;
+        IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
+        uint256 _sharesInSeries = _sharesOf(_sd, _classId, _seriesId, _user);
+        uint256 _amountInSeries =
+            ERC4626Math.previewWithdraw(_sharesInSeries, _shareSeries.totalShares, _newTotalAssets);
+        if (_amountInSeries < _remainingAmount) {
+            _remainingAmount -= _amountInSeries;
+            _shareSeries.totalAssets -= _amountInSeries;
+            _shareSeries.totalShares -= _sharesInSeries;
+            delete _shareSeries.sharesOf[_user];
+            emit IERC7540Settlement.RedeemRequestSliceSettled(
+                _batchId, _user, _classId, _seriesId, _amountInSeries, _sharesInSeries
+            );
         } else {
-            _shareSeries.totalAssets -= _amount;
-            _shareSeries.totalShares -= _shares;
-            _shareSeries.sharesOf[_user] -= _shares;
-            return (_seriesId, _amount, _shares);
+            uint256 _userSharesToBurn =
+                ERC4626Math.previewWithdraw(_remainingAmount, _shareSeries.totalShares, _newTotalAssets);
+            _shareSeries.totalAssets -= _remainingAmount;
+            _shareSeries.totalShares -= _userSharesToBurn;
+            _shareSeries.sharesOf[_user] -= _userSharesToBurn;
+            emit IERC7540Settlement.RedeemRequestSliceSettled(
+                _batchId, _user, _classId, _seriesId, _remainingAmount, _userSharesToBurn
+            );
+            return 0;
         }
     }
 

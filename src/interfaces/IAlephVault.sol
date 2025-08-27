@@ -99,7 +99,6 @@ interface IAlephVault {
     struct RedeemRequests {
         address[] usersToRedeem;
         mapping(address => uint256) redeemRequest;
-        mapping(address => uint8) redeemSeries;
     }
 
     // View functions
