@@ -115,7 +115,7 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[1].performanceFee = _performanceFee;
     }
 
-    function accumulateFees(uint256, uint48, uint48, uint48) external returns (uint256) {
+    function accumulateFees(uint256, uint256, uint48, uint48, uint8, uint8) external returns (uint256) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 

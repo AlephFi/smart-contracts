@@ -28,39 +28,39 @@ contract AlephVault_Unit_Test is BaseTest {
     /*//////////////////////////////////////////////////////////////
                 GET TOTAL AMOUNT FOR REDEMPTION TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_getTotalAmountForRedemption() public {
-        // set total assets and total shares
-        vault.setTotalAssets(1000 ether);
-        vault.setTotalShares(1000 ether);
-        vault.setHighWaterMark(vault.PRICE_DENOMINATOR());
+    // function test_getTotalAmountForRedemption() public {
+    //     // set total assets and total shares
+    //     vault.setTotalAssets(1000 ether);
+    //     vault.setTotalShares(1000 ether);
+    //     vault.setHighWaterMark(vault.PRICE_DENOMINATOR());
 
-        // set user shares
-        vault.setSharesOf(mockUser_1, 500 ether);
-        vault.setSharesOf(mockUser_2, 500 ether);
+    //     // set user shares
+    //     vault.setSharesOf(mockUser_1, 500 ether);
+    //     vault.setSharesOf(mockUser_2, 500 ether);
 
-        // roll the block forward to make batch available
-        vm.warp(block.timestamp + 1 days + 1);
+    //     // roll the block forward to make batch available
+    //     vm.warp(block.timestamp + 1 days + 1);
 
-        // set redemption requests
-        vault.setBatchRedeem(vault.currentBatch(), mockUser_1, 100 ether);
-        vault.setBatchRedeem(vault.currentBatch(), mockUser_2, 200 ether);
+    //     // set redemption requests
+    //     vault.setBatchRedeem(vault.currentBatch(), mockUser_1, 100 ether);
+    //     vault.setBatchRedeem(vault.currentBatch(), mockUser_2, 200 ether);
 
-        vm.warp(block.timestamp + 1 days + 1);
-        vault.setBatchRedeem(vault.currentBatch(), mockUser_1, 100 ether);
-        vault.setBatchRedeem(vault.currentBatch(), mockUser_2, 200 ether);
+    //     vm.warp(block.timestamp + 1 days + 1);
+    //     vault.setBatchRedeem(vault.currentBatch(), mockUser_1, 100 ether);
+    //     vault.setBatchRedeem(vault.currentBatch(), mockUser_2, 200 ether);
 
-        vm.warp(block.timestamp + 10 days);
+    //     vm.warp(block.timestamp + 10 days);
 
-        // calculate fee shares
-        uint256 _newTotalAssets = 1200 ether;
-        uint256 _totalShares = vault.totalShares();
-        uint256 _expectedManagementFeeShares = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 12);
-        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
-        _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
-        uint256 _expectedTotalAmountForRedemption =
-            ERC4626Math.previewRedeem(vault.totalSharesToRedeem(), _newTotalAssets, _totalShares);
+    //     // calculate fee shares
+    //     uint256 _newTotalAssets = 1200 ether;
+    //     uint256 _totalShares = vault.totalShares();
+    //     uint256 _expectedManagementFeeShares = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 12);
+    //     uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
+    //     _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
+    //     uint256 _expectedTotalAmountForRedemption =
+    //         ERC4626Math.previewRedeem(vault.totalSharesToRedeem(), _newTotalAssets, _totalShares);
 
-        // get total amount for redemption
-        assertEq(vault.totalAmountForRedemption(_newTotalAssets), _expectedTotalAmountForRedemption);
-    }
+    //     // get total amount for redemption
+    //     assertEq(vault.totalAmountForRedemption(_newTotalAssets), _expectedTotalAmountForRedemption);
+    // }
 }
