@@ -76,11 +76,10 @@ contract ExposedVault is AlephVault {
         _sd.shareClasses[1].depositRequests[_batchId].totalAmountToDeposit += _amount;
     }
 
-    function setBatchRedeem(uint48 _batchId, address _user, uint256 _shares) external {
+    function setBatchRedeem(uint48 _batchId, address _user, uint256 _amount) external {
         AlephVaultStorageData storage _sd = _getStorage();
         _sd.shareClasses[1].redeemRequests[_batchId].usersToRedeem.push(_user);
-        _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _shares;
-        _sd.shareClasses[1].redeemRequests[_batchId].redeemSeries[_user] = 0;
+        _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _amount;
     }
 
     function setMinDepositAmount(uint256 _minDepositAmount) external {

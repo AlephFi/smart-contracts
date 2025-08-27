@@ -326,14 +326,40 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     function depositRequestOfAt(uint8 _classId, address _user, uint48 _batchId)
         external
         view
-        returns (uint256 _totalAmountToDeposit)
+        returns (uint256 _amountToDeposit)
     {
         return _getStorage().shareClasses[_classId].depositRequests[_batchId].depositRequest[_user];
     }
 
     /// @inheritdoc IAlephVault
+    function redeemRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToRedeem) {
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint48 _currentBatch = _currentBatch(_sd);
+        if (_currentBatch > 0) {
+            uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
+            for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
+                _totalAmountToRedeem += _sd.shareClasses[_classId].redeemRequests[_redeemSettleId].redeemRequest[_user];
+            }
+        }
+    }
+
+    /// @inheritdoc IAlephVault
+    function redeemRequestOfAt(uint8 _classId, address _user, uint48 _batchId)
+        external
+        view
+        returns (uint256 _amountShareToRedeem)
+    {
+        return _getStorage().shareClasses[_classId].redeemRequests[_batchId].redeemRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
     function usersToDepositAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory) {
         return _getStorage().shareClasses[_classId].depositRequests[_batchId].usersToDeposit;
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().shareClasses[_classId].redeemRequests[_batchId].usersToRedeem;
     }
 
     /// @inheritdoc IAlephVault

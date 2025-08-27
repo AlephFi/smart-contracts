@@ -298,12 +298,37 @@ interface IAlephVault {
     function depositRequestOfAt(uint8 _classId, address _user, uint48 _batchId) external view returns (uint256);
 
     /**
+     * @notice Returns the redeem request of a user.
+     * @param _classId The ID of the share class.
+     * @param _user The user to query.
+     * @return The redeem request of the user.
+     */
+    function redeemRequestOf(uint8 _classId, address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns the redeem request of a user at a given batch.
+     * @param _classId The ID of the share class.
+     * @param _user The user to query.
+     * @param _batchId The ID of the batch.
+     * @return The redeem request of the user at the given batch.
+     */
+    function redeemRequestOfAt(uint8 _classId, address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
      * @notice Returns the users to deposit at a given batch.
      * @param _classId The ID of the share class.
      * @param _batchId The ID of the batch.
      * @return The users to deposit at the given batch.
      */
     function usersToDepositAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory);
+
+    /**
+     * @notice Returns the users to redeem at a given batch.
+     * @param _classId The ID of the share class.
+     * @param _batchId The ID of the batch.
+     * @return The users to redeem at the given batch.
+     */
+    function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory);
 
     /**
      * @notice Returns the status of the KYC authentication.
