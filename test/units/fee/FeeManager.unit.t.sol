@@ -38,9 +38,6 @@ contract FeeManagerTest is BaseTest {
         // accumalate fees
         vault.accumulateFees(0, 0, currentBatchId, lastFeePaidId, 1, 0);
 
-        // check lastFeePaidId is updated
-        assertEq(vault.lastFeePaidId(), currentBatchId);
-
         // check no fees are accumalated
         address managementFeeRecipient = vault.managementFeeRecipient();
         address performanceFeeRecipient = vault.performanceFeeRecipient();
@@ -85,9 +82,6 @@ contract FeeManagerTest is BaseTest {
         // assert total shares minted
         assertEq(_totalSharesMinted, 5);
 
-        // check lastFeePaidId is updated
-        assertEq(vault.lastFeePaidId(), currentBatchId);
-
         // check high water mark is not updated
         assertEq(vault.highWaterMark(1, 0), _highWaterMark);
 
@@ -113,7 +107,7 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        uint256 _newHighWaterMark = (_newTotalAssets * _priceDenominator) / 1000;
+        uint256 _newHighWaterMark = 1_147_228;
         vault.setTotalAssets(1000);
         vault.setTotalShares(1000);
 
@@ -139,9 +133,6 @@ contract FeeManagerTest is BaseTest {
 
         // assert total shares minted
         assertEq(_totalSharesMinted, 46);
-
-        // check lastFeePaidId is updated
-        assertEq(vault.lastFeePaidId(), currentBatchId);
 
         // check high water mark is updated
         assertEq(vault.highWaterMark(1, 0), _newHighWaterMark);

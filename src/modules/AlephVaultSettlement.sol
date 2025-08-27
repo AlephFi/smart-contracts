@@ -276,8 +276,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         _remainingAmount = _amount;
         IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
         uint256 _sharesInSeries = _sharesOf(_sd, _classId, _seriesId, _user);
-        uint256 _amountInSeries =
-            ERC4626Math.previewRedeem(_sharesInSeries, _newTotalAssets, _shareSeries.totalAssets);
+        uint256 _amountInSeries = ERC4626Math.previewRedeem(_sharesInSeries, _newTotalAssets, _shareSeries.totalAssets);
         if (_amountInSeries < _remainingAmount) {
             _remainingAmount -= _amountInSeries;
             _shareSeries.totalAssets -= _amountInSeries;

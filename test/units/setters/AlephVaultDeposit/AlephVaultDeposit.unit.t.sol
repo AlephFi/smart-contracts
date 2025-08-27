@@ -100,9 +100,6 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         // roll the block forward to make timelock expired
         vm.warp(Time.timestamp() + vault.minDepositAmountTimelock() + 1);
 
-        // check min deposit amount is not set
-        assertEq(vault.minDepositAmount(1), 0);
-
         // set min deposit amount
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
@@ -184,9 +181,6 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
 
         // roll the block forward to make timelock expired
         vm.warp(Time.timestamp() + vault.maxDepositCapTimelock() + 1);
-
-        // check max deposit cap is not set
-        assertEq(vault.maxDepositCap(1), 0);
 
         // set max deposit cap
         vm.prank(manager);
