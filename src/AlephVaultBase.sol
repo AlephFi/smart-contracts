@@ -231,11 +231,7 @@ contract AlephVaultBase {
      * @param _classId The ID of the share class.
      * @return The total amount to deposit.
      */
-    function _totalAmountToDepositPerClass(AlephVaultStorageData storage _sd, uint8 _classId)
-        internal
-        view
-        returns (uint256)
-    {
+    function _totalAmountToDeposit(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint256) {
         uint256 _amountToDeposit;
         uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId > 0) {

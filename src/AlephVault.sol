@@ -295,38 +295,45 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalAmountToDeposit() public view returns (uint256 _totalAmountToDeposit) {
-        AlephVaultStorageData storage _sd = _getStorage();
-        uint8 _shareClassesId = _sd.shareClassesId;
-        if (_shareClassesId > 0) {
-            for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                _totalAmountToDeposit += _totalAmountToDepositPerClass(_sd, _classId);
-            }
-        }
-        return _totalAmountToDeposit;
+    function totalAmountToDeposit(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
+        return _totalAmountToDeposit(_getStorage(), _classId);
     }
 
     /// @inheritdoc IAlephVault
-    function totalAmountToDepositPerClass(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalAmountToDepositPerClass(_getStorage(), _classId);
+    function totalAmountToDepositAt(uint8 _classId, uint48 _batchId)
+        public
+        view
+        onlyValidShareClass(_classId)
+        returns (uint256)
+    {
+        return _getStorage().shareClasses[_classId].depositRequests[_batchId].totalAmountToDeposit;
     }
 
     /// @inheritdoc IAlephVault
-    function depositRequestOf(address _user) external view returns (uint256 _totalAmountToDeposit) {
+    function depositRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToDeposit) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatch = _currentBatch(_sd);
         if (_currentBatch > 0) {
-            uint8 _shareClassesId = _sd.shareClassesId;
-            if (_shareClassesId > 0) {
-                for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                    uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
-                    for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
-                        _totalAmountToDeposit +=
-                            _sd.shareClasses[_classId].depositRequests[_depositSettleId].depositRequest[_user];
-                    }
-                }
+            uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
+            for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
+                _totalAmountToDeposit +=
+                    _sd.shareClasses[_classId].depositRequests[_depositSettleId].depositRequest[_user];
             }
         }
+    }
+
+    /// @inheritdoc IAlephVault
+    function depositRequestOfAt(uint8 _classId, address _user, uint48 _batchId)
+        external
+        view
+        returns (uint256 _totalAmountToDeposit)
+    {
+        return _getStorage().shareClasses[_classId].depositRequests[_batchId].depositRequest[_user];
+    }
+
+    /// @inheritdoc IAlephVault
+    function usersToDepositAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory) {
+        return _getStorage().shareClasses[_classId].depositRequests[_batchId].usersToDeposit;
     }
 
     /// @inheritdoc IAlephVault

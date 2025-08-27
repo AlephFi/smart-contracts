@@ -92,12 +92,12 @@ interface IAlephVault {
 
     struct DepositRequests {
         uint256 totalAmountToDeposit;
-        EnumerableSet.AddressSet usersToDeposit;
+        address[] usersToDeposit;
         mapping(address => uint256) depositRequest;
     }
 
     struct RedeemRequests {
-        EnumerableSet.AddressSet usersToRedeem;
+        address[] usersToRedeem;
         mapping(address => uint256) redeemRequest;
         mapping(address => uint8) redeemSeries;
     }
@@ -263,16 +263,6 @@ interface IAlephVault {
     function maxDepositCap(uint8 _classId) external view returns (uint256);
 
     /**
-     * @notice Returns the total amount of unsettled deposit requests.
-     * @return The total amount of unsettled deposit requests.
-     * @dev Please note that this function will return the deposit amount for all batches including the current batch.
-     * However, if these deposit requests are settled in this batch, the amount requested in this batch will NOT be settled.
-     * It will be settled in the next settlement batch. So if you're using this function to check for the deposit request for settlement,
-     * please be aware of this nuance.
-     */
-    function totalAmountToDeposit() external view returns (uint256);
-
-    /**
      * @notice Returns the total amount of unsettled deposit requests for a given class.
      * @param _classId The ID of the share class.
      * @return The total amount of unsettled deposit requests for the given class.
@@ -281,14 +271,40 @@ interface IAlephVault {
      * It will be settled in the next settlement batch. So if you're using this function to check for the deposit request for settlement,
      * please be aware of this nuance.
      */
-    function totalAmountToDepositPerClass(uint8 _classId) external view returns (uint256);
+    function totalAmountToDeposit(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total amount of unsettled deposit requests for a given class at a given batch.
+     * @param _classId The ID of the share class.
+     * @param _batchId The ID of the batch.
+     * @return The total amount of unsettled deposit requests for the given class at the given batch.
+     */
+    function totalAmountToDepositAt(uint8 _classId, uint48 _batchId) external view returns (uint256);
 
     /**
      * @notice Returns the deposit request of a user.
+     * @param _classId The ID of the share class.
      * @param _user The user to query.
      * @return The deposit request of the user.
      */
-    function depositRequestOf(address _user) external view returns (uint256);
+    function depositRequestOf(uint8 _classId, address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns the deposit request of a user at a given batch.
+     * @param _classId The ID of the share class.
+     * @param _user The user to query.
+     * @param _batchId The ID of the batch.
+     * @return The deposit request of the user at the given batch.
+     */
+    function depositRequestOfAt(uint8 _classId, address _user, uint48 _batchId) external view returns (uint256);
+
+    /**
+     * @notice Returns the users to deposit at a given batch.
+     * @param _classId The ID of the share class.
+     * @param _batchId The ID of the batch.
+     * @return The users to deposit at the given batch.
+     */
+    function usersToDepositAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory);
 
     /**
      * @notice Returns the status of the KYC authentication.

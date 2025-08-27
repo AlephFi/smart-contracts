@@ -16,7 +16,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
@@ -31,7 +30,6 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
  */
 contract ExposedVault is AlephVault {
     using Math for uint256;
-    using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
 
@@ -73,14 +71,14 @@ contract ExposedVault is AlephVault {
 
     function setBatchDeposit(uint48 _batchId, address _user, uint256 _amount) external {
         AlephVaultStorageData storage _sd = _getStorage();
-        _sd.shareClasses[1].depositRequests[_batchId].usersToDeposit.add(_user);
+        _sd.shareClasses[1].depositRequests[_batchId].usersToDeposit.push(_user);
         _sd.shareClasses[1].depositRequests[_batchId].depositRequest[_user] = _amount;
         _sd.shareClasses[1].depositRequests[_batchId].totalAmountToDeposit += _amount;
     }
 
     function setBatchRedeem(uint48 _batchId, address _user, uint256 _shares) external {
         AlephVaultStorageData storage _sd = _getStorage();
-        _sd.shareClasses[1].redeemRequests[_batchId].usersToRedeem.add(_user);
+        _sd.shareClasses[1].redeemRequests[_batchId].usersToRedeem.push(_user);
         _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _shares;
         _sd.shareClasses[1].redeemRequests[_batchId].redeemSeries[_user] = 0;
     }

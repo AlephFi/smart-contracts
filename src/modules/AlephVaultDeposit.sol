@@ -146,8 +146,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         if (
             _maxDepositCap > 0
                 && _totalAssetsPerClass(_sd, _requestDepositParams.classId)
-                    + _totalAmountToDepositPerClass(_sd, _requestDepositParams.classId) + _requestDepositParams.amount
-                    > _maxDepositCap
+                    + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount > _maxDepositCap
         ) {
             revert DepositExceedsMaxDepositCap();
         }
@@ -167,7 +166,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
             _sd.shareClasses[_requestDepositParams.classId].depositRequests[_currentBatchId];
         _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
         _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
-        _depositRequests.usersToDeposit.add(msg.sender);
+        _depositRequests.usersToDeposit.push(msg.sender);
         emit DepositRequest(msg.sender, _requestDepositParams.classId, _requestDepositParams.amount, _currentBatchId);
 
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);

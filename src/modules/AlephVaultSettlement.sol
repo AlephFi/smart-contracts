@@ -119,10 +119,10 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             return (0, 0);
         }
         uint256 _totalSharesToMint;
-        uint256 _len = _depositRequests.usersToDeposit.length();
+        uint256 _len = _depositRequests.usersToDeposit.length;
         for (uint256 _i; _i < _len; _i++) {
             DepositRequestParams memory _depositRequestParams;
-            _depositRequestParams.user = _depositRequests.usersToDeposit.at(_i);
+            _depositRequestParams.user = _depositRequests.usersToDeposit[_i];
             _depositRequestParams.amount = _depositRequests.depositRequest[_depositRequestParams.user];
             _depositRequestParams.sharesToMint = ERC4626Math.previewDeposit(
                 _depositRequestParams.amount, _settleDepositParams.totalShares, _settleDepositParams.totalAssets
@@ -198,9 +198,9 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         IAlephVault.RedeemRequests storage _redeemRequests =
             _shareClass.redeemRequests[_settleRedeemBatchParams.batchId];
         uint256 _totalAmountToRedeem;
-        uint256 _len = _redeemRequests.usersToRedeem.length();
+        uint256 _len = _redeemRequests.usersToRedeem.length;
         for (uint256 _i; _i < _len; _i++) {
-            address _user = _redeemRequests.usersToRedeem.at(_i);
+            address _user = _redeemRequests.usersToRedeem[_i];
             (uint8 _seriesId, uint256 _amount, uint256 _shares) = _settleRedeemForUser(
                 _shareClass,
                 _user,
