@@ -39,9 +39,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vm.prank(nonAuthorizedUser);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
         vault.queueManagementFee(1, 500);
@@ -49,14 +47,14 @@ contract FeeManager_Unit_Test is BaseTest {
 
     function test_queueManagementFee_revertsWhenManagementFeeIsGreaterThanMaximuManagementFee() public {
         // queue management fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(IFeeManager.InvalidManagementFee.selector);
         vault.queueManagementFee(1, 10_001);
     }
 
     function test_queueManagementFee_whenManagementFeeIsLessThanMaximuManagementFee_shouldSucceed() public {
         // queue management fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewManagementFeeQueued(1, 500);
         vault.queueManagementFee(1, 500);
@@ -80,9 +78,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vm.prank(nonAuthorizedUser);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
         vault.setManagementFee();
@@ -90,7 +86,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
     function test_setManagementFee_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
         // queue management fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vault.queueManagementFee(1, 500);
 
         // get management fee timelock params
@@ -98,14 +94,14 @@ contract FeeManager_Unit_Test is BaseTest {
         uint48 _unlockTimestamp = Time.timestamp() + vault.managementFeeTimelock();
 
         // set management fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
         vault.setManagementFee();
     }
 
     function test_setManagementFee_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
         // queue management fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vault.queueManagementFee(1, 500);
 
         // roll the block forward to make timelock expired
@@ -115,7 +111,7 @@ contract FeeManager_Unit_Test is BaseTest {
         assertEq(vault.managementFee(1), defaultInitializationParams.userInitializationParams.managementFee);
 
         // set management fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewManagementFeeSet(1, 500);
         vault.setManagementFee();
@@ -135,9 +131,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vm.prank(nonAuthorizedUser);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
         vault.queuePerformanceFee(1, 5000);
@@ -145,14 +139,14 @@ contract FeeManager_Unit_Test is BaseTest {
 
     function test_queuePerformanceFee_revertsWhenPerformanceFeeIsGreaterThanMaximuPerformanceFee() public {
         // queue performance fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(IFeeManager.InvalidPerformanceFee.selector);
         vault.queuePerformanceFee(1, 10_001);
     }
 
     function test_queuePerformanceFee_whenPerformanceFeeIsLessThanMaximuPerformanceFee_shouldSucceed() public {
         // queue performance fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewPerformanceFeeQueued(1, 5000);
         vault.queuePerformanceFee(1, 5000);
@@ -176,9 +170,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vm.prank(nonAuthorizedUser);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
         vault.setPerformanceFee();
@@ -186,7 +178,7 @@ contract FeeManager_Unit_Test is BaseTest {
 
     function test_setPerformanceFee_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
         // queue performance fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vault.queuePerformanceFee(1, 5000);
 
         // get performance fee timelock params
@@ -194,14 +186,14 @@ contract FeeManager_Unit_Test is BaseTest {
         uint48 _unlockTimestamp = Time.timestamp() + vault.performanceFeeTimelock();
 
         // set performance fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
         vault.setPerformanceFee();
     }
 
     function test_setPerformanceFee_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
         // queue performance fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vault.queuePerformanceFee(1, 5000);
 
         // roll the block forward to make timelock expired
@@ -211,7 +203,7 @@ contract FeeManager_Unit_Test is BaseTest {
         assertEq(vault.performanceFee(1), defaultInitializationParams.userInitializationParams.performanceFee);
 
         // set performance fee
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewPerformanceFeeSet(1, 5000);
         vault.setPerformanceFee();
