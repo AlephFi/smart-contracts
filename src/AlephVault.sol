@@ -572,7 +572,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint256 _minDepositAmount,
         uint256 _maxDepositCap
     ) internal returns (uint8 _classId) {
-        _classId = _sd.shareClassesId++;
+        _classId = ++_sd.shareClassesId;
         _sd.shareClasses[_classId].managementFee = _managementFee;
         _sd.shareClasses[_classId].performanceFee = _performanceFee;
         _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
