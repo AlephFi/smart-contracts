@@ -60,7 +60,8 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
         uint256 _totalUserAssets = _assetsPerClassOf(_sd, _classId, msg.sender);
-        if (_pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets) < _totalUserAssets) {
+        if (_pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets) + _amount > _totalUserAssets)
+        {
             revert InsufficientAssetsToRedeem();
         }
         uint256 _amountSharesToRedeem = _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets, Math.Rounding.Ceil);

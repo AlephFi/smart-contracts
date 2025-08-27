@@ -60,53 +60,53 @@ contract AlephVaultDepositTest is BaseTest {
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsLessThanMinDepositAmount()
         public
     {
-        // set min deposit amount to 100
-        vault.setMinDepositAmount(100);
+        // set min deposit amount to 100 ether
+        vault.setMinDepositAmount(100 ether);
 
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.DepositLessThanMinDepositAmount.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 50, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
         );
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap()
         public
     {
-        // set max deposit cap to 100
-        vault.setMaxDepositCap(100);
+        // set max deposit cap to 100 ether
+        vault.setMaxDepositCap(100 ether);
 
-        // set total assets to 100
-        vault.setTotalAssets(100);
+        // set total assets to 100 ether
+        vault.setTotalAssets(100 ether);
 
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 50, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
         );
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap_multipleUsers(
     ) public {
-        // set max deposit cap to 100
-        vault.setMaxDepositCap(100);
+        // set max deposit cap to 100 ether
+        vault.setMaxDepositCap(100 ether);
 
-        // set total assets to 50
-        vault.setTotalAssets(50);
+        // set total assets to 50 ether
+        vault.setTotalAssets(50 ether);
 
         // set request deposit
         vm.warp(block.timestamp + 1 days + 1);
-        vault.setBatchDeposit(vault.currentBatch(), mockUser_1, 30);
+        vault.setBatchDeposit(vault.currentBatch(), mockUser_1, 30 ether);
         vm.warp(block.timestamp + 1 days);
-        vault.setBatchDeposit(vault.currentBatch(), mockUser_2, 20);
+        vault.setBatchDeposit(vault.currentBatch(), mockUser_2, 20 ether);
 
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 10, authSignature: authSignature_1})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 10 ether, authSignature: authSignature_1})
         );
     }
 
@@ -176,9 +176,9 @@ contract AlephVaultDepositTest is BaseTest {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
-        // set vault allowance to 100
+        // set vault allowance to 100 ether
         vm.prank(mockUser_1);
-        underlyingToken.approve(address(vault), 100);
+        underlyingToken.approve(address(vault), 100 ether);
 
         // request deposit
         vm.prank(mockUser_1);

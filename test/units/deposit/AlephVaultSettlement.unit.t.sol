@@ -49,7 +49,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.ORACLE
             )
         );
-        vault.settleDeposit(1, new uint256[](0));
+        vault.settleDeposit(1, new uint256[](1));
     }
 
     function test_settleDeposit_whenCallerIsOracle_revertsGivenFlowIsPaused() public {
@@ -60,7 +60,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
-        vault.settleDeposit(1, new uint256[](0));
+        vault.settleDeposit(1, new uint256[](1));
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenDepositSettleIdIsEqualToCurrentBatchId(
@@ -68,7 +68,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.NoDepositsToSettle.selector);
-        vault.settleDeposit(1, new uint256[](0));
+        vault.settleDeposit(1, new uint256[](1));
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees(
@@ -81,7 +81,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // settle deposit
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](0));
+        vault.settleDeposit(1, new uint256[](1));
 
         // assert last fee paid id is equal to current batch id
         assertEq(vault.lastFeePaidId(), vault.currentBatch());
@@ -99,7 +99,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // settle deposit
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](0));
+        vault.settleDeposit(1, new uint256[](1));
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
@@ -136,7 +136,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 100));
-        vault.settleDeposit(1, new uint256[](0));
+        vault.settleDeposit(1, new uint256[](1));
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch(
@@ -157,9 +157,6 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
         assertEq(vault.sharesOf(1, 0, mockUser_2), 0);
 
-        // assert high water mark is 0
-        assertEq(vault.highWaterMark(1, 0), 0);
-
         // mint balance for vault
         underlyingToken.mint(address(vault), 300);
 
@@ -167,9 +164,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDepositBatch(_currentBatchId - 1, 1, 0, 300, 300);
-        emit IFeeManager.NewHighWaterMarkSet(1, 0, vault.PRICE_DENOMINATOR(), _currentBatchId);
+        vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 300, 300, 300);
-        vault.settleDeposit(1, new uint256[](0));
+        vault.settleDeposit(1, new uint256[](1));
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -179,9 +176,6 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 100);
         assertEq(vault.sharesOf(1, 0, mockUser_2), 200);
-
-        // assert high water mark is 1
-        assertEq(vault.highWaterMark(1, 0), vault.PRICE_DENOMINATOR());
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
@@ -212,9 +206,6 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
         assertEq(vault.sharesOf(1, 0, mockUser_2), 0);
 
-        // assert high water mark is 0
-        assertEq(vault.highWaterMark(1, 0), 0);
-
         // mint balance for vault
         underlyingToken.mint(address(vault), 600);
 
@@ -222,10 +213,11 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDepositBatch(1, 1, 0, 100, 100);
+        vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDepositBatch(2, 1, 0, 500, 500);
-        emit IFeeManager.NewHighWaterMarkSet(1, 0, vault.PRICE_DENOMINATOR(), _currentBatchId);
-        emit IERC7540Settlement.SettleDeposit(1, _currentBatchId, 1, 0, 600, 600, 600);
-        vault.settleDeposit(1, new uint256[](0));
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 600, 600, 600);
+        vault.settleDeposit(1, new uint256[](1));
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -235,9 +227,6 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 300);
         assertEq(vault.sharesOf(1, 0, mockUser_2), 300);
-
-        // assert high water mark is 1
-        assertEq(vault.highWaterMark(1, 0), vault.PRICE_DENOMINATOR());
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);

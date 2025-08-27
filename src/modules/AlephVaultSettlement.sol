@@ -202,11 +202,14 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint256 _len = _redeemRequests.usersToRedeem.length;
         for (uint256 _i; _i < _len; _i++) {
             address _user = _redeemRequests.usersToRedeem[_i];
-            uint256 _amount = _settleRedeemForUser(
+            uint256 _amount = _redeemRequests.redeemRequest[_user].mulDiv(
+                _assetsPerClassOf(_sd, _settleRedeemBatchParams.classId, _user), PRICE_DENOMINATOR, Math.Rounding.Floor
+            );
+            _settleRedeemForUser(
                 _sd,
                 _settleRedeemBatchParams.batchId,
                 _user,
-                _redeemRequests.redeemRequest[_user],
+                _amount,
                 _settleRedeemBatchParams.newTotalAssets,
                 _settleRedeemBatchParams.classId
             );
@@ -237,10 +240,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint8 _classId
     ) internal returns (uint256 _remainingAmount) {
         _remainingAmount =
-            _amount.mulDiv(_assetsPerClassOf(_sd, _classId, _user), PRICE_DENOMINATOR, Math.Rounding.Floor);
-        _remainingAmount = _settleRedeemSlice(
-            _sd, _batchId, _user, _remainingAmount, _newTotalAssets[LEAD_SERIES_ID], _classId, LEAD_SERIES_ID
-        );
+            _settleRedeemSlice(_sd, _batchId, _user, _amount, _newTotalAssets[LEAD_SERIES_ID], _classId, LEAD_SERIES_ID);
         uint256 _len = _newTotalAssets.length;
         uint8 _lastConsolidatedSeriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId;
         for (uint8 i = 1; i < _len; i++) {
@@ -277,7 +277,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
         uint256 _sharesInSeries = _sharesOf(_sd, _classId, _seriesId, _user);
         uint256 _amountInSeries =
-            ERC4626Math.previewWithdraw(_sharesInSeries, _shareSeries.totalShares, _newTotalAssets);
+            ERC4626Math.previewRedeem(_sharesInSeries, _newTotalAssets, _shareSeries.totalAssets);
         if (_amountInSeries < _remainingAmount) {
             _remainingAmount -= _amountInSeries;
             _shareSeries.totalAssets -= _amountInSeries;
@@ -288,7 +288,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             );
         } else {
             uint256 _userSharesToBurn =
-                ERC4626Math.previewWithdraw(_remainingAmount, _shareSeries.totalShares, _newTotalAssets);
+                ERC4626Math.previewRedeem(_remainingAmount, _newTotalAssets, _shareSeries.totalAssets);
             _shareSeries.totalAssets -= _remainingAmount;
             _shareSeries.totalShares -= _userSharesToBurn;
             _shareSeries.sharesOf[_user] -= _userSharesToBurn;
