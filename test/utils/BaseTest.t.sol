@@ -199,7 +199,7 @@ contract BaseTest is Test {
         view
         returns (AuthLibrary.AuthSignature memory)
     {
-        bytes32 _authMessage = keccak256(abi.encode(_user, address(vault), block.chainid, _expiryBlock));
+        bytes32 _authMessage = keccak256(abi.encode(_user, address(vault), block.chainid, 1, _expiryBlock));
         bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
         (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(authSignerPrivateKey, _ethSignedMessage);
         bytes memory _authSignature = abi.encodePacked(_r, _s, _v);
