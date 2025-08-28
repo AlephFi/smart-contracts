@@ -207,6 +207,7 @@ contract BaseTest is Test {
     }
 
     function _getSettleDepositExpectations(
+        bool _newSeries,
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint256 _depositAmount,
@@ -215,10 +216,18 @@ contract BaseTest is Test {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
         uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
-        _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
-        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
-        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
+        uint256 _newSharesToMint;
+        uint256 _expectedTotalAssets = _depositAmount;
+        uint256 _expectedTotalShares;
+        if (_newSeries) {
+            _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, 0, 0);
+            _expectedTotalShares = _newSharesToMint;
+        } else {
+            _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
+            _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
+            _expectedTotalAssets += _newTotalAssets;
+            _expectedTotalShares = _totalShares + _newSharesToMint;
+        }
         return SettleDepositExpectations({
             expectedTotalAssets: _expectedTotalAssets,
             expectedTotalShares: _expectedTotalShares,
