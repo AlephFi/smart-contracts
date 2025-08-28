@@ -225,8 +225,10 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 2, 1, 375 ether);
+        // vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 250 ether);
-        emit IERC7540Settlement.SettleRedeem(1, _currentBatchId, 1);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
         vault.settleRedeem(1, _newTotalAssets);
         vm.stopPrank();
 

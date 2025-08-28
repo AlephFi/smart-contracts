@@ -174,13 +174,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         address _underlyingToken = _sd.underlyingToken;
         for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
             _settleRedeemForBatch(
-                _sd,
-                SettleRedeemBatchParams({
-                    batchId: _id,
-                    classId: _classId,
-                    underlyingToken: _underlyingToken,
-                    newTotalAssets: _newTotalAssets
-                })
+                _sd, SettleRedeemBatchParams({batchId: _id, classId: _classId, underlyingToken: _underlyingToken})
             );
         }
         _shareClass.redeemSettleId = _currentBatchId;
@@ -206,12 +200,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _assetsPerClassOf(_sd, _settleRedeemBatchParams.classId, _user), PRICE_DENOMINATOR, Math.Rounding.Floor
             );
             _settleRedeemForUser(
-                _sd,
-                _settleRedeemBatchParams.batchId,
-                _user,
-                _amount,
-                _settleRedeemBatchParams.newTotalAssets,
-                _settleRedeemBatchParams.classId
+                _sd, _settleRedeemBatchParams.batchId, _user, _amount, _settleRedeemBatchParams.classId
             );
             _totalAmountToRedeem += _amount;
             IERC20(_settleRedeemBatchParams.underlyingToken).safeTransfer(_user, _amount);
@@ -227,7 +216,6 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _sd The storage struct.
      * @param _user The user to settle the redeem for.
      * @param _amount The amount to settle.
-     * @param _newTotalAssets The new total assets after settlement.
      * @param _classId The id of the class.
      * @return _remainingAmount The remaining amount to redeem.
      */
@@ -236,17 +224,13 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint48 _batchId,
         address _user,
         uint256 _amount,
-        uint256[] memory _newTotalAssets,
         uint8 _classId
     ) internal returns (uint256 _remainingAmount) {
-        _remainingAmount =
-            _settleRedeemSlice(_sd, _batchId, _user, _amount, _newTotalAssets[LEAD_SERIES_ID], _classId, LEAD_SERIES_ID);
-        uint256 _len = _newTotalAssets.length;
-        uint8 _lastConsolidatedSeriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId;
-        for (uint8 i = 1; i < _len; i++) {
-            _remainingAmount = _settleRedeemSlice(
-                _sd, _batchId, _user, _remainingAmount, _newTotalAssets[i], _classId, _lastConsolidatedSeriesId + i
-            );
+        _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _amount, _classId, LEAD_SERIES_ID);
+        uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
+        uint8 _shareSeriesId = _sd.shareClasses[_classId].shareSeriesId;
+        for (_seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _remainingAmount, _classId, _seriesId);
             if (_remainingAmount == 0) {
                 break;
             }
@@ -259,7 +243,6 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _batchId The id of the batch.
      * @param _user The user to settle the redeem for.
      * @param _amount The amount to settle.
-     * @param _newTotalAssets The new total assets after settlement.
      * @param _classId The id of the class.
      * @param _seriesId The id of the series.
      * @return _remainingAmount The remaining amount to redeem.
@@ -269,14 +252,14 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint48 _batchId,
         address _user,
         uint256 _amount,
-        uint256 _newTotalAssets,
         uint8 _classId,
         uint8 _seriesId
     ) internal returns (uint256 _remainingAmount) {
         _remainingAmount = _amount;
         IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
         uint256 _sharesInSeries = _sharesOf(_sd, _classId, _seriesId, _user);
-        uint256 _amountInSeries = ERC4626Math.previewRedeem(_sharesInSeries, _newTotalAssets, _shareSeries.totalAssets);
+        uint256 _amountInSeries =
+            ERC4626Math.previewRedeem(_sharesInSeries, _shareSeries.totalAssets, _shareSeries.totalShares);
         if (_amountInSeries < _remainingAmount) {
             _remainingAmount -= _amountInSeries;
             _shareSeries.totalAssets -= _amountInSeries;
@@ -287,7 +270,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             );
         } else {
             uint256 _userSharesToBurn =
-                ERC4626Math.previewRedeem(_remainingAmount, _newTotalAssets, _shareSeries.totalAssets);
+                ERC4626Math.previewWithdraw(_remainingAmount, _shareSeries.totalShares, _shareSeries.totalAssets);
             _shareSeries.totalAssets -= _remainingAmount;
             _shareSeries.totalShares -= _userSharesToBurn;
             _shareSeries.sharesOf[_user] -= _userSharesToBurn;

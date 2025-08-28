@@ -34,7 +34,6 @@ interface IERC7540Settlement {
         uint48 batchId;
         uint8 classId;
         address underlyingToken;
-        uint256[] newTotalAssets;
     }
 
     struct UserConsolidationDetails {
