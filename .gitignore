@@ -16,3 +16,6 @@ node_modules/
 
 # Dotenv file
 .env
+
+# Gas Snapshots
+.gas-snapshot
