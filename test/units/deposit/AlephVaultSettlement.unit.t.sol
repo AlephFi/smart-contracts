@@ -52,6 +52,13 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vault.settleDeposit(1, new uint256[](1));
     }
 
+    function test_settleDeposit_revertsGivenShareClassIsInvalid() public {
+        // settle deposit
+        vm.prank(oracle);
+        vm.expectRevert(IAlephVault.InvalidShareClass.selector);
+        vault.settleDeposit(0, new uint256[](1));
+    }
+
     function test_settleDeposit_whenCallerIsOracle_revertsGivenFlowIsPaused() public {
         // pause settle deposit flow
         vm.prank(manager);
@@ -69,6 +76,16 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.NoDepositsToSettle.selector);
         vault.settleDeposit(1, new uint256[](1));
+    }
+
+    function test_settleDeposit_whenCallerIsOracle_revertsGivenNewTotalAssetsIsInvalid() public {
+        // roll the block forward to make future batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // settle deposit
+        vm.prank(oracle);
+        vm.expectRevert(IERC7540Settlement.InvalidNewTotalAssets.selector);
+        vault.settleDeposit(1, new uint256[](2));
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees(
@@ -116,7 +133,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // settle deposit
         uint256[] memory _newTotalAssets = new uint256[](1);
-        _newTotalAssets[0] = _totalAssets + 100;
+        _newTotalAssets[0] = _totalAssets + 100 ether;
         vm.prank(oracle);
         vault.settleDeposit(1, _newTotalAssets);
 
@@ -139,15 +156,65 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vault.settleDeposit(1, new uint256[](1));
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch(
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch_settleInNewSeries(
     ) public {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 2 days + 1);
 
         // set batch deposit requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchDeposit(_currentBatchId - 1, mockUser_1, 100);
-        vault.setBatchDeposit(_currentBatchId - 1, mockUser_2, 200);
+        vault.setBatchDeposit(_currentBatchId - 1, mockUser_1, 100 ether);
+        vault.setBatchDeposit(_currentBatchId - 1, mockUser_2, 200 ether);
+
+        // assert total assets and total shares
+        assertEq(vault.totalAssets(), 0);
+        assertEq(vault.totalShares(), 0);
+
+        // set higher water mark for lead series
+        vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
+
+        // assert user shares
+        assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
+        assertEq(vault.sharesOf(1, 0, mockUser_2), 0);
+
+        // mint balance for vault
+        underlyingToken.mint(address(vault), 300 ether);
+
+        // settle deposit
+        vm.startPrank(oracle);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.NewSeriesCreated(1, 1, _currentBatchId);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleDepositBatch(_currentBatchId - 1, 1, 1, 300 ether, 300 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 1, 300 ether, 300 ether, 300 ether);
+        vault.settleDeposit(1, new uint256[](1));
+        vm.stopPrank();
+
+        // assert total assets and total shares
+        assertEq(vault.totalAssets(), 300 ether);
+        assertEq(vault.totalShares(), 300 ether);
+
+        // assert user shares
+        assertEq(vault.sharesOf(1, 1, mockUser_1), 100 ether);
+        assertEq(vault.sharesOf(1, 1, mockUser_2), 200 ether);
+
+        // assert deposit settle id is equal to current batch id
+        assertEq(vault.depositSettleId(), _currentBatchId);
+
+        // assert balance of custodian is 300
+        assertEq(underlyingToken.balanceOf(address(custodian)), 300 ether);
+    }
+
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch_settleInLeadSeries(
+    ) public {
+        // roll the block forward to make future batches available
+        vm.warp(block.timestamp + 2 days + 1);
+
+        // set batch deposit requests
+        uint48 _currentBatchId = vault.currentBatch();
+        vault.setBatchDeposit(_currentBatchId - 1, mockUser_1, 100 ether);
+        vault.setBatchDeposit(_currentBatchId - 1, mockUser_2, 200 ether);
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), 0);
@@ -158,30 +225,30 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.sharesOf(1, 0, mockUser_2), 0);
 
         // mint balance for vault
-        underlyingToken.mint(address(vault), 300);
+        underlyingToken.mint(address(vault), 300 ether);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_currentBatchId - 1, 1, 0, 300, 300);
+        emit IERC7540Settlement.SettleDepositBatch(_currentBatchId - 1, 1, 0, 300 ether, 300 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 300, 300, 300);
+        emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 300 ether, 300 ether, 300 ether);
         vault.settleDeposit(1, new uint256[](1));
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), 300);
-        assertEq(vault.totalShares(), 300);
+        assertEq(vault.totalAssets(), 300 ether);
+        assertEq(vault.totalShares(), 300 ether);
 
         // assert user shares
-        assertEq(vault.sharesOf(1, 0, mockUser_1), 100);
-        assertEq(vault.sharesOf(1, 0, mockUser_2), 200);
+        assertEq(vault.sharesOf(1, 0, mockUser_1), 100 ether);
+        assertEq(vault.sharesOf(1, 0, mockUser_2), 200 ether);
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
 
         // assert balance of custodian is 300
-        assertEq(underlyingToken.balanceOf(address(custodian)), 300);
+        assertEq(underlyingToken.balanceOf(address(custodian)), 300 ether);
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_multipleBatches(
@@ -194,9 +261,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(_currentBatchId, 3);
 
         // set batch deposit requests
-        vault.setBatchDeposit(_currentBatchId - 2, mockUser_1, 100);
-        vault.setBatchDeposit(_currentBatchId - 1, mockUser_1, 200);
-        vault.setBatchDeposit(_currentBatchId - 1, mockUser_2, 300);
+        vault.setBatchDeposit(_currentBatchId - 2, mockUser_1, 100 ether);
+        vault.setBatchDeposit(_currentBatchId - 1, mockUser_1, 200 ether);
+        vault.setBatchDeposit(_currentBatchId - 1, mockUser_2, 300 ether);
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), 0);
@@ -207,31 +274,31 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.sharesOf(1, 0, mockUser_2), 0);
 
         // mint balance for vault
-        underlyingToken.mint(address(vault), 600);
+        underlyingToken.mint(address(vault), 600 ether);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(1, 1, 0, 100, 100);
+        emit IERC7540Settlement.SettleDepositBatch(1, 1, 0, 100 ether, 100 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(2, 1, 0, 500, 500);
+        emit IERC7540Settlement.SettleDepositBatch(2, 1, 0, 500 ether, 500 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 600, 600, 600);
+        emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 600 ether, 600 ether, 600 ether);
         vault.settleDeposit(1, new uint256[](1));
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), 600);
-        assertEq(vault.totalShares(), 600);
+        assertEq(vault.totalAssets(), 600 ether);
+        assertEq(vault.totalShares(), 600 ether);
 
         // assert user shares
-        assertEq(vault.sharesOf(1, 0, mockUser_1), 300);
-        assertEq(vault.sharesOf(1, 0, mockUser_2), 300);
+        assertEq(vault.sharesOf(1, 0, mockUser_1), 300 ether);
+        assertEq(vault.sharesOf(1, 0, mockUser_2), 300 ether);
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
 
         // assert balance of custodian is 600
-        assertEq(underlyingToken.balanceOf(address(custodian)), 600);
+        assertEq(underlyingToken.balanceOf(address(custodian)), 600 ether);
     }
 }

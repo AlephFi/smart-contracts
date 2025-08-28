@@ -71,9 +71,11 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
         uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _classId, _currentBatchId);
         SettleDepositParams memory _settleDepositParams = SettleDepositParams({
+            createSeries: _settlementSeriesId > 0,
             classId: _classId,
             seriesId: _settlementSeriesId,
             batchId: _depositSettleId,
+            currentBatchId: _currentBatchId,
             totalAssets: _shareClass.shareSeries[_settlementSeriesId].totalAssets,
             totalShares: _shareClass.shareSeries[_settlementSeriesId].totalShares
         });
@@ -118,6 +120,10 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint256 _totalAmountToDeposit = _depositRequests.totalAmountToDeposit;
         if (_totalAmountToDeposit == 0) {
             return (0, 0);
+        }
+        if (_settleDepositParams.createSeries) {
+            _createNewSeries(_shareClass, _settleDepositParams.classId, _settleDepositParams.currentBatchId);
+            _settleDepositParams.createSeries = false;
         }
         uint256 _totalSharesToMint;
         uint256 _len = _depositRequests.usersToDeposit.length;
@@ -297,7 +303,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
             uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
             if (_shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark > _leadPricePerShare(_sd, _classId)) {
-                _seriesId = _createNewSeries(_shareClass, _classId, _currentBatchId);
+                _seriesId = _shareSeriesId + 1;
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
                 _consolidateSeries(_shareClass, _classId, _shareSeriesId, _lastConsolidatedSeriesId, _currentBatchId);
             }
@@ -309,15 +315,13 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _shareClass The share class to create the new series for.
      * @param _classId The id of the class.
      * @param _currentBatchId The current batch id.
-     * @return _seriesId The series id.
      */
     function _createNewSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _currentBatchId)
         internal
-        returns (uint8 _seriesId)
     {
-        _seriesId = _shareClass.shareSeriesId++;
-        _shareClass.shareSeries[_seriesId].highWaterMark = PRICE_DENOMINATOR;
-        emit NewSeriesCreated(_classId, _seriesId, _currentBatchId);
+        uint8 _newSeriesId = ++_shareClass.shareSeriesId;
+        _shareClass.shareSeries[_newSeriesId].highWaterMark = PRICE_DENOMINATOR;
+        emit NewSeriesCreated(_classId, _newSeriesId, _currentBatchId);
     }
 
     /**

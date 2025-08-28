@@ -23,9 +23,11 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 
 interface IERC7540Settlement {
     struct SettleDepositParams {
+        bool createSeries;
         uint8 classId;
         uint8 seriesId;
         uint48 batchId;
+        uint48 currentBatchId;
         uint256 totalAssets;
         uint256 totalShares;
     }

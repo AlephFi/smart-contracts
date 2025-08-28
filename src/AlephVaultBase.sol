@@ -250,7 +250,7 @@ contract AlephVaultBase {
      * @return The price per share.
      */
     function _getPricePerShare(uint256 _assets, uint256 _shares) public pure returns (uint256) {
-        uint256 _pricePerShare;
+        uint256 _pricePerShare = PRICE_DENOMINATOR;
         if (_shares > 0) {
             _pricePerShare = _assets.mulDiv(PRICE_DENOMINATOR, _shares, Math.Rounding.Ceil);
         }
