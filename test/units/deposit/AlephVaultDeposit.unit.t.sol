@@ -36,6 +36,15 @@ contract AlephVaultDepositTest is BaseTest {
         _setAuthSignatures();
     }
 
+    function test_requestDeposit_revertsWhenClassIdIsInvalid() public {
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(IAlephVault.InvalidShareClass.selector);
+        vault.requestDeposit(
+            IERC7540Deposit.RequestDepositParams({classId: 0, amount: 100, authSignature: authSignature_1})
+        );
+    }
+
     function test_requestDeposit_revertsGivenFlowIsPaused() public {
         // pause deposit request flow
         vm.prank(manager);
