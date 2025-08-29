@@ -517,7 +517,7 @@ contract RequestSettleDepositTest is BaseTest {
         assertEq(underlyingToken.balanceOf(address(custodian)), _depositAmount);
     }
 
-    function test_requestDeposit_settleDeposit_multipleBatches() public {
+    function test_requestDeposit_settleDeposit_multipleBatches_consolidation() public {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
@@ -576,15 +576,12 @@ contract RequestSettleDepositTest is BaseTest {
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _newTotalAssets[0] + _totalDepositAmount_1 + _totalDepositAmount_2);
-        assertEq(vault.totalShares(), _expectedSharesToMint_user1 + _expectedSharesToMint_user2);
+        assertEq(vault.totalAssetsPerSeries(1, 0), _newTotalAssets[0] + _totalDepositAmount_1 + _totalDepositAmount_2);
+        assertEq(vault.totalSharesPerSeries(1, 0), _expectedSharesToMint_user1 + _expectedSharesToMint_user2);
 
         // assert users shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), _expectedSharesToMint_user1);
         assertEq(vault.sharesOf(1, 0, mockUser_2), _expectedSharesToMint_user2);
-
-        // assert high water mark is 1
-        assertEq(vault.highWaterMark(1, 0), vault.PRICE_DENOMINATOR());
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
@@ -603,17 +600,15 @@ contract RequestSettleDepositTest is BaseTest {
         // roll the block forward some batches later
         vm.warp(block.timestamp + 10 days);
 
-        // vault manager made a profit
-        _newTotalAssets[0] = 1000 ether;
+        // vault manager did not make a profit
+        _newTotalAssets[0] = 700 ether;
         uint256 _totalShares = vault.totalShares();
         uint256 _expectedManagementFeeShares = vault.getManagementFeeShares(_newTotalAssets[0], _totalShares, 11);
-        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets[0], _totalShares);
-        _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
-        uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets[0] * vault.PRICE_DENOMINATOR(), _totalShares);
+        _totalShares += _expectedManagementFeeShares;
 
         // expected shares to mint
-        uint256 _expectedSharesToMint_3_user1 = ERC4626Math.previewDeposit(300 ether, _totalShares, _newTotalAssets[0]);
-        uint256 _expectedSharesToMint_3_user2 = ERC4626Math.previewDeposit(200 ether, _totalShares, _newTotalAssets[0]);
+        uint256 _expectedSharesToMint_3_user1 = ERC4626Math.previewDeposit(300 ether, 0, 0);
+        uint256 _expectedSharesToMint_3_user2 = ERC4626Math.previewDeposit(200 ether, 0, 0);
 
         // settle deposit
         vm.startPrank(oracle);
@@ -621,18 +616,37 @@ contract RequestSettleDepositTest is BaseTest {
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), _newTotalAssets[0] + _totalDepositAmount_3);
-        assertEq(vault.totalShares(), _totalShares + _expectedSharesToMint_3_user1 + _expectedSharesToMint_3_user2);
+        assertEq(vault.totalAssetsPerSeries(1, 0), _newTotalAssets[0]);
+        assertEq(vault.totalSharesPerSeries(1, 0), _totalShares);
+        assertEq(vault.totalAssetsPerSeries(1, 1), _totalDepositAmount_3);
+        assertEq(vault.totalSharesPerSeries(1, 1), _expectedSharesToMint_3_user1 + _expectedSharesToMint_3_user2);
 
         // assert users shares
-        assertEq(vault.sharesOf(1, 0, mockUser_1), _expectedSharesToMint_user1 + _expectedSharesToMint_3_user1);
-        assertEq(vault.sharesOf(1, 0, mockUser_2), _expectedSharesToMint_user2 + _expectedSharesToMint_3_user2);
+        assertEq(vault.sharesOf(1, 1, mockUser_1), _expectedSharesToMint_3_user1);
+        assertEq(vault.sharesOf(1, 1, mockUser_2), _expectedSharesToMint_3_user2);
 
         // assert fees are accumulated
         assertEq(vault.sharesOf(1, 0, vault.managementFeeRecipient()), _expectedManagementFeeShares);
-        assertEq(vault.sharesOf(1, 0, vault.performanceFeeRecipient()), _expectedPerformanceFeeShares);
 
-        // assert high water mark has increased
-        assertEq(vault.highWaterMark(1, 0), _newPricePerShare);
+        // roll the block forward some batches later
+        vm.warp(block.timestamp + 10 days);
+
+        // vault manager made a profit
+        uint256[] memory _newTotalAssets_2 = new uint256[](2);
+        _newTotalAssets_2[0] = 1050 ether; // 50% profit
+        _newTotalAssets_2[1] = 750 ether; // 50% profit
+
+        // settle deposit
+        vm.startPrank(oracle);
+        vault.settleDeposit(1, _newTotalAssets_2);
+        vm.stopPrank();
+
+        // assert total assets and total shares
+        assertApproxEqAbs(vault.totalAssetsPerSeries(1, 0), _newTotalAssets_2[0] + _newTotalAssets_2[1], 5);
+        assertGt(vault.totalSharesPerSeries(1, 0), _totalShares);
+
+        // assert users shares
+        assertGt(vault.sharesOf(1, 0, mockUser_1), _expectedSharesToMint_user1);
+        assertGt(vault.sharesOf(1, 0, mockUser_2), _expectedSharesToMint_user2);
     }
 }

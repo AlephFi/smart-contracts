@@ -137,6 +137,12 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _totalSharesToMint += _depositRequestParams.sharesToMint;
             _shareClass.shareSeries[_settleDepositParams.seriesId].sharesOf[_depositRequestParams.user] +=
                 _depositRequestParams.sharesToMint;
+            if (
+                _settleDepositParams.seriesId > LEAD_SERIES_ID
+                    && !_shareClass.shareSeries[_settleDepositParams.seriesId].users.contains(_depositRequestParams.user)
+            ) {
+                _shareClass.shareSeries[_settleDepositParams.seriesId].users.add(_depositRequestParams.user);
+            }
             emit IERC7540Settlement.DepositRequestSettled(
                 _depositRequestParams.user,
                 _settleDepositParams.classId,
@@ -396,11 +402,12 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _userConsolidationDetails.amountToTransfer = ERC4626Math.previewRedeem(
                 _userConsolidationDetails.shares, _shareSeries.totalAssets, _shareSeries.totalShares
             );
-            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewDeposit(
+            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewMint(
                 _userConsolidationDetails.amountToTransfer, _leadSeries.totalShares, _leadSeries.totalAssets
             );
             _totalAmountToTransfer += _userConsolidationDetails.amountToTransfer;
             _totalSharesToTransfer += _userConsolidationDetails.sharesToTransfer;
+            _leadSeries.sharesOf[_userConsolidationDetails.user] += _userConsolidationDetails.sharesToTransfer;
             if (!_leadSeries.users.contains(_userConsolidationDetails.user)) {
                 _leadSeries.users.add(_userConsolidationDetails.user);
             }
