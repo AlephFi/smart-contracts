@@ -144,6 +144,22 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queuePerformanceFee(1, 10_001);
     }
 
+    function test_queuePerformanceFee_revertsWhenOldPerformanceFeeIsZero() public {
+        vault.setPerformanceFee(0);
+
+        // queue performance fee
+        vm.prank(manager);
+        vm.expectRevert(IFeeManager.InvalidShareClassConversion.selector);
+        vault.queuePerformanceFee(1, 5000);
+    }
+
+    function test_queuePerformanceFee_revertsWhenNewPerformanceFeeIsZero() public {
+        // queue performance fee
+        vm.prank(manager);
+        vm.expectRevert(IFeeManager.InvalidShareClassConversion.selector);
+        vault.queuePerformanceFee(1, 0);
+    }
+
     function test_queuePerformanceFee_whenPerformanceFeeIsLessThanMaximuPerformanceFee_shouldSucceed() public {
         // queue performance fee
         vm.prank(manager);
