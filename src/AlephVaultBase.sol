@@ -244,6 +244,32 @@ contract AlephVaultBase {
     }
 
     /**
+     * @dev Internal function to calculate the pending assets of a user.
+     * @param _sd The storage struct.
+     * @param _classId The class ID to redeem from.
+     * @param _currentBatchId The current batch ID.
+     * @param _user The user to calculate the pending assets for.
+     * @param _totalUserAssets The total assets of the user.
+     * @return _pendingAssets The pending assets of the user.
+     */
+    function _pendingAssetsOf(
+        AlephVaultStorageData storage _sd,
+        uint8 _classId,
+        uint48 _currentBatchId,
+        address _user,
+        uint256 _totalUserAssets
+    ) internal view returns (uint256 _pendingAssets) {
+        uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
+        uint256 _remainingUserAssets = _totalUserAssets;
+        for (uint48 _batchId = _redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
+            uint256 _pendingUserAssetsInBatch = _sd.shareClasses[_classId].redeemRequests[_batchId].redeemRequest[_user]
+                .mulDiv(_remainingUserAssets, PRICE_DENOMINATOR, Math.Rounding.Floor);
+            _remainingUserAssets -= _pendingUserAssetsInBatch;
+            _pendingAssets += _pendingUserAssetsInBatch;
+        }
+    }
+
+    /**
      * @dev Internal function to get the price per share.
      * @param _assets The total assets in the vault.
      * @param _shares The total shares in the vault.

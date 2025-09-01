@@ -310,6 +310,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function totalAmountToRedeemOf(uint8 _classId, address _user) external view returns (uint256) {
+        AlephVaultStorageData storage _sd = _getStorage();
+        return _pendingAssetsOf(_sd, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_sd, _classId, _user));
+    }
+
+    /// @inheritdoc IAlephVault
     function depositRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToDeposit) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatch = _currentBatch(_sd);
