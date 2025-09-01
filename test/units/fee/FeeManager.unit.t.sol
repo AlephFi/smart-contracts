@@ -58,8 +58,8 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        vault.setTotalAssets(1000);
-        vault.setTotalShares(1000);
+        vault.setTotalAssets(0, 1000);
+        vault.setTotalShares(0, 1000);
 
         // accumalate fees
         vm.expectEmit(true, true, true, true);
@@ -108,8 +108,8 @@ contract FeeManagerTest is BaseTest {
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
         uint256 _newHighWaterMark = 1_147_228;
-        vault.setTotalAssets(1000);
-        vault.setTotalShares(1000);
+        vault.setTotalAssets(0, 1000);
+        vault.setTotalShares(0, 1000);
 
         // accumalate fees
         vm.expectEmit(true, true, true, true);
@@ -169,14 +169,14 @@ contract FeeManagerTest is BaseTest {
     //     // accumalate fees to recipients
     //     uint256 _managementShares = 120;
     //     uint256 _performanceShares = 120;
-    //     vault.setSharesOf(vault.managementFeeRecipient(), _managementShares);
-    //     vault.setSharesOf(vault.performanceFeeRecipient(), _performanceShares);
+    //     vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
+    //     vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
 
     //     // set total assets and shares
     //     uint256 _totalAssets = 1000;
     //     uint256 _totalShares = 1200;
-    //     vault.setTotalAssets(_totalAssets);
-    //     vault.setTotalShares(_totalShares);
+    //     vault.setTotalAssets(0, _totalAssets);
+    //     vault.setTotalShares(0, _totalShares);
 
     //     // expected fees to collect
     //     uint256 _expectedManagementFeesToCollect = 100;

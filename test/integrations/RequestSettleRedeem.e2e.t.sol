@@ -57,8 +57,8 @@
 //         vm.warp(block.timestamp + 1 days + 1);
 
 //         // set total assets and total shares
-//         vault.setTotalAssets(1000 ether);
-//         vault.setTotalShares(1000 ether);
+//         vault.setTotalAssets(0, 1000 ether);
+//         vault.setTotalShares(0, 1000 ether);
 //         uint256 _newTotalAssets = 1000 ether;
 
 //         // set high water mark
@@ -66,7 +66,7 @@
 
 //         // set user shares to 100
 //         uint256 _userShares = 100 ether;
-//         vault.setSharesOf(mockUser_1, _userShares);
+//         vault.setSharesOf(0, mockUser_1, _userShares);
 
 //         // request redeem
 //         uint48 _requestBatchId = vault.currentBatch();
@@ -133,8 +133,8 @@
 //         vm.warp(block.timestamp + 1 days + 1);
 
 //         // set total assets and total shares
-//         vault.setTotalAssets(1000 ether);
-//         vault.setTotalShares(1000 ether);
+//         vault.setTotalAssets(0, 1000 ether);
+//         vault.setTotalShares(0, 1000 ether);
 //         uint256 _newTotalAssets = 1200 ether;
 
 //         // set high water mark
@@ -142,7 +142,7 @@
 
 //         // set user shares to 100
 //         uint256 _userShares = 100 ether;
-//         vault.setSharesOf(mockUser_1, _userShares);
+//         vault.setSharesOf(0, mockUser_1, _userShares);
 
 //         // request redeem
 //         uint48 _requestBatchId = vault.currentBatch();
@@ -213,8 +213,8 @@
 //         vm.warp(block.timestamp + 1 days + 1);
 
 //         // set total assets and total shares
-//         vault.setTotalAssets(1000 ether);
-//         vault.setTotalShares(1000 ether);
+//         vault.setTotalAssets(0, 1000 ether);
+//         vault.setTotalShares(0, 1000 ether);
 //         uint256 _newTotalAssets = 800 ether;
 
 //         // set high water mark
@@ -222,7 +222,7 @@
 
 //         // set user shares to 100
 //         uint256 _userShares = 100 ether;
-//         vault.setSharesOf(mockUser_1, _userShares);
+//         vault.setSharesOf(0, mockUser_1, _userShares);
 
 //         // request redeem
 //         uint48 _requestBatchId = vault.currentBatch();
@@ -294,8 +294,8 @@
 //         vault.setPerformanceFee(2000); // 20%
 
 //         // set total assets and total shares
-//         vault.setTotalAssets(1000 ether);
-//         vault.setTotalShares(1000 ether);
+//         vault.setTotalAssets(0, 1000 ether);
+//         vault.setTotalShares(0, 1000 ether);
 //         uint256 _newTotalAssets = 1000 ether;
 
 //         // set high water mark
@@ -303,7 +303,7 @@
 
 //         // set user shares to 100
 //         uint256 _userShares = 100 ether;
-//         vault.setSharesOf(mockUser_1, _userShares);
+//         vault.setSharesOf(0, mockUser_1, _userShares);
 
 //         // request redeem
 //         uint48 _requestBatchId = vault.currentBatch();
@@ -381,8 +381,8 @@
 //         vault.setPerformanceFee(2000); // 20%
 
 //         // set total assets and total shares
-//         vault.setTotalAssets(1000 ether);
-//         vault.setTotalShares(1000 ether);
+//         vault.setTotalAssets(0, 1000 ether);
+//         vault.setTotalShares(0, 1000 ether);
 //         uint256 _newTotalAssets = 1200 ether;
 
 //         // set high water mark
@@ -390,7 +390,7 @@
 
 //         // set user shares to 100
 //         uint256 _userShares = 100 ether;
-//         vault.setSharesOf(mockUser_1, _userShares);
+//         vault.setSharesOf(0, mockUser_1, _userShares);
 
 //         // request redeem
 //         uint48 _requestBatchId = vault.currentBatch();
@@ -474,8 +474,8 @@
 //         vault.setPerformanceFee(2000); // 20%
 
 //         // set total assets and total shares
-//         vault.setTotalAssets(1000 ether);
-//         vault.setTotalShares(1000 ether);
+//         vault.setTotalAssets(0, 1000 ether);
+//         vault.setTotalShares(0, 1000 ether);
 //         uint256 _newTotalAssets = 800 ether;
 
 //         // set high water mark
@@ -483,7 +483,7 @@
 
 //         // set user shares to 100
 //         uint256 _userShares = 100 ether;
-//         vault.setSharesOf(mockUser_1, _userShares);
+//         vault.setSharesOf(0, mockUser_1, _userShares);
 
 //         // request redeem
 //         uint48 _requestBatchId = vault.currentBatch();
@@ -560,15 +560,15 @@
 //         vault.setPerformanceFee(2000); // 20%
 
 //         // set up users with shares
-//         vault.setSharesOf(mockUser_1, 1000 ether);
-//         vault.setSharesOf(mockUser_2, 1000 ether);
+//         vault.setSharesOf(0, mockUser_1, 1000 ether);
+//         vault.setSharesOf(0, mockUser_2, 1000 ether);
 
 //         // set vault balance
 //         underlyingToken.mint(address(vault), 2000 ether);
 
 //         // set total assets and total shares
-//         vault.setTotalAssets(2000 ether);
-//         vault.setTotalShares(2000 ether);
+//         vault.setTotalAssets(0, 2000 ether);
+//         vault.setTotalShares(0, 2000 ether);
 
 //         // set high water mark
 //         vault.setHighWaterMark(vault.PRICE_DENOMINATOR());

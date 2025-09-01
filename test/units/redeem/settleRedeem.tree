@@ -8,12 +8,19 @@ SettleRedeem_Unit_Test
         ├── when redeemSettleId is equal to currentBatchId
         │   └── it should revert with NoRedeemsToSettle
         └── when redeemSettleId is less than currentBatchId
-            ├── when lastFeePaidId is less than currentBatchId
-            │   └── it should call _accumulateFees
-            ├── when _sharesToSettle is 0
-            │   └── it should update lastRedeemBatchId, total assets and total shares and not emit SettleRedeemBatch
-            └── when _sharesToSettle is greater than 0
-                ├── given vault has insufficient balance
-                │   └── it should revert with ERC20InsufficientBalance
-                └── given vault has sufficient balance
-                    └── it should transfer assets to users, emit SettleRedeemBatch per batch, update redeemSettleId, totalAssets and totalShares and emit SettleRedeem
+            ├── when newTotalAssets are invalid
+            │   └── it should revert with InvalidNewTotalAssets
+            └── when newTotalAssets are valid
+                ├── when lastFeePaidId is less than currentBatchId
+                │   └── it should call _accumulateFees
+                ├── when _sharesToSettle is 0
+                │   └── it should update lastRedeemBatchId, total assets and total shares and not emit SettleRedeemBatch
+                └── when _sharesToSettle is greater than 0
+                    ├── given vault has insufficient balance
+                    │   └── it should revert with ERC20InsufficientBalance
+                    └── given vault has sufficient balance
+                        ├── when amount in series is less than remaining amount
+                        │   └── it should burn all shares in series, update remaining amount, emit RedeemRequestSliceSettled
+                        ├── when amount in series is greater than or equal to remaining amount
+                        │   └── it should burn required shares, emit RedeemRequestSliceSettled and complete redemption request
+                        └── it should transfer assets to users, emit SettleRedeemBatch per batch, update redeemSettleId, totalAssets and totalShares and emit SettleRedeem

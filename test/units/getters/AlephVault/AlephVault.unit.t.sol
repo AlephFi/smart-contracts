@@ -30,13 +30,13 @@ contract AlephVault_Unit_Test is BaseTest {
     //////////////////////////////////////////////////////////////*/
     // function test_getTotalAmountForRedemption() public {
     //     // set total assets and total shares
-    //     vault.setTotalAssets(1000 ether);
-    //     vault.setTotalShares(1000 ether);
+    //     vault.setTotalAssets(0, 1000 ether);
+    //     vault.setTotalShares(0, 1000 ether);
     //     vault.setHighWaterMark(vault.PRICE_DENOMINATOR());
 
     //     // set user shares
-    //     vault.setSharesOf(mockUser_1, 500 ether);
-    //     vault.setSharesOf(mockUser_2, 500 ether);
+    //     vault.setSharesOf(0, mockUser_1, 500 ether);
+    //     vault.setSharesOf(0, mockUser_2, 500 ether);
 
     //     // roll the block forward to make batch available
     //     vm.warp(block.timestamp + 1 days + 1);

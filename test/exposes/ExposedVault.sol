@@ -98,16 +98,16 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[1].maxDepositCap = _maxDepositCap;
     }
 
-    function setTotalAssets(uint256 _totalAssets) external {
-        _getStorage().shareClasses[1].shareSeries[0].totalAssets = _totalAssets;
+    function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {
+        _getStorage().shareClasses[1].shareSeries[_seriesId].totalAssets = _totalAssets;
     }
 
-    function setTotalShares(uint256 _totalShares) external {
-        _getStorage().shareClasses[1].shareSeries[0].totalShares = _totalShares;
+    function setTotalShares(uint8 _seriesId, uint256 _totalShares) external {
+        _getStorage().shareClasses[1].shareSeries[_seriesId].totalShares = _totalShares;
     }
 
-    function setSharesOf(address _user, uint256 _shares) external {
-        _getStorage().shareClasses[1].shareSeries[0].sharesOf[_user] = _shares;
+    function setSharesOf(uint8 _seriesId, address _user, uint256 _shares) external {
+        _getStorage().shareClasses[1].shareSeries[_seriesId].sharesOf[_user] = _shares;
     }
 
     function setHighWaterMark(uint256 _highWaterMark) external {
@@ -124,6 +124,12 @@ contract ExposedVault is AlephVault {
 
     function accumulateFees(uint256, uint256, uint48, uint48, uint8, uint8) external returns (uint256) {
         _delegate(ModulesLibrary.FEE_MANAGER);
+    }
+
+    function createNewSeries() external {
+        AlephVaultStorageData storage _sd = _getStorage();
+        _sd.shareClasses[1].shareSeriesId++;
+        _sd.shareClasses[1].shareSeries[_sd.shareClasses[1].shareSeriesId].highWaterMark = PRICE_DENOMINATOR;
     }
 
     function getManagementFeeShares(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)

@@ -60,11 +60,12 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
         uint256 _totalUserAssets = _assetsPerClassOf(_sd, _classId, msg.sender);
-        if (_pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets) + _amount > _totalUserAssets)
-        {
+        uint256 _pendingAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
+        if (_pendingAssets + _amount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
-        uint256 _amountSharesToRedeem = _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets, Math.Rounding.Ceil);
+        uint256 _amountSharesToRedeem =
+            _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets - _pendingAssets, Math.Rounding.Ceil);
         _sd.shareClasses[_classId].lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.RedeemRequests storage _redeemRequests = _sd.shareClasses[_classId].redeemRequests[_currentBatchId];
         _redeemRequests.redeemRequest[msg.sender] = _amountSharesToRedeem;
@@ -90,9 +91,12 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         uint256 _totalUserAssets
     ) internal view returns (uint256 _pendingAssets) {
         uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
-        for (uint48 _batchId = _redeemSettleId; _batchId < _currentBatchId; _batchId++) {
-            _pendingAssets += _sd.shareClasses[_classId].redeemRequests[_batchId].redeemRequest[_user];
+        uint256 _remainingUserAssets = _totalUserAssets;
+        for (uint48 _batchId = _redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
+            uint256 _pendingUserAssetsInBatch = _sd.shareClasses[_classId].redeemRequests[_batchId].redeemRequest[_user]
+                .mulDiv(_remainingUserAssets, PRICE_DENOMINATOR, Math.Rounding.Floor);
+            _remainingUserAssets -= _pendingUserAssetsInBatch;
+            _pendingAssets += _pendingUserAssetsInBatch;
         }
-        _pendingAssets = _pendingAssets.mulDiv(_totalUserAssets, PRICE_DENOMINATOR, Math.Rounding.Floor);
     }
 }

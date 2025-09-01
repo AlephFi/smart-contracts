@@ -111,8 +111,8 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 3 days + 1);
 
         // set total assets and total shares
-        vault.setTotalAssets(1000 ether);
-        vault.setTotalShares(1000 ether);
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 1000 ether;
 
@@ -165,8 +165,8 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 3 days + 1);
 
         // set total assets and total shares
-        vault.setTotalAssets(1000 ether);
-        vault.setTotalShares(1000 ether);
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 1200 ether;
 
@@ -220,8 +220,8 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 3 days + 1);
 
         // set total assets and total shares
-        vault.setTotalAssets(1000 ether);
-        vault.setTotalShares(1000 ether);
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 800 ether;
 
@@ -330,8 +330,8 @@ contract RequestSettleDepositTest is BaseTest {
         vault.setPerformanceFee(2000); // 20%
 
         // set total assets and total shares
-        vault.setTotalAssets(1000 ether);
-        vault.setTotalShares(1000 ether);
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 1000 ether;
 
@@ -393,8 +393,8 @@ contract RequestSettleDepositTest is BaseTest {
         vault.setPerformanceFee(2000); // 20%
 
         // set total assets and total shares
-        vault.setTotalAssets(1000 ether);
-        vault.setTotalShares(1000 ether);
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 1200 ether;
 
@@ -462,8 +462,8 @@ contract RequestSettleDepositTest is BaseTest {
         vault.setPerformanceFee(2000); // 20%
 
         // set total assets and total shares
-        vault.setTotalAssets(1000 ether);
-        vault.setTotalShares(1000 ether);
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 800 ether;
 

@@ -87,7 +87,7 @@ contract AlephVaultDepositTest is BaseTest {
         vault.setMaxDepositCap(100 ether);
 
         // set total assets to 100 ether
-        vault.setTotalAssets(100 ether);
+        vault.setTotalAssets(0, 100 ether);
 
         // request deposit
         vm.prank(mockUser_1);
@@ -103,7 +103,7 @@ contract AlephVaultDepositTest is BaseTest {
         vault.setMaxDepositCap(100 ether);
 
         // set total assets to 50 ether
-        vault.setTotalAssets(50 ether);
+        vault.setTotalAssets(0, 50 ether);
 
         // set request deposit
         vm.warp(block.timestamp + 1 days + 1);

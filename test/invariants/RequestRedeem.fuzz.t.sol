@@ -51,7 +51,7 @@
 //         vm.warp(block.timestamp + 1 days + 1);
 
 //         // set up user with _redeemShares shares
-//         vault.setSharesOf(_user, _redeemShares);
+//         vault.setSharesOf(0, _user, _redeemShares);
 //         uint256 _userSharesBefore = vault.sharesOf(_user);
 
 //         // request redeem
@@ -80,7 +80,7 @@
 //             address _user = makeAddr(string.concat("user", vm.toString(i)));
 //             uint256 _redeemShares = uint256(keccak256(abi.encode(_redeemSeed, i))) % type(uint96).max;
 
-//             vault.setSharesOf(_user, _redeemShares);
+//             vault.setSharesOf(0, _user, _redeemShares);
 //             uint256 _userSharesBefore = vault.sharesOf(_user);
 
 //             // request redeem
@@ -124,7 +124,7 @@
 //                 address _user = makeAddr(string.concat("user", vm.toString(j), "_", vm.toString(i)));
 //                 uint256 _redeemShares = uint256(keccak256(abi.encode(_redeemSeed, i, j))) % type(uint96).max;
 
-//                 vault.setSharesOf(_user, _redeemShares);
+//                 vault.setSharesOf(0, _user, _redeemShares);
 //                 uint256 _userSharesBefore = vault.sharesOf(_user);
 
 //                 // request redeem

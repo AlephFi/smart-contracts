@@ -229,7 +229,6 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _user The user to settle the redeem for.
      * @param _amount The amount to settle.
      * @param _classId The id of the class.
-     * @return _remainingAmount The remaining amount to redeem.
      */
     function _settleRedeemForUser(
         AlephVaultStorageData storage _sd,
@@ -237,15 +236,15 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         address _user,
         uint256 _amount,
         uint8 _classId
-    ) internal returns (uint256 _remainingAmount) {
-        _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _amount, _classId, LEAD_SERIES_ID);
+    ) internal {
+        uint256 _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _amount, _classId, LEAD_SERIES_ID);
         uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
         uint8 _shareSeriesId = _sd.shareClasses[_classId].shareSeriesId;
         for (_seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-            _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _remainingAmount, _classId, _seriesId);
             if (_remainingAmount == 0) {
                 break;
             }
+            _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _remainingAmount, _classId, _seriesId);
         }
     }
 
@@ -289,7 +288,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             emit IERC7540Settlement.RedeemRequestSliceSettled(
                 _batchId, _user, _classId, _seriesId, _remainingAmount, _userSharesToBurn
             );
-            return 0;
+            _remainingAmount = 0;
         }
     }
 

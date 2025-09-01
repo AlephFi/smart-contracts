@@ -32,6 +32,12 @@ contract AlephVaultRedeemTest is BaseTest {
         _unpauseVaultFlows();
     }
 
+    function test_requestRedeem_revertsWhenClassIdIsInvalid() public {
+        // request redeem
+        vm.expectRevert(IAlephVault.InvalidShareClass.selector);
+        vault.requestRedeem(0, 100);
+    }
+
     function test_requestRedeem_revertsGivenFlowIsPaused() public {
         // pause redeem request flow
         vm.prank(manager);
@@ -67,7 +73,7 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(1, 100);
     }
 
-    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientSharesToRedeem() public {
+    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
@@ -83,7 +89,7 @@ contract AlephVaultRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // set shares of user to 100
-        vault.setSharesOf(mockUser_1, 100);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
 
         // Capture batch ID before emit expectation
         uint48 _expectedBatchId = vault.currentBatch();
@@ -91,8 +97,8 @@ contract AlephVaultRedeemTest is BaseTest {
         // request redeem
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.RedeemRequest(mockUser_1, 1, 100, _expectedBatchId);
-        uint48 _batchId = vault.requestRedeem(1, 100);
+        emit IERC7540Redeem.RedeemRequest(mockUser_1, 1, 100 ether, _expectedBatchId);
+        uint48 _batchId = vault.requestRedeem(1, 100 ether);
 
         // check the redeem request
         assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId), vault.PRICE_DENOMINATOR());
@@ -107,8 +113,8 @@ contract AlephVaultRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // set shares of users
-        vault.setSharesOf(mockUser_1, 100);
-        vault.setSharesOf(mockUser_2, 300);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+        vault.setSharesOf(0, mockUser_2, 300 ether);
 
         // Capture batch ID before emit expectation
         uint48 _expectedBatchId = vault.currentBatch();
@@ -116,18 +122,18 @@ contract AlephVaultRedeemTest is BaseTest {
         // request redeem
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.RedeemRequest(mockUser_1, 1, 100, _expectedBatchId);
-        uint48 _batchId_user1 = vault.requestRedeem(1, 100);
+        emit IERC7540Redeem.RedeemRequest(mockUser_1, 1, 100 ether, _expectedBatchId);
+        uint48 _batchId_user1 = vault.requestRedeem(1, 100 ether);
 
         vm.prank(mockUser_2);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.RedeemRequest(mockUser_2, 1, 300, _expectedBatchId);
-        uint48 _batchId_user2 = vault.requestRedeem(1, 300);
+        emit IERC7540Redeem.RedeemRequest(mockUser_2, 1, 150 ether, _expectedBatchId);
+        uint48 _batchId_user2 = vault.requestRedeem(1, 150 ether);
 
         // check the redeem requests
         assertEq(_batchId_user1, _batchId_user2);
         assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId_user1), vault.PRICE_DENOMINATOR());
-        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _batchId_user1), vault.PRICE_DENOMINATOR());
+        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _batchId_user1), vault.PRICE_DENOMINATOR() / 2);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1).length, 2);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1)[0], mockUser_1);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1)[1], mockUser_2);
