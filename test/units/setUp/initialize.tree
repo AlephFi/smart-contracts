@@ -3,6 +3,8 @@ Initialize_Unit_Test
 │   └── it should revert with InvalidInitializationParams
 ├── when operationsMultisig passed is address(0)
 │   └── it should revert with InvalidInitializationParams
+├── when vaultFactory passed is address(0)
+│   └── it should revert with InvalidInitializationParams
 ├── when oracle passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when guardian passed is address(0)
@@ -14,6 +16,14 @@ Initialize_Unit_Test
 ├── when custodian passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when feeRecipient passed is address(0)
+│   └── it should revert with InvalidInitializationParams
+├── when alephVaultDepositImplementation passed is address(0)
+│   └── it should revert with InvalidInitializationParams
+├── when alephVaultRedeemImplementation passed is address(0)
+│   └── it should revert with InvalidInitializationParams
+├── when alephVaultSettlementImplementation passed is address(0)
+│   └── it should revert with InvalidInitializationParams
+├── when feeManagerImplementation passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when managementFee is greater than maxManagementFee
 │   └── it should revert with InvalidInitializationParams
