@@ -334,7 +334,10 @@ contract VaultSetUpTest is BaseTest {
                 alephVaultSettlementImplementation: defaultInitializationParams
                     .moduleInitializationParams
                     .alephVaultSettlementImplementation,
-                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation
+                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation,
+                migrationManagerImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .migrationManagerImplementation
             })
         });
 
@@ -360,7 +363,10 @@ contract VaultSetUpTest is BaseTest {
                 alephVaultSettlementImplementation: defaultInitializationParams
                     .moduleInitializationParams
                     .alephVaultSettlementImplementation,
-                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation
+                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation,
+                migrationManagerImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .migrationManagerImplementation
             })
         });
 
@@ -386,7 +392,10 @@ contract VaultSetUpTest is BaseTest {
                     .moduleInitializationParams
                     .alephVaultRedeemImplementation,
                 alephVaultSettlementImplementation: address(0),
-                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation
+                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation,
+                migrationManagerImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .migrationManagerImplementation
             })
         });
 
@@ -414,7 +423,39 @@ contract VaultSetUpTest is BaseTest {
                 alephVaultSettlementImplementation: defaultInitializationParams
                     .moduleInitializationParams
                     .alephVaultSettlementImplementation,
-                feeManagerImplementation: address(0)
+                feeManagerImplementation: address(0),
+                migrationManagerImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .migrationManagerImplementation
+            })
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_migrationManagerImplementation_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultSettlementImplementation,
+                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation,
+                migrationManagerImplementation: address(0)
             })
         });
 
