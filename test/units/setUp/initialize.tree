@@ -25,6 +25,8 @@ Initialize_Unit_Test
 │   └── it should revert with InvalidInitializationParams
 ├── when feeManagerImplementation passed is address(0)
 │   └── it should revert with InvalidInitializationParams
+├── when migrationManagerImplementation passed is address(0)
+│   └── it should revert with InvalidInitializationParams
 ├── when managementFee is greater than maxManagementFee
 │   └── it should revert with InvalidInitializationParams
 ├── when performanceFee is greater than maxPerformanceFee

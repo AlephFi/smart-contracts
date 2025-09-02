@@ -122,6 +122,12 @@ interface IAlephVault {
     function oracle() external view returns (address);
 
     /**
+     * @notice Returns the operations multisig of the vault.
+     * @return The operations multisig.
+     */
+    function operationsMultisig() external view returns (address);
+
+    /**
      * @notice Returns the guardian of the vault.
      * @return The guardian.
      */

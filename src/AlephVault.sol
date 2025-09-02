@@ -180,6 +180,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function operationsMultisig() external view returns (address) {
+        return _getStorage().operationsMultisig;
+    }
+
+    /// @inheritdoc IAlephVault
     function guardian() external view returns (address) {
         return _getStorage().guardian;
     }
