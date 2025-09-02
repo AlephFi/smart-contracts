@@ -61,6 +61,8 @@ contract UpgradeAlephVault is BaseScript {
             _getModuleImplementation(_chainId, _environment, "vaultSettlementImplementationAddress");
         address _feeManagerImplementation =
             _getModuleImplementation(_chainId, _environment, "feeManagerImplementationAddress");
+        address _migrationManagerImplementation =
+            _getModuleImplementation(_chainId, _environment, "migrationManagerImplementationAddress");
 
         IAlephVaultFactory(_vaultFactory).setModuleImplementation(
             ModulesLibrary.ALEPH_VAULT_DEPOSIT, _vaultDepositImplementation
@@ -72,5 +74,8 @@ contract UpgradeAlephVault is BaseScript {
             ModulesLibrary.ALEPH_VAULT_SETTLEMENT, _vaultSettlementImplementation
         );
         IAlephVaultFactory(_vaultFactory).setModuleImplementation(ModulesLibrary.FEE_MANAGER, _feeManagerImplementation);
+        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
+            ModulesLibrary.MIGRATION_MANAGER, _migrationManagerImplementation
+        );
     }
 }
