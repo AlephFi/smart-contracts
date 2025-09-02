@@ -24,6 +24,7 @@ struct AlephVaultStorageData {
     bool isAuthEnabled;
     uint8 shareClassesId;
     uint48 startTimeStamp;
+    address operationsMultisig;
     address manager;
     address oracle;
     address guardian;

@@ -30,7 +30,6 @@ interface IAlephVault {
 
     event MetadataUriSet(string metadataUri);
     event IsAuthEnabledSet(bool isAuthEnabled);
-    event AuthSignerSet(address authSigner);
     event ShareClassCreated(
         uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
     );
@@ -353,12 +352,6 @@ interface IAlephVault {
      * @param _isAuthEnabled The new status of the KYC authentication.
      */
     function setIsAuthEnabled(bool _isAuthEnabled) external;
-
-    /**
-     * @notice Sets the KYC authentication signer of the vault.
-     * @param _authSigner The new KYC authentication signer.
-     */
-    function setAuthSigner(address _authSigner) external;
 
     /**
      * @notice Creates a new share class.
