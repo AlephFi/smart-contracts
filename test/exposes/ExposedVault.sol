@@ -26,7 +26,7 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract ExposedVault is AlephVault {
     using Math for uint256;

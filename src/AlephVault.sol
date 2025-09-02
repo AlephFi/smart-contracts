@@ -35,7 +35,7 @@ import {AlephPausable} from "@aleph-vault/AlephPausable.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     using SafeERC20 for IERC20;

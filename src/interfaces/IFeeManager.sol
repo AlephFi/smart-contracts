@@ -17,7 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IFeeManager {
     struct FeesAccumulatedParams {

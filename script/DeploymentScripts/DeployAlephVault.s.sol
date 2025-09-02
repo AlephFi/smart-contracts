@@ -22,7 +22,7 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
 // Use to deploy a new AlephVault.

@@ -23,7 +23,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultBase {
     using Math for uint256;
@@ -87,13 +87,13 @@ contract AlephVaultBase {
      * @return The total assets in the vault for the given class.
      */
     function _totalAssetsPerClass(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint256) {
-        uint256 _totalAssets = _totalAssetsPerSeries(_sd, _classId, LEAD_SERIES_ID);
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        for (
-            uint8 _seriesId = _shareClass.lastConsolidatedSeriesId + 1;
-            _seriesId <= _shareClass.shareSeriesId;
-            _seriesId++
-        ) {
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint256 _totalAssets;
+        for (uint8 _seriesId; _seriesId <= _shareClass.shareSeriesId; _seriesId++) {
+            if (_seriesId > LEAD_SERIES_ID) {
+                _seriesId += _lastConsolidatedSeriesId;
+            }
             // loop through all share series and sum up the total assets
             _totalAssets += _totalAssetsPerSeries(_sd, _classId, _seriesId);
         }
@@ -107,12 +107,14 @@ contract AlephVaultBase {
      * @return The total shares in the vault for the given class.
      */
     function _totalSharesPerClass(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint256) {
-        uint256 _totalShares = _totalSharesPerSeries(_sd, _classId, LEAD_SERIES_ID);
-        for (
-            uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
-            _seriesId <= _sd.shareClasses[_classId].shareSeriesId;
-            _seriesId++
-        ) {
+        uint256 _totalShares;
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            if (_seriesId > LEAD_SERIES_ID) {
+                _seriesId += _lastConsolidatedSeriesId;
+            }
             // loop through all share series and sum up the total shares
             _totalShares += _totalSharesPerSeries(_sd, _classId, _seriesId);
         }
@@ -197,12 +199,14 @@ contract AlephVaultBase {
         view
         returns (uint256)
     {
-        uint256 _assets = _assetsOf(_sd, _classId, LEAD_SERIES_ID, _user);
-        for (
-            uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
-            _seriesId <= _sd.shareClasses[_classId].shareSeriesId;
-            _seriesId++
-        ) {
+        uint256 _assets;
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            if (_seriesId > LEAD_SERIES_ID) {
+                _seriesId += _lastConsolidatedSeriesId;
+            }
             // loop through all share series and sum up the assets
             _assets += _assetsOf(_sd, _classId, _seriesId, _user);
         }

@@ -25,7 +25,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     using Math for uint256;

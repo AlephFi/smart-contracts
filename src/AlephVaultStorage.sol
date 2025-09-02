@@ -38,7 +38,7 @@ struct AlephVaultStorageData {
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 library AlephVaultStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.vault")) - 1;

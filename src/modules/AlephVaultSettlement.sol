@@ -29,7 +29,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     using SafeERC20 for IERC20;
@@ -254,14 +254,19 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         // we first try to settle the redemption from the lead series
         // remaining amount is assets that were not settled in the lead series (this happens if user does not have
         // enough assets in the lead series to complete the redemption)
-        uint256 _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _amount, _classId, LEAD_SERIES_ID);
-        uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
-        uint8 _shareSeriesId = _sd.shareClasses[_classId].shareSeriesId;
+        uint256 _remainingAmount = _amount;
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+
         // we now iterate through all series to settle the remaining user amount
-        for (_seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // if the user request amount is settled completely, we break out of the loop
             if (_remainingAmount == 0) {
                 break;
+            }
+            if (_seriesId > LEAD_SERIES_ID) {
+                _seriesId += _lastConsolidatedSeriesId;
             }
             // we attempt to settle the remaining amount from this series
             // this continues to happen for all outstanding series until the complete amount is settled
@@ -481,18 +486,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     ) internal {
         uint48 _lastFeePaidId = _shareClass.lastFeePaidId;
         if (_currentBatchId > _lastFeePaidId) {
-            // update the lead series total assets and shares
-            _shareClass.shareSeries[LEAD_SERIES_ID].totalAssets = _newTotalAssets[LEAD_SERIES_ID];
-            _shareClass.shareSeries[LEAD_SERIES_ID].totalShares += _getAccumulatedFees(
-                _newTotalAssets[LEAD_SERIES_ID],
-                _shareClass.shareSeries[LEAD_SERIES_ID].totalShares,
-                _currentBatchId,
-                _lastFeePaidId,
-                _classId,
-                LEAD_SERIES_ID
-            );
-            for (uint8 _i = 1; _i < _newTotalAssets.length; _i++) {
-                uint8 _seriesId = _lastConsolidatedSeriesId + _i;
+            for (uint8 _i = 0; _i < _newTotalAssets.length; _i++) {
+                uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
                 // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
                 _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFees(

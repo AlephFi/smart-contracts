@@ -28,7 +28,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract FeeManager is IFeeManager, AlephVaultBase {
     using SafeERC20 for IERC20;
