@@ -54,11 +54,8 @@ contract AlephVaultBase {
     function _totalAssets(AlephVaultStorageData storage _sd) internal view returns (uint256) {
         uint256 _totalAssets;
         uint8 _shareClassesId = _sd.shareClassesId;
-        if (_shareClassesId > 0) {
-            for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                // loop through all share classes and sum up the total assets
-                _totalAssets += _totalAssetsPerClass(_sd, _classId);
-            }
+        for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+            _totalAssets += _totalAssetsPerClass(_sd, _classId);
         }
         return _totalAssets;
     }
@@ -71,11 +68,8 @@ contract AlephVaultBase {
     function _totalShares(AlephVaultStorageData storage _sd) internal view returns (uint256) {
         uint256 _totalShares;
         uint8 _shareClassesId = _sd.shareClassesId;
-        if (_shareClassesId > 0) {
-            for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-                // loop through all share classes and sum up the total shares
-                _totalShares += _totalSharesPerClass(_sd, _classId);
-            }
+        for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+            _totalShares += _totalSharesPerClass(_sd, _classId);
         }
         return _totalShares;
     }
