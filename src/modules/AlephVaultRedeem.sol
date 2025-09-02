@@ -48,6 +48,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         internal
         returns (uint48 _batchId)
     {
+        // verify all conditions are satisfied to make redeem request
         if (_amount == 0) {
             revert InsufficientRedeem();
         }
@@ -59,13 +60,28 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
+        // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_sd, _classId, msg.sender);
+        // get pending assets of the user that will be settled in upcoming cycle
         uint256 _pendingAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
         if (_pendingAssets + _amount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
+
+        // Calculate redeemable shares as a proportion of user's available assets
+        // Formula: shares = amount * PRICE_DENOMINATOR / (totalUserAssets - pendingAssets)
+        // This calculation is crucial because:
+        // 1. This approach handles dynamic asset values during settlement, as the vault's
+        //    total value may change due to PnL between request and settlement
+        // 2. Pending assets are excluded in this calculation as they're already being processed
+        //    in other batches at the time of settlement
+        // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
+        //    Using available assets (total - pending) as denominator ensures redemption requests
+        //    are correctly sized relative to user's redeemable position at that particular batch
         uint256 _amountSharesToRedeem =
             _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets - _pendingAssets, Math.Rounding.Ceil);
+
+        // update last redeem batch id and register redeem request
         _sd.shareClasses[_classId].lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.RedeemRequests storage _redeemRequests = _sd.shareClasses[_classId].redeemRequests[_currentBatchId];
         _redeemRequests.redeemRequest[msg.sender] = _amountSharesToRedeem;

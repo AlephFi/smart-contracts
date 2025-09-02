@@ -241,22 +241,30 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint8 _seriesId
     ) internal returns (uint256) {
         FeesAccumulatedParams memory _feesAccumulatedParams;
+        // calculate management fee amount
         _feesAccumulatedParams.managementFeeAmount =
             _calculateManagementFeeAmount(_newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClass.managementFee);
+        // calculate performance fee amount
         _feesAccumulatedParams.performanceFeeAmount = _checkPerformanceFeeAmount(
             _shareClass.performanceFee, _newTotalAssets, _totalShares, _shareClass.shareSeries[_seriesId].highWaterMark
         );
+        // calculate management fee shares to mint
         _feesAccumulatedParams.managementFeeSharesToMint =
             ERC4626Math.previewDeposit(_feesAccumulatedParams.managementFeeAmount, _totalShares, _newTotalAssets);
+        // calculate performance fee shares to mint
         _feesAccumulatedParams.performanceFeeSharesToMint =
             ERC4626Math.previewDeposit(_feesAccumulatedParams.performanceFeeAmount, _totalShares, _newTotalAssets);
+        // calculate total fee shares to mint
         uint256 _totalFeeSharesToMint =
             _feesAccumulatedParams.managementFeeSharesToMint + _feesAccumulatedParams.performanceFeeSharesToMint;
+        // update management fee shares of the series
         _shareClass.shareSeries[_seriesId].sharesOf[MANAGEMENT_FEE_RECIPIENT] +=
             _feesAccumulatedParams.managementFeeSharesToMint;
         if (_feesAccumulatedParams.performanceFeeSharesToMint > 0) {
+            // update performance fee shares of the series
             _shareClass.shareSeries[_seriesId].sharesOf[PERFORMANCE_FEE_RECIPIENT] +=
                 _feesAccumulatedParams.performanceFeeSharesToMint;
+            // update high water mark of the series
             uint256 _highWaterMark = _getPricePerShare(_newTotalAssets, _totalShares + _totalFeeSharesToMint);
             _shareClass.shareSeries[_seriesId].highWaterMark = _highWaterMark;
             emit NewHighWaterMarkSet(_classId, _seriesId, _highWaterMark, _currentBatchId);
@@ -285,6 +293,8 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         view
         returns (uint256 _managementFeeAmount)
     {
+        // management fee amount formula:
+        // (new total assets) * (management fee rate) * (time elapsed / ONE YEAR)
         uint256 _annualFees =
             _newTotalAssets.mulDiv(uint256(_managementFeeRate), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
         _managementFeeAmount =
@@ -305,7 +315,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _totalShares,
         uint256 _highWaterMark
     ) internal pure returns (uint256 _performanceFeeAmount) {
+        // calculate price per share with new total assets
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
+        // if price per share is greater than high water mark, calculate performance fee amount
         if (_pricePerShare > _highWaterMark) {
             _performanceFeeAmount =
                 _calculatePerformanceFeeAmount(_pricePerShare, _highWaterMark, _totalShares, _performanceFee);
@@ -326,6 +338,8 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _totalShares,
         uint48 _performanceFeeRate
     ) internal pure returns (uint256 _performanceFeeAmount) {
+        // performance fee amount formula:
+        // (price per share - high water mark) * total shares * performance fee rate
         uint256 _profitPerShare = _pricePerShare - _highWaterMark;
         uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
         _performanceFeeAmount = _profit.mulDiv(

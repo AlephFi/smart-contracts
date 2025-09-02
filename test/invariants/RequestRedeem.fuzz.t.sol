@@ -45,7 +45,7 @@ contract RequestRedeemTest is BaseTest {
         vm.assume(_user != address(vault));
 
         // get pending assets to redeem
-        uint256 _amountToRedeemBefore = vault.totalAmountToRedeemOf(1, _user);
+        uint256 _amountToRedeemBefore = vault.redeemRequestOf(1, _user);
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -58,7 +58,7 @@ contract RequestRedeemTest is BaseTest {
         vault.requestRedeem(1, _redeemShares);
 
         // assert invariant
-        assertLt(_amountToRedeemBefore, vault.totalAmountToRedeemOf(1, _user));
+        assertLt(_amountToRedeemBefore, vault.redeemRequestOf(1, _user));
     }
 
     function test_requestRedeem_totalAmountToRedeemMustAlwaysIncrease_multipleBatches(
@@ -72,7 +72,7 @@ contract RequestRedeemTest is BaseTest {
         vm.assume(_user != address(vault));
 
         // get pending assets to redeem
-        uint256 _amountToRedeemBefore = vault.totalAmountToRedeemOf(1, _user);
+        uint256 _amountToRedeemBefore = vault.redeemRequestOf(1, _user);
         vault.setSharesOf(0, _user, 100 * uint256(type(uint96).max));
 
         // roll the block forward to make batch available
@@ -84,7 +84,7 @@ contract RequestRedeemTest is BaseTest {
             vm.warp(block.timestamp + 1 days + 1);
 
             // get total amount to redeem in batch
-            uint256 _totalAmountToRedeemBefore = vault.totalAmountToRedeemOf(1, _user);
+            uint256 _totalAmountToRedeemBefore = vault.redeemRequestOf(1, _user);
 
             // set up user with shares
             uint256 _redeemShares = uint256(keccak256(abi.encode(_redeemSeed, i))) % type(uint96).max;
@@ -94,10 +94,10 @@ contract RequestRedeemTest is BaseTest {
             vault.requestRedeem(1, _redeemShares);
 
             // assert batch invariant
-            assertLt(_totalAmountToRedeemBefore, vault.totalAmountToRedeemOf(1, _user));
+            assertLt(_totalAmountToRedeemBefore, vault.redeemRequestOf(1, _user));
         }
 
         // assert vault invariant
-        assertLt(_amountToRedeemBefore, vault.totalAmountToRedeemOf(1, _user));
+        assertLt(_amountToRedeemBefore, vault.redeemRequestOf(1, _user));
     }
 }

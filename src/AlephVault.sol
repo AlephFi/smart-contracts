@@ -42,6 +42,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     using SafeCast for uint256;
 
     modifier onlyValidShareClass(uint8 _classId) {
+        // check if share class id is valid or not
         if (_classId > _getStorage().shareClassesId || _classId == 0) {
             revert InvalidShareClass();
         }
@@ -50,9 +51,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     modifier onlyValidShareClassAndSeries(uint8 _classId, uint8 _seriesId) {
         AlephVaultStorageData storage _sd = _getStorage();
+        // check if share class id is valid or not
         if (_classId > _sd.shareClassesId || _classId == 0) {
             revert InvalidShareClass();
         }
+        // check if share series id is valid or not
+        // series that haven't been created yet or that have been consolidated are considered invalid
         if (
             _seriesId > _sd.shareClasses[_classId].shareSeriesId
                 || (_seriesId > 0 && _seriesId <= _sd.shareClasses[_classId].lastConsolidatedSeriesId)
@@ -100,6 +104,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         ) {
             revert InvalidInitializationParams();
         }
+        // set up storage variables
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
         _sd.authSigner = _initalizationParams.authSigner;
@@ -110,6 +115,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.custodian = _initalizationParams.userInitializationParams.custodian;
         _sd.isAuthEnabled = true;
         _sd.startTimeStamp = Time.timestamp();
+
+        // set up module implementations
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
             _initalizationParams.moduleInitializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
@@ -118,11 +125,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
             _initalizationParams.moduleInitializationParams.feeManagerImplementation;
+
+        // grant roles
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
         _grantRole(RolesLibrary.VAULT_FACTORY, _initalizationParams.vaultFactory);
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.userInitializationParams.manager);
         _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
+
+        // initialize pausable modules
         __AlephVaultDeposit_init(
             _initalizationParams.userInitializationParams.manager,
             _initalizationParams.guardian,
@@ -133,6 +144,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.guardian,
             _initalizationParams.operationsMultisig
         );
+
+        // create default share class
         _createShareClass(
             _sd,
             _initalizationParams.userInitializationParams.managementFee,
@@ -310,18 +323,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalAmountToRedeemOf(uint8 _classId, address _user) external view returns (uint256) {
-        AlephVaultStorageData storage _sd = _getStorage();
-        return _pendingAssetsOf(_sd, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_sd, _classId, _user));
-    }
-
-    /// @inheritdoc IAlephVault
     function depositRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToDeposit) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatch = _currentBatch(_sd);
         if (_currentBatch > 0) {
             uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
             for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
+                // loop through all batches up to the current batch and sum up the total amount to deposit
                 _totalAmountToDeposit +=
                     _sd.shareClasses[_classId].depositRequests[_depositSettleId].depositRequest[_user];
             }
@@ -340,13 +348,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function redeemRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToRedeem) {
         AlephVaultStorageData storage _sd = _getStorage();
-        uint48 _currentBatch = _currentBatch(_sd);
-        if (_currentBatch > 0) {
-            uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
-            for (_redeemSettleId; _redeemSettleId < _currentBatch; _redeemSettleId++) {
-                _totalAmountToRedeem += _sd.shareClasses[_classId].redeemRequests[_redeemSettleId].redeemRequest[_user];
-            }
-        }
+        return _pendingAssetsOf(_sd, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_sd, _classId, _user));
     }
 
     /// @inheritdoc IAlephVault
@@ -610,11 +612,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint256 _minDepositAmount,
         uint256 _maxDepositCap
     ) internal returns (uint8 _classId) {
+        // increment share classes id
         _classId = ++_sd.shareClassesId;
+        // set up share class parameters
         _sd.shareClasses[_classId].managementFee = _managementFee;
         _sd.shareClasses[_classId].performanceFee = _performanceFee;
         _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
         _sd.shareClasses[_classId].maxDepositCap = _maxDepositCap;
+        // set up lead series for new share class
         _sd.shareClasses[_classId].shareSeries[0].highWaterMark = PRICE_DENOMINATOR;
         emit ShareClassCreated(_classId, _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
         return _classId;

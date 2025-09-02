@@ -281,13 +281,6 @@ interface IAlephVault {
     function totalAmountToDepositAt(uint8 _classId, uint48 _batchId) external view returns (uint256);
 
     /**
-     * @notice Returns the total amount of unsettled redeem requests for a given class.
-     * @param _classId The ID of the share class.
-     * @return The total amount of unsettled redeem requests for the given class.
-     */
-    function totalAmountToRedeemOf(uint8 _classId, address _user) external view returns (uint256);
-
-    /**
      * @notice Returns the deposit request of a user.
      * @param _classId The ID of the share class.
      * @param _user The user to query.

@@ -56,6 +56,7 @@ contract AlephVaultBase {
         uint8 _shareClassesId = _sd.shareClassesId;
         if (_shareClassesId > 0) {
             for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+                // loop through all share classes and sum up the total assets
                 _totalAssets += _totalAssetsPerClass(_sd, _classId);
             }
         }
@@ -72,6 +73,7 @@ contract AlephVaultBase {
         uint8 _shareClassesId = _sd.shareClassesId;
         if (_shareClassesId > 0) {
             for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
+                // loop through all share classes and sum up the total shares
                 _totalShares += _totalSharesPerClass(_sd, _classId);
             }
         }
@@ -92,6 +94,7 @@ contract AlephVaultBase {
             _seriesId <= _shareClass.shareSeriesId;
             _seriesId++
         ) {
+            // loop through all share series and sum up the total assets
             _totalAssets += _totalAssetsPerSeries(_sd, _classId, _seriesId);
         }
         return _totalAssets;
@@ -110,6 +113,7 @@ contract AlephVaultBase {
             _seriesId <= _sd.shareClasses[_classId].shareSeriesId;
             _seriesId++
         ) {
+            // loop through all share series and sum up the total shares
             _totalShares += _totalSharesPerSeries(_sd, _classId, _seriesId);
         }
         return _totalShares;
@@ -199,6 +203,7 @@ contract AlephVaultBase {
             _seriesId <= _sd.shareClasses[_classId].shareSeriesId;
             _seriesId++
         ) {
+            // loop through all share series and sum up the assets
             _assets += _assetsOf(_sd, _classId, _seriesId, _user);
         }
         return _assets;
@@ -237,6 +242,7 @@ contract AlephVaultBase {
         if (_currentBatchId > 0) {
             uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
             for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
+                // loop through all batches up to the current batch and sum up the total amount to deposit
                 _amountToDeposit += _sd.shareClasses[_classId].depositRequests[_depositSettleId].totalAmountToDeposit;
             }
         }
@@ -261,9 +267,12 @@ contract AlephVaultBase {
     ) internal view returns (uint256 _pendingAssets) {
         uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
         uint256 _remainingUserAssets = _totalUserAssets;
+        // loop through all batches up to the current batch and sum up the pending assets for redemption
         for (uint48 _batchId = _redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
+            // redeem request sets the proportion of total user assets to redeem at the time of settlement
             uint256 _pendingUserAssetsInBatch = _sd.shareClasses[_classId].redeemRequests[_batchId].redeemRequest[_user]
                 .mulDiv(_remainingUserAssets, PRICE_DENOMINATOR, Math.Rounding.Floor);
+            // redeem request is set calculated proportional to remaining user assets as if previous redeem requests were settled
             _remainingUserAssets -= _pendingUserAssetsInBatch;
             _pendingAssets += _pendingUserAssetsInBatch;
         }

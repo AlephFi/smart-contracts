@@ -57,6 +57,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     function _settleDeposit(AlephVaultStorageData storage _sd, uint8 _classId, uint256[] calldata _newTotalAssets)
         internal
     {
+        // verify all conditions are satisfied to settle deposits
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _depositSettleId = _shareClass.depositSettleId;
         uint48 _currentBatchId = _currentBatch(_sd);
@@ -68,9 +69,11 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         if (_newTotalAssets.length != _shareSeriesId - _lastConsolidatedSeriesId + 1) {
             revert InvalidNewTotalAssets();
         }
+        // accumalate fees if applicable
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
         uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _classId, _currentBatchId);
         SettleDepositParams memory _settleDepositParams = SettleDepositParams({
+            // check if a new series needs to be created
             createSeries: _settlementSeriesId > 0,
             classId: _classId,
             seriesId: _settlementSeriesId,
@@ -83,6 +86,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         for (
             _settleDepositParams.batchId; _settleDepositParams.batchId < _currentBatchId; _settleDepositParams.batchId++
         ) {
+            // settle deposits for each unsettled batch
             (uint256 _amount, uint256 _sharesToMint) = _settleDepositForBatch(_shareClass, _settleDepositParams);
             _amountToSettle += _amount;
             _settleDepositParams.totalAssets += _amount;
@@ -118,15 +122,18 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     ) internal returns (uint256, uint256) {
         IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_settleDepositParams.batchId];
         uint256 _totalAmountToDeposit = _depositRequests.totalAmountToDeposit;
+        // if there are no deposits to settle, return 0
         if (_totalAmountToDeposit == 0) {
             return (0, 0);
         }
+        // create a new series only if there are deposits to settle (and createSeries flag is true)
         if (_settleDepositParams.createSeries) {
             _createNewSeries(_shareClass, _settleDepositParams.classId, _settleDepositParams.currentBatchId);
             _settleDepositParams.createSeries = false;
         }
         uint256 _totalSharesToMint;
         uint256 _len = _depositRequests.usersToDeposit.length;
+        // iterate through all requests in batch (one user can only make one request per batch)
         for (uint256 _i; _i < _len; _i++) {
             DepositRequestParams memory _depositRequestParams;
             _depositRequestParams.user = _depositRequests.usersToDeposit[_i];
@@ -137,10 +144,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _totalSharesToMint += _depositRequestParams.sharesToMint;
             _shareClass.shareSeries[_settleDepositParams.seriesId].sharesOf[_depositRequestParams.user] +=
                 _depositRequestParams.sharesToMint;
-            if (
-                _settleDepositParams.seriesId > LEAD_SERIES_ID
-                    && !_shareClass.shareSeries[_settleDepositParams.seriesId].users.contains(_depositRequestParams.user)
-            ) {
+            // add user into settlement series if they don't already exist there
+            if (!_shareClass.shareSeries[_settleDepositParams.seriesId].users.contains(_depositRequestParams.user)) {
                 _shareClass.shareSeries[_settleDepositParams.seriesId].users.add(_depositRequestParams.user);
             }
             emit IERC7540Settlement.DepositRequestSettled(
@@ -171,6 +176,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     function _settleRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256[] calldata _newTotalAssets)
         internal
     {
+        // verify all conditions are satisfied to settle redeems
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
         uint48 _currentBatchId = _currentBatch(_sd);
@@ -182,9 +188,11 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         if (_newTotalAssets.length != _shareSeriesId - _lastConsolidatedSeriesId + 1) {
             revert InvalidNewTotalAssets();
         }
+        // accumalate fees if applicable
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
         address _underlyingToken = _sd.underlyingToken;
         for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
+            // settle redeems for each unsettled batch
             _settleRedeemForBatch(
                 _sd, SettleRedeemBatchParams({batchId: _id, classId: _classId, underlyingToken: _underlyingToken})
             );
@@ -206,8 +214,13 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _sd.shareClasses[_settleRedeemBatchParams.classId].redeemRequests[_settleRedeemBatchParams.batchId];
         uint256 _totalAmountToRedeem;
         uint256 _len = _redeemRequests.usersToRedeem.length;
+        // iterate through all requests in batch (one user can only make one request per batch)
         for (uint256 _i; _i < _len; _i++) {
             address _user = _redeemRequests.usersToRedeem[_i];
+            // calculate amount to redeem for the user
+            // redeem request value is the proportional amount user requested to redeem
+            // this amount can now be different from the original amount requested as the price per share
+            // in this cycle may have changed since the request was made due to pnl of the vault and fees
             uint256 _amount = _redeemRequests.redeemRequest[_user].mulDiv(
                 _assetsPerClassOf(_sd, _settleRedeemBatchParams.classId, _user), PRICE_DENOMINATOR, Math.Rounding.Floor
             );
@@ -237,13 +250,21 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint256 _amount,
         uint8 _classId
     ) internal {
+        // the amount requested is redeemed from teh class in a first-in first-out basis
+        // we first try to settle the redemption from the lead series
+        // remaining amount is assets that were not settled in the lead series (this happens if user does not have
+        // enough assets in the lead series to complete the redemption)
         uint256 _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _amount, _classId, LEAD_SERIES_ID);
         uint8 _seriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId + 1;
         uint8 _shareSeriesId = _sd.shareClasses[_classId].shareSeriesId;
+        // we now iterate through all series to settle the remaining user amount
         for (_seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            // if the user request amount is settled completely, we break out of the loop
             if (_remainingAmount == 0) {
                 break;
             }
+            // we attempt to settle the remaining amount from this series
+            // this continues to happen for all outstanding series until the complete amount is settled
             _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _remainingAmount, _classId, _seriesId);
         }
     }
@@ -268,11 +289,15 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     ) internal returns (uint256 _remainingAmount) {
         _remainingAmount = _amount;
         IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
+        // check total assets available in the series for the user
         uint256 _sharesInSeries = _sharesOf(_sd, _classId, _seriesId, _user);
         uint256 _amountInSeries =
             ERC4626Math.previewRedeem(_sharesInSeries, _shareSeries.totalAssets, _shareSeries.totalShares);
+        // if the amount available in the series is less than the remaining amount, we settle the entire
+        // amount in the series and move on to the next series by updating the remaining amount
         if (_amountInSeries < _remainingAmount) {
             _remainingAmount -= _amountInSeries;
+            // redeem the entire amount in the series and update the series total assets and shares
             _shareSeries.totalAssets -= _amountInSeries;
             _shareSeries.totalShares -= _sharesInSeries;
             delete _shareSeries.sharesOf[_user];
@@ -280,6 +305,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _batchId, _user, _classId, _seriesId, _amountInSeries, _sharesInSeries
             );
         } else {
+            // if the amount available in the series is greater than or equal to the remaining amount,
+            // we settle the remaining amount in the series and update the series total assets and shares
             uint256 _userSharesToBurn =
                 ERC4626Math.previewWithdraw(_remainingAmount, _shareSeries.totalShares, _shareSeries.totalAssets);
             _shareSeries.totalAssets -= _remainingAmount;
@@ -288,6 +315,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             emit IERC7540Settlement.RedeemRequestSliceSettled(
                 _batchId, _user, _classId, _seriesId, _remainingAmount, _userSharesToBurn
             );
+            // set the remaining amount to 0 as the entire amount has been settled and we break out of the loop
             _remainingAmount = 0;
         }
     }
@@ -304,12 +332,18 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         returns (uint8 _seriesId)
     {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        // for non-incentive classes, all settlements take place in the lead series
         if (_shareClass.performanceFee > 0) {
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
             uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+            // if new lead series highwatermark is not reached, settlements must take place in a new series
+            // if a new highwater mark is reached in this cycle, it will be updated in _accumalateFees function
+            // hence, after fee accumalation process, the lead highwater mark is either greater than or equal to the lead price per share
             if (_shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark > _leadPricePerShare(_sd, _classId)) {
+                // we don't create a new series just yet because there might not be any deposit request to settle in this cycle
                 _seriesId = _shareSeriesId + 1;
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
+                // if new lead series highwatermark was reached in this cycle and their exists outstanding series, consolidate them into lead series
                 _consolidateSeries(_shareClass, _classId, _shareSeriesId, _lastConsolidatedSeriesId, _currentBatchId);
             }
         }
@@ -346,13 +380,16 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     ) internal {
         uint256 _totalAmountToTransfer;
         uint256 _totalSharesToTransfer;
+        // iterate through all outstanding series
         for (uint8 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
             (uint256 _amountToTransfer, uint256 _sharesToTransfer) =
                 _consolidateUserShares(_shareClass, _classId, _seriesId, _currentBatchId);
+            // sum up the total amount and shares to transfer into the lead series
             _totalAmountToTransfer += _amountToTransfer;
             _totalSharesToTransfer += _sharesToTransfer;
             emit SeriesConsolidated(_classId, _seriesId, _currentBatchId, _amountToTransfer, _sharesToTransfer);
         }
+        // update the last consolidated series id and add the total amount and shares to transfer into the lead series
         _shareClass.lastConsolidatedSeriesId = _shareSeriesId;
         _shareClass.shareSeries[LEAD_SERIES_ID].totalAssets += _totalAmountToTransfer;
         _shareClass.shareSeries[LEAD_SERIES_ID].totalShares += _totalSharesToTransfer;
@@ -392,22 +429,35 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             sharesToTransfer: 0,
             currentBatchId: _currentBatchId
         });
+        // add virtual users into user list
         _shareSeries.users.add(MANAGEMENT_FEE_RECIPIENT);
         _shareSeries.users.add(PERFORMANCE_FEE_RECIPIENT);
         uint256 _len = _shareSeries.users.length();
+        // iterate through all users in the series and transfer their shares to the lead series
         for (uint256 _i; _i < _len; _i++) {
             _userConsolidationDetails.user = _shareSeries.users.at(_i);
             _userConsolidationDetails.shares = _shareSeries.sharesOf[_userConsolidationDetails.user];
-            _userConsolidationDetails.amountToTransfer = ERC4626Math.previewRedeem(
+            // calculate amount to transfer from outstanding series to lead series
+            _userConsolidationDetails.amountToTransfer = ERC4626Math.previewMint(
                 _userConsolidationDetails.shares, _shareSeries.totalAssets, _shareSeries.totalShares
             );
-            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewMint(
+            // calculate corresponding shares to deposit in lead series
+            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewWithdraw(
                 _userConsolidationDetails.amountToTransfer, _leadSeries.totalShares, _leadSeries.totalAssets
             );
+            // sum up the total amount and shares to transfer into the lead series
             _totalAmountToTransfer += _userConsolidationDetails.amountToTransfer;
             _totalSharesToTransfer += _userConsolidationDetails.sharesToTransfer;
+            // add the user's shares to the lead series
             _leadSeries.sharesOf[_userConsolidationDetails.user] += _userConsolidationDetails.sharesToTransfer;
-            if (!_leadSeries.users.contains(_userConsolidationDetails.user)) {
+            // if user does not exist in lead series, add them in lead series (except for virtual users)
+            if (
+                !_leadSeries.users.contains(_userConsolidationDetails.user)
+                    && (
+                        _userConsolidationDetails.user != MANAGEMENT_FEE_RECIPIENT
+                            || _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT
+                    )
+            ) {
                 _leadSeries.users.add(_userConsolidationDetails.user);
             }
             emit UserSharesConsolidated(_userConsolidationDetails);
@@ -431,6 +481,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     ) internal {
         uint48 _lastFeePaidId = _shareClass.lastFeePaidId;
         if (_currentBatchId > _lastFeePaidId) {
+            // update the lead series total assets and shares
             _shareClass.shareSeries[LEAD_SERIES_ID].totalAssets = _newTotalAssets[LEAD_SERIES_ID];
             _shareClass.shareSeries[LEAD_SERIES_ID].totalShares += _getAccumulatedFees(
                 _newTotalAssets[LEAD_SERIES_ID],
@@ -442,6 +493,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             );
             for (uint8 _i = 1; _i < _newTotalAssets.length; _i++) {
                 uint8 _seriesId = _lastConsolidatedSeriesId + _i;
+                // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
                 _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFees(
                     _newTotalAssets[_i],

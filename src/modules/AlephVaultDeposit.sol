@@ -135,6 +135,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         internal
         returns (uint48 _batchId)
     {
+        // verify all conditions are satisfied to make deposit request
         if (_requestDepositParams.amount == 0) {
             revert InsufficientDeposit();
         }
@@ -161,6 +162,8 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         if (_lastDepositBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
+
+        // update last deposit batch id and register deposit request
         _sd.shareClasses[_requestDepositParams.classId].lastDepositBatchId[msg.sender] = _currentBatchId;
         IAlephVault.DepositRequests storage _depositRequests =
             _sd.shareClasses[_requestDepositParams.classId].depositRequests[_currentBatchId];
@@ -169,6 +172,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         _depositRequests.usersToDeposit.push(msg.sender);
         emit DepositRequest(msg.sender, _requestDepositParams.classId, _requestDepositParams.amount, _currentBatchId);
 
+        // transfer underlying token from user to vault
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
         uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransferFrom(msg.sender, address(this), _requestDepositParams.amount);
