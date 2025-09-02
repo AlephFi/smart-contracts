@@ -63,6 +63,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
                 || _initalizationParams.alephVaultRedeemImplementation == address(0)
                 || _initalizationParams.alephVaultSettlementImplementation == address(0)
                 || _initalizationParams.feeManagerImplementation == address(0)
+                || _initalizationParams.migrationManagerImplementation == address(0)
         ) {
             revert InvalidInitializationParams();
         }
@@ -81,6 +82,8 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
             _initalizationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initalizationParams.feeManagerImplementation;
+        _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
+            _initalizationParams.migrationManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
     }
 
@@ -100,7 +103,8 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
             alephVaultRedeemImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM],
             alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
-            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]
+            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER],
+            migrationManagerImplementation: _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER]
         });
         IAlephVault.InitializationParams memory _initalizationParams = IAlephVault.InitializationParams({
             operationsMultisig: _sd.operationsMultisig,

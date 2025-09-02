@@ -99,6 +99,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initalizationParams.moduleInitializationParams.alephVaultRedeemImplementation == address(0)
                 || _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation == address(0)
                 || _initalizationParams.moduleInitializationParams.feeManagerImplementation == address(0)
+                || _initalizationParams.moduleInitializationParams.migrationManagerImplementation == address(0)
                 || _initalizationParams.userInitializationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.userInitializationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
@@ -126,6 +127,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
             _initalizationParams.moduleInitializationParams.feeManagerImplementation;
+        _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
+            _initalizationParams.moduleInitializationParams.migrationManagerImplementation;
 
         // grant roles
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);

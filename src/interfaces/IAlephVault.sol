@@ -62,6 +62,7 @@ interface IAlephVault {
         address alephVaultRedeemImplementation;
         address alephVaultSettlementImplementation;
         address feeManagerImplementation;
+        address migrationManagerImplementation;
     }
 
     struct ShareClass {
