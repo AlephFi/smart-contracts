@@ -20,6 +20,7 @@ import {console} from "forge-std/console.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
@@ -39,6 +40,8 @@ contract DeployAlephVault is BaseScript {
         string memory _environment = _getEnvironment();
         address _factory = _getProxy(_chainId, _environment);
 
+        AuthLibrary.AuthSignature memory _authSignature;
+
         IAlephVault.UserInitializationParams memory _userInitializationParams = IAlephVault.UserInitializationParams({
             name: vm.envString("VAULT_NAME"),
             configId: vm.envString("VAULT_CONFIG_ID"),
@@ -48,7 +51,8 @@ contract DeployAlephVault is BaseScript {
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
             performanceFee: uint32(vm.envUint("VAULT_PERFORMANCE_FEE")),
             minDepositAmount: vm.envUint("VAULT_MIN_DEPOSIT_AMOUNT"),
-            maxDepositCap: vm.envUint("VAULT_MAX_DEPOSIT_CAP")
+            maxDepositCap: vm.envUint("VAULT_MAX_DEPOSIT_CAP"),
+            authSignature: _authSignature
         });
         address _vault = IAlephVaultFactory(_factory).deployVault(_userInitializationParams);
         console.log("================================================");
