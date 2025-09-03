@@ -25,6 +25,7 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {
     AlephVaultFactoryStorage, AlephVaultFactoryStorageData
@@ -94,6 +95,9 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     {
         bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
+        AuthLibrary.verifyVaultDeploymentAuthSignature(
+            _salt, _userInitializationParams.configId, _sd.authSigner, _userInitializationParams.authSignature
+        );
         IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
             .ModuleInitializationParams({
             alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],

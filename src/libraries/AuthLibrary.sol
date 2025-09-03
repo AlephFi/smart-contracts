@@ -17,7 +17,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
-import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -35,17 +34,34 @@ library AuthLibrary {
     error AuthSignatureExpired();
     error InvalidAuthSignature();
 
-    function verifyAuthSignature(AlephVaultStorageData storage _sd, uint8 _classId, AuthSignature memory _authSignature)
+    function verifyVaultDeploymentAuthSignature(
+        bytes32 _salt,
+        string memory _configId,
+        address _authSigner,
+        AuthSignature memory _authSignature
+    ) internal view {
+        bytes32 _hash = keccak256(abi.encode(block.chainid, _salt, _configId, _authSignature.expiryBlock));
+        _verifyAuthSignature(_hash, _authSigner, _authSignature);
+    }
+
+    function verifyDepositRequestAuthSignature(uint8 _classId, address _authSigner, AuthSignature memory _authSignature)
+        internal
+        view
+    {
+        bytes32 _hash =
+            keccak256(abi.encode(msg.sender, address(this), block.chainid, _classId, _authSignature.expiryBlock));
+        _verifyAuthSignature(_hash, _authSigner, _authSignature);
+    }
+
+    function _verifyAuthSignature(bytes32 _hash, address _authSigner, AuthSignature memory _authSignature)
         internal
         view
     {
         if (_authSignature.expiryBlock < block.number) {
             revert AuthSignatureExpired();
         }
-        bytes32 _hash =
-            keccak256(abi.encode(msg.sender, address(this), block.chainid, _classId, _authSignature.expiryBlock));
         address _signer = _hash.toEthSignedMessageHash().recover(_authSignature.authSignature);
-        if (_signer != _sd.authSigner) {
+        if (_signer != _authSigner) {
             revert InvalidAuthSignature();
         }
     }
