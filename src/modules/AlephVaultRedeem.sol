@@ -33,23 +33,23 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint8 _classId, uint256 _amount) external returns (uint48 _batchId) {
-        return _requestRedeem(_getStorage(), _classId, _amount);
+    function requestRedeem(uint8 _classId, uint256 _estAmount) external returns (uint48 _batchId) {
+        return _requestRedeem(_getStorage(), _classId, _estAmount);
     }
 
     /**
      * @dev Internal function to handle a redeem request.
      * @param _sd The storage struct.
      * @param _classId The class ID to redeem from.
-     * @param _amount The amount to redeem.
+     * @param _estAmount The estimated amount to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _amount)
+    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _estAmount)
         internal
         returns (uint48 _batchId)
     {
         // verify all conditions are satisfied to make redeem request
-        if (_amount == 0) {
+        if (_estAmount == 0) {
             revert InsufficientRedeem();
         }
         uint48 _currentBatchId = _currentBatch(_sd);
@@ -57,7 +57,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         uint256 _totalUserAssets = _assetsPerClassOf(_sd, _classId, msg.sender);
         // get pending assets of the user that will be settled in upcoming cycle
         uint256 _pendingAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
-        if (_pendingAssets + _amount > _totalUserAssets) {
+        if (_pendingAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
 
@@ -72,7 +72,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
         uint256 _amountSharesToRedeem =
-            _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets - _pendingAssets, Math.Rounding.Ceil);
+            _estAmount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets - _pendingAssets, Math.Rounding.Ceil);
 
         IAlephVault.RedeemRequests storage _redeemRequests = _sd.shareClasses[_classId].redeemRequests[_currentBatchId];
         if (_redeemRequests.redeemRequest[msg.sender] > 0) {
@@ -82,7 +82,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // register redeem request
         _redeemRequests.redeemRequest[msg.sender] = _amountSharesToRedeem;
         _redeemRequests.usersToRedeem.push(msg.sender);
-        emit RedeemRequest(msg.sender, _classId, _amount, _currentBatchId);
+        emit RedeemRequest(msg.sender, _classId, _estAmount, _currentBatchId);
         return _currentBatchId;
     }
 }

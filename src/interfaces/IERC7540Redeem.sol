@@ -29,8 +29,8 @@ interface IERC7540Redeem {
     /**
      * @notice Requests to redeem shares from the vault for the current batch.
      * @param _classId The ID of the share class to redeem shares from.
-     * @param _amount The amount to redeem.
+     * @param _estAmount The estimated amount to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function requestRedeem(uint8 _classId, uint256 _amount) external returns (uint48 _batchId);
+    function requestRedeem(uint8 _classId, uint256 _estAmount) external returns (uint48 _batchId);
 }
