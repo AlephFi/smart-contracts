@@ -17,6 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Script, console} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
+import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
@@ -29,6 +30,8 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 // Use to deploy a new AlephVault.
 // forge script DeployAlephVault --sig="run()" --broadcast -vvvv --verify
 contract DeployAlephVault is BaseScript {
+    using MessageHashUtils for bytes32;
+
     function setUp() public {}
 
     function run() public {
@@ -40,12 +43,15 @@ contract DeployAlephVault is BaseScript {
         string memory _environment = _getEnvironment();
         address _factory = _getProxy(_chainId, _environment);
 
-        AuthLibrary.AuthSignature memory _authSignature;
+        string memory _vaultName = vm.envString("VAULT_NAME");
+        string memory _vaultConfigId = vm.envString("VAULT_CONFIG_ID");
+        address _vaultManager = vm.envAddress("VAULT_MANAGER");
+        AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_vaultName, _vaultConfigId, _vaultManager);
 
         IAlephVault.UserInitializationParams memory _userInitializationParams = IAlephVault.UserInitializationParams({
-            name: vm.envString("VAULT_NAME"),
-            configId: vm.envString("VAULT_CONFIG_ID"),
-            manager: vm.envAddress("VAULT_MANAGER"),
+            name: _vaultName,
+            configId: _vaultConfigId,
+            manager: _vaultManager,
             underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
             custodian: vm.envAddress("VAULT_CUSTODIAN"),
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
@@ -60,5 +66,19 @@ contract DeployAlephVault is BaseScript {
         console.log("================================================");
 
         vm.stopBroadcast();
+    }
+
+    function _getAuthSignature(string memory _vaultName, string memory _vaultConfigId, address _vaultManager)
+        internal
+        view
+        returns (AuthLibrary.AuthSignature memory)
+    {
+        bytes32 _salt = keccak256(abi.encodePacked(_vaultManager, _vaultName));
+        bytes32 _authMessage = keccak256(abi.encode(block.chainid, _salt, _vaultConfigId, type(uint256).max));
+        bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
+        uint256 _authSignerPrivateKey = _getAuthSignerPrivateKey();
+        (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(_authSignerPrivateKey, _ethSignedMessage);
+        bytes memory _authSignature = abi.encodePacked(_r, _s, _v);
+        return AuthLibrary.AuthSignature({authSignature: _authSignature, expiryBlock: type(uint256).max});
     }
 }
