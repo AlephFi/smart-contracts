@@ -53,10 +53,6 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
             revert InsufficientRedeem();
         }
         uint48 _currentBatchId = _currentBatch(_sd);
-        uint48 _lastRedeemBatchId = _sd.shareClasses[_classId].lastRedeemBatchId[msg.sender];
-        if (_lastRedeemBatchId >= _currentBatchId) {
-            revert OnlyOneRequestPerBatchAllowedForRedeem();
-        }
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_sd, _classId, msg.sender);
         // get pending assets of the user that will be settled in upcoming cycle
@@ -78,9 +74,12 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         uint256 _amountSharesToRedeem =
             _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets - _pendingAssets, Math.Rounding.Ceil);
 
-        // update last redeem batch id and register redeem request
-        _sd.shareClasses[_classId].lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.RedeemRequests storage _redeemRequests = _sd.shareClasses[_classId].redeemRequests[_currentBatchId];
+        if (_redeemRequests.redeemRequest[msg.sender] > 0) {
+            revert OnlyOneRequestPerBatchAllowedForRedeem();
+        }
+
+        // register redeem request
         _redeemRequests.redeemRequest[msg.sender] = _amountSharesToRedeem;
         _redeemRequests.usersToRedeem.push(msg.sender);
         emit RedeemRequest(msg.sender, _classId, _amount, _currentBatchId);

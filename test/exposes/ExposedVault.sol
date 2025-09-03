@@ -57,14 +57,6 @@ contract ExposedVault is AlephVault {
         return _getStorage().timelocks[_key];
     }
 
-    function setLastDepositBatchId(address _user, uint48 _lastDepositBatchId) external {
-        _getStorage().shareClasses[1].lastDepositBatchId[_user] = _lastDepositBatchId;
-    }
-
-    function setLastRedeemBatchId(address _user, uint48 _lastRedeemBatchId) external {
-        _getStorage().shareClasses[1].lastRedeemBatchId[_user] = _lastRedeemBatchId;
-    }
-
     function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
         _getStorage().shareClasses[1].depositSettleId = _currentDepositBatchId;
     }

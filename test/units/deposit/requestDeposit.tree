@@ -19,13 +19,13 @@ RequestDeposit_Unit_Test
                     ├── when  auth signature is invalid
                     │   └── it should revert with InvalidAuthSignature
                     └── when  auth signature is not expired and is valid
-                        ├── when last deposit batch id is greater than or equal to current batch id
+                        ├── given user has already made a deposit request for this batch
                         │   └── it should revert with OnlyOneRequestPerBatchAllowedForDeposit
-                        └── when last deposit batch id is less than current batch id
+                        └── given user has not made a deposit request for this batch
                             ├── given vault has insufficient allowance to transfer
                             │   └── it should revert with ERC20InsufficientAllowance
                             └── given vault has sufficient allowance to transfer
                                 ├── given user has insufficient balance to transfer
                                 │   └── it should revert with ERC20InsufficientBalance
                                 └── given user has sufficient balance to transfer
-                                    └── it should update lastDepositBatchId, batches and emit DepositRequest
+                                    └── it should update batches and emit DepositRequest
