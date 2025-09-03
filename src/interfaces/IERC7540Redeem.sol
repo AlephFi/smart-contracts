@@ -25,7 +25,6 @@ interface IERC7540Redeem {
     error InsufficientRedeem();
     error InsufficientAssetsToRedeem();
     error OnlyOneRequestPerBatchAllowedForRedeem();
-    error NoBatchAvailableForRedeem();
 
     /**
      * @notice Requests to redeem shares from the vault for the current batch.

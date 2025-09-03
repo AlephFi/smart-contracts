@@ -54,12 +54,6 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(1, 0);
     }
 
-    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {
-        // request redeem
-        vm.expectRevert(IERC7540Redeem.NoBatchAvailableForRedeem.selector);
-        vault.requestRedeem(1, 100);
-    }
-
     function test_requestRedeem_whenFlowIsUnpaused_revertsWhenLastRedeemBatchIdIsNotLessThanCurrentBatchId() public {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);

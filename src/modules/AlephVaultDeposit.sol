@@ -156,9 +156,6 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         }
         uint48 _lastDepositBatchId = _sd.shareClasses[_requestDepositParams.classId].lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = _currentBatch(_sd);
-        if (_currentBatchId == 0) {
-            revert NoBatchAvailableForDeposit(); // need to wait for the first batch to be available
-        }
         if (_lastDepositBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }

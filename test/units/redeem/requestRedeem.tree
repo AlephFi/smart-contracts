@@ -8,13 +8,10 @@ RequestRedeem_Unit_Test
         ├── when sharesToRedeem is 0
         │   └── it should revert with InsufficientRedeem
         └── when sharesToRedeem is greater than 0
-            ├── when currentBatchId is 0
-            │   └── it should revert with NoBatchAvailableForRedeem
-            └── when currentBatchId is not 0
-                ├── when lastRedeemBatchId is greater than or equal to currentBatchId
-                │   └── it should revert with OnlyOneRequestPerBatchAllowedForRedeem
-                └── when lastRedeemBatchId is less than currentBatchId
-                    ├── when sharesToRedeem is greater than shares of user
-                    │   └── it should revert with InsufficientSharesToRedeem
-                    └── when sharesToRedeem is less than or equal to shares of user
-                        └── it should update lastRedeemBatchId, batches, shares of user and emit RedeemRequest
+            ├── when lastRedeemBatchId is greater than or equal to currentBatchId
+            │   └── it should revert with OnlyOneRequestPerBatchAllowedForRedeem
+            └── when lastRedeemBatchId is less than currentBatchId
+                ├── when sharesToRedeem is greater than shares of user
+                │   └── it should revert with InsufficientSharesToRedeem
+                └── when sharesToRedeem is less than or equal to shares of user
+                    └── it should update lastRedeemBatchId, batches, shares of user and emit RedeemRequest
