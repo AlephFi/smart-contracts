@@ -37,7 +37,7 @@ contract DeployAlephVault is BaseScript {
         vm.startBroadcast(_privateKey);
 
         string memory _environment = _getEnvironment();
-        address _factory = _getProxy(_chainId, _environment);
+        address _factory = _getFactoryProxy(_chainId, _environment);
 
         IAlephVault.UserInitializationParams memory _userInitializationParams = IAlephVault.UserInitializationParams({
             name: vm.envString("VAULT_NAME"),

@@ -23,6 +23,7 @@ import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
+import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";

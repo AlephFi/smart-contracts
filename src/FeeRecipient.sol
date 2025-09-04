@@ -35,29 +35,22 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
-    uint256 public constant PRICE_DENOMINATOR = 1e6;
+    uint256 public constant BPS_DENOMINATOR = 10_000;
 
-    function initialize(
-        uint32 _managementFeeCut,
-        uint32 _performanceFeeCut,
-        address _operationsMultisig,
-        address _vaultFactory,
-        address _alephTreasury
-    ) external onlyInitializing {
+    function initialize(InitializationParams memory _initializationParams) external onlyInitializing {
         FeeRecipientStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _operationsMultisig == address(0) || _vaultFactory == address(0) || _managementFeeCut == 0
-                || _performanceFeeCut == 0
+            _initializationParams.operationsMultisig == address(0) || _initializationParams.alephTreasury == address(0)
+                || _initializationParams.managementFeeCut == 0 || _initializationParams.performanceFeeCut == 0
         ) {
             revert InvalidInitializationParams();
         }
-        _sd.managementFeeCut = _managementFeeCut;
-        _sd.performanceFeeCut = _performanceFeeCut;
-        _sd.operationsMultisig = _operationsMultisig;
-        _sd.vaultFactory = _vaultFactory;
-        _sd.alephTreasury = _alephTreasury;
-        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _operationsMultisig);
+        _sd.managementFeeCut = _initializationParams.managementFeeCut;
+        _sd.performanceFeeCut = _initializationParams.performanceFeeCut;
+        _sd.operationsMultisig = _initializationParams.operationsMultisig;
+        _sd.alephTreasury = _initializationParams.alephTreasury;
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
     /// @inheritdoc IFeeRecipient
@@ -80,6 +73,12 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         _revokeRole(RolesLibrary.OPERATIONS_MULTISIG, _oldOperationsMultisig);
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _newOperationsMultisig);
         emit OperationsMultisigSet(_newOperationsMultisig);
+    }
+
+    /// @inheritdoc IFeeRecipient
+    function setVaultFactory(address _vaultFactory) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().vaultFactory = _vaultFactory;
+        emit VaultFactorySet(_vaultFactory);
     }
 
     /// @inheritdoc IFeeRecipient
@@ -146,9 +145,9 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         uint256 _performanceFeesToCollect
     ) internal view returns (uint256 _vaultFee, uint256 _alephFee) {
         uint256 _alephManagementFee =
-            _managementFeesToCollect.mulDiv(uint256(_sd.managementFeeCut), PRICE_DENOMINATOR, Math.Rounding.Ceil);
+            _managementFeesToCollect.mulDiv(uint256(_sd.managementFeeCut), BPS_DENOMINATOR, Math.Rounding.Ceil);
         uint256 _alephPerformanceFee =
-            _performanceFeesToCollect.mulDiv(uint256(_sd.performanceFeeCut), PRICE_DENOMINATOR, Math.Rounding.Ceil);
+            _performanceFeesToCollect.mulDiv(uint256(_sd.performanceFeeCut), BPS_DENOMINATOR, Math.Rounding.Ceil);
         _alephFee = _alephManagementFee + _alephPerformanceFee;
         _vaultFee = _managementFeesToCollect + _performanceFeesToCollect - _alephFee;
     }

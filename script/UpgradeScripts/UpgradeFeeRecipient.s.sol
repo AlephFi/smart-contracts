@@ -23,15 +23,15 @@ import {
 } from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
-import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
+import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-// Use only to upgrade AlephVaultFactory.
-// forge script UpgradeAlephVaultFactory --sig="run()" --broadcast -vvvv --verify
-contract UpgradeAlephVaultFactory is BaseScript {
+// Use only to upgrade FeeRecipient.
+// forge script UpgradeFeeRecipient --sig="run()" --broadcast -vvvv --verify
+contract UpgradeFeeRecipient is BaseScript {
     bytes32 constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
     function setUp() public {}
@@ -43,16 +43,18 @@ contract UpgradeAlephVaultFactory is BaseScript {
         vm.startBroadcast(_privateKey);
         string memory _environment = _getEnvironment();
 
-        address _proxy = _getFactoryProxy(_chainId, _environment);
-        AlephVaultFactory _factoryImpl = new AlephVaultFactory();
+        address _proxy = _getFeeRecipientProxy(_chainId, _environment);
+        FeeRecipient _feeRecipientImpl = new FeeRecipient();
 
         address _proxyAdmin = address(uint160(uint256(vm.load(_proxy, ADMIN_SLOT))));
 
-        ProxyAdmin(_proxyAdmin).upgradeAndCall(ITransparentUpgradeableProxy(payable(_proxy)), address(_factoryImpl), "");
-        console.log("AlephVaultFactory upgraded to", address(_factoryImpl));
+        ProxyAdmin(_proxyAdmin).upgradeAndCall(
+            ITransparentUpgradeableProxy(payable(_proxy)), address(_feeRecipientImpl), ""
+        );
+        console.log("FeeRecipient upgraded to", address(_feeRecipientImpl));
 
         _writeDeploymentConfig(
-            _chainId, _environment, ".factoryImplementationAddress", vm.toString(address(_factoryImpl))
+            _chainId, _environment, ".feeRecipientImplementationAddress", vm.toString(address(_feeRecipientImpl))
         );
         vm.stopBroadcast();
     }

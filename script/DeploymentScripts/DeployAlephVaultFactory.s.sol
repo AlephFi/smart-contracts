@@ -39,7 +39,7 @@ contract DeployAlephVaultFactory is BaseScript {
         vm.createSelectFork(_chainId);
         string memory _environment = _getEnvironment();
 
-        address _proxyOwner = _getProxyOwner(_chainId, _environment);
+        address _proxyOwner = _getFactoryProxyOwner(_chainId, _environment);
 
         IAlephVaultFactory.InitializationParams memory _initializationParams;
 

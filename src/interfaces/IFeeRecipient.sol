@@ -21,6 +21,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  */
 interface IFeeRecipient {
     event OperationsMultisigSet(address _operationsMultisig);
+    event VaultFactorySet(address _vaultFactory);
     event AlephTreasurySet(address _alephTreasury);
     event VaultTreasurySet(address _vault, address _vaultTreasury);
     event ManagementFeeCutSet(uint32 _managementFeeCut);
@@ -39,6 +40,13 @@ interface IFeeRecipient {
     error InvalidVaultTreasury();
     error VaultTreasuryNotSet();
 
+    struct InitializationParams {
+        uint32 managementFeeCut;
+        uint32 performanceFeeCut;
+        address operationsMultisig;
+        address alephTreasury;
+    }
+
     /**
      * @notice Returns the vault treasury of the caller.
      * @return The vault treasury.
@@ -50,6 +58,12 @@ interface IFeeRecipient {
      * @param _operationsMultisig The new operations multisig.
      */
     function setOperationsMultisig(address _operationsMultisig) external;
+
+    /**
+     * @notice Sets the vault factory.
+     * @param _vaultFactory The new vault factory.
+     */
+    function setVaultFactory(address _vaultFactory) external;
 
     /**
      * @notice Sets the aleph treasury.
