@@ -62,7 +62,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
         // get total user assets in the share class
-        uint256 _totalUserAssets = _assetsPerClassOf(_sd, _classId, msg.sender);
+        uint256 _totalUserAssets = _assetsPerClassOf(_classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle
         uint256 _pendingAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
         if (_pendingAssets + _amount > _totalUserAssets) {

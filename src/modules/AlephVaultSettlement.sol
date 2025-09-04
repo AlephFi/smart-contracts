@@ -192,11 +192,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         // accumalate fees if applicable
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
         address _underlyingToken = _sd.underlyingToken;
-        for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
-            // settle redeems for each unsettled batch
-            _settleRedeemForBatch(
-                _sd, SettleRedeemBatchParams({batchId: _id, classId: _classId, underlyingToken: _underlyingToken})
-            );
+        for (uint48 _batchId = _redeemSettleId; _batchId < _currentBatchId; _batchId++) {
+            _settleRedeemForBatch(_sd, _batchId, _classId, _underlyingToken, _shareClass);
         }
         _shareClass.redeemSettleId = _currentBatchId;
         emit SettleRedeem(_redeemSettleId, _currentBatchId, _classId);
@@ -205,14 +202,18 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     /**
      * @dev Internal function to settle redeems for a specific batch.
      * @param _sd The storage struct.
-     * @param _settleRedeemBatchParams The parameters for the settlement.
+     * @param _batchId The id of the batch.
+     * @param _classId The id of the class.
+     * @param _underlyingToken The underlying token.
      */
     function _settleRedeemForBatch(
         AlephVaultStorageData storage _sd,
-        SettleRedeemBatchParams memory _settleRedeemBatchParams
+        uint48 _batchId,
+        uint8 _classId,
+        address _underlyingToken,
+        IAlephVault.ShareClass storage _shareClass
     ) internal {
-        IAlephVault.RedeemRequests storage _redeemRequests =
-            _sd.shareClasses[_settleRedeemBatchParams.classId].redeemRequests[_settleRedeemBatchParams.batchId];
+        IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_batchId];
         uint256 _totalAmountToRedeem;
         uint256 _len = _redeemRequests.usersToRedeem.length;
         // iterate through all requests in batch (one user can only make one request per batch)
@@ -223,18 +224,14 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             // this amount can now be different from the original amount requested as the price per share
             // in this cycle may have changed since the request was made due to pnl of the vault and fees
             uint256 _amount = _redeemRequests.redeemRequest[_user].mulDiv(
-                _assetsPerClassOf(_sd, _settleRedeemBatchParams.classId, _user), PRICE_DENOMINATOR, Math.Rounding.Floor
+                _assetsPerClassOf(_classId, _user, _shareClass), PRICE_DENOMINATOR, Math.Rounding.Floor
             );
-            _settleRedeemForUser(
-                _sd, _settleRedeemBatchParams.batchId, _user, _amount, _settleRedeemBatchParams.classId
-            );
+            _settleRedeemForUser(_sd, _batchId, _user, _amount, _classId, _shareClass);
             _totalAmountToRedeem += _amount;
-            IERC20(_settleRedeemBatchParams.underlyingToken).safeTransfer(_user, _amount);
-            emit RedeemRequestSettled(
-                _settleRedeemBatchParams.batchId, _user, _settleRedeemBatchParams.classId, _amount
-            );
+            IERC20(_underlyingToken).safeTransfer(_user, _amount);
+            emit RedeemRequestSettled(_batchId, _user, _classId, _amount);
         }
-        emit SettleRedeemBatch(_settleRedeemBatchParams.batchId, _settleRedeemBatchParams.classId, _totalAmountToRedeem);
+        emit SettleRedeemBatch(_batchId, _classId, _totalAmountToRedeem);
     }
 
     /**
@@ -249,14 +246,14 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint48 _batchId,
         address _user,
         uint256 _amount,
-        uint8 _classId
+        uint8 _classId,
+        IAlephVault.ShareClass storage _shareClass
     ) internal {
         // the amount requested is redeemed from teh class in a first-in first-out basis
         // we first try to settle the redemption from the lead series
         // remaining amount is assets that were not settled in the lead series (this happens if user does not have
         // enough assets in the lead series to complete the redemption)
         uint256 _remainingAmount = _amount;
-        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint8 _shareSeriesId = _shareClass.shareSeriesId;
 
@@ -271,7 +268,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             }
             // we attempt to settle the remaining amount from this series
             // this continues to happen for all outstanding series until the complete amount is settled
-            _remainingAmount = _settleRedeemSlice(_sd, _batchId, _user, _remainingAmount, _classId, _seriesId);
+            _remainingAmount =
+                _settleRedeemSlice(_sd, _batchId, _user, _remainingAmount, _classId, _seriesId, _shareClass);
         }
     }
 
@@ -291,12 +289,13 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         address _user,
         uint256 _amount,
         uint8 _classId,
-        uint8 _seriesId
+        uint8 _seriesId,
+        IAlephVault.ShareClass storage _shareClass
     ) internal returns (uint256 _remainingAmount) {
         _remainingAmount = _amount;
-        IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
+        IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
         // check total assets available in the series for the user
-        uint256 _sharesInSeries = _sharesOf(_sd, _classId, _seriesId, _user);
+        uint256 _sharesInSeries = _sharesOf(_shareClass, _seriesId, _user);
         uint256 _amountInSeries =
             ERC4626Math.previewRedeem(_sharesInSeries, _shareSeries.totalAssets, _shareSeries.totalShares);
         // if the amount available in the series is less than the remaining amount, we settle the entire
