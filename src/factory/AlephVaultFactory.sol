@@ -44,44 +44,44 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     /**
      * @notice Initializes the factory.
      */
-    function initialize(IAlephVaultFactory.InitializationParams calldata _initalizationParams) public initializer {
-        _initialize(_initalizationParams);
+    function initialize(IAlephVaultFactory.InitializationParams calldata _initializationParams) public initializer {
+        _initialize(_initializationParams);
     }
 
     /**
      * @notice Internal function to initialize the factory.
      */
-    function _initialize(IAlephVaultFactory.InitializationParams calldata _initalizationParams)
+    function _initialize(IAlephVaultFactory.InitializationParams calldata _initializationParams)
         internal
         onlyInitializing
     {
         if (
-            _initalizationParams.beacon == address(0) || _initalizationParams.operationsMultisig == address(0)
-                || _initalizationParams.oracle == address(0) || _initalizationParams.guardian == address(0)
-                || _initalizationParams.authSigner == address(0) || _initalizationParams.feeRecipient == address(0)
-                || _initalizationParams.alephVaultDepositImplementation == address(0)
-                || _initalizationParams.alephVaultRedeemImplementation == address(0)
-                || _initalizationParams.alephVaultSettlementImplementation == address(0)
-                || _initalizationParams.feeManagerImplementation == address(0)
+            _initializationParams.beacon == address(0) || _initializationParams.operationsMultisig == address(0)
+                || _initializationParams.oracle == address(0) || _initializationParams.guardian == address(0)
+                || _initializationParams.authSigner == address(0) || _initializationParams.feeRecipient == address(0)
+                || _initializationParams.alephVaultDepositImplementation == address(0)
+                || _initializationParams.alephVaultRedeemImplementation == address(0)
+                || _initializationParams.alephVaultSettlementImplementation == address(0)
+                || _initializationParams.feeManagerImplementation == address(0)
         ) {
             revert InvalidInitializationParams();
         }
         __AccessControl_init();
         AlephVaultFactoryStorageData storage _sd = _getStorage();
-        _sd.beacon = _initalizationParams.beacon;
-        _sd.operationsMultisig = _initalizationParams.operationsMultisig;
-        _sd.oracle = _initalizationParams.oracle;
-        _sd.guardian = _initalizationParams.guardian;
-        _sd.authSigner = _initalizationParams.authSigner;
-        _sd.feeRecipient = _initalizationParams.feeRecipient;
+        _sd.beacon = _initializationParams.beacon;
+        _sd.operationsMultisig = _initializationParams.operationsMultisig;
+        _sd.oracle = _initializationParams.oracle;
+        _sd.guardian = _initializationParams.guardian;
+        _sd.authSigner = _initializationParams.authSigner;
+        _sd.feeRecipient = _initializationParams.feeRecipient;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
-            _initalizationParams.alephVaultDepositImplementation;
+            _initializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
-            _initalizationParams.alephVaultRedeemImplementation;
+            _initializationParams.alephVaultRedeemImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
-            _initalizationParams.alephVaultSettlementImplementation;
-        _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initalizationParams.feeManagerImplementation;
-        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
+            _initializationParams.alephVaultSettlementImplementation;
+        _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initializationParams.feeManagerImplementation;
+        _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
     /**
@@ -102,7 +102,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
             feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]
         });
-        IAlephVault.InitializationParams memory _initalizationParams = IAlephVault.InitializationParams({
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: _sd.operationsMultisig,
             vaultFactory: address(this),
             oracle: _sd.oracle,
@@ -114,7 +114,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         });
         bytes memory _bytecode = abi.encodePacked(
             type(BeaconProxy).creationCode,
-            abi.encode(_sd.beacon, abi.encodeCall(AlephVault.initialize, (_initalizationParams)))
+            abi.encode(_sd.beacon, abi.encodeCall(AlephVault.initialize, (_initializationParams)))
         );
 
         address _vault = Create2.deploy(0, _salt, _bytecode);

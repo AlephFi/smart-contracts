@@ -37,7 +37,15 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
 
     uint256 public constant BPS_DENOMINATOR = 10_000;
 
-    function initialize(InitializationParams memory _initializationParams) external onlyInitializing {
+    /**
+     * @notice Initializes the vault with the given parameters.
+     * @param _initializationParams Struct containing all initialization parameters.
+     */
+    function initialize(InitializationParams calldata _initializationParams) public initializer {
+        _initialize(_initializationParams);
+    }
+
+    function _initialize(InitializationParams calldata _initializationParams) internal onlyInitializing {
         FeeRecipientStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
@@ -123,11 +131,12 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
             revert VaultTreasuryNotSet();
         }
         (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) = IFeeManager(_vault).collectFees();
-        IERC20(_vault).safeTransferFrom(_vault, address(this), _managementFeesToCollect + _performanceFeesToCollect);
+        address _underlyingToken = IAlephVault(_vault).underlyingToken();
+        IERC20(_underlyingToken).safeTransferFrom(_vault, address(this), _managementFeesToCollect + _performanceFeesToCollect);
         (uint256 _vaultFee, uint256 _alephFee) =
             _calculateFeeSplit(_sd, _managementFeesToCollect, _performanceFeesToCollect);
-        IERC20(_vault).safeTransfer(_vaultTreasury, _vaultFee);
-        IERC20(_vault).safeTransfer(_sd.alephTreasury, _alephFee);
+        IERC20(_underlyingToken).safeTransfer(_vaultTreasury, _vaultFee);
+        IERC20(_underlyingToken).safeTransfer(_sd.alephTreasury, _alephFee);
         emit FeesCollected(_vault, _managementFeesToCollect, _performanceFeesToCollect, _vaultFee, _alephFee);
     }
 

@@ -23,6 +23,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 contract FeeManagerTest is BaseTest {
     function setUp() public override {
         super.setUp();
+        _setUpFeeRecipient(defaultFeeRecipientInitializationParams);
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
@@ -157,9 +158,7 @@ contract FeeManagerTest is BaseTest {
         vm.prank(nonAuthorizedUser);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.FEE_RECIPIENT
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.FEE_RECIPIENT
             )
         );
         vault.collectFees();
@@ -188,7 +187,7 @@ contract FeeManagerTest is BaseTest {
         uint256 _feeRecipientAllowanceBefore = underlyingToken.allowance(address(vault), vault.feeRecipient());
 
         // collect fees
-        vm.prank(feeRecipient);
+        vm.prank(address(feeRecipient));
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesCollected(0, _expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
         vault.collectFees();
@@ -199,13 +198,15 @@ contract FeeManagerTest is BaseTest {
 
         // check total assets and total shares are updated
         assertEq(
-            vault.totalAssetsPerSeries(1, 0), _totalAssets - _expectedManagementFeesToCollect - _expectedPerformanceFeesToCollect
+            vault.totalAssetsPerSeries(1, 0),
+            _totalAssets - _expectedManagementFeesToCollect - _expectedPerformanceFeesToCollect
         );
         assertEq(vault.totalSharesPerSeries(1, 0), _totalShares - _managementShares - _performanceShares);
 
         // check fee is collected
         assertEq(
-            underlyingToken.allowance(address(vault), vault.feeRecipient()), _feeRecipientAllowanceBefore + _expectedTotalFeesToCollect
+            underlyingToken.allowance(address(vault), vault.feeRecipient()),
+            _feeRecipientAllowanceBefore + _expectedTotalFeesToCollect
         );
     }
 }
