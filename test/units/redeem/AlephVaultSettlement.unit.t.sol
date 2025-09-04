@@ -195,6 +195,14 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 500 ether, 500 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_2, 1, 0, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 1000 ether);
+        vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
         vault.settleRedeem(1, _newTotalAssets);
         vm.stopPrank();
@@ -252,6 +260,18 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.startPrank(oracle);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_1, 1, 0, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_2, 1, 0, 500 ether, 500 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 2, 1, 750 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 125 ether, 125 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 375 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
         vault.settleRedeem(1, _newTotalAssets);
