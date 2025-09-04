@@ -56,7 +56,8 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForRedeem(); // need to wait for the first batch to be available
         }
-        uint48 _lastRedeemBatchId = _sd.shareClasses[_classId].lastRedeemBatchId[msg.sender];
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _lastRedeemBatchId = _shareClass.lastRedeemBatchId[msg.sender];
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
@@ -82,8 +83,8 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
             _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets - _pendingAssets, Math.Rounding.Ceil);
 
         // update last redeem batch id and register redeem request
-        _sd.shareClasses[_classId].lastRedeemBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.RedeemRequests storage _redeemRequests = _sd.shareClasses[_classId].redeemRequests[_currentBatchId];
+        _shareClass.lastRedeemBatchId[msg.sender] = _currentBatchId;
+        IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
         _redeemRequests.redeemRequest[msg.sender] = _amountSharesToRedeem;
         _redeemRequests.usersToRedeem.push(msg.sender);
         emit RedeemRequest(msg.sender, _classId, _amount, _currentBatchId);
