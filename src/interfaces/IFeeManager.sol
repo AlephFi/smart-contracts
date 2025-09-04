@@ -43,7 +43,10 @@ interface IFeeManager {
         FeesAccumulatedParams feesAccumulatedParams
     );
     event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark, uint48 currentBatchId);
-    event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
+    event SeriesFeeCollected(
+        uint8 classId, uint8 seriesId, uint256 managementFeesCollected, uint256 performanceFeesCollected
+    );
+    event FeesCollected(uint48 currentBatchId, uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
     error InvalidManagementFee();
     error InvalidPerformanceFee();
@@ -133,6 +136,8 @@ interface IFeeManager {
 
     /**
      * @notice Collects all pending fees.
+     * @return _managementFeesToCollect The management fees to collect.
+     * @return _performanceFeesToCollect The performance fees to collect.
      */
-    function collectFees() external;
+    function collectFees() external returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect);
 }

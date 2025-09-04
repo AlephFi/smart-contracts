@@ -31,6 +31,7 @@ interface IAlephVault {
     event MetadataUriSet(string metadataUri);
     event IsAuthEnabledSet(bool isAuthEnabled);
     event AuthSignerSet(address authSigner);
+    event VaultTreasurySet(address vaultTreasury);
     event ShareClassCreated(
         uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
     );
@@ -144,6 +145,12 @@ interface IAlephVault {
      * @return The custodian.
      */
     function custodian() external view returns (address);
+
+    /**
+     * @notice Returns the vault treasury of the vault.
+     * @return The vault treasury.
+     */
+    function vaultTreasury() external view returns (address);
 
     /**
      * @notice Returns the fee recipient of the vault.
@@ -359,6 +366,12 @@ interface IAlephVault {
      * @param _authSigner The new KYC authentication signer.
      */
     function setAuthSigner(address _authSigner) external;
+
+    /**
+     * @notice Sets the vault treasury of the vault.
+     * @param _vaultTreasury The new vault treasury.
+     */
+    function setVaultTreasury(address _vaultTreasury) external;
 
     /**
      * @notice Creates a new share class.

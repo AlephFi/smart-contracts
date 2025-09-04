@@ -134,8 +134,8 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     }
 
     ///@inheritdoc IFeeManager
-    function collectFees() external {
-        _collectFees(_getStorage());
+    function collectFees() external returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) {
+        return _collectFees(_getStorage());
     }
 
     /**
@@ -214,6 +214,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      * @dev Internal function to set the fee recipient.
      * @param _sd The storage struct.
      */
+    // NOTE: merge migration module then move this to migration module instead of timelock
     function _setFeeRecipient(AlephVaultStorageData storage _sd) internal {
         address _feeRecipient = abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.FEE_RECIPIENT), (address));
         _sd.feeRecipient = _feeRecipient;
@@ -350,19 +351,39 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     /**
      * @dev Internal function to collect all pending fees.
      */
-    function _collectFees(AlephVaultStorageData storage _sd) internal {
-        // uint256 _managementShares = _sharesOf(MANAGEMENT_FEE_RECIPIENT);
-        // uint256 _performanceShares = _sharesOf(PERFORMANCE_FEE_RECIPIENT);
-        // uint256 _totalShares = _totalShares();
-        // uint256 _totalAssets = _totalAssets();
-        // uint256 _managementFeesToCollect = ERC4626Math.previewRedeem(_managementShares, _totalAssets, _totalShares);
-        // uint256 _performanceFeesToCollect = ERC4626Math.previewRedeem(_performanceShares, _totalAssets, _totalShares);
-        // uint48 _timestamp = Time.timestamp();
-        // _sd.sharesOf[MANAGEMENT_FEE_RECIPIENT].push(_timestamp, 0);
-        // _sd.sharesOf[PERFORMANCE_FEE_RECIPIENT].push(_timestamp, 0);
-        // _sd.shares.push(_timestamp, _totalShares - _managementShares - _performanceShares);
-        // _sd.assets.push(_timestamp, _totalAssets - _managementFeesToCollect - _performanceFeesToCollect);
-        // IERC20(_sd.underlyingToken).safeTransfer(_sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect);
-        // emit FeesCollected(_managementFeesToCollect, _performanceFeesToCollect);
+    function _collectFees(AlephVaultStorageData storage _sd)
+        internal
+        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
+    {
+        uint8 _shareClasses = _sd.shareClassesId;
+        for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
+            uint8 _shareSeries = _sd.shareClasses[_classId].shareSeriesId;
+            uint8 _lastConsolidatedSeriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId;
+            for (uint8 _seriesId; _seriesId <= _shareSeries; _seriesId++) {
+                if (_seriesId > LEAD_SERIES_ID) {
+                    _seriesId += _lastConsolidatedSeriesId;
+                }
+                IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
+                uint256 _managementFeeShares = _shareSeries.sharesOf[MANAGEMENT_FEE_RECIPIENT];
+                uint256 _performanceFeeShares = _shareSeries.sharesOf[PERFORMANCE_FEE_RECIPIENT];
+                uint256 _totalShares = _shareSeries.totalShares;
+                uint256 _totalAssets = _shareSeries.totalAssets;
+                uint256 _managementFeeAmount =
+                    ERC4626Math.previewRedeem(_managementFeeShares, _totalAssets, _totalShares);
+                uint256 _performanceFeeAmount =
+                    ERC4626Math.previewRedeem(_performanceFeeShares, _totalAssets, _totalShares);
+                delete _shareSeries.sharesOf[MANAGEMENT_FEE_RECIPIENT];
+                delete _shareSeries.sharesOf[PERFORMANCE_FEE_RECIPIENT];
+                _shareSeries.totalShares -= (_managementFeeShares + _performanceFeeShares);
+                _shareSeries.totalAssets -= (_managementFeeAmount + _performanceFeeAmount);
+                _managementFeesToCollect += _managementFeeAmount;
+                _performanceFeesToCollect += _performanceFeeAmount;
+                emit SeriesFeeCollected(_classId, _seriesId, _managementFeeAmount, _performanceFeeAmount);
+            }
+        }
+        IERC20(_sd.underlyingToken).safeIncreaseAllowance(
+            _sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect
+        );
+        emit FeesCollected(_currentBatch(_sd), _managementFeesToCollect, _performanceFeesToCollect);
     }
 }

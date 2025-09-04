@@ -26,6 +26,7 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
+import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
@@ -132,6 +133,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _grantRole(RolesLibrary.MANAGER, _initalizationParams.userInitializationParams.manager);
         _grantRole(RolesLibrary.ORACLE, _initalizationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initalizationParams.guardian);
+        _grantRole(RolesLibrary.FEE_RECIPIENT, _initalizationParams.feeRecipient);
 
         // initialize pausable modules
         __AlephVaultDeposit_init(
@@ -197,6 +199,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function custodian() external view returns (address) {
         return _getStorage().custodian;
+    }
+
+    /// @inheritdoc IAlephVault
+    function vaultTreasury() external view returns (address) {
+        return IFeeRecipient(_getStorage().feeRecipient).vaultTreasury();
     }
 
     /// @inheritdoc IAlephVault
@@ -410,6 +417,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function setVaultTreasury(address _vaultTreasury) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
+        IFeeRecipient(_getStorage().feeRecipient).setVaultTreasury(_vaultTreasury);
+        emit VaultTreasurySet(_vaultTreasury);
+    }
+
+    /// @inheritdoc IAlephVault
     function createShareClass(
         uint32 _managementFee,
         uint32 _performanceFee,
@@ -531,7 +544,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @notice Collects all pending fees.
      * @dev Only callable by the OPERATIONS_MULTISIG role.
      */
-    function collectFees() external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+    function collectFees()
+        external
+        onlyRole(RolesLibrary.FEE_RECIPIENT)
+        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
+    {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
