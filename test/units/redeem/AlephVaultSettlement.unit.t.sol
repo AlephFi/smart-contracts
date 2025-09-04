@@ -155,7 +155,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.PRICE_DENOMINATOR() / 2);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
 
         // settle redeem
         vm.prank(oracle);
@@ -172,8 +172,8 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 3 * vault.PRICE_DENOMINATOR() / 4);
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_2, vault.PRICE_DENOMINATOR() / 4);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 3 * vault.TOTAL_SHARE_UNITS() / 4);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_2, vault.TOTAL_SHARE_UNITS() / 4);
 
         // set total assets and total shares
         uint256[] memory _newTotalAssets = new uint256[](2);
@@ -194,14 +194,6 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.startPrank(oracle);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 500 ether, 500 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 250 ether, 250 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_2, 1, 0, 250 ether, 250 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 1000 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
         vault.settleRedeem(1, _newTotalAssets);
@@ -237,9 +229,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 2, mockUser_1, vault.PRICE_DENOMINATOR() / 4);
-        vault.setBatchRedeem(_currentBatchId - 2, mockUser_2, vault.PRICE_DENOMINATOR() / 2);
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.PRICE_DENOMINATOR() / 2);
+        vault.setBatchRedeem(_currentBatchId - 2, mockUser_1, vault.TOTAL_SHARE_UNITS() / 4);
+        vault.setBatchRedeem(_currentBatchId - 2, mockUser_2, vault.TOTAL_SHARE_UNITS() / 2);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
 
         // set total assets and total shares
         uint256[] memory _newTotalAssets = new uint256[](2);
@@ -260,18 +252,6 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.startPrank(oracle);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_1, 1, 0, 250 ether, 250 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_2, 1, 0, 500 ether, 500 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 2, 1, 750 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 250 ether, 250 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 125 ether, 125 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 375 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
         vault.settleRedeem(1, _newTotalAssets);

@@ -31,6 +31,8 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
 contract ExposedVault is AlephVault {
     using Math for uint256;
 
+    uint256 public constant TOTAL_SHARE_UNITS = 1e18;
+
     constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
 
     function depositSettleId() external view returns (uint48) {

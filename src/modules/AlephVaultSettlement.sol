@@ -221,8 +221,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             // redeem request value is the proportional amount user requested to redeem
             // this amount can now be different from the original amount requested as the price per share
             // in this cycle may have changed since the request was made due to pnl of the vault and fees
-            uint256 _amount = _redeemRequests.redeemRequest[_user].mulDiv(
-                _assetsPerClassOf(_sd, _settleRedeemBatchParams.classId, _user), PRICE_DENOMINATOR, Math.Rounding.Floor
+            uint256 _amount = ERC4626Math.previewMintUnits(
+                _redeemRequests.redeemRequest[_user], _assetsPerClassOf(_sd, _settleRedeemBatchParams.classId, _user)
             );
             _settleRedeemForUser(
                 _sd, _settleRedeemBatchParams.batchId, _user, _amount, _settleRedeemBatchParams.classId
