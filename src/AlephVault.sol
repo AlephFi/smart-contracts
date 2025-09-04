@@ -59,7 +59,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         // series that haven't been created yet or that have been consolidated are considered invalid
         if (
             _seriesId > _sd.shareClasses[_classId].shareSeriesId
-                || (_seriesId > 0 && _seriesId <= _sd.shareClasses[_classId].lastConsolidatedSeriesId)
+                || (_seriesId > LEAD_SERIES_ID && _seriesId <= _sd.shareClasses[_classId].lastConsolidatedSeriesId)
         ) {
             revert InvalidShareSeries();
         }
@@ -620,7 +620,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
         _sd.shareClasses[_classId].maxDepositCap = _maxDepositCap;
         // set up lead series for new share class
-        _sd.shareClasses[_classId].shareSeries[0].highWaterMark = PRICE_DENOMINATOR;
+        _sd.shareClasses[_classId].shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
         emit ShareClassCreated(_classId, _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
         return _classId;
     }
