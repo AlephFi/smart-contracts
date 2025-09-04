@@ -370,23 +370,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function metadataUri() external view returns (string memory) {
-        return _getStorage().metadataUri;
-    }
-
-    /// @inheritdoc IAlephVault
     function isAuthEnabled() external view returns (bool) {
         return _getStorage().isAuthEnabled;
-    }
-
-    /// @inheritdoc IAlephVault
-    function setMetadataUri(string calldata _metadataUri)
-        external
-        override(IAlephVault)
-        onlyRole(RolesLibrary.MANAGER)
-    {
-        _getStorage().metadataUri = _metadataUri;
-        emit MetadataUriSet(_metadataUri);
     }
 
     /// @inheritdoc IAlephVault
