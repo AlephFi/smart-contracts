@@ -72,6 +72,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         // accumalate fees if applicable
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
         uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _classId, _currentBatchId);
+        IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_settlementSeriesId];
         SettleDepositParams memory _settleDepositParams = SettleDepositParams({
             // check if a new series needs to be created
             createSeries: _settlementSeriesId > 0,
@@ -79,8 +80,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             seriesId: _settlementSeriesId,
             batchId: _depositSettleId,
             currentBatchId: _currentBatchId,
-            totalAssets: _shareClass.shareSeries[_settlementSeriesId].totalAssets,
-            totalShares: _shareClass.shareSeries[_settlementSeriesId].totalShares
+            totalAssets: _shareSeries.totalAssets,
+            totalShares: _shareSeries.totalShares
         });
         uint256 _amountToSettle;
         for (
@@ -93,8 +94,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _settleDepositParams.totalShares += _sharesToMint;
         }
         _shareClass.depositSettleId = _currentBatchId;
-        _shareClass.shareSeries[_settleDepositParams.seriesId].totalAssets = _settleDepositParams.totalAssets;
-        _shareClass.shareSeries[_settleDepositParams.seriesId].totalShares = _settleDepositParams.totalShares;
+        _shareSeries.totalAssets = _settleDepositParams.totalAssets;
+        _shareSeries.totalShares = _settleDepositParams.totalShares;
         if (_amountToSettle > 0) {
             IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         }

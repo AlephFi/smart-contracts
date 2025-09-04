@@ -236,13 +236,11 @@ contract AlephVaultBase {
      */
     function _totalAmountToDeposit(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint256) {
         uint256 _amountToDeposit;
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _currentBatchId = _currentBatch(_sd);
-        if (_currentBatchId > 0) {
-            uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
-            for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
-                // loop through all batches up to the current batch and sum up the total amount to deposit
-                _amountToDeposit += _sd.shareClasses[_classId].depositRequests[_depositSettleId].totalAmountToDeposit;
-            }
+        uint48 _depositSettleId = _shareClass.depositSettleId;
+        for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
+            _amountToDeposit += _shareClass.depositRequests[_depositSettleId].totalAmountToDeposit;
         }
         return _amountToDeposit;
     }
@@ -263,13 +261,14 @@ contract AlephVaultBase {
         address _user,
         uint256 _totalUserAssets
     ) internal view returns (uint256 _pendingAssets) {
-        uint48 _redeemSettleId = _sd.shareClasses[_classId].redeemSettleId;
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _redeemSettleId = _shareClass.redeemSettleId;
         uint256 _remainingUserAssets = _totalUserAssets;
         // loop through all batches up to the current batch and sum up the pending assets for redemption
         for (uint48 _batchId = _redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
             // redeem request sets the proportion of total user assets to redeem at the time of settlement
             uint256 _pendingUserAssetsInBatch = ERC4626Math.previewMintUnits(
-                _sd.shareClasses[_classId].redeemRequests[_batchId].redeemRequest[_user], _remainingUserAssets
+                _shareClass.redeemRequests[_batchId].redeemRequest[_user], _remainingUserAssets
             );
             // redeem request is set calculated proportional to remaining user assets as if previous redeem requests were settled
             _remainingUserAssets -= _pendingUserAssetsInBatch;

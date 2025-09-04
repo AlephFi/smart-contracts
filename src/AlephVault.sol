@@ -57,9 +57,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         }
         // check if share series id is valid or not
         // series that haven't been created yet or that have been consolidated are considered invalid
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+
         if (
-            _seriesId > _sd.shareClasses[_classId].shareSeriesId
-                || (_seriesId > LEAD_SERIES_ID && _seriesId <= _sd.shareClasses[_classId].lastConsolidatedSeriesId)
+            _seriesId > _shareClass.shareSeriesId
+                || (_seriesId > LEAD_SERIES_ID && _seriesId <= _shareClass.lastConsolidatedSeriesId)
         ) {
             revert InvalidShareSeries();
         }
@@ -326,13 +328,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     function depositRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToDeposit) {
         AlephVaultStorageData storage _sd = _getStorage();
         uint48 _currentBatch = _currentBatch(_sd);
-        if (_currentBatch > 0) {
-            uint48 _depositSettleId = _sd.shareClasses[_classId].depositSettleId;
-            for (_depositSettleId; _depositSettleId < _currentBatch; _depositSettleId++) {
-                // loop through all batches up to the current batch and sum up the total amount to deposit
-                _totalAmountToDeposit +=
-                    _sd.shareClasses[_classId].depositRequests[_depositSettleId].depositRequest[_user];
-            }
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _depositSettleId = _shareClass.depositSettleId;
+        for (_depositSettleId; _depositSettleId <= _currentBatch; _depositSettleId++) {
+            _totalAmountToDeposit += _shareClass.depositRequests[_depositSettleId].depositRequest[_user];
         }
     }
 
@@ -371,23 +370,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function metadataUri() external view returns (string memory) {
-        return _getStorage().metadataUri;
-    }
-
-    /// @inheritdoc IAlephVault
     function isAuthEnabled() external view returns (bool) {
         return _getStorage().isAuthEnabled;
-    }
-
-    /// @inheritdoc IAlephVault
-    function setMetadataUri(string calldata _metadataUri)
-        external
-        override(IAlephVault)
-        onlyRole(RolesLibrary.MANAGER)
-    {
-        _getStorage().metadataUri = _metadataUri;
-        emit MetadataUriSet(_metadataUri);
     }
 
     /// @inheritdoc IAlephVault
@@ -615,12 +599,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         // increment share classes id
         _classId = ++_sd.shareClassesId;
         // set up share class parameters
-        _sd.shareClasses[_classId].managementFee = _managementFee;
-        _sd.shareClasses[_classId].performanceFee = _performanceFee;
-        _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
-        _sd.shareClasses[_classId].maxDepositCap = _maxDepositCap;
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        _shareClass.managementFee = _managementFee;
+        _shareClass.performanceFee = _performanceFee;
+        _shareClass.minDepositAmount = _minDepositAmount;
+        _shareClass.maxDepositCap = _maxDepositCap;
         // set up lead series for new share class
-        _sd.shareClasses[_classId].shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
+        _shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
         emit ShareClassCreated(_classId, _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
         return _classId;
     }
