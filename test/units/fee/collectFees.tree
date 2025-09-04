@@ -1,5 +1,5 @@
 CollectFees_Unit_Test
-├── when caller is not OPERATIONS_MULTISIG
+├── when caller is not FEE_RECIPIENT
 │   └── it should revert with AccessControlUnauthorizedAccount
-└── when caller is OPERATIONS_MULTISIG
+└── when caller is FEE_RECIPIENT
     └── it should burn shares of MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT, update total shares and total assets, transfer fees to feeRecipient, emit FeesCollected

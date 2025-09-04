@@ -149,65 +149,63 @@ contract FeeManagerTest is BaseTest {
     /*//////////////////////////////////////////////////////////////
                         COLLECT FEE TESTS
     //////////////////////////////////////////////////////////////*/
-    // function test_collectFees_revertsWhenCallerIsNotOperationsMultisig() public {
-    //     // Setup a non-authorized user
-    //     address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+    function test_collectFees_revertsWhenCallerIsNotFeeRecipient() public {
+        // Setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
 
-    //     // collect fees
-    //     vm.prank(nonAuthorizedUser);
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(
-    //             IAccessControl.AccessControlUnauthorizedAccount.selector,
-    //             nonAuthorizedUser,
-    //             RolesLibrary.OPERATIONS_MULTISIG
-    //         )
-    //     );
-    //     vault.collectFees();
-    // }
+        // collect fees
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                nonAuthorizedUser,
+                RolesLibrary.FEE_RECIPIENT
+            )
+        );
+        vault.collectFees();
+    }
 
-    // function test_collectFees_whenCallerIsOperationsMultisig_shouldSucceed() public {
-    //     // accumalate fees to recipients
-    //     uint256 _managementShares = 120;
-    //     uint256 _performanceShares = 120;
-    //     vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
-    //     vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
+    function test_collectFees_whenCallerIsFeeRecipient_shouldSucceed() public {
+        // accumalate fees to recipients
+        uint256 _managementShares = 120;
+        uint256 _performanceShares = 120;
+        vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
+        vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
 
-    //     // set total assets and shares
-    //     uint256 _totalAssets = 1000;
-    //     uint256 _totalShares = 1200;
-    //     vault.setTotalAssets(0, _totalAssets);
-    //     vault.setTotalShares(0, _totalShares);
+        // set total assets and shares
+        uint256 _totalAssets = 1000;
+        uint256 _totalShares = 1200;
+        vault.setTotalAssets(0, _totalAssets);
+        vault.setTotalShares(0, _totalShares);
 
-    //     // expected fees to collect
-    //     uint256 _expectedManagementFeesToCollect = 100;
-    //     uint256 _expectedPerformanceFeesToCollect = 100;
-    //     uint256 _expectedTotalFeesToCollect = _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect;
+        // expected fees to collect
+        uint256 _expectedManagementFeesToCollect = 100;
+        uint256 _expectedPerformanceFeesToCollect = 100;
+        uint256 _expectedTotalFeesToCollect = _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect;
 
-    //     // set vault balance
-    //     underlyingToken.mint(address(vault), _expectedTotalFeesToCollect);
-    //     uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
-    //     uint256 _feeRecipientBalanceBefore = underlyingToken.balanceOf(vault.feeRecipient());
+        // set vault balance
+        underlyingToken.mint(address(vault), _expectedTotalFeesToCollect);
+        uint256 _feeRecipientAllowanceBefore = underlyingToken.allowance(address(vault), vault.feeRecipient());
 
-    //     // collect fees
-    //     vm.prank(operationsMultisig);
-    //     vm.expectEmit(true, true, true, true);
-    //     emit IFeeManager.FeesCollected(_expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
-    //     vault.collectFees();
+        // collect fees
+        vm.prank(feeRecipient);
+        vm.expectEmit(true, true, true, true);
+        emit IFeeManager.FeesCollected(0, _expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
+        vault.collectFees();
 
-    //     // check recipient shares are burned
-    //     assertEq(vault.sharesOf(1, 0, vault.managementFeeRecipient()), 0);
-    //     assertEq(vault.sharesOf(1, 0, vault.performanceFeeRecipient()), 0);
+        // check recipient shares are burned
+        assertEq(vault.sharesOf(1, 0, vault.managementFeeRecipient()), 0);
+        assertEq(vault.sharesOf(1, 0, vault.performanceFeeRecipient()), 0);
 
-    //     // check total assets and total shares are updated
-    //     assertEq(
-    //         vault.totalAssets(), _totalAssets - _expectedManagementFeesToCollect - _expectedPerformanceFeesToCollect
-    //     );
-    //     assertEq(vault.totalShares(), _totalShares - _managementShares - _performanceShares);
+        // check total assets and total shares are updated
+        assertEq(
+            vault.totalAssetsPerSeries(1, 0), _totalAssets - _expectedManagementFeesToCollect - _expectedPerformanceFeesToCollect
+        );
+        assertEq(vault.totalSharesPerSeries(1, 0), _totalShares - _managementShares - _performanceShares);
 
-    //     // check fee is collected
-    //     assertEq(underlyingToken.balanceOf(address(vault)), _vaultBalanceBefore - _expectedTotalFeesToCollect);
-    //     assertEq(
-    //         underlyingToken.balanceOf(vault.feeRecipient()), _feeRecipientBalanceBefore + _expectedTotalFeesToCollect
-    //     );
-    // }
+        // check fee is collected
+        assertEq(
+            underlyingToken.allowance(address(vault), vault.feeRecipient()), _feeRecipientAllowanceBefore + _expectedTotalFeesToCollect
+        );
+    }
 }

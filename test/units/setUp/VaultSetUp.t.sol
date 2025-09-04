@@ -443,6 +443,7 @@ contract VaultSetUpTest is BaseTest {
         assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.userInitializationParams.manager));
         assertTrue(vault.hasRole(RolesLibrary.ORACLE, defaultInitializationParams.oracle));
         assertTrue(vault.hasRole(RolesLibrary.GUARDIAN, defaultInitializationParams.guardian));
+        assertTrue(vault.hasRole(RolesLibrary.FEE_RECIPIENT, defaultInitializationParams.feeRecipient));
 
         assertTrue(
             vault.hasRole(
