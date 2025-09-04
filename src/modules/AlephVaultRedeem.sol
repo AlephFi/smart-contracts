@@ -84,7 +84,6 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // update last redeem batch id and register redeem request
         _shareClass.lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
-        _redeemRequests.redeemRequest[msg.sender] = _amountSharesToRedeem;
         _redeemRequests.redeemRequest[msg.sender] = _shareUnitsToRedeem;
         _redeemRequests.usersToRedeem.push(msg.sender);
         emit RedeemRequest(msg.sender, _classId, _amount, _currentBatchId);
