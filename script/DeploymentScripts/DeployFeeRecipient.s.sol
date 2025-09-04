@@ -29,9 +29,9 @@ import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-// Use to Deploy only an AlephVaultFactory.
-// forge script DeployAlephVaultFactory --sig="run()" --broadcast -vvvv --verify
-contract DeployAlephVaultFactory is BaseScript {
+// Use to Deploy only an FeeRecipient.
+// forge script DeployFeeRecipient --sig="run()" --broadcast -vvvv --verify
+contract DeployFeeRecipient is BaseScript {
     function setUp() public {}
 
     function run() public {
