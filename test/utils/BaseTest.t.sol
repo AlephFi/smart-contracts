@@ -162,6 +162,9 @@ contract BaseTest is Test {
         _feeRecipient.setVaultFactory(defaultInitializationParams.vaultFactory);
         defaultInitializationParams.feeRecipient = address(_feeRecipient);
         feeRecipient = _feeRecipient;
+        alephTreasury = _initializationParams.alephTreasury;
+        managementFeeCut = _initializationParams.managementFeeCut;
+        performanceFeeCut = _initializationParams.performanceFeeCut;
     }
 
     function _setUpNewAlephVault(

@@ -132,7 +132,9 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         }
         (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) = IFeeManager(_vault).collectFees();
         address _underlyingToken = IAlephVault(_vault).underlyingToken();
-        IERC20(_underlyingToken).safeTransferFrom(_vault, address(this), _managementFeesToCollect + _performanceFeesToCollect);
+        IERC20(_underlyingToken).safeTransferFrom(
+            _vault, address(this), _managementFeesToCollect + _performanceFeesToCollect
+        );
         (uint256 _vaultFee, uint256 _alephFee) =
             _calculateFeeSplit(_sd, _managementFeesToCollect, _performanceFeesToCollect);
         IERC20(_underlyingToken).safeTransfer(_vaultTreasury, _vaultFee);

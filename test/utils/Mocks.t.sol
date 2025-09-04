@@ -14,6 +14,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$ |                
                         $$/                 
 */
+
 import {Test} from "forge-std/Test.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
@@ -27,17 +28,15 @@ contract Mocks is Test {
                         VAULT FACTORY MOCKS
     //////////////////////////////////////////////////////////////*/
     function mockIsValidVault(address _vaultFactory, address _vault, bool _returnValue) public {
-        vm.mockCall(
-            _vaultFactory,
-            abi.encodeCall(IAlephVaultFactory.isValidVault, (_vault)),
-            abi.encode(_returnValue)
-        );
+        vm.mockCall(_vaultFactory, abi.encodeCall(IAlephVaultFactory.isValidVault, (_vault)), abi.encode(_returnValue));
     }
 
     /*//////////////////////////////////////////////////////////////
                         FEE MANAGER MOCKS
     //////////////////////////////////////////////////////////////*/
-    function mockCollectFees(address _vault, uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) public {
+    function mockCollectFees(address _vault, uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
+        public
+    {
         vm.mockCall(
             _vault,
             abi.encodeCall(IFeeManager.collectFees, ()),

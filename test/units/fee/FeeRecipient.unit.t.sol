@@ -84,7 +84,11 @@ contract FeeRecipientTest is BaseTest {
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         mocks.mockCollectFees(_vault, 100 ether, 100 ether);
         vm.prank(operationsMultisig);
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(feeRecipient), 0, 200 ether));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, address(feeRecipient), 0, 200 ether
+            )
+        );
         feeRecipient.collectFees(_vault);
     }
 
