@@ -266,8 +266,8 @@ contract AlephVaultBase {
         // loop through all batches up to the current batch and sum up the pending assets for redemption
         for (uint48 _batchId = _redeemSettleId; _batchId <= _currentBatchId; _batchId++) {
             // redeem request sets the proportion of total user assets to redeem at the time of settlement
-            uint256 _pendingUserAssetsInBatch = _shareClass.redeemRequests[_batchId].redeemRequest[_user].mulDiv(
-                _remainingUserAssets, PRICE_DENOMINATOR, Math.Rounding.Floor
+            uint256 _pendingUserAssetsInBatch = ERC4626Math.previewMintUnits(
+                _shareClass.redeemRequests[_batchId].redeemRequest[_user], _remainingUserAssets
             );
             // redeem request is set calculated proportional to remaining user assets as if previous redeem requests were settled
             _remainingUserAssets -= _pendingUserAssetsInBatch;

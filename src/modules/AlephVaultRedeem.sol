@@ -69,8 +69,8 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
             revert InsufficientAssetsToRedeem();
         }
 
-        // Calculate redeemable shares as a proportion of user's available assets
-        // Formula: shares = amount * PRICE_DENOMINATOR / (totalUserAssets - pendingAssets)
+        // Calculate redeemable share units as a proportion of user's available assets
+        // Formula: shares = amount * TOTAL_SHARE_UNITS / (totalUserAssets - pendingAssets)
         // This calculation is crucial because:
         // 1. This approach handles dynamic asset values during settlement, as the vault's
         //    total value may change due to PnL between request and settlement
@@ -79,13 +79,12 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
-        uint256 _amountSharesToRedeem =
-            _amount.mulDiv(PRICE_DENOMINATOR, _totalUserAssets - _pendingAssets, Math.Rounding.Ceil);
+        uint256 _shareUnitsToRedeem = ERC4626Math.previewWithdrawUnits(_amount, _totalUserAssets - _pendingAssets);
 
         // update last redeem batch id and register redeem request
         _shareClass.lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
-        _redeemRequests.redeemRequest[msg.sender] = _amountSharesToRedeem;
+        _redeemRequests.redeemRequest[msg.sender] = _shareUnitsToRedeem;
         _redeemRequests.usersToRedeem.push(msg.sender);
         emit RedeemRequest(msg.sender, _classId, _amount, _currentBatchId);
         return _currentBatchId;
