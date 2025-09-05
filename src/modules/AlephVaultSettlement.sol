@@ -64,11 +64,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         if (_currentBatchId == _depositSettleId) {
             revert NoDepositsToSettle();
         }
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        if (_newTotalAssets.length != _shareSeriesId - _lastConsolidatedSeriesId + 1) {
-            revert InvalidNewTotalAssets();
-        }
+        _validateNewTotalAssets(_shareClass.shareSeriesId, _lastConsolidatedSeriesId, _newTotalAssets);
         // accumalate fees if applicable
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
         uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _classId, _currentBatchId);
@@ -184,11 +181,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         if (_currentBatchId == _redeemSettleId) {
             revert NoRedeemsToSettle();
         }
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        if (_newTotalAssets.length != _shareSeriesId - _lastConsolidatedSeriesId + 1) {
-            revert InvalidNewTotalAssets();
-        }
+        _validateNewTotalAssets(_shareClass.shareSeriesId, _lastConsolidatedSeriesId, _newTotalAssets);
         // accumalate fees if applicable
         _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
         address _underlyingToken = _sd.underlyingToken;
@@ -473,6 +467,22 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             // remove user shares from the series
             delete _shareSeries.sharesOf[_userConsolidationDetails.user];
             emit UserSharesConsolidated(_userConsolidationDetails);
+        }
+    }
+
+    /**
+     * @dev Internal function to validate the new total assets.
+     * @param _shareSeriesId The id of the share series.
+     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
+     * @param _newTotalAssets The new total assets after settlement.
+     */
+    function _validateNewTotalAssets(
+        uint8 _shareSeriesId,
+        uint8 _lastConsolidatedSeriesId,
+        uint256[] calldata _newTotalAssets
+    ) internal pure {
+        if (_newTotalAssets.length != _shareSeriesId - _lastConsolidatedSeriesId + 1) {
+            revert InvalidNewTotalAssets();
         }
     }
 
