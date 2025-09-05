@@ -386,12 +386,17 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         uint256 _totalAmountToTransfer;
         uint256 _totalSharesToTransfer;
         // iterate through all outstanding series
+        IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[LEAD_SERIES_ID];
         for (uint8 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
+            IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
             (uint256 _amountToTransfer, uint256 _sharesToTransfer) =
-                _consolidateUserShares(_shareClass, _classId, _seriesId, _currentBatchId);
+                _consolidateUserShares(_leadSeries, _shareSeries, _classId, _seriesId, _currentBatchId);
             // sum up the total amount and shares to transfer into the lead series
             _totalAmountToTransfer += _amountToTransfer;
             _totalSharesToTransfer += _sharesToTransfer;
+            // delete series
+            _shareSeries.users.clear();
+            delete _shareClass.shareSeries[_seriesId];
             emit SeriesConsolidated(_classId, _seriesId, _currentBatchId, _amountToTransfer, _sharesToTransfer);
         }
         // update the last consolidated series id and add the total amount and shares to transfer into the lead series
@@ -410,7 +415,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
 
     /**
      * @dev Internal function to consolidate user shares.
-     * @param _shareClass The share class to consolidate.
+     * @param _leadSeries The lead series to consolidate.
+     * @param _shareSeries The share series to consolidate.
      * @param _classId The id of the class.
      * @param _seriesId The id of the series.
      * @param _currentBatchId The current batch id.
@@ -418,13 +424,12 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @return _totalSharesToTransfer The total shares to transfer.
      */
     function _consolidateUserShares(
-        IAlephVault.ShareClass storage _shareClass,
+        IAlephVault.ShareSeries storage _leadSeries,
+        IAlephVault.ShareSeries storage _shareSeries,
         uint8 _classId,
         uint8 _seriesId,
         uint48 _currentBatchId
     ) internal returns (uint256 _totalAmountToTransfer, uint256 _totalSharesToTransfer) {
-        IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[LEAD_SERIES_ID];
-        IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
         UserConsolidationDetails memory _userConsolidationDetails = UserConsolidationDetails({
             user: address(0),
             classId: _classId,
@@ -465,6 +470,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             ) {
                 _leadSeries.users.add(_userConsolidationDetails.user);
             }
+            // remove user shares from the series
+            delete _shareSeries.sharesOf[_userConsolidationDetails.user];
             emit UserSharesConsolidated(_userConsolidationDetails);
         }
     }
