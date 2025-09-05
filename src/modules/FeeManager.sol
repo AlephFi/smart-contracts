@@ -126,11 +126,11 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint32 _performanceFee,
         uint256 _highWaterMark
     ) external pure returns (uint256 _performanceFeeShares) {
-        uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
-        uint256 _performanceFeeAmount = _pricePerShare > _highWaterMark
-            ? _calculatePerformanceFeeAmount(_pricePerShare, _highWaterMark, _totalShares, _performanceFee)
-            : 0;
-        return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
+        return ERC4626Math.previewDeposit(
+            _calculatePerformanceFeeAmount(_performanceFee, _newTotalAssets, _totalShares, _highWaterMark),
+            _totalShares,
+            _newTotalAssets
+        );
     }
 
     ///@inheritdoc IFeeManager
@@ -245,7 +245,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         _feesAccumulatedParams.managementFeeAmount =
             _calculateManagementFeeAmount(_newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClass.managementFee);
         // calculate performance fee amount
-        _feesAccumulatedParams.performanceFeeAmount = _checkPerformanceFeeAmount(
+        _feesAccumulatedParams.performanceFeeAmount = _calculatePerformanceFeeAmount(
             _shareClass.performanceFee, _newTotalAssets, _totalShares, _shareClass.shareSeries[_seriesId].highWaterMark
         );
         // calculate management fee shares to mint
@@ -309,7 +309,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      * @param _highWaterMark The high water mark.
      * @return _performanceFeeAmount The performance fee to be collected.
      */
-    function _checkPerformanceFeeAmount(
+    function _calculatePerformanceFeeAmount(
         uint32 _performanceFee,
         uint256 _newTotalAssets,
         uint256 _totalShares,
@@ -319,31 +319,13 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
         // if price per share is greater than high water mark, calculate performance fee amount
         if (_pricePerShare > _highWaterMark) {
+            // performance fee amount formula:
+            // (price per share - high water mark) * total shares * performance fee rate
+            uint256 _profitPerShare = _pricePerShare - _highWaterMark;
+            uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
             _performanceFeeAmount =
-                _calculatePerformanceFeeAmount(_pricePerShare, _highWaterMark, _totalShares, _performanceFee);
+                _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR - _performanceFee), Math.Rounding.Ceil);
         }
-    }
-
-    /**
-     * @dev Internal function to calculate the performance fee amount.
-     * @param _pricePerShare The price per share.
-     * @param _highWaterMark The high water mark.
-     * @param _totalShares The total shares in the vault.
-     * @param _performanceFee The performance fee rate.
-     * @return _performanceFeeAmount The performance fee to be collected.
-     */
-    function _calculatePerformanceFeeAmount(
-        uint256 _pricePerShare,
-        uint256 _highWaterMark,
-        uint256 _totalShares,
-        uint48 _performanceFee
-    ) internal pure returns (uint256 _performanceFeeAmount) {
-        // performance fee amount formula:
-        // (price per share - high water mark) * total shares * performance fee rate
-        uint256 _profitPerShare = _pricePerShare - _highWaterMark;
-        uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
-        _performanceFeeAmount =
-            _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR - _performanceFee), Math.Rounding.Ceil);
     }
 
     /**
