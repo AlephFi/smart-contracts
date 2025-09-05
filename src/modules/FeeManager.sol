@@ -110,10 +110,10 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint48 _batchesElapsed,
-        uint32 _managementFeeRate
+        uint32 _managementFee
     ) external view returns (uint256 _managementFeeShares) {
         return ERC4626Math.previewDeposit(
-            _calculateManagementFeeAmount(_newTotalAssets, _batchesElapsed, _managementFeeRate),
+            _calculateManagementFeeAmount(_newTotalAssets, _batchesElapsed, _managementFee),
             _totalShares,
             _newTotalAssets
         );
@@ -123,12 +123,12 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     function getPerformanceFeeShares(
         uint256 _newTotalAssets,
         uint256 _totalShares,
-        uint32 _performanceFeeRate,
+        uint32 _performanceFee,
         uint256 _highWaterMark
     ) external pure returns (uint256 _performanceFeeShares) {
         uint256 _pricePerShare = _getPricePerShare(_newTotalAssets, _totalShares);
         uint256 _performanceFeeAmount = _pricePerShare > _highWaterMark
-            ? _calculatePerformanceFeeAmount(_pricePerShare, _highWaterMark, _totalShares, _performanceFeeRate)
+            ? _calculatePerformanceFeeAmount(_pricePerShare, _highWaterMark, _totalShares, _performanceFee)
             : 0;
         return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets);
     }
@@ -285,10 +285,10 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      * @dev Internal function to calculate the management fee amount.
      * @param _newTotalAssets The new total assets after collection.
      * @param _batchesElapsed The number of batches elapsed since the last fee was paid.
-     * @param _managementFeeRate The management fee rate.
+     * @param _managementFee The management fee rate.
      * @return _managementFeeAmount The management fee to be collected.
      */
-    function _calculateManagementFeeAmount(uint256 _newTotalAssets, uint48 _batchesElapsed, uint32 _managementFeeRate)
+    function _calculateManagementFeeAmount(uint256 _newTotalAssets, uint48 _batchesElapsed, uint32 _managementFee)
         internal
         view
         returns (uint256 _managementFeeAmount)
@@ -296,7 +296,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         // management fee amount formula:
         // (new total assets) * (management fee rate) * (time elapsed / ONE YEAR)
         uint256 _annualFees =
-            _newTotalAssets.mulDiv(uint256(_managementFeeRate), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
+            _newTotalAssets.mulDiv(uint256(_managementFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
         _managementFeeAmount =
             _annualFees.mulDiv(uint256(_batchesElapsed * BATCH_DURATION), uint256(ONE_YEAR), Math.Rounding.Ceil);
     }
@@ -329,22 +329,21 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      * @param _pricePerShare The price per share.
      * @param _highWaterMark The high water mark.
      * @param _totalShares The total shares in the vault.
-     * @param _performanceFeeRate The performance fee rate.
+     * @param _performanceFee The performance fee rate.
      * @return _performanceFeeAmount The performance fee to be collected.
      */
     function _calculatePerformanceFeeAmount(
         uint256 _pricePerShare,
         uint256 _highWaterMark,
         uint256 _totalShares,
-        uint48 _performanceFeeRate
+        uint48 _performanceFee
     ) internal pure returns (uint256 _performanceFeeAmount) {
         // performance fee amount formula:
         // (price per share - high water mark) * total shares * performance fee rate
         uint256 _profitPerShare = _pricePerShare - _highWaterMark;
         uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
-        _performanceFeeAmount = _profit.mulDiv(
-            uint256(_performanceFeeRate), uint256(BPS_DENOMINATOR - _performanceFeeRate), Math.Rounding.Ceil
-        );
+        _performanceFeeAmount =
+            _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR - _performanceFee), Math.Rounding.Ceil);
     }
 
     /**
