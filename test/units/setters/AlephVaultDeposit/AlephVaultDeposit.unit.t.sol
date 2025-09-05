@@ -42,22 +42,22 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
-        vault.queueMinDepositAmount(100);
+        vault.queueMinDepositAmount(1, 100);
     }
 
     function test_queueMinDepositAmount_whenCallerIsManager_shouldSucceed() public {
         // queue min deposit amount
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMinDepositAmountQueued(100);
-        vault.queueMinDepositAmount(100);
+        emit IERC7540Deposit.NewMinDepositAmountQueued(1, 100);
+        vault.queueMinDepositAmount(1, 100);
 
         // check min deposit amount is queued
         bytes4 _key = TimelockRegistry.MIN_DEPOSIT_AMOUNT;
         uint48 _unlockTimestamp = Time.timestamp() + vault.minDepositAmountTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
-        assertEq(_timelock.newValue, abi.encode(100));
+        assertEq(_timelock.newValue, abi.encode(1, 100));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
     function test_setMinDepositAmount_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
         // queue min deposit amount
         vm.prank(manager);
-        vault.queueMinDepositAmount(100);
+        vault.queueMinDepositAmount(1, 100);
 
         // get min deposit amount timelock params
         bytes4 _key = TimelockRegistry.MIN_DEPOSIT_AMOUNT;
@@ -95,22 +95,19 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
     function test_setMinDepositAmount_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
         // queue min deposit amount
         vm.prank(manager);
-        vault.queueMinDepositAmount(100);
+        vault.queueMinDepositAmount(1, 100);
 
         // roll the block forward to make timelock expired
         vm.warp(Time.timestamp() + vault.minDepositAmountTimelock() + 1);
 
-        // check min deposit amount is not set
-        assertEq(vault.minDepositAmount(), 0);
-
         // set min deposit amount
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMinDepositAmountSet(100);
+        emit IERC7540Deposit.NewMinDepositAmountSet(1, 100);
         vault.setMinDepositAmount();
 
         // check min deposit amount is set
-        assertEq(vault.minDepositAmount(), 100);
+        assertEq(vault.minDepositAmount(1), 100);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -127,22 +124,22 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
-        vault.queueMaxDepositCap(100);
+        vault.queueMaxDepositCap(1, 100);
     }
 
     function test_queueMaxDepositCap_whenCallerIsManager_shouldSucceed() public {
         // queue max deposit cap
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMaxDepositCapQueued(100);
-        vault.queueMaxDepositCap(100);
+        emit IERC7540Deposit.NewMaxDepositCapQueued(1, 100);
+        vault.queueMaxDepositCap(1, 100);
 
         // check max deposit cap is queued
         bytes4 _key = TimelockRegistry.MAX_DEPOSIT_CAP;
         uint48 _unlockTimestamp = Time.timestamp() + vault.maxDepositCapTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
-        assertEq(_timelock.newValue, abi.encode(100));
+        assertEq(_timelock.newValue, abi.encode(1, 100));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -165,7 +162,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
     function test_setMaxDepositCap_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
         // queue max deposit cap
         vm.prank(manager);
-        vault.queueMaxDepositCap(100);
+        vault.queueMaxDepositCap(1, 100);
 
         // get max deposit cap timelock params
         bytes4 _key = TimelockRegistry.MAX_DEPOSIT_CAP;
@@ -180,21 +177,18 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
     function test_setMaxDepositCap_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
         // queue max deposit cap
         vm.prank(manager);
-        vault.queueMaxDepositCap(100);
+        vault.queueMaxDepositCap(1, 100);
 
         // roll the block forward to make timelock expired
         vm.warp(Time.timestamp() + vault.maxDepositCapTimelock() + 1);
 
-        // check max deposit cap is not set
-        assertEq(vault.maxDepositCap(), 0);
-
         // set max deposit cap
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMaxDepositCapSet(100);
+        emit IERC7540Deposit.NewMaxDepositCapSet(1, 100);
         vault.setMaxDepositCap();
 
         // check max deposit cap is set
-        assertEq(vault.maxDepositCap(), 100);
+        assertEq(vault.maxDepositCap(1), 100);
     }
 }

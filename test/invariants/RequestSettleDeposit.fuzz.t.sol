@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
@@ -26,15 +27,20 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract RequestSettleDepositTest is BaseTest {
+    using Math for uint256;
+
     function setUp() public override {
         super.setUp();
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
+        vault.setMinDepositAmount(0);
+        vault.setMaxDepositCap(0);
     }
 
+    /// total shares will only increase if management fee is set and/or performance fee is set and new highwater mark is reached
     function test_settleDeposit_withoutNewDeposit_totalSharesMustAlwaysIncrease_vaultBalanceMustNeverIncrease(
         address _user,
         uint256 _depositAmount,
@@ -61,7 +67,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _depositAmount);
         AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
         vm.stopPrank();
 
@@ -70,7 +76,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(0);
+        vault.settleDeposit(1, new uint256[](1));
 
         // get user and vault balance before deposit
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
@@ -80,8 +86,10 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         // settle second batch
+        uint256[] memory _newTotalAssetsArr = new uint256[](1);
+        _newTotalAssetsArr[0] = _newTotalAssets;
         vm.prank(oracle);
-        vault.settleDeposit(_newTotalAssets);
+        vault.settleDeposit(1, _newTotalAssetsArr);
 
         // assert invariant
         assertLt(_vaultSharesBefore, vault.totalShares());
@@ -114,7 +122,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _depositAmount * 2);
         AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
         vm.stopPrank();
 
@@ -123,12 +131,12 @@ contract RequestSettleDepositTest is BaseTest {
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(0);
+        vault.settleDeposit(1, new uint256[](1));
 
         // request deposit
         vm.prank(_user);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
 
         // get vault state before deposit
@@ -139,12 +147,17 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         // settle second batch
+        uint256[] memory _newTotalAssetsArr = new uint256[](1);
+        _newTotalAssetsArr[0] = _newTotalAssets;
         vm.prank(oracle);
-        vault.settleDeposit(_newTotalAssets);
+        vault.settleDeposit(1, _newTotalAssetsArr);
 
         // assert invariant
-        assertLt(_vaultSharesBefore, vault.totalShares());
+        assertLt(_vaultSharesBefore, vault.totalSharesPerSeries(1, 0));
         assertGe(_vaultBalanceBefore, underlyingToken.balanceOf(address(vault)));
+        if (_newTotalAssets <= _depositAmount) {
+            assertLt(0, vault.totalSharesPerSeries(1, 1));
+        }
     }
 
     function test_settleDeposit_totalSharesMustAlwaysIncrease_vaultBalanceMustNeverIncrease_multipleUsers(
@@ -168,7 +181,11 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _firstDepositAmount);
         AuthLibrary.AuthSignature memory _authSignature_1 = _getAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature_1})
+            IERC7540Deposit.RequestDepositParams({
+                classId: 1,
+                amount: _firstDepositAmount,
+                authSignature: _authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -177,11 +194,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(0);
-
-        // get vault state before deposits
-        uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
-        uint256 _vaultSharesBefore = vault.totalShares();
+        vault.settleDeposit(1, new uint256[](1));
 
         // set up second settle cycle
         for (uint8 i = 0; i < _iterations; i++) {
@@ -193,21 +206,30 @@ contract RequestSettleDepositTest is BaseTest {
             underlyingToken.approve(address(vault), _depositAmount);
             AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
             vault.requestDeposit(
-                IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+                IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
             );
             vm.stopPrank();
         }
+
+        // get vault state before deposits
+        uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
+        uint256 _leadSeriesSharesBefore = vault.totalSharesPerSeries(1, 0);
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
 
         // settle second batch
+        uint256[] memory _newTotalAssetsArr = new uint256[](1);
+        _newTotalAssetsArr[0] = _newTotalAssets;
         vm.prank(oracle);
-        vault.settleDeposit(_newTotalAssets);
+        vault.settleDeposit(1, _newTotalAssetsArr);
 
         // assert invariant
-        assertLt(_vaultSharesBefore, vault.totalShares());
+        assertLt(_leadSeriesSharesBefore, vault.totalSharesPerSeries(1, 0));
         assertGe(_vaultBalanceBefore, underlyingToken.balanceOf(address(vault)));
+        if (_newTotalAssets <= _firstDepositAmount) {
+            assertLt(0, vault.totalSharesPerSeries(1, 1));
+        }
     }
 
     function test_settleDeposit_totalSharesMustAlwaysIncrease_vaultBalanceMustNeverIncrease_multipleUsers_multipleBatches(
@@ -233,7 +255,11 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _firstDepositAmount);
         AuthLibrary.AuthSignature memory _authSignature_1 = _getAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _firstDepositAmount, authSignature: _authSignature_1})
+            IERC7540Deposit.RequestDepositParams({
+                classId: 1,
+                amount: _firstDepositAmount,
+                authSignature: _authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -242,7 +268,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(0);
+        vault.settleDeposit(1, new uint256[](1));
 
         // set up next settlement cycles
         for (uint8 i = 0; i < _batches; i++) {
@@ -250,37 +276,66 @@ contract RequestSettleDepositTest is BaseTest {
             vm.warp(block.timestamp + 1 days);
 
             // set up users deposits per batch
+            uint256 _totalDeposits;
             for (uint8 j = 0; j < _iterations; j++) {
                 bool _withNewDeposit = uint256(keccak256(abi.encode(_depositSeed, i, j))) % 2 == 0;
                 if (_withNewDeposit) {
                     // set up new deposit
                     address _user = makeAddr(string.concat("user", vm.toString(j), "_", vm.toString(i)));
                     uint256 _depositAmount = uint256(keccak256(abi.encode(_depositSeed, i, j))) % type(uint96).max;
+                    _totalDeposits += _depositAmount;
 
                     vm.startPrank(_user);
                     underlyingToken.mint(_user, _depositAmount);
                     underlyingToken.approve(address(vault), _depositAmount);
                     AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
                     vault.requestDeposit(
-                        IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+                        IERC7540Deposit.RequestDepositParams({
+                            classId: 1,
+                            amount: _depositAmount,
+                            authSignature: _authSignature
+                        })
                     );
                     vm.stopPrank();
                 }
             }
 
+            // roll the block forward to next batch
+            vm.warp(block.timestamp + 1 days);
+
             // settle batch
             uint256 _newTotalAssets = uint256(keccak256(abi.encode(_newTotalAssetsSeed, i))) % type(uint96).max;
             bool _settleBatch = _newTotalAssets % 2 == 0;
             if (_settleBatch) {
-                uint256 _vaultSharesBefore = vault.totalShares();
+                uint8 _lastConsolidatedSeriesId = vault.lastConsolidatedSeriesId();
+                uint8 _activeSeries = vault.shareSeriesId() - _lastConsolidatedSeriesId + 1;
+                uint256 _leadSeriesAssetsBefore = vault.totalAssetsPerSeries(1, 0);
                 uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
 
+                uint256 _priceDenominator = vault.PRICE_DENOMINATOR();
+                uint256 _scalingFactor = _newTotalAssets.mulDiv(_priceDenominator, _leadSeriesAssetsBefore);
+                uint256[] memory _newTotalAssetsArr = new uint256[](_activeSeries);
+                uint256[] memory _vaultSharesBefore = new uint256[](_activeSeries + 1);
+                _newTotalAssetsArr[0] = _newTotalAssets;
+                _vaultSharesBefore[0] = vault.totalSharesPerSeries(1, 0);
+                for (uint8 k = 1; k < _activeSeries; k++) {
+                    _newTotalAssetsArr[k] = vault.totalAssetsPerSeries(1, k + _lastConsolidatedSeriesId).mulDiv(
+                        _scalingFactor, _priceDenominator
+                    );
+                    _vaultSharesBefore[k] = vault.totalSharesPerSeries(1, k + _lastConsolidatedSeriesId);
+                }
+
                 vm.prank(oracle);
-                vault.settleDeposit(_newTotalAssets);
+                vault.settleDeposit(1, _newTotalAssetsArr);
 
                 // assert invariant
-                assertLe(_vaultSharesBefore, vault.totalShares());
+                assertLe(_vaultSharesBefore[0], vault.totalSharesPerSeries(1, 0));
                 assertGe(_vaultBalanceBefore, underlyingToken.balanceOf(address(vault)));
+                if (_scalingFactor <= _priceDenominator && _totalDeposits > 0) {
+                    for (uint8 k = 1; k <= _activeSeries; k++) {
+                        assertLt(_vaultSharesBefore[k], vault.totalSharesPerSeries(1, k + _lastConsolidatedSeriesId));
+                    }
+                }
             }
         }
     }

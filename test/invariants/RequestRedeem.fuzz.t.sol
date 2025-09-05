@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -25,7 +25,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract RequestRedeemTest is BaseTest {
     function setUp() public override {
@@ -44,70 +44,36 @@ contract RequestRedeemTest is BaseTest {
         // don't use user as vault
         vm.assume(_user != address(vault));
 
-        // get batch id
-        uint48 _batchId = vault.currentBatch();
+        // get pending assets to redeem
+        uint256 _amountToRedeemBefore = vault.redeemRequestOf(1, _user);
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
         // set up user with _redeemShares shares
-        vault.setSharesOf(_user, _redeemShares);
-        uint256 _userSharesBefore = vault.sharesOf(_user);
+        vault.setSharesOf(0, _user, _redeemShares);
 
         // request redeem
         vm.prank(_user);
-        vault.requestRedeem(_redeemShares);
+        vault.requestRedeem(1, _redeemShares);
 
         // assert invariant
-        assertLt(vault.totalSharesToRedeemAt(_batchId), vault.totalSharesToRedeemAt(vault.currentBatch()));
-        assertGt(_userSharesBefore, vault.sharesOf(_user));
+        assertLt(_amountToRedeemBefore, vault.redeemRequestOf(1, _user));
     }
 
-    function test_requestRedeem_totalAmountToRedeemMustAlwaysIncrease_multipleUsers(
-        uint8 _iterations,
-        bytes32 _redeemSeed
-    ) public {
-        vm.assume(_iterations > 0);
-
-        // get batch id
-        uint48 _batchId = vault.currentBatch();
-
-        // roll the block forward to make batch available
-        vm.warp(block.timestamp + 1 days + 1);
-
-        // set up users
-        for (uint8 i = 0; i < _iterations; i++) {
-            address _user = makeAddr(string.concat("user", vm.toString(i)));
-            uint256 _redeemShares = uint256(keccak256(abi.encode(_redeemSeed, i))) % type(uint96).max;
-
-            vault.setSharesOf(_user, _redeemShares);
-            uint256 _userSharesBefore = vault.sharesOf(_user);
-
-            // request redeem
-            vm.prank(_user);
-            vault.requestRedeem(_redeemShares);
-
-            // assert invariant
-            assertLt(vault.totalSharesToRedeemAt(_batchId), vault.totalSharesToRedeemAt(vault.currentBatch()));
-            assertGt(_userSharesBefore, vault.sharesOf(_user));
-        }
-
-        // assert invariant
-        assertLt(vault.totalSharesToRedeemAt(_batchId), vault.totalSharesToRedeem());
-    }
-
-    function test_requestRedeem_totalAmountToRedeemMustAlwaysIncrease_multipleUsers_multipleBatches(
-        uint8 _iterations,
+    function test_requestRedeem_totalAmountToRedeemMustAlwaysIncrease_multipleBatches(
         uint8 _batches,
+        address _user,
         bytes32 _redeemSeed
     ) public {
-        vm.assume(_iterations > 0);
-        vm.assume(_iterations < 50);
         vm.assume(_batches > 0);
         vm.assume(_batches < 50);
+        vm.assume(_user != address(0));
+        vm.assume(_user != address(vault));
 
-        // get batch id
-        uint48 _batchId = vault.currentBatch();
+        // get pending assets to redeem
+        uint256 _amountToRedeemBefore = vault.redeemRequestOf(1, _user);
+        vault.setSharesOf(0, _user, 100 * uint256(type(uint96).max));
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -117,29 +83,21 @@ contract RequestRedeemTest is BaseTest {
             // roll the block forward to make batch available
             vm.warp(block.timestamp + 1 days + 1);
 
-            // get total shares to redeem in batch
-            uint256 _totalSharesToRedeemBefore = vault.totalSharesToRedeemAt(vault.currentBatch());
+            // get total amount to redeem in batch
+            uint256 _totalAmountToRedeemBefore = vault.redeemRequestOf(1, _user);
 
-            for (uint8 j = 0; j < _iterations; j++) {
-                address _user = makeAddr(string.concat("user", vm.toString(j), "_", vm.toString(i)));
-                uint256 _redeemShares = uint256(keccak256(abi.encode(_redeemSeed, i, j))) % type(uint96).max;
+            // set up user with shares
+            uint256 _redeemShares = uint256(keccak256(abi.encode(_redeemSeed, i))) % type(uint96).max;
 
-                vault.setSharesOf(_user, _redeemShares);
-                uint256 _userSharesBefore = vault.sharesOf(_user);
-
-                // request redeem
-                vm.prank(_user);
-                vault.requestRedeem(_redeemShares);
-
-                // assert invariant
-                assertGt(_userSharesBefore, vault.sharesOf(_user));
-            }
+            // request redeem
+            vm.prank(_user);
+            vault.requestRedeem(1, _redeemShares);
 
             // assert batch invariant
-            assertLt(_totalSharesToRedeemBefore, vault.totalSharesToRedeemAt(vault.currentBatch()));
+            assertLt(_totalAmountToRedeemBefore, vault.redeemRequestOf(1, _user));
         }
 
         // assert vault invariant
-        assertLt(vault.totalSharesToRedeemAt(_batchId), vault.totalSharesToRedeem());
+        assertLt(_amountToRedeemBefore, vault.redeemRequestOf(1, _user));
     }
 }

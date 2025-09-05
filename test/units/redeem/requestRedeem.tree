@@ -1,17 +1,20 @@
 RequestRedeem_Unit_Test
-├── given redeem request flow is paused
-│   └── it should revert with FlowIsCurrentlyPaused
-└── given redeem request flow is unpaused
-    ├── when sharesToRedeem is 0
-    │   └── it should revert with InsufficientRedeem
-    └── when sharesToRedeem is greater than 0
-        ├── when currentBatchId is 0
-        │   └── it should revert with NoBatchAvailableForRedeem
-        └── when currentBatchId is not 0
-            ├── when lastRedeemBatchId is greater than or equal to currentBatchId
-            │   └── it should revert with OnlyOneRequestPerBatchAllowedForRedeem
-            └── when lastRedeemBatchId is less than currentBatchId
-                ├── when sharesToRedeem is greater than shares of user
-                │   └── it should revert with InsufficientSharesToRedeem
-                └── when sharesToRedeem is less than or equal to shares of user
-                    └── it should update lastRedeemBatchId, batches, shares of user and emit RedeemRequest
+├── when class id is invalid
+│   └── it should revert with InvalidShareClass
+└── when class id is valid
+    ├── given redeem request flow is paused
+    │   └── it should revert with FlowIsCurrentlyPaused
+    └── given redeem request flow is unpaused
+        ├── when sharesToRedeem is 0
+        │   └── it should revert with InsufficientRedeem
+        └── when sharesToRedeem is greater than 0
+            ├── when currentBatchId is 0
+            │   └── it should revert with NoBatchAvailableForRedeem
+            └── when currentBatchId is not 0
+                ├── when lastRedeemBatchId is greater than or equal to currentBatchId
+                │   └── it should revert with OnlyOneRequestPerBatchAllowedForRedeem
+                └── when lastRedeemBatchId is less than currentBatchId
+                    ├── when sharesToRedeem is greater than shares of user
+                    │   └── it should revert with InsufficientSharesToRedeem
+                    └── when sharesToRedeem is less than or equal to shares of user
+                        └── it should update lastRedeemBatchId, batches, shares of user and emit RedeemRequest

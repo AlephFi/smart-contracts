@@ -29,7 +29,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultRedeemSettlementTest is BaseTest {
     function setUp() public override {
@@ -41,9 +41,17 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: 0, // 0%
-            performanceFee: 0, // 0%
-            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            userInitializationParams: IAlephVault.UserInitializationParams({
+                name: defaultInitializationParams.userInitializationParams.name,
+                configId: defaultInitializationParams.userInitializationParams.configId,
+                manager: defaultInitializationParams.userInitializationParams.manager,
+                underlyingToken: defaultInitializationParams.userInitializationParams.underlyingToken,
+                custodian: defaultInitializationParams.userInitializationParams.custodian,
+                managementFee: 0, // 0%
+                performanceFee: 0, // 0%
+                minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+            }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
 
@@ -62,7 +70,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.ORACLE
             )
         );
-        vault.settleRedeem(1000);
+        vault.settleRedeem(1, new uint256[](1));
     }
 
     function test_settleRedeem_whenCallerIsOracle_revertsGivenFlowIsPaused() public {
@@ -73,7 +81,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
-        vault.settleRedeem(1000);
+        vault.settleRedeem(1, new uint256[](1));
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenRedeemSettleIdIsEqualToCurrentBatchId()
@@ -82,7 +90,17 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.NoRedeemsToSettle.selector);
-        vault.settleRedeem(1000);
+        vault.settleRedeem(1, new uint256[](1));
+    }
+
+    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenNewTotalAssetsIsInvalid() public {
+        // roll the block forward to make future batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // settle redeem
+        vm.prank(oracle);
+        vm.expectRevert(IERC7540Settlement.InvalidNewTotalAssets.selector);
+        vault.settleRedeem(1, new uint256[](2));
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees(
@@ -94,8 +112,10 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertLt(vault.lastFeePaidId(), vault.currentBatch());
 
         // settle redeem
+        uint256[] memory _newTotalAssets = new uint256[](1);
+        _newTotalAssets[0] = 1000 ether;
         vm.prank(oracle);
-        vault.settleRedeem(1000);
+        vault.settleRedeem(1, _newTotalAssets);
 
         // assert last fee paid id is equal to current batch id
         assertEq(vault.lastFeePaidId(), vault.currentBatch());
@@ -112,8 +132,10 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertLt(vault.redeemSettleId(), _currentBatchId);
 
         // settle redeem
+        uint256[] memory _newTotalAssets = new uint256[](1);
+        _newTotalAssets[0] = 1000 ether;
         vm.prank(oracle);
-        vault.settleRedeem(1000);
+        vault.settleRedeem(1, _newTotalAssets);
 
         // assert redeem settle id is equal to current batch id
         assertEq(vault.redeemSettleId(), _currentBatchId);
@@ -125,17 +147,22 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.warp(block.timestamp + 3 days + 1);
 
         // set total assets and total shares
-        vault.setTotalAssets(1000);
-        vault.setTotalShares(1000);
+        uint256[] memory _newTotalAssets = new uint256[](1);
+        _newTotalAssets[0] = 1000 ether;
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
+        vault.setSharesOf(0, mockUser_1, 1000 ether);
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 100);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
 
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 100));
-        vault.settleRedeem(1000);
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 500 ether)
+        );
+        vault.settleRedeem(1, _newTotalAssets);
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_shouldSucceed_singleBatch(
@@ -145,37 +172,62 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 100);
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_2, 200);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 3 * vault.TOTAL_SHARE_UNITS() / 4);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_2, vault.TOTAL_SHARE_UNITS() / 4);
 
         // set total assets and total shares
-        vault.setTotalAssets(1000);
-        vault.setTotalShares(1000);
+        uint256[] memory _newTotalAssets = new uint256[](2);
+        _newTotalAssets[0] = 1000 ether;
+        _newTotalAssets[1] = 1000 ether;
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
+        vault.setSharesOf(0, mockUser_1, 500 ether);
+        vault.setSharesOf(0, mockUser_2, 500 ether);
+        vault.createNewSeries();
+        vault.setTotalAssets(1, 1000 ether);
+        vault.setTotalShares(1, 1000 ether);
+        vault.setSharesOf(1, mockUser_1, 500 ether);
+        vault.setSharesOf(1, mockUser_2, 500 ether);
 
         // mint balance for vault
-        underlyingToken.mint(address(vault), 1000);
+        underlyingToken.mint(address(vault), 2000 ether);
 
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 300, 300, 1000, 1000, vault.PRICE_DENOMINATOR());
-        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 300, 700, 700, vault.PRICE_DENOMINATOR());
-        vault.settleRedeem(1000);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 500 ether, 500 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_2, 1, 0, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 1000 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
+        vault.settleRedeem(1, _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), 700);
-        assertEq(vault.totalShares(), 700);
+        assertEq(vault.totalAssetsPerSeries(1, 0), 250 ether);
+        assertEq(vault.totalAssetsPerSeries(1, 1), 750 ether);
+        assertEq(vault.totalSharesPerSeries(1, 0), 250 ether);
+        assertEq(vault.totalSharesPerSeries(1, 1), 750 ether);
 
         // assert redeem settle id is equal to current batch id
         assertEq(vault.redeemSettleId(), _currentBatchId);
 
-        // assert balance of vault is 700
-        assertEq(underlyingToken.balanceOf(address(vault)), 700);
+        // assert balance of vault is 1000
+        assertEq(underlyingToken.balanceOf(address(vault)), 1000 ether);
+
+        // assert user shares
+        assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
+        assertEq(vault.sharesOf(1, 1, mockUser_1), 250 ether);
+        assertEq(vault.sharesOf(1, 0, mockUser_2), 250 ether);
+        assertEq(vault.sharesOf(1, 1, mockUser_2), 500 ether);
 
         // assert balance of users
-        assertEq(underlyingToken.balanceOf(mockUser_1), 100);
-        assertEq(underlyingToken.balanceOf(mockUser_2), 200);
+        assertEq(underlyingToken.balanceOf(mockUser_1), 750 ether);
+        assertEq(underlyingToken.balanceOf(mockUser_2), 250 ether);
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_shouldSucceed_multipleBatches(
@@ -185,38 +237,66 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 2, mockUser_1, 100);
-        vault.setBatchRedeem(_currentBatchId - 2, mockUser_2, 200);
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 500);
+        vault.setBatchRedeem(_currentBatchId - 2, mockUser_1, vault.TOTAL_SHARE_UNITS() / 4);
+        vault.setBatchRedeem(_currentBatchId - 2, mockUser_2, vault.TOTAL_SHARE_UNITS() / 2);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
 
         // set total assets and total shares
-        vault.setTotalAssets(1000);
-        vault.setTotalShares(1000);
+        uint256[] memory _newTotalAssets = new uint256[](2);
+        _newTotalAssets[0] = 1000 ether;
+        _newTotalAssets[1] = 1000 ether;
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
+        vault.setSharesOf(0, mockUser_1, 500 ether);
+        vault.setSharesOf(0, mockUser_2, 500 ether);
+        vault.createNewSeries();
+        vault.setTotalAssets(1, 1000 ether);
+        vault.setTotalShares(1, 1000 ether);
+        vault.setSharesOf(1, mockUser_1, 500 ether);
+        vault.setSharesOf(1, mockUser_2, 500 ether);
 
         // mint balance for vault
-        underlyingToken.mint(address(vault), 1000);
+        underlyingToken.mint(address(vault), 2000 ether);
 
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 2, 300, 300, 1000, 1000, vault.PRICE_DENOMINATOR());
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 500, 500, 700, 700, vault.PRICE_DENOMINATOR());
-        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 800, 200, 200, vault.PRICE_DENOMINATOR());
-        vault.settleRedeem(1000);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_1, 1, 0, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_2, 1, 0, 500 ether, 500 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 2, 1, 750 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 250 ether, 250 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 125 ether, 125 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 375 ether);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
+        vault.settleRedeem(1, _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), 200);
-        assertEq(vault.totalShares(), 200);
+        assertEq(vault.totalAssetsPerSeries(1, 0), 0 ether);
+        assertEq(vault.totalAssetsPerSeries(1, 1), 875 ether);
+        assertEq(vault.totalSharesPerSeries(1, 0), 0 ether);
+        assertEq(vault.totalSharesPerSeries(1, 1), 875 ether);
 
         // assert redeem settle id is equal to current batch id
         assertEq(vault.redeemSettleId(), _currentBatchId);
 
         // assert balance of vault is 200
-        assertEq(underlyingToken.balanceOf(address(vault)), 200);
+        assertEq(underlyingToken.balanceOf(address(vault)), 875 ether);
+
+        // assert user shares
+        assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
+        assertEq(vault.sharesOf(1, 1, mockUser_1), 375 ether);
+        assertEq(vault.sharesOf(1, 0, mockUser_2), 0 ether);
+        assertEq(vault.sharesOf(1, 1, mockUser_2), 500 ether);
 
         // assert balance of users
-        assertEq(underlyingToken.balanceOf(mockUser_1), 600);
-        assertEq(underlyingToken.balanceOf(mockUser_2), 200);
+        assertEq(underlyingToken.balanceOf(mockUser_1), 625 ether);
+        assertEq(underlyingToken.balanceOf(mockUser_2), 500 ether);
     }
 }

@@ -33,7 +33,7 @@ import {TestToken} from "@aleph-test/exposes/TestToken.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract BaseTest is Test {
     using SafeERC20 for IERC20;
@@ -60,8 +60,6 @@ contract BaseTest is Test {
     address public oracle;
     address public guardian;
     address public authSigner;
-    uint32 public managementFee;
-    uint32 public performanceFee;
     uint48 public minDepositAmountTimelock;
     uint48 public maxDepositCapTimelock;
     uint48 public managementFeeTimelock;
@@ -118,14 +116,16 @@ contract BaseTest is Test {
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
             feeRecipient: makeAddr("feeRecipient"),
-            managementFee: 200, // 2%
-            performanceFee: 2000, // 20%
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: "test",
                 configId: "test-123",
                 manager: makeAddr("manager"),
                 underlyingToken: address(underlyingToken),
-                custodian: makeAddr("custodian")
+                custodian: makeAddr("custodian"),
+                managementFee: 200, // 2%
+                performanceFee: 2000, // 20%
+                minDepositAmount: 10 ether,
+                maxDepositCap: 1_000_000 ether
             }),
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: makeAddr("AlephVaultDeposit"),
@@ -172,8 +172,6 @@ contract BaseTest is Test {
         authSigner = _initializationParams.authSigner;
         custodian = _initializationParams.userInitializationParams.custodian;
         feeRecipient = _initializationParams.feeRecipient;
-        managementFee = _initializationParams.managementFee;
-        performanceFee = _initializationParams.performanceFee;
 
         // set up module implementations
         _initializationParams.moduleInitializationParams = defaultInitializationParams.moduleInitializationParams;
@@ -201,7 +199,7 @@ contract BaseTest is Test {
         view
         returns (AuthLibrary.AuthSignature memory)
     {
-        bytes32 _authMessage = keccak256(abi.encode(_user, address(vault), block.chainid, _expiryBlock));
+        bytes32 _authMessage = keccak256(abi.encode(_user, address(vault), block.chainid, 1, _expiryBlock));
         bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
         (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(authSignerPrivateKey, _ethSignedMessage);
         bytes memory _authSignature = abi.encodePacked(_r, _s, _v);
@@ -209,6 +207,7 @@ contract BaseTest is Test {
     }
 
     function _getSettleDepositExpectations(
+        bool _newSeries,
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint256 _depositAmount,
@@ -217,10 +216,18 @@ contract BaseTest is Test {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
         uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
-        _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
-        uint256 _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
-        uint256 _expectedTotalAssets = _newTotalAssets + _depositAmount;
-        uint256 _expectedTotalShares = _totalShares + _newSharesToMint;
+        uint256 _newSharesToMint;
+        uint256 _expectedTotalAssets = _depositAmount;
+        uint256 _expectedTotalShares;
+        if (_newSeries) {
+            _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, 0, 0);
+            _expectedTotalShares = _newSharesToMint;
+        } else {
+            _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
+            _newSharesToMint = ERC4626Math.previewDeposit(_depositAmount, _totalShares, _newTotalAssets);
+            _expectedTotalAssets += _newTotalAssets;
+            _expectedTotalShares = _totalShares + _newSharesToMint;
+        }
         return SettleDepositExpectations({
             expectedTotalAssets: _expectedTotalAssets,
             expectedTotalShares: _expectedTotalShares,

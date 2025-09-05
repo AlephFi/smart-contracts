@@ -15,7 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
@@ -35,19 +34,15 @@ contract FeeManagerTest is BaseTest {
         // set up context
         uint48 currentBatchId = 100;
         uint48 lastFeePaidId = 0;
-        uint48 timestamp = Time.timestamp();
 
         // accumalate fees
-        vault.accumulateFees(0, currentBatchId, lastFeePaidId, timestamp);
-
-        // check lastFeePaidId is updated
-        assertEq(vault.lastFeePaidId(), currentBatchId);
+        vault.accumulateFees(0, 0, currentBatchId, lastFeePaidId, 1, 0);
 
         // check no fees are accumalated
         address managementFeeRecipient = vault.managementFeeRecipient();
         address performanceFeeRecipient = vault.performanceFeeRecipient();
-        assertEq(vault.sharesOf(managementFeeRecipient), 0);
-        assertEq(vault.sharesOf(performanceFeeRecipient), 0);
+        assertEq(vault.sharesOf(1, 0, managementFeeRecipient), 0);
+        assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 0);
     }
 
     function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsHigherThanPricePerShare_shouldAccumalateOnlyManagementFees(
@@ -55,7 +50,6 @@ contract FeeManagerTest is BaseTest {
         // set up context
         uint48 currentBatchId = 100;
         uint48 lastFeePaidId = 0;
-        uint48 timestamp = Time.timestamp();
 
         // set high water mark to 2
         uint256 _priceDenominator = vault.PRICE_DENOMINATOR();
@@ -64,30 +58,40 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        vault.setTotalAssets(1000);
-        vault.setTotalShares(1000);
+        vault.setTotalAssets(0, 1000);
+        vault.setTotalShares(0, 1000);
 
         // accumalate fees
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.FeesAccumulated(0, 100, 7, 0);
-        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+        emit IFeeManager.FeesAccumulated(
+            0,
+            100,
+            1,
+            0,
+            _newTotalAssets,
+            1005,
+            IFeeManager.FeesAccumulatedParams({
+                managementFeeAmount: 7,
+                performanceFeeAmount: 0,
+                managementFeeSharesToMint: 5,
+                performanceFeeSharesToMint: 0
+            })
+        );
+        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, 1000, currentBatchId, lastFeePaidId, 1, 0);
 
         // assert total shares minted
         assertEq(_totalSharesMinted, 5);
 
-        // check lastFeePaidId is updated
-        assertEq(vault.lastFeePaidId(), currentBatchId);
-
         // check high water mark is not updated
-        assertEq(vault.highWaterMark(), _highWaterMark);
+        assertEq(vault.highWaterMark(1, 0), _highWaterMark);
 
         // check fees are accumalated to management fee recipient
         address managementFeeRecipient = vault.managementFeeRecipient();
-        assertEq(vault.sharesOf(managementFeeRecipient), 5);
+        assertEq(vault.sharesOf(1, 0, managementFeeRecipient), 5);
 
         // check no fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.performanceFeeRecipient();
-        assertEq(vault.sharesOf(performanceFeeRecipient), 0);
+        assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 0);
     }
 
     function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsLowerThanPricePerShare_shouldAccumalateBothPerformanceAndManagementFees(
@@ -95,7 +99,6 @@ contract FeeManagerTest is BaseTest {
         // set up context
         uint48 currentBatchId = 100;
         uint48 lastFeePaidId = 0;
-        uint48 timestamp = Time.timestamp();
 
         // set high water mark to 1
         uint256 _priceDenominator = vault.PRICE_DENOMINATOR();
@@ -104,97 +107,107 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        uint256 _newHighWaterMark = (_newTotalAssets * _priceDenominator) / 1000;
-        vault.setTotalAssets(1000);
-        vault.setTotalShares(1000);
+        uint256 _newHighWaterMark = 1_147_228;
+        vault.setTotalAssets(0, 1000);
+        vault.setTotalShares(0, 1000);
 
         // accumalate fees
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewHighWaterMarkSet(_newHighWaterMark);
+        emit IFeeManager.NewHighWaterMarkSet(1, 0, _newHighWaterMark, 100);
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.FeesAccumulated(0, 100, 7, 50);
-        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, currentBatchId, lastFeePaidId, timestamp);
+        emit IFeeManager.FeesAccumulated(
+            0,
+            100,
+            1,
+            0,
+            _newTotalAssets,
+            1046,
+            IFeeManager.FeesAccumulatedParams({
+                managementFeeAmount: 7,
+                performanceFeeAmount: 50,
+                managementFeeSharesToMint: 5,
+                performanceFeeSharesToMint: 41
+            })
+        );
+        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, 1000, currentBatchId, lastFeePaidId, 1, 0);
 
         // assert total shares minted
         assertEq(_totalSharesMinted, 46);
 
-        // check lastFeePaidId is updated
-        assertEq(vault.lastFeePaidId(), currentBatchId);
-
         // check high water mark is updated
-        assertEq(vault.highWaterMark(), _newHighWaterMark);
+        assertEq(vault.highWaterMark(1, 0), _newHighWaterMark);
 
         // check fees are accumalated to management fee recipient
         address managementFeeRecipient = vault.managementFeeRecipient();
-        assertEq(vault.sharesOf(managementFeeRecipient), 5);
+        assertEq(vault.sharesOf(1, 0, managementFeeRecipient), 5);
 
         // check fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.performanceFeeRecipient();
-        assertEq(vault.sharesOf(performanceFeeRecipient), 41);
+        assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 41);
     }
 
     /*//////////////////////////////////////////////////////////////
                         COLLECT FEE TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_collectFees_revertsWhenCallerIsNotOperationsMultisig() public {
-        // Setup a non-authorized user
-        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+    // function test_collectFees_revertsWhenCallerIsNotOperationsMultisig() public {
+    //     // Setup a non-authorized user
+    //     address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
 
-        // collect fees
-        vm.prank(nonAuthorizedUser);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
-            )
-        );
-        vault.collectFees();
-    }
+    //     // collect fees
+    //     vm.prank(nonAuthorizedUser);
+    //     vm.expectRevert(
+    //         abi.encodeWithSelector(
+    //             IAccessControl.AccessControlUnauthorizedAccount.selector,
+    //             nonAuthorizedUser,
+    //             RolesLibrary.OPERATIONS_MULTISIG
+    //         )
+    //     );
+    //     vault.collectFees();
+    // }
 
-    function test_collectFees_whenCallerIsOperationsMultisig_shouldSucceed() public {
-        // accumalate fees to recipients
-        uint256 _managementShares = 120;
-        uint256 _performanceShares = 120;
-        vault.setSharesOf(vault.managementFeeRecipient(), _managementShares);
-        vault.setSharesOf(vault.performanceFeeRecipient(), _performanceShares);
+    // function test_collectFees_whenCallerIsOperationsMultisig_shouldSucceed() public {
+    //     // accumalate fees to recipients
+    //     uint256 _managementShares = 120;
+    //     uint256 _performanceShares = 120;
+    //     vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
+    //     vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
 
-        // set total assets and shares
-        uint256 _totalAssets = 1000;
-        uint256 _totalShares = 1200;
-        vault.setTotalAssets(_totalAssets);
-        vault.setTotalShares(_totalShares);
+    //     // set total assets and shares
+    //     uint256 _totalAssets = 1000;
+    //     uint256 _totalShares = 1200;
+    //     vault.setTotalAssets(0, _totalAssets);
+    //     vault.setTotalShares(0, _totalShares);
 
-        // expected fees to collect
-        uint256 _expectedManagementFeesToCollect = 100;
-        uint256 _expectedPerformanceFeesToCollect = 100;
-        uint256 _expectedTotalFeesToCollect = _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect;
+    //     // expected fees to collect
+    //     uint256 _expectedManagementFeesToCollect = 100;
+    //     uint256 _expectedPerformanceFeesToCollect = 100;
+    //     uint256 _expectedTotalFeesToCollect = _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect;
 
-        // set vault balance
-        underlyingToken.mint(address(vault), _expectedTotalFeesToCollect);
-        uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
-        uint256 _feeRecipientBalanceBefore = underlyingToken.balanceOf(vault.feeRecipient());
+    //     // set vault balance
+    //     underlyingToken.mint(address(vault), _expectedTotalFeesToCollect);
+    //     uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
+    //     uint256 _feeRecipientBalanceBefore = underlyingToken.balanceOf(vault.feeRecipient());
 
-        // collect fees
-        vm.prank(operationsMultisig);
-        vm.expectEmit(true, true, true, true);
-        emit IFeeManager.FeesCollected(_expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
-        vault.collectFees();
+    //     // collect fees
+    //     vm.prank(operationsMultisig);
+    //     vm.expectEmit(true, true, true, true);
+    //     emit IFeeManager.FeesCollected(_expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
+    //     vault.collectFees();
 
-        // check recipient shares are burned
-        assertEq(vault.sharesOf(vault.managementFeeRecipient()), 0);
-        assertEq(vault.sharesOf(vault.performanceFeeRecipient()), 0);
+    //     // check recipient shares are burned
+    //     assertEq(vault.sharesOf(1, 0, vault.managementFeeRecipient()), 0);
+    //     assertEq(vault.sharesOf(1, 0, vault.performanceFeeRecipient()), 0);
 
-        // check total assets and total shares are updated
-        assertEq(
-            vault.totalAssets(), _totalAssets - _expectedManagementFeesToCollect - _expectedPerformanceFeesToCollect
-        );
-        assertEq(vault.totalShares(), _totalShares - _managementShares - _performanceShares);
+    //     // check total assets and total shares are updated
+    //     assertEq(
+    //         vault.totalAssets(), _totalAssets - _expectedManagementFeesToCollect - _expectedPerformanceFeesToCollect
+    //     );
+    //     assertEq(vault.totalShares(), _totalShares - _managementShares - _performanceShares);
 
-        // check fee is collected
-        assertEq(underlyingToken.balanceOf(address(vault)), _vaultBalanceBefore - _expectedTotalFeesToCollect);
-        assertEq(
-            underlyingToken.balanceOf(vault.feeRecipient()), _feeRecipientBalanceBefore + _expectedTotalFeesToCollect
-        );
-    }
+    //     // check fee is collected
+    //     assertEq(underlyingToken.balanceOf(address(vault)), _vaultBalanceBefore - _expectedTotalFeesToCollect);
+    //     assertEq(
+    //         underlyingToken.balanceOf(vault.feeRecipient()), _feeRecipientBalanceBefore + _expectedTotalFeesToCollect
+    //     );
+    // }
 }

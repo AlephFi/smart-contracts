@@ -17,7 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 library PausableFlows {
     bytes4 internal constant DEPOSIT_REQUEST_FLOW = bytes4(keccak256("DEPOSIT_REQUEST_FLOW"));

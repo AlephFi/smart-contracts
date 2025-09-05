@@ -26,7 +26,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract VaultSetUpTest is BaseTest {
     /*//////////////////////////////////////////////////////////////
@@ -88,8 +88,6 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -107,8 +105,6 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -126,8 +122,6 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -145,8 +139,6 @@ contract VaultSetUpTest is BaseTest {
             guardian: address(0),
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -164,8 +156,6 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: address(0),
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -183,46 +173,6 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: address(0),
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
-            userInitializationParams: defaultInitializationParams.userInitializationParams,
-            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
-        });
-
-        vault = new ExposedVault(defaultConfigParams.batchDuration);
-        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
-        vault.initialize(_initializationParams);
-    }
-
-    function test_initialize_when_managementFee_is_greater_than_maxManagementFee() public {
-        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
-            operationsMultisig: defaultInitializationParams.operationsMultisig,
-            vaultFactory: defaultInitializationParams.vaultFactory,
-            oracle: defaultInitializationParams.oracle,
-            guardian: defaultInitializationParams.guardian,
-            authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: 10_001,
-            performanceFee: defaultInitializationParams.performanceFee,
-            userInitializationParams: defaultInitializationParams.userInitializationParams,
-            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
-        });
-
-        vault = new ExposedVault(defaultConfigParams.batchDuration);
-        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
-        vault.initialize(_initializationParams);
-    }
-
-    function test_initialize_when_performanceFee_is_greater_than_maxPerformanceFee() public {
-        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
-            operationsMultisig: defaultInitializationParams.operationsMultisig,
-            vaultFactory: defaultInitializationParams.vaultFactory,
-            oracle: defaultInitializationParams.oracle,
-            guardian: defaultInitializationParams.guardian,
-            authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: 10_001,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -240,14 +190,16 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
                 manager: address(0),
                 underlyingToken: defaultInitializationParams.userInitializationParams.underlyingToken,
-                custodian: defaultInitializationParams.userInitializationParams.custodian
+                custodian: defaultInitializationParams.userInitializationParams.custodian,
+                managementFee: defaultInitializationParams.userInitializationParams.managementFee,
+                performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -265,14 +217,16 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
                 manager: defaultInitializationParams.userInitializationParams.manager,
                 underlyingToken: address(0),
-                custodian: defaultInitializationParams.userInitializationParams.custodian
+                custodian: defaultInitializationParams.userInitializationParams.custodian,
+                managementFee: defaultInitializationParams.userInitializationParams.managementFee,
+                performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -290,16 +244,178 @@ contract VaultSetUpTest is BaseTest {
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
             feeRecipient: defaultInitializationParams.feeRecipient,
-            managementFee: defaultInitializationParams.managementFee,
-            performanceFee: defaultInitializationParams.performanceFee,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
                 manager: defaultInitializationParams.userInitializationParams.manager,
                 underlyingToken: defaultInitializationParams.userInitializationParams.underlyingToken,
-                custodian: address(0)
+                custodian: address(0),
+                managementFee: defaultInitializationParams.userInitializationParams.managementFee,
+                performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_managementFee_is_greater_than_maxManagementFee() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            userInitializationParams: IAlephVault.UserInitializationParams({
+                name: defaultInitializationParams.userInitializationParams.name,
+                configId: defaultInitializationParams.userInitializationParams.configId,
+                manager: defaultInitializationParams.userInitializationParams.manager,
+                underlyingToken: defaultInitializationParams.userInitializationParams.underlyingToken,
+                custodian: defaultInitializationParams.userInitializationParams.custodian,
+                managementFee: 10_001,
+                performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+            }),
+            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_performanceFee_is_greater_than_maxPerformanceFee() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            userInitializationParams: IAlephVault.UserInitializationParams({
+                name: defaultInitializationParams.userInitializationParams.name,
+                configId: defaultInitializationParams.userInitializationParams.configId,
+                manager: defaultInitializationParams.userInitializationParams.manager,
+                underlyingToken: defaultInitializationParams.userInitializationParams.underlyingToken,
+                custodian: defaultInitializationParams.userInitializationParams.custodian,
+                managementFee: defaultInitializationParams.userInitializationParams.managementFee,
+                performanceFee: 10_001,
+                minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+            }),
+            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_alephVaultDepositImplementation_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: address(0),
+                alephVaultRedeemImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultSettlementImplementation,
+                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation
+            })
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_alephVaultRedeemImplementation_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: address(0),
+                alephVaultSettlementImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultSettlementImplementation,
+                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation
+            })
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_alephVaultSettlementImplementation_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: address(0),
+                feeManagerImplementation: defaultInitializationParams.moduleInitializationParams.feeManagerImplementation
+            })
+        });
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_feeManagerImplementation_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            vaultFactory: defaultInitializationParams.vaultFactory,
+            oracle: defaultInitializationParams.oracle,
+            guardian: defaultInitializationParams.guardian,
+            authSigner: defaultInitializationParams.authSigner,
+            feeRecipient: defaultInitializationParams.feeRecipient,
+            userInitializationParams: defaultInitializationParams.userInitializationParams,
+            moduleInitializationParams: IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultDepositImplementation,
+                alephVaultRedeemImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultRedeemImplementation,
+                alephVaultSettlementImplementation: defaultInitializationParams
+                    .moduleInitializationParams
+                    .alephVaultSettlementImplementation,
+                feeManagerImplementation: address(0)
+            })
         });
 
         vault = new ExposedVault(defaultConfigParams.batchDuration);
@@ -319,8 +435,8 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.underlyingToken(), defaultInitializationParams.userInitializationParams.underlyingToken);
         assertEq(vault.custodian(), defaultInitializationParams.userInitializationParams.custodian);
         assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);
-        assertEq(vault.managementFee(), defaultInitializationParams.managementFee);
-        assertEq(vault.performanceFee(), defaultInitializationParams.performanceFee);
+        assertEq(vault.managementFee(1), defaultInitializationParams.userInitializationParams.managementFee);
+        assertEq(vault.performanceFee(1), defaultInitializationParams.userInitializationParams.performanceFee);
 
         assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(RolesLibrary.VAULT_FACTORY, defaultInitializationParams.vaultFactory));

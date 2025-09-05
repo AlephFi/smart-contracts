@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -26,13 +26,15 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract RequestDepositTest is BaseTest {
     function setUp() public override {
         super.setUp();
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
+        vault.setMinDepositAmount(0);
+        vault.setMaxDepositCap(0);
     }
 
     function test_requestDeposit_totalAmountToDepositMustAlwaysIncrease(address _user, uint256 _depositAmount) public {
@@ -67,12 +69,12 @@ contract RequestDepositTest is BaseTest {
 
         // request deposit
         uint48 _depositBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
         vm.stopPrank();
 
         // assert invariant
-        assertLt(vault.totalAmountToDepositAt(_batchId), vault.totalAmountToDepositAt(_depositBatchId));
+        assertLt(vault.totalAmountToDepositAt(1, _batchId), vault.totalAmountToDepositAt(1, _depositBatchId));
         assertLt(_vaultBalanceBefore, underlyingToken.balanceOf(address(vault)));
         assertGt(_userBalanceBefore, underlyingToken.balanceOf(_user));
     }
@@ -109,17 +111,17 @@ contract RequestDepositTest is BaseTest {
 
             // request deposit
             vault.requestDeposit(
-                IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+                IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
             );
             vm.stopPrank();
 
             // assert user invariant
             assertGt(_userBalanceBefore, underlyingToken.balanceOf(_user));
-            assertLt(vault.totalAmountToDepositAt(_batchId), vault.totalAmountToDepositAt(vault.currentBatch()));
+            assertLt(vault.totalAmountToDepositAt(1, _batchId), vault.totalAmountToDepositAt(1, vault.currentBatch()));
         }
 
         // assert vault invariant
-        assertLt(vault.totalAmountToDepositAt(_batchId), vault.totalAmountToDeposit());
+        assertLt(vault.totalAmountToDepositAt(1, _batchId), vault.totalAmountToDeposit(1));
         assertGt(underlyingToken.balanceOf(address(vault)), _vaultBalanceBefore);
     }
 
@@ -148,7 +150,7 @@ contract RequestDepositTest is BaseTest {
             vm.warp(block.timestamp + 1 days + 1);
 
             // get total deposits in batch
-            uint256 _totalDepositsBefore = vault.totalAmountToDepositAt(vault.currentBatch());
+            uint256 _totalDepositsBefore = vault.totalAmountToDepositAt(1, vault.currentBatch());
 
             for (uint8 j = 0; j < _iterations; j++) {
                 address _user = makeAddr(string.concat("user", vm.toString(j), "_", vm.toString(i)));
@@ -166,7 +168,11 @@ contract RequestDepositTest is BaseTest {
 
                 // request deposit
                 vault.requestDeposit(
-                    IERC7540Deposit.RequestDepositParams({amount: _depositAmount, authSignature: _authSignature})
+                    IERC7540Deposit.RequestDepositParams({
+                        classId: 1,
+                        amount: _depositAmount,
+                        authSignature: _authSignature
+                    })
                 );
                 vm.stopPrank();
 
@@ -175,11 +181,11 @@ contract RequestDepositTest is BaseTest {
             }
 
             // assert batch invariant
-            assertLt(_totalDepositsBefore, vault.totalAmountToDepositAt(vault.currentBatch()));
+            assertLt(_totalDepositsBefore, vault.totalAmountToDepositAt(1, vault.currentBatch()));
         }
 
         // assert vault invariant
-        assertLt(vault.totalAmountToDepositAt(_batchId), vault.totalAmountToDeposit());
+        assertLt(vault.totalAmountToDepositAt(1, _batchId), vault.totalAmountToDeposit(1));
         assertGt(underlyingToken.balanceOf(address(vault)), _vaultBalanceBefore);
     }
 }

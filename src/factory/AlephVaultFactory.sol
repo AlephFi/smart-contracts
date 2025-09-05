@@ -32,7 +32,7 @@ import {
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -62,8 +62,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
                 || _initalizationParams.alephVaultRedeemImplementation == address(0)
                 || _initalizationParams.alephVaultSettlementImplementation == address(0)
                 || _initalizationParams.feeManagerImplementation == address(0)
-                || _initalizationParams.managementFee > MAX_MANAGEMENT_FEE
-                || _initalizationParams.performanceFee > MAX_PERFORMANCE_FEE
         ) {
             revert InvalidInitializationParams();
         }
@@ -75,8 +73,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.guardian = _initalizationParams.guardian;
         _sd.authSigner = _initalizationParams.authSigner;
         _sd.feeRecipient = _initalizationParams.feeRecipient;
-        _sd.managementFee = _initalizationParams.managementFee;
-        _sd.performanceFee = _initalizationParams.performanceFee;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
             _initalizationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
@@ -112,8 +108,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             guardian: _sd.guardian,
             authSigner: _sd.authSigner,
             feeRecipient: _sd.feeRecipient,
-            managementFee: _sd.managementFee,
-            performanceFee: _sd.performanceFee,
             userInitializationParams: _userInitializationParams,
             moduleInitializationParams: _moduleInitializationParams
         });
@@ -178,22 +172,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         }
         _getStorage().feeRecipient = _feeRecipient;
         emit FeeRecipientSet(_feeRecipient);
-    }
-
-    function setManagementFee(uint32 _managementFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        if (_managementFee > MAX_MANAGEMENT_FEE) {
-            revert InvalidParam();
-        }
-        _getStorage().managementFee = _managementFee;
-        emit ManagementFeeSet(_managementFee);
-    }
-
-    function setPerformanceFee(uint32 _performanceFee) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        if (_performanceFee > MAX_PERFORMANCE_FEE) {
-            revert InvalidParam();
-        }
-        _getStorage().performanceFee = _performanceFee;
-        emit PerformanceFeeSet(_performanceFee);
     }
 
     function setModuleImplementation(bytes4 _module, address _implementation)

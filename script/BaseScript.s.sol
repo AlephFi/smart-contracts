@@ -20,7 +20,7 @@ import {console} from "forge-std/console.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 abstract contract BaseScript is Script {
     function _getPrivateKey() internal view returns (uint256) {

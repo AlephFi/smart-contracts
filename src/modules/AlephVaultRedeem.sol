@@ -15,60 +15,78 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
-    using Checkpoints for Checkpoints.Trace256;
+    using Math for uint256;
 
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint256 _shares) external returns (uint48 _batchId) {
-        return _requestRedeem(_getStorage(), _shares);
+    function requestRedeem(uint8 _classId, uint256 _amount) external returns (uint48 _batchId) {
+        return _requestRedeem(_getStorage(), _classId, _amount);
     }
 
     /**
      * @dev Internal function to handle a redeem request.
-     * @param _sharesToRedeem The number of shares to redeem.
+     * @param _sd The storage struct.
+     * @param _classId The class ID to redeem from.
+     * @param _amount The amount to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function _requestRedeem(AlephVaultStorageData storage _sd, uint256 _sharesToRedeem)
+    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _amount)
         internal
         returns (uint48 _batchId)
     {
-        if (_sharesToRedeem == 0) {
+        // verify all conditions are satisfied to make redeem request
+        if (_amount == 0) {
             revert InsufficientRedeem();
         }
-        uint48 _currentBatchId = _currentBatch();
+        uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForRedeem(); // need to wait for the first batch to be available
         }
-        uint48 _lastRedeemBatchId = _sd.lastRedeemBatchId[msg.sender];
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _lastRedeemBatchId = _shareClass.lastRedeemBatchId[msg.sender];
         if (_lastRedeemBatchId >= _currentBatchId) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
-        uint256 _shares = _sharesOf(msg.sender);
-        if (_shares < _sharesToRedeem) {
-            revert InsufficientSharesToRedeem();
+        // get total user assets in the share class
+        uint256 _totalUserAssets = _assetsPerClassOf(_classId, msg.sender, _shareClass);
+        // get pending assets of the user that will be settled in upcoming cycle
+        uint256 _pendingAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
+        if (_pendingAssets + _amount > _totalUserAssets) {
+            revert InsufficientAssetsToRedeem();
         }
-        _sd.lastRedeemBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.BatchData storage _batch = _sd.batches[_currentBatchId];
-        _batch.redeemRequest[msg.sender] = _sharesToRedeem;
-        _batch.totalSharesToRedeem += _sharesToRedeem;
-        _batch.usersToRedeem.push(msg.sender);
-        _sd.sharesOf[msg.sender].push(Time.timestamp(), _shares - _sharesToRedeem);
-        // we will update the total shares and assets in the _settleRedeemForBatch function
-        emit RedeemRequest(msg.sender, _sharesToRedeem, _currentBatchId);
+
+        // Calculate redeemable share units as a proportion of user's available assets
+        // Formula: shares = amount * TOTAL_SHARE_UNITS / (totalUserAssets - pendingAssets)
+        // This calculation is crucial because:
+        // 1. This approach handles dynamic asset values during settlement, as the vault's
+        //    total value may change due to PnL between request and settlement
+        // 2. Pending assets are excluded in this calculation as they're already being processed
+        //    in other batches at the time of settlement
+        // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
+        //    Using available assets (total - pending) as denominator ensures redemption requests
+        //    are correctly sized relative to user's redeemable position at that particular batch
+        uint256 _shareUnitsToRedeem = ERC4626Math.previewWithdrawUnits(_amount, _totalUserAssets - _pendingAssets);
+
+        // update last redeem batch id and register redeem request
+        _shareClass.lastRedeemBatchId[msg.sender] = _currentBatchId;
+        IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
+        _redeemRequests.redeemRequest[msg.sender] = _shareUnitsToRedeem;
+        _redeemRequests.usersToRedeem.push(msg.sender);
+        emit RedeemRequest(msg.sender, _classId, _amount, _currentBatchId);
         return _currentBatchId;
     }
 }

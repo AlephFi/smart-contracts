@@ -16,13 +16,13 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 
 struct AlephVaultStorageData {
     string name;
-    string metadataUri;
     bool isAuthEnabled;
+    uint8 shareClassesId;
+    uint48 startTimeStamp;
     address manager;
     address oracle;
     address guardian;
@@ -30,28 +30,14 @@ struct AlephVaultStorageData {
     address underlyingToken;
     address custodian;
     address feeRecipient;
-    uint32 managementFee;
-    uint32 performanceFee;
-    uint48 startTimeStamp;
-    uint48 lastFeePaidId;
-    uint48 depositSettleId;
-    uint48 redeemSettleId;
-    uint256 minDepositAmount;
-    uint256 maxDepositCap;
-    Checkpoints.Trace256 highWaterMark;
-    Checkpoints.Trace256 assets;
-    Checkpoints.Trace256 shares;
-    mapping(uint48 batchId => IAlephVault.BatchData) batches;
-    mapping(address user => uint48 batchId) lastDepositBatchId;
-    mapping(address user => uint48 batchId) lastRedeemBatchId;
-    mapping(address user => Checkpoints.Trace256 shares) sharesOf;
+    mapping(uint8 classId => IAlephVault.ShareClass) shareClasses;
     mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
     mapping(bytes4 => address) moduleImplementations;
 }
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 library AlephVaultStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.vault")) - 1;

@@ -15,10 +15,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
-import {Checkpoints} from "@aleph-vault/libraries/Checkpoints.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
@@ -28,24 +26,33 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract ExposedVault is AlephVault {
     using Math for uint256;
-    using Checkpoints for Checkpoints.Trace256;
+
+    uint256 public constant TOTAL_SHARE_UNITS = 1e18;
 
     constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
 
     function depositSettleId() external view returns (uint48) {
-        return _getStorage().depositSettleId;
+        return _getStorage().shareClasses[1].depositSettleId;
     }
 
     function redeemSettleId() external view returns (uint48) {
-        return _getStorage().redeemSettleId;
+        return _getStorage().shareClasses[1].redeemSettleId;
     }
 
     function lastFeePaidId() external view returns (uint48) {
-        return _getStorage().lastFeePaidId;
+        return _getStorage().shareClasses[1].lastFeePaidId;
+    }
+
+    function shareSeriesId() external view returns (uint8) {
+        return _getStorage().shareClasses[1].shareSeriesId;
+    }
+
+    function lastConsolidatedSeriesId() external view returns (uint8) {
+        return _getStorage().shareClasses[1].lastConsolidatedSeriesId;
     }
 
     function timelocks(bytes4 _key) external view returns (TimelockRegistry.Timelock memory) {
@@ -53,73 +60,78 @@ contract ExposedVault is AlephVault {
     }
 
     function setLastDepositBatchId(address _user, uint48 _lastDepositBatchId) external {
-        _getStorage().lastDepositBatchId[_user] = _lastDepositBatchId;
+        _getStorage().shareClasses[1].lastDepositBatchId[_user] = _lastDepositBatchId;
     }
 
     function setLastRedeemBatchId(address _user, uint48 _lastRedeemBatchId) external {
-        _getStorage().lastRedeemBatchId[_user] = _lastRedeemBatchId;
+        _getStorage().shareClasses[1].lastRedeemBatchId[_user] = _lastRedeemBatchId;
     }
 
     function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
-        _getStorage().depositSettleId = _currentDepositBatchId;
+        _getStorage().shareClasses[1].depositSettleId = _currentDepositBatchId;
     }
 
     function setBatchDepositRequest(uint48 _batchId, address _user, uint256 _amount) external {
-        _getStorage().batches[_batchId].depositRequest[_user] = _amount;
+        _getStorage().shareClasses[1].depositRequests[_batchId].depositRequest[_user] = _amount;
     }
 
     function setLastFeePaidId(uint48 _lastFeePaidId) external {
-        _getStorage().lastFeePaidId = _lastFeePaidId;
+        _getStorage().shareClasses[1].lastFeePaidId = _lastFeePaidId;
     }
 
     function setBatchDeposit(uint48 _batchId, address _user, uint256 _amount) external {
         AlephVaultStorageData storage _sd = _getStorage();
-        _sd.batches[_batchId].usersToDeposit.push(_user);
-        _sd.batches[_batchId].depositRequest[_user] = _amount;
-        _sd.batches[_batchId].totalAmountToDeposit += _amount;
+        _sd.shareClasses[1].depositRequests[_batchId].usersToDeposit.push(_user);
+        _sd.shareClasses[1].depositRequests[_batchId].depositRequest[_user] = _amount;
+        _sd.shareClasses[1].depositRequests[_batchId].totalAmountToDeposit += _amount;
     }
 
-    function setBatchRedeem(uint48 _batchId, address _user, uint256 _shares) external {
+    function setBatchRedeem(uint48 _batchId, address _user, uint256 _amount) external {
         AlephVaultStorageData storage _sd = _getStorage();
-        _sd.batches[_batchId].usersToRedeem.push(_user);
-        _sd.batches[_batchId].redeemRequest[_user] = _shares;
-        _sd.batches[_batchId].totalSharesToRedeem += _shares;
+        _sd.shareClasses[1].redeemRequests[_batchId].usersToRedeem.push(_user);
+        _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _amount;
     }
 
     function setMinDepositAmount(uint256 _minDepositAmount) external {
-        _getStorage().minDepositAmount = _minDepositAmount;
+        _getStorage().shareClasses[1].minDepositAmount = _minDepositAmount;
     }
 
     function setMaxDepositCap(uint256 _maxDepositCap) external {
-        _getStorage().maxDepositCap = _maxDepositCap;
+        _getStorage().shareClasses[1].maxDepositCap = _maxDepositCap;
     }
 
-    function setTotalAssets(uint256 _totalAssets) external {
-        _getStorage().assets.push(Time.timestamp(), _totalAssets);
+    function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {
+        _getStorage().shareClasses[1].shareSeries[_seriesId].totalAssets = _totalAssets;
     }
 
-    function setTotalShares(uint256 _totalShares) external {
-        _getStorage().shares.push(Time.timestamp(), _totalShares);
+    function setTotalShares(uint8 _seriesId, uint256 _totalShares) external {
+        _getStorage().shareClasses[1].shareSeries[_seriesId].totalShares = _totalShares;
     }
 
-    function setSharesOf(address _user, uint256 _shares) external {
-        _getStorage().sharesOf[_user].push(Time.timestamp(), _shares);
+    function setSharesOf(uint8 _seriesId, address _user, uint256 _shares) external {
+        _getStorage().shareClasses[1].shareSeries[_seriesId].sharesOf[_user] = _shares;
     }
 
     function setHighWaterMark(uint256 _highWaterMark) external {
-        _getStorage().highWaterMark.push(Time.timestamp(), _highWaterMark);
+        _getStorage().shareClasses[1].shareSeries[0].highWaterMark = _highWaterMark;
     }
 
     function setManagementFee(uint32 _managementFee) external {
-        _getStorage().managementFee = _managementFee;
+        _getStorage().shareClasses[1].managementFee = _managementFee;
     }
 
     function setPerformanceFee(uint32 _performanceFee) external {
-        _getStorage().performanceFee = _performanceFee;
+        _getStorage().shareClasses[1].performanceFee = _performanceFee;
     }
 
-    function accumulateFees(uint256, uint48, uint48, uint48) external returns (uint256) {
+    function accumulateFees(uint256, uint256, uint48, uint48, uint8, uint8) external returns (uint256) {
         _delegate(ModulesLibrary.FEE_MANAGER);
+    }
+
+    function createNewSeries() external {
+        AlephVaultStorageData storage _sd = _getStorage();
+        _sd.shareClasses[1].shareSeriesId++;
+        _sd.shareClasses[1].shareSeries[_sd.shareClasses[1].shareSeriesId].highWaterMark = PRICE_DENOMINATOR;
     }
 
     function getManagementFeeShares(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)
@@ -131,17 +143,18 @@ contract ExposedVault is AlephVault {
             return 0;
         }
         return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
-            _newTotalAssets, _totalShares, _batchesElapsed, _getStorage().managementFee
+            _newTotalAssets, _totalShares, _batchesElapsed, _getStorage().shareClasses[1].managementFee
         );
     }
 
     function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares) external view returns (uint256) {
-        uint256 _highWaterMark = _highWaterMark();
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint256 _highWaterMark = _sd.shareClasses[1].shareSeries[0].highWaterMark;
         if (_highWaterMark == 0) {
             return 0;
         }
-        return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
-            _newTotalAssets, _totalShares, _getStorage().performanceFee, _highWaterMark
+        return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
+            _newTotalAssets, _totalShares, _sd.shareClasses[1].performanceFee, _highWaterMark
         );
     }
 

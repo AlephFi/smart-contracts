@@ -19,7 +19,7 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVaultFactory {
     error InvalidInitializationParams();
@@ -47,8 +47,6 @@ interface IAlephVaultFactory {
         address alephVaultRedeemImplementation;
         address alephVaultSettlementImplementation;
         address feeManagerImplementation;
-        uint32 managementFee;
-        uint32 performanceFee;
     }
 
     /**
@@ -90,18 +88,6 @@ interface IAlephVaultFactory {
      * @param _feeRecipient The address of the fee recipient.
      */
     function setFeeRecipient(address _feeRecipient) external;
-
-    /**
-     * @notice Sets the management fee.
-     * @param _managementFee The management fee.
-     */
-    function setManagementFee(uint32 _managementFee) external;
-
-    /**
-     * @notice Sets the performance fee.
-     * @param _performanceFee The performance fee.
-     */
-    function setPerformanceFee(uint32 _performanceFee) external;
 
     /**
      * @notice Sets the module implementation.

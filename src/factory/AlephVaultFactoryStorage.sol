@@ -24,15 +24,13 @@ struct AlephVaultFactoryStorageData {
     address guardian;
     address authSigner;
     address feeRecipient;
-    uint32 managementFee;
-    uint32 performanceFee;
     EnumerableSet.AddressSet vaults;
     mapping(bytes4 => address) moduleImplementations;
 }
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 library AlephVaultFactoryStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.vault.factory")) - 1;
