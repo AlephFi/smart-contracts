@@ -21,7 +21,7 @@ import {UpgradeableBeacon} from "lib/openzeppelin-contracts/contracts/proxy/beac
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
 // Use to Deploy only an AlephVault beacon.

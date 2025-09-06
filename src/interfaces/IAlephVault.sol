@@ -19,7 +19,7 @@ import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/Enum
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVault {
     error InvalidInitializationParams();
@@ -28,7 +28,6 @@ interface IAlephVault {
     error InvalidShareSeries();
     error InvalidVaultFee();
 
-    event MetadataUriSet(string metadataUri);
     event IsAuthEnabledSet(bool isAuthEnabled);
     event ShareClassCreated(
         uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
@@ -341,18 +340,6 @@ interface IAlephVault {
      * @return The status of the KYC authentication.
      */
     function isAuthEnabled() external view returns (bool);
-
-    /**
-     * @notice Returns the metadata URL of the vault.
-     * @return The metadata URL.
-     */
-    function metadataUri() external view returns (string memory);
-
-    /**
-     * @notice Sets the metadata URL of the vault.
-     * @param _metadataUrl The new metadata URL.
-     */
-    function setMetadataUri(string calldata _metadataUrl) external;
 
     /**
      * @notice Sets the status of the KYC authentication.

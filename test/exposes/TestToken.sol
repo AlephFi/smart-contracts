@@ -18,7 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
 contract TestToken is ERC20 {

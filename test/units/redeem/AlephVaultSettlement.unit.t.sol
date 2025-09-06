@@ -29,7 +29,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultRedeemSettlementTest is BaseTest {
     function setUp() public override {
@@ -155,7 +155,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.PRICE_DENOMINATOR() / 2);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
 
         // settle redeem
         vm.prank(oracle);
@@ -172,8 +172,8 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 3 * vault.PRICE_DENOMINATOR() / 4);
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_2, vault.PRICE_DENOMINATOR() / 4);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, 3 * vault.TOTAL_SHARE_UNITS() / 4);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_2, vault.TOTAL_SHARE_UNITS() / 4);
 
         // set total assets and total shares
         uint256[] memory _newTotalAssets = new uint256[](2);
@@ -237,9 +237,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // set batch redeem requests
         uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 2, mockUser_1, vault.PRICE_DENOMINATOR() / 4);
-        vault.setBatchRedeem(_currentBatchId - 2, mockUser_2, vault.PRICE_DENOMINATOR() / 2);
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.PRICE_DENOMINATOR() / 2);
+        vault.setBatchRedeem(_currentBatchId - 2, mockUser_1, vault.TOTAL_SHARE_UNITS() / 4);
+        vault.setBatchRedeem(_currentBatchId - 2, mockUser_2, vault.TOTAL_SHARE_UNITS() / 2);
+        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
 
         // set total assets and total shares
         uint256[] memory _newTotalAssets = new uint256[](2);

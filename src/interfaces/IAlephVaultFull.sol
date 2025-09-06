@@ -24,7 +24,7 @@ import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  * @notice Complete interface for AlephVault including all module functionality
  */
 interface IAlephVaultFull is

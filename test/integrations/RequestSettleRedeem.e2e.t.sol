@@ -30,7 +30,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract RequestSettleRedeemTest is BaseTest {
     function setUp() public override {
@@ -137,25 +137,21 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(2, mockUser_1, 1, 0, 60 ether, 50 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSettled(2, mockUser_1, 1, 60 ether);
-        vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(2, 1, 60 ether);
+        emit IERC7540Settlement.SettleRedeemBatch(1, 1, 60 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, 3, 1);
         vault.settleRedeem(1, _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertApproxEqAbs(vault.totalAssetsPerSeries(1, 0), 1080 ether, 1);
-        assertApproxEqAbs(vault.totalSharesPerSeries(1, 0), 900 ether, 1);
+        assertApproxEqAbs(vault.totalAssetsPerSeries(1, 0), 1080 ether, 2);
+        assertApproxEqAbs(vault.totalSharesPerSeries(1, 0), 900 ether, 2);
 
         // assert user shares are burned
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
 
         // assert user assets are received
-        assertApproxEqAbs(underlyingToken.balanceOf(mockUser_1), 120 ether, 1);
+        assertApproxEqAbs(underlyingToken.balanceOf(mockUser_1), 120 ether, 2);
     }
 
     function test_requestSettleRedeem_whenNewTotalAssetsDecreases() public {

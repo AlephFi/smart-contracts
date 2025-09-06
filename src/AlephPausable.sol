@@ -22,7 +22,7 @@ import {AlephPausableStorage, AlephPausableStorageData} from "@aleph-vault/Aleph
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
     // MODIFIERS

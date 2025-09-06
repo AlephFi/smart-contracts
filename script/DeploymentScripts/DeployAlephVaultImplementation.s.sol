@@ -27,7 +27,7 @@ import {MigrationManager} from "@aleph-vault/modules/MigrationManager.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
 // Use to Deploy only an AlephVault implementation.

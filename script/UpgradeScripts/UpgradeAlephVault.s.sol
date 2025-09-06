@@ -25,7 +25,7 @@ import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
 // Use only to upgrade AlephVault.

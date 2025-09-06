@@ -17,7 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 /**
  * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
+ * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 library ModulesLibrary {
     bytes4 internal constant ALEPH_VAULT_DEPOSIT = bytes4(keccak256("ALEPH_VAULT_DEPOSIT"));
