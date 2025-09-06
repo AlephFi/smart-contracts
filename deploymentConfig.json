@@ -8,6 +8,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "",
       "vaultBeaconAddress": "",
       "factoryProxyAddress": ""
@@ -22,6 +23,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "0x6908F4C0418BBFEC26354716346cb5012AAB4585",
       "vaultBeaconAddress": "0xA7cD94CC2fC013FCE0BAF20f225FcF0D5509BFb5",
       "factoryProxyAddress": "0xD5dc82F6569e93e55FfA71083E13ae9d7DB24b34"
@@ -34,6 +36,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "0xDd38C3B1550ca276f363750Fe40686D34d756723",
       "vaultBeaconAddress": "0x899831AB33b629fE2014d167BE3964e16D60B5da",
       "factoryProxyAddress": "0xD8b1F1F4D9b6983cE490ca5EAC770C23c20D012c"
@@ -46,6 +49,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "0x80953798531448782cb5f685bf7191b61D1Da6d5",
       "vaultBeaconAddress": "0xF8445cC701dEa8aB8b90e8063227055EC13cD4dE",
       "factoryProxyAddress": "0x018310e70d32F7850EE719Cc35f3258C57069636"
@@ -55,14 +59,15 @@
     "staging": {
       "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
-      "vaultImplementationAddress": "0x3189f89f2701257a5e06AA85f017f2433FfC0155",
-      "vaultDepositImplementationAddress": "0x1794A57fd58DC5Fa08C36Ce7b52c74C9C3D86d78",
-      "vaultRedeemImplementationAddress": "0x23bD6ab27F55Ca0c52C04fDa49a1b746aa49d5A9",
-      "vaultSettlementImplementationAddress": "0xB462be3560ea8905c49D4076d5492a517094b8D3",
-      "feeManagerImplementationAddress": "0xd63294377b5C0D15Bdb78d1e440d9AA804Fa9AEA",
-      "factoryImplementationAddress": "0x5479675A11350d15eb313c867F0Df9d0896F7191",
-      "vaultBeaconAddress": "0xeB03F7090A651cd8E96271417368280A0026A18e",
-      "factoryProxyAddress": "0xc4C1e191C222246a7eF5A558090fDe1fa845c763"
+      "vaultImplementationAddress": "0x222757Ce11081CB2a92A3439faa72d4cC8c9C533",
+      "vaultDepositImplementationAddress": "",
+      "vaultRedeemImplementationAddress": "",
+      "vaultSettlementImplementationAddress": "",
+      "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
+      "factoryImplementationAddress": "0xDd38C3B1550ca276f363750Fe40686D34d756723",
+      "vaultBeaconAddress": "0x899831AB33b629fE2014d167BE3964e16D60B5da",
+      "factoryProxyAddress": "0xD8b1F1F4D9b6983cE490ca5EAC770C23c20D012c"
     },
     "nightly": {
       "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
@@ -72,6 +77,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "0x80953798531448782cb5f685bf7191b61D1Da6d5",
       "vaultBeaconAddress": "0xF8445cC701dEa8aB8b90e8063227055EC13cD4dE",
       "factoryProxyAddress": "0x018310e70d32F7850EE719Cc35f3258C57069636"
@@ -84,6 +90,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "0x6A92036A0C88bDFC3edC53Fd5933567Cf581e418",
       "vaultBeaconAddress": "0xc3cAE1519D921d49663f3E6f46305a9a26b0aF90",
       "factoryProxyAddress": "0xF9FEcd5160D2aae60101817c43cf73F6F7Ff813B"
@@ -98,6 +105,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "",
       "vaultBeaconAddress": "",
       "factoryProxyAddress": ""
@@ -110,6 +118,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "",
       "vaultBeaconAddress": "",
       "factoryProxyAddress": ""
@@ -122,6 +131,7 @@
       "vaultRedeemImplementationAddress": "",
       "vaultSettlementImplementationAddress": "",
       "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
       "factoryImplementationAddress": "",
       "vaultBeaconAddress": "",
       "factoryProxyAddress": ""

@@ -1,0 +1,8 @@
+MigrateModules_Unit_Test
+├── when caller is not VAULT_FACTORY
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is VAULT_FACTORY
+    ├── when newImplementation is address(0)
+    │   └── it should revert with InvalidModuleAddress
+    └── when newImplementation is not address(0)
+        └── it should set newImplementation and emit ModulesMigrated event

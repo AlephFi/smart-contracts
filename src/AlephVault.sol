@@ -101,12 +101,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initalizationParams.moduleInitializationParams.alephVaultRedeemImplementation == address(0)
                 || _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation == address(0)
                 || _initalizationParams.moduleInitializationParams.feeManagerImplementation == address(0)
+                || _initalizationParams.moduleInitializationParams.migrationManagerImplementation == address(0)
                 || _initalizationParams.userInitializationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initalizationParams.userInitializationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
             revert InvalidInitializationParams();
         }
         // set up storage variables
+        _sd.operationsMultisig = _initalizationParams.operationsMultisig;
         _sd.oracle = _initalizationParams.oracle;
         _sd.guardian = _initalizationParams.guardian;
         _sd.authSigner = _initalizationParams.authSigner;
@@ -127,6 +129,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.moduleInitializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
             _initalizationParams.moduleInitializationParams.feeManagerImplementation;
+        _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
+            _initalizationParams.moduleInitializationParams.migrationManagerImplementation;
 
         // grant roles
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initalizationParams.operationsMultisig);
@@ -158,11 +162,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function migrateModules(bytes4 _module, address _newImplementation) external onlyRole(RolesLibrary.VAULT_FACTORY) {
-        _getStorage().moduleImplementations[_module] = _newImplementation;
-    }
-
-    /// @inheritdoc IAlephVault
     function currentBatch() public view returns (uint48) {
         return _currentBatch(_getStorage());
     }
@@ -180,6 +179,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function oracle() external view returns (address) {
         return _getStorage().oracle;
+    }
+
+    /// @inheritdoc IAlephVault
+    function operationsMultisig() external view returns (address) {
+        return _getStorage().operationsMultisig;
     }
 
     /// @inheritdoc IAlephVault
@@ -384,19 +388,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function setAuthSigner(address _authSigner)
-        external
-        override(IAlephVault)
-        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
-    {
-        if (_authSigner == address(0)) {
-            revert InvalidAuthSigner();
-        }
-        _getStorage().authSigner = _authSigner;
-        emit AuthSignerSet(_authSigner);
-    }
-
-    /// @inheritdoc IAlephVault
     function createShareClass(
         uint32 _managementFee,
         uint32 _performanceFee,
@@ -581,6 +572,52 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @notice Migrates the operations multisig.
+     * @param _newOperationsMultisig The new operations multisig.
+     * @dev Only callable by the VAULT_FACTORY role.
+     */
+    function migrateOperationsMultisig(address _newOperationsMultisig) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+        _delegate(ModulesLibrary.MIGRATION_MANAGER);
+    }
+
+    /**
+     * @notice Migrates the oracle.
+     * @param _newOracle The new oracle.
+     * @dev Only callable by the VAULT_FACTORY role.
+     */
+    function migrateOracle(address _newOracle) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+        _delegate(ModulesLibrary.MIGRATION_MANAGER);
+    }
+
+    /**
+     * @notice Migrates the guardian.
+     * @param _newGuardian The new guardian.
+     * @dev Only callable by the VAULT_FACTORY role.
+     */
+    function migrateGuardian(address _newGuardian) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+        _delegate(ModulesLibrary.MIGRATION_MANAGER);
+    }
+
+    /**
+     * @notice Migrates the authentication signer.
+     * @param _newAuthSigner The new authentication signer.
+     * @dev Only callable by the VAULT_FACTORY role.
+     */
+    function migrateAuthSigner(address _newAuthSigner) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+        _delegate(ModulesLibrary.MIGRATION_MANAGER);
+    }
+
+    /**
+     * @notice Migrates the module implementation.
+     * @param _module The module.
+     * @param _newImplementation The new implementation.
+     * @dev Only callable by the VAULT_FACTORY role.
+     */
+    function migrateModules(bytes4 _module, address _newImplementation) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+        _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 
     /**

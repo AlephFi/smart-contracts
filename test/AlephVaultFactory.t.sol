@@ -24,6 +24,7 @@ contract AlephVaultFactoryTest is Test {
     address alephVaultRedeemImplementation = makeAddr("AlephVaultRedeem");
     address alephVaultSettlementImplementation = makeAddr("AlephVaultSettlement");
     address feeManagerImplementation = makeAddr("FeeManager");
+    address migrationManagerImplementation = makeAddr("MigrationManager");
     uint48 minDepositAmountTimelock = 7 days;
     uint48 maxDepositCapTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
@@ -49,7 +50,8 @@ contract AlephVaultFactoryTest is Test {
                 alephVaultDepositImplementation: alephVaultDepositImplementation,
                 alephVaultRedeemImplementation: alephVaultRedeemImplementation,
                 alephVaultSettlementImplementation: alephVaultSettlementImplementation,
-                feeManagerImplementation: feeManagerImplementation
+                feeManagerImplementation: feeManagerImplementation,
+                migrationManagerImplementation: migrationManagerImplementation
             })
         );
     }
@@ -67,7 +69,8 @@ contract AlephVaultFactoryTest is Test {
                 alephVaultDepositImplementation: alephVaultDepositImplementation,
                 alephVaultRedeemImplementation: alephVaultRedeemImplementation,
                 alephVaultSettlementImplementation: alephVaultSettlementImplementation,
-                feeManagerImplementation: feeManagerImplementation
+                feeManagerImplementation: feeManagerImplementation,
+                migrationManagerImplementation: migrationManagerImplementation
             })
         );
     }
