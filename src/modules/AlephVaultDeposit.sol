@@ -156,8 +156,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
             AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.classId, _requestDepositParams.authSignature);
         }
         uint48 _currentBatchId = _currentBatch(_sd);
-        IAlephVault.DepositRequests storage _depositRequests =
-            _shareClass.depositRequests[_currentBatchId];
+        IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];
         if (_depositRequests.depositRequest[msg.sender] > 0) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
