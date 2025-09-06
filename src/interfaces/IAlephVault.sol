@@ -28,9 +28,8 @@ interface IAlephVault {
     error InvalidShareSeries();
     error InvalidVaultFee();
 
-    event MetadataUriSet(string metadataUri);
     event IsAuthEnabledSet(bool isAuthEnabled);
-    event AuthSignerSet(address authSigner);
+
     event VaultTreasurySet(address vaultTreasury);
     event ShareClassCreated(
         uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
@@ -64,6 +63,7 @@ interface IAlephVault {
         address alephVaultRedeemImplementation;
         address alephVaultSettlementImplementation;
         address feeManagerImplementation;
+        address migrationManagerImplementation;
     }
 
     struct ShareClass {
@@ -121,6 +121,12 @@ interface IAlephVault {
      * @return The oracle.
      */
     function oracle() external view returns (address);
+
+    /**
+     * @notice Returns the operations multisig of the vault.
+     * @return The operations multisig.
+     */
+    function operationsMultisig() external view returns (address);
 
     /**
      * @notice Returns the guardian of the vault.
@@ -344,28 +350,10 @@ interface IAlephVault {
     function isAuthEnabled() external view returns (bool);
 
     /**
-     * @notice Returns the metadata URL of the vault.
-     * @return The metadata URL.
-     */
-    function metadataUri() external view returns (string memory);
-
-    /**
-     * @notice Sets the metadata URL of the vault.
-     * @param _metadataUrl The new metadata URL.
-     */
-    function setMetadataUri(string calldata _metadataUrl) external;
-
-    /**
      * @notice Sets the status of the KYC authentication.
      * @param _isAuthEnabled The new status of the KYC authentication.
      */
     function setIsAuthEnabled(bool _isAuthEnabled) external;
-
-    /**
-     * @notice Sets the KYC authentication signer of the vault.
-     * @param _authSigner The new KYC authentication signer.
-     */
-    function setAuthSigner(address _authSigner) external;
 
     /**
      * @notice Sets the vault treasury of the vault.

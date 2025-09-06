@@ -1,0 +1,8 @@
+MigrateGuardian_Unit_Test
+├── when caller is not VAULT_FACTORY
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is VAULT_FACTORY
+    ├── when newGuardian is address(0)
+    │   └── it should revert with InvalidGuardianAddress
+    └── when newGuardian is not address(0)
+        └── it should set newGuardian, revoke and grant roles and emit GuardianMigrated event

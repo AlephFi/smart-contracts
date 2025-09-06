@@ -139,11 +139,12 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         if (_requestDepositParams.amount == 0) {
             revert InsufficientDeposit();
         }
-        uint256 _minDepositAmount = _sd.shareClasses[_requestDepositParams.classId].minDepositAmount;
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_requestDepositParams.classId];
+        uint256 _minDepositAmount = _shareClass.minDepositAmount;
         if (_minDepositAmount > 0 && _requestDepositParams.amount < _minDepositAmount) {
             revert DepositLessThanMinDepositAmount();
         }
-        uint256 _maxDepositCap = _sd.shareClasses[_requestDepositParams.classId].maxDepositCap;
+        uint256 _maxDepositCap = _shareClass.maxDepositCap;
         if (
             _maxDepositCap > 0
                 && _totalAssetsPerClass(_sd, _requestDepositParams.classId)
@@ -154,7 +155,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         if (_sd.isAuthEnabled) {
             AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.classId, _requestDepositParams.authSignature);
         }
-        uint48 _lastDepositBatchId = _sd.shareClasses[_requestDepositParams.classId].lastDepositBatchId[msg.sender];
+        uint48 _lastDepositBatchId = _shareClass.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = _currentBatch(_sd);
         if (_currentBatchId == 0) {
             revert NoBatchAvailableForDeposit(); // need to wait for the first batch to be available
@@ -164,9 +165,8 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         }
 
         // update last deposit batch id and register deposit request
-        _sd.shareClasses[_requestDepositParams.classId].lastDepositBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.DepositRequests storage _depositRequests =
-            _sd.shareClasses[_requestDepositParams.classId].depositRequests[_currentBatchId];
+        _shareClass.lastDepositBatchId[msg.sender] = _currentBatchId;
+        IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];
         _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
         _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
         _depositRequests.usersToDeposit.push(msg.sender);

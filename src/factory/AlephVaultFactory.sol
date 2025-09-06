@@ -24,6 +24,7 @@ import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/Enum
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
+import {IMigrationManager} from "@aleph-vault/interfaces/IMigrationManager.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
@@ -63,6 +64,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
                 || _initializationParams.alephVaultRedeemImplementation == address(0)
                 || _initializationParams.alephVaultSettlementImplementation == address(0)
                 || _initializationParams.feeManagerImplementation == address(0)
+                || _initializationParams.migrationManagerImplementation == address(0)
         ) {
             revert InvalidInitializationParams();
         }
@@ -81,6 +83,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
             _initializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initializationParams.feeManagerImplementation;
+        _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] = _initializationParams.migrationManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
@@ -100,7 +103,8 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
             alephVaultRedeemImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM],
             alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
-            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]
+            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER],
+            migrationManagerImplementation: _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER]
         });
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: _sd.operationsMultisig,
@@ -140,6 +144,11 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _revokeRole(RolesLibrary.OPERATIONS_MULTISIG, _sd.operationsMultisig);
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _operationsMultisig);
         _sd.operationsMultisig = _operationsMultisig;
+        uint256 _len = _sd.vaults.length();
+        for (uint256 i = 0; i < _len; i++) {
+            address _vault = _sd.vaults.at(i);
+            IMigrationManager(_vault).migrateOperationsMultisig(_operationsMultisig);
+        }
         emit OperationsMultisigSet(_operationsMultisig);
     }
 
@@ -147,7 +156,13 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         if (_oracle == address(0)) {
             revert InvalidParam();
         }
-        _getStorage().oracle = _oracle;
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.oracle = _oracle;
+        uint256 _len = _sd.vaults.length();
+        for (uint256 i = 0; i < _len; i++) {
+            address _vault = _sd.vaults.at(i);
+            IMigrationManager(_vault).migrateOracle(_oracle);
+        }
         emit OracleSet(_oracle);
     }
 
@@ -155,7 +170,13 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         if (_guardian == address(0)) {
             revert InvalidParam();
         }
-        _getStorage().guardian = _guardian;
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.guardian = _guardian;
+        uint256 _len = _sd.vaults.length();
+        for (uint256 i = 0; i < _len; i++) {
+            address _vault = _sd.vaults.at(i);
+            IMigrationManager(_vault).migrateGuardian(_guardian);
+        }
         emit GuardianSet(_guardian);
     }
 
@@ -163,7 +184,13 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         if (_authSigner == address(0)) {
             revert InvalidParam();
         }
-        _getStorage().authSigner = _authSigner;
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.authSigner = _authSigner;
+        uint256 _len = _sd.vaults.length();
+        for (uint256 i = 0; i < _len; i++) {
+            address _vault = _sd.vaults.at(i);
+            IMigrationManager(_vault).migrateAuthSigner(_authSigner);
+        }
         emit AuthSignerSet(_authSigner);
     }
 
@@ -187,7 +214,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         uint256 _len = _sd.vaults.length();
         for (uint256 i = 0; i < _len; i++) {
             address _vault = _sd.vaults.at(i);
-            IAlephVault(_vault).migrateModules(_module, _implementation);
+            IMigrationManager(_vault).migrateModules(_module, _implementation);
         }
         emit ModuleImplementationSet(_module, _implementation);
     }

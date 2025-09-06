@@ -1,0 +1,8 @@
+MigrateOracle_Unit_Test
+├── when caller is not VAULT_FACTORY
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is VAULT_FACTORY
+    ├── when newOracle is address(0)
+    │   └── it should revert with InvalidOracleAddress
+    └── when newOracle is not address(0)
+        └── it should set newOracle and emit OracleMigrated event

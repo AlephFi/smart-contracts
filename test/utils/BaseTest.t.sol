@@ -30,6 +30,7 @@ import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
 import {AlephVaultSettlement} from "@aleph-vault/modules/AlephVaultSettlement.sol";
 import {FeeManager} from "@aleph-vault/modules/FeeManager.sol";
 import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
+import {MigrationManager} from "@aleph-vault/modules/MigrationManager.sol";
 import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
 import {TestToken} from "@aleph-test/exposes/TestToken.sol";
 import {Mocks} from "@aleph-test/utils/Mocks.t.sol";
@@ -143,7 +144,8 @@ contract BaseTest is Test {
                 alephVaultDepositImplementation: makeAddr("AlephVaultDeposit"),
                 alephVaultRedeemImplementation: makeAddr("AlephVaultRedeem"),
                 alephVaultSettlementImplementation: makeAddr("AlephVaultSettlement"),
-                feeManagerImplementation: makeAddr("FeeManager")
+                feeManagerImplementation: makeAddr("FeeManager"),
+                migrationManagerImplementation: makeAddr("MigrationManager")
             })
         });
 
@@ -188,7 +190,8 @@ contract BaseTest is Test {
             alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
             feeManagerImplementation: address(
                 new FeeManager(managementFeeTimelock, performanceFeeTimelock, feeRecipientTimelock, batchDuration)
-            )
+            ),
+            migrationManagerImplementation: address(new MigrationManager(batchDuration))
         });
 
         // set up vault

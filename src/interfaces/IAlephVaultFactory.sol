@@ -47,6 +47,7 @@ interface IAlephVaultFactory {
         address alephVaultRedeemImplementation;
         address alephVaultSettlementImplementation;
         address feeManagerImplementation;
+        address migrationManagerImplementation;
     }
 
     /**
