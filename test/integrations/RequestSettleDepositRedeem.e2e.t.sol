@@ -105,8 +105,8 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         uint256 _totalAmountToRedeem = 300 ether;
 
         // assert redeem requests
-        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _requestBatchId_2), vault.PRICE_DENOMINATOR());
-        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _requestBatchId_2), vault.PRICE_DENOMINATOR());
+        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _requestBatchId_2), vault.TOTAL_SHARE_UNITS());
+        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _requestBatchId_2), vault.TOTAL_SHARE_UNITS());
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);

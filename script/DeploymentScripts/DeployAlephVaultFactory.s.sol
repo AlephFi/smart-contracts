@@ -102,6 +102,9 @@ contract DeployAlephVaultFactory is BaseScript {
             ),
             feeManagerImplementation: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".feeManagerImplementationAddress")
+            ),
+            migrationManagerImplementation: vm.parseJsonAddress(
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".migrationManagerImplementationAddress")
             )
         });
     }

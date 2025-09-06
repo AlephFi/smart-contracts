@@ -23,18 +23,12 @@ import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
 import {AlephVaultSettlement} from "@aleph-vault/modules/AlephVaultSettlement.sol";
 import {FeeManager} from "@aleph-vault/modules/FeeManager.sol";
+import {MigrationManager} from "@aleph-vault/modules/MigrationManager.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-
-struct ModuleImplementationAddresses {
-    address alephVaultDepositImplementation;
-    address alephVaultRedeemImplementation;
-    address alephVaultSettlementImplementation;
-    address feeManagerImplementation;
-}
 
 // Use to Deploy only an AlephVault implementation.
 // forge script DeployAlephVaultImplementation --broadcast -vvvv --verify
@@ -73,7 +67,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("feeRecipientTimelock", _feeRecipientTimelock);
         console.log("batchDuration", _batchDuration);
 
-        ModuleImplementationAddresses memory _moduleImplementationAddresses = _deployModules(
+        IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses = _deployModules(
             _minDepositAmountTimelock,
             _maxDepositCapTimelock,
             _managementFeeTimelock,
@@ -95,19 +89,21 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 _performanceFeeTimelock,
         uint48 _feeRecipientTimelock,
         uint48 _batchDuration
-    ) internal returns (ModuleImplementationAddresses memory _moduleImplementationAddresses) {
+    ) internal returns (IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses) {
         AlephVaultDeposit _alephVaultDeposit =
             new AlephVaultDeposit(_minDepositAmountTimelock, _maxDepositCapTimelock, _batchDuration);
         AlephVaultRedeem _alephVaultRedeem = new AlephVaultRedeem(_batchDuration);
         AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(_batchDuration);
         FeeManager _feeManager =
             new FeeManager(_managementFeeTimelock, _performanceFeeTimelock, _feeRecipientTimelock, _batchDuration);
+        MigrationManager _migrationManager = new MigrationManager(_batchDuration);
 
-        _moduleImplementationAddresses = ModuleImplementationAddresses({
+        _moduleImplementationAddresses = IAlephVault.ModuleInitializationParams({
             alephVaultDepositImplementation: address(_alephVaultDeposit),
             alephVaultRedeemImplementation: address(_alephVaultRedeem),
             alephVaultSettlementImplementation: address(_alephVaultSettlement),
-            feeManagerImplementation: address(_feeManager)
+            feeManagerImplementation: address(_feeManager),
+            migrationManagerImplementation: address(_migrationManager)
         });
     }
 
@@ -115,7 +111,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         string memory _chainId,
         string memory _environment,
         address _vaultAddress,
-        ModuleImplementationAddresses memory _moduleImplementationAddresses
+        IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses
     ) internal {
         _writeDeploymentConfig(_chainId, _environment, ".vaultImplementationAddress", vm.toString(_vaultAddress));
         _writeDeploymentConfig(
@@ -141,6 +137,12 @@ contract DeployAlephVaultImplementation is BaseScript {
             _environment,
             ".feeManagerImplementationAddress",
             vm.toString(_moduleImplementationAddresses.feeManagerImplementation)
+        );
+        _writeDeploymentConfig(
+            _chainId,
+            _environment,
+            ".migrationManagerImplementationAddress",
+            vm.toString(_moduleImplementationAddresses.migrationManagerImplementation)
         );
     }
 }
