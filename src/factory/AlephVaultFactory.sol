@@ -83,7 +83,8 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
             _initializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initializationParams.feeManagerImplementation;
-        _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] = _initializationParams.migrationManagerImplementation;
+        _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
+            _initializationParams.migrationManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
