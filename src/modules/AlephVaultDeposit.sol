@@ -155,18 +155,13 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         if (_sd.isAuthEnabled) {
             AuthLibrary.verifyAuthSignature(_sd, _requestDepositParams.classId, _requestDepositParams.authSignature);
         }
-        uint48 _lastDepositBatchId = _shareClass.lastDepositBatchId[msg.sender];
         uint48 _currentBatchId = _currentBatch(_sd);
-        if (_currentBatchId == 0) {
-            revert NoBatchAvailableForDeposit(); // need to wait for the first batch to be available
-        }
-        if (_lastDepositBatchId >= _currentBatchId) {
+        IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];
+        if (_depositRequests.depositRequest[msg.sender] > 0) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
 
-        // update last deposit batch id and register deposit request
-        _shareClass.lastDepositBatchId[msg.sender] = _currentBatchId;
-        IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];
+        // register deposit request
         _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
         _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
         _depositRequests.usersToDeposit.push(msg.sender);

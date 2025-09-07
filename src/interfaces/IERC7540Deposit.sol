@@ -37,7 +37,6 @@ interface IERC7540Deposit {
     error InsufficientDeposit();
     error DepositLessThanMinDepositAmount();
     error DepositExceedsMaxDepositCap();
-    error NoBatchAvailableForDeposit();
     error OnlyOneRequestPerBatchAllowedForDeposit();
     error DepositRequestFailed();
 
