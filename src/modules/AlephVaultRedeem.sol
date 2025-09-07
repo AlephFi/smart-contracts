@@ -33,39 +33,32 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Redeem
-    function requestRedeem(uint8 _classId, uint256 _amount) external returns (uint48 _batchId) {
-        return _requestRedeem(_getStorage(), _classId, _amount);
+    function requestRedeem(uint8 _classId, uint256 _estAmount) external returns (uint48 _batchId) {
+        return _requestRedeem(_getStorage(), _classId, _estAmount);
     }
 
     /**
      * @dev Internal function to handle a redeem request.
      * @param _sd The storage struct.
      * @param _classId The class ID to redeem from.
-     * @param _amount The amount to redeem.
+     * @param _estAmount The estimated amount to redeem.
      * @return _batchId The batch ID for the redeem request.
      */
-    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _amount)
+    function _requestRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _estAmount)
         internal
         returns (uint48 _batchId)
     {
         // verify all conditions are satisfied to make redeem request
-        if (_amount == 0) {
+        if (_estAmount == 0) {
             revert InsufficientRedeem();
         }
         uint48 _currentBatchId = _currentBatch(_sd);
-        if (_currentBatchId == 0) {
-            revert NoBatchAvailableForRedeem(); // need to wait for the first batch to be available
-        }
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        uint48 _lastRedeemBatchId = _shareClass.lastRedeemBatchId[msg.sender];
-        if (_lastRedeemBatchId >= _currentBatchId) {
-            revert OnlyOneRequestPerBatchAllowedForRedeem();
-        }
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle
         uint256 _pendingAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
-        if (_pendingAssets + _amount > _totalUserAssets) {
+        if (_pendingAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
 
@@ -79,14 +72,17 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
-        uint256 _shareUnitsToRedeem = ERC4626Math.previewWithdrawUnits(_amount, _totalUserAssets - _pendingAssets);
+        uint256 _shareUnitsToRedeem = ERC4626Math.previewWithdrawUnits(_estAmount, _totalUserAssets - _pendingAssets);
 
-        // update last redeem batch id and register redeem request
-        _shareClass.lastRedeemBatchId[msg.sender] = _currentBatchId;
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
+        if (_redeemRequests.redeemRequest[msg.sender] > 0) {
+            revert OnlyOneRequestPerBatchAllowedForRedeem();
+        }
+
+        // register redeem request
         _redeemRequests.redeemRequest[msg.sender] = _shareUnitsToRedeem;
         _redeemRequests.usersToRedeem.push(msg.sender);
-        emit RedeemRequest(msg.sender, _classId, _amount, _currentBatchId);
+        emit RedeemRequest(msg.sender, _classId, _estAmount, _currentBatchId);
         return _currentBatchId;
     }
 }
