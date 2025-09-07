@@ -29,10 +29,8 @@ interface IFeeManager {
 
     event NewManagementFeeQueued(uint8 classId, uint32 managementFee);
     event NewPerformanceFeeQueued(uint8 classId, uint32 performanceFee);
-    event NewFeeRecipientQueued(address feeRecipient);
     event NewManagementFeeSet(uint8 classId, uint32 managementFee);
     event NewPerformanceFeeSet(uint8 classId, uint32 performanceFee);
-    event NewFeeRecipientSet(address feeRecipient);
     event FeesAccumulated(
         uint48 lastFeePaidId,
         uint48 currentBatchId,
@@ -67,12 +65,6 @@ interface IFeeManager {
     function queuePerformanceFee(uint8 _classId, uint32 _performanceFee) external;
 
     /**
-     * @notice Queues a new fee recipient to be set after the timelock period.
-     * @param _feeRecipient The new fee recipient to be set.
-     */
-    function queueFeeRecipient(address _feeRecipient) external;
-
-    /**
      * @notice Sets the management fee to the queued value after the timelock period.
      */
     function setManagementFee() external;
@@ -81,11 +73,6 @@ interface IFeeManager {
      * @notice Sets the performance fee to the queued value after the timelock period.
      */
     function setPerformanceFee() external;
-
-    /**
-     * @notice Sets the fee recipient to the queued value after the timelock period.
-     */
-    function setFeeRecipient() external;
 
     /**
      * @notice Accumulates fees for a given batch.

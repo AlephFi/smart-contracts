@@ -66,11 +66,6 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     }
 
     /// @inheritdoc IFeeManager
-    function queueFeeRecipient(address _feeRecipient) external {
-        _queueFeeRecipient(_getStorage(), _feeRecipient);
-    }
-
-    /// @inheritdoc IFeeManager
     function setManagementFee() external {
         _setManagementFee(_getStorage());
     }
@@ -78,11 +73,6 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     /// @inheritdoc IFeeManager
     function setPerformanceFee() external {
         _setPerformanceFee(_getStorage());
-    }
-
-    /// @inheritdoc IFeeManager
-    function setFeeRecipient() external {
-        _setFeeRecipient(_getStorage());
     }
 
     ///@inheritdoc IFeeManager
@@ -176,19 +166,6 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     }
 
     /**
-     * @dev Internal function to queue a new fee recipient.
-     * @param _sd The storage struct.
-     * @param _feeRecipient The new fee recipient to be set.
-     */
-    function _queueFeeRecipient(AlephVaultStorageData storage _sd, address _feeRecipient) internal {
-        _sd.timelocks[TimelockRegistry.FEE_RECIPIENT] = TimelockRegistry.Timelock({
-            unlockTimestamp: Time.timestamp() + FEE_RECIPIENT_TIMELOCK,
-            newValue: abi.encode(_feeRecipient)
-        });
-        emit NewFeeRecipientQueued(_feeRecipient);
-    }
-
-    /**
      * @dev Internal function to set the management fee.
      * @param _sd The storage struct.
      */
@@ -208,17 +185,6 @@ contract FeeManager is IFeeManager, AlephVaultBase {
             abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.PERFORMANCE_FEE), (uint8, uint32));
         _sd.shareClasses[_classId].performanceFee = _performanceFee;
         emit NewPerformanceFeeSet(_classId, _performanceFee);
-    }
-
-    /**
-     * @dev Internal function to set the fee recipient.
-     * @param _sd The storage struct.
-     */
-    // NOTE: merge migration module then move this to migration module instead of timelock
-    function _setFeeRecipient(AlephVaultStorageData storage _sd) internal {
-        address _feeRecipient = abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.FEE_RECIPIENT), (address));
-        _sd.feeRecipient = _feeRecipient;
-        emit NewFeeRecipientSet(_feeRecipient);
     }
 
     /**

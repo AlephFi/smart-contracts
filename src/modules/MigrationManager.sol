@@ -95,6 +95,19 @@ contract MigrationManager is IMigrationManager, AlephVaultBase, AccessControlUpg
     }
 
     /// @inheritdoc IMigrationManager
+    function migrateFeeRecipient(address _newFeeRecipient) external {
+        if (_newFeeRecipient == address(0)) {
+            revert InvalidFeeRecipientAddress();
+        }
+        AlephVaultStorageData storage _sd = _getStorage();
+        address _feeRecipient = _sd.feeRecipient;
+        _sd.feeRecipient = _newFeeRecipient;
+        _revokeRole(RolesLibrary.FEE_RECIPIENT, _feeRecipient);
+        _grantRole(RolesLibrary.FEE_RECIPIENT, _newFeeRecipient);
+        emit FeeRecipientMigrated(_newFeeRecipient);
+    }
+
+    /// @inheritdoc IMigrationManager
     function migrateModules(bytes4 _module, address _newImplementation) external {
         if (_newImplementation == address(0)) {
             revert InvalidModuleAddress();

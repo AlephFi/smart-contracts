@@ -1,0 +1,8 @@
+MigrateFeeRecipient_Unit_Test
+├── when caller is not VAULT_FACTORY
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is VAULT_FACTORY
+    ├── when newFeeRecipient is address(0)
+    │   └── it should revert with InvalidFeeRecipientAddress
+    └── when newFeeRecipient is not address(0)
+        └── it should set newFeeRecipient, revoke and grant roles and emit FeeRecipientMigrated event

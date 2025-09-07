@@ -234,6 +234,56 @@ contract MigrationManagerTest is BaseTest {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        FEE RECIPIENT MIGRATION TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_migrateFeeRecipient_whenCallerIsNotVAULT_FACTORY_revertsWithAccessControlUnauthorizedAccount()
+        public
+    {
+        // setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+
+        // set up fee recipient
+        address newFeeRecipient = makeAddr("newFeeRecipient");
+
+        // migrate fee recipient
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.VAULT_FACTORY
+            )
+        );
+        vault.migrateFeeRecipient(newFeeRecipient);
+    }
+
+    function test_migrateFeeRecipient_whenNewFeeRecipientIsAddress0_revertsWithInvalidFeeRecipientAddress() public {
+        // migrate fee recipient
+        vm.prank(vaultFactory);
+        vm.expectRevert(IMigrationManager.InvalidFeeRecipientAddress.selector);
+        vault.migrateFeeRecipient(address(0));
+    }
+
+    function test_migrateFeeRecipient_shouldSetNewFeeRecipient() public {
+        // set up fee recipient
+        address newFeeRecipient = makeAddr("newFeeRecipient");
+        address oldFeeRecipient = vault.feeRecipient();
+
+        // migrate fee recipient
+        vm.prank(vaultFactory);
+        vm.expectEmit(true, true, true, true);
+        emit IMigrationManager.FeeRecipientMigrated(newFeeRecipient);
+        vault.migrateFeeRecipient(newFeeRecipient);
+
+        // check fee recipient is set
+        assertEq(vault.feeRecipient(), newFeeRecipient);
+
+        // check roles are revoked
+        assertFalse(vault.hasRole(RolesLibrary.FEE_RECIPIENT, oldFeeRecipient));
+
+        // check roles are granted
+        assertTrue(vault.hasRole(RolesLibrary.FEE_RECIPIENT, newFeeRecipient));
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         MODULE MIGRATION TESTS
     //////////////////////////////////////////////////////////////*/
     function test_migrateModules_whenCallerIsNotVAULT_FACTORY_revertsWithAccessControlUnauthorizedAccount() public {

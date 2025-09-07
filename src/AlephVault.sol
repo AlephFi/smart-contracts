@@ -628,6 +628,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /**
+     * @notice Migrates the fee recipient.
+     * @param _newFeeRecipient The new fee recipient.
+     * @dev Only callable by the VAULT_FACTORY role.
+     */
+    function migrateFeeRecipient(address _newFeeRecipient) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+        _delegate(ModulesLibrary.MIGRATION_MANAGER);
+    }
+
+    /**
      * @notice Migrates the module implementation.
      * @param _module The module.
      * @param _newImplementation The new implementation.

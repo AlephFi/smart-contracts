@@ -199,7 +199,13 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         if (_feeRecipient == address(0)) {
             revert InvalidParam();
         }
-        _getStorage().feeRecipient = _feeRecipient;
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.feeRecipient = _feeRecipient;
+        uint256 _len = _sd.vaults.length();
+        for (uint256 i = 0; i < _len; i++) {
+            address _vault = _sd.vaults.at(i);
+            IMigrationManager(_vault).migrateFeeRecipient(_feeRecipient);
+        }
         emit FeeRecipientSet(_feeRecipient);
     }
 
