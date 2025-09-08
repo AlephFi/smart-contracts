@@ -141,19 +141,13 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
             revert VaultTreasuryNotSet();
         }
         (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) = IFeeManager(_vault).collectFees();
-        address _underlyingToken = IAlephVault(_vault).underlyingToken();
-        IERC20(_underlyingToken).safeTransferFrom(
-            _vault, address(this), _managementFeesToCollect + _performanceFeesToCollect
-        );
         (uint256 _vaultFee, uint256 _alephFee) =
-            _calculateFeeSplit(_sd, _vault, _managementFeesToCollect, _performanceFeesToCollect);
-        IERC20(_underlyingToken).safeTransfer(_vaultTreasury, _vaultFee);
-        IERC20(_underlyingToken).safeTransfer(_sd.alephTreasury, _alephFee);
+            _splitFees(_sd, _vault, _vaultTreasury, _managementFeesToCollect, _performanceFeesToCollect);
         emit FeesCollected(_vault, _managementFeesToCollect, _performanceFeesToCollect, _vaultFee, _alephFee);
     }
 
     /**
-     * @dev Calculates the fees for the vault and the aleph treasury.
+     * @dev Splits the fees for the vault and the aleph treasury.
      * @param _sd The storage struct.
      * @param _vault The vault to collect fees from.
      * @param _managementFeesToCollect The management fees to collect.
@@ -161,12 +155,17 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
      * @return _vaultFee The fee for the vault.
      * @return _alephFee The fee for the aleph treasury.
      */
-    function _calculateFeeSplit(
+    function _splitFees(
         FeeRecipientStorageData storage _sd,
         address _vault,
+        address _vaultTreasury,
         uint256 _managementFeesToCollect,
         uint256 _performanceFeesToCollect
-    ) internal view returns (uint256 _vaultFee, uint256 _alephFee) {
+    ) internal returns (uint256 _vaultFee, uint256 _alephFee) {
+        address _underlyingToken = IAlephVault(_vault).underlyingToken();
+        IERC20(_underlyingToken).safeTransferFrom(
+            _vault, address(this), _managementFeesToCollect + _performanceFeesToCollect
+        );
         uint256 _alephManagementFee =
             _managementFeesToCollect.mulDiv(uint256(_sd.managementFeeCut[_vault]), BPS_DENOMINATOR, Math.Rounding.Ceil);
         uint256 _alephPerformanceFee = _performanceFeesToCollect.mulDiv(
@@ -174,6 +173,8 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         );
         _alephFee = _alephManagementFee + _alephPerformanceFee;
         _vaultFee = _managementFeesToCollect + _performanceFeesToCollect - _alephFee;
+        IERC20(_underlyingToken).safeTransfer(_vaultTreasury, _vaultFee);
+        IERC20(_underlyingToken).safeTransfer(_sd.alephTreasury, _alephFee);
     }
 
     /**
