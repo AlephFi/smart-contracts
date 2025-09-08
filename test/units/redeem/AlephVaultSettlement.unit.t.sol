@@ -50,7 +50,8 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
                 managementFee: 0, // 0%
                 performanceFee: 0, // 0%
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
-                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
