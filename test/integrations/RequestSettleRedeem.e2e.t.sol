@@ -95,7 +95,7 @@ contract RequestSettleRedeemTest is BaseTest {
         emit IERC7540Settlement.SettleRedeemBatch(1, 1, 100 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, 2, 1);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -145,7 +145,7 @@ contract RequestSettleRedeemTest is BaseTest {
         emit IERC7540Settlement.SettleRedeemBatch(2, 1, 60 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, 3, 1);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -196,7 +196,7 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
 
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares

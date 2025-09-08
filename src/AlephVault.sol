@@ -553,10 +553,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Settles all pending deposits up to the current batch.
      * @param _classId The ID of the share class to settle deposits for.
+     * @param _toBatchId The batch ID to settle deposits up to.
      * @param _newTotalAssets The new total assets after settlement for each series.
      * @dev Only callable by the ORACLE role.
      */
-    function settleDeposit(uint8 _classId, uint256[] calldata _newTotalAssets)
+    function settleDeposit(uint8 _classId, uint48 _toBatchId, uint256[] calldata _newTotalAssets)
         external
         onlyRole(RolesLibrary.ORACLE)
         onlyValidShareClass(_classId)
@@ -584,10 +585,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Settles all pending redeems up to the current batch.
      * @param _classId The ID of the share class to settle redeems for.
+     * @param _toBatchId The batch id to settle redeems up to.
      * @param _newTotalAssets The new total assets after settlement for each series.
      * @dev Only callable by the ORACLE role.
      */
-    function settleRedeem(uint8 _classId, uint256[] calldata _newTotalAssets)
+    function settleRedeem(uint8 _classId, uint48 _toBatchId, uint256[] calldata _newTotalAssets)
         external
         onlyRole(RolesLibrary.ORACLE)
         onlyValidShareClass(_classId)

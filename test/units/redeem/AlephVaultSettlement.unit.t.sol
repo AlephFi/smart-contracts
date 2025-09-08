@@ -71,7 +71,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.ORACLE
             )
         );
-        vault.settleRedeem(1, new uint256[](1));
+        vault.settleRedeem(1, 0, new uint256[](1));
     }
 
     function test_settleRedeem_whenCallerIsOracle_revertsGivenFlowIsPaused() public {
@@ -82,7 +82,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
-        vault.settleRedeem(1, new uint256[](1));
+        vault.settleRedeem(1, 0, new uint256[](1));
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenRedeemSettleIdIsEqualToCurrentBatchId()
@@ -91,35 +91,37 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.NoRedeemsToSettle.selector);
-        vault.settleRedeem(1, new uint256[](1));
+        vault.settleRedeem(1, 0, new uint256[](1));
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenNewTotalAssetsIsInvalid() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // settle redeem
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.InvalidNewTotalAssets.selector);
-        vault.settleRedeem(1, new uint256[](2));
+        vault.settleRedeem(1, _currentBatchId, new uint256[](2));
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees(
     ) public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // assert last fee paid id is less than current batch id
-        assertLt(vault.lastFeePaidId(), vault.currentBatch());
+        assertLt(vault.lastFeePaidId(), _currentBatchId);
 
         // settle redeem
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 1000 ether;
         vm.prank(oracle);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, _currentBatchId, _newTotalAssets);
 
         // assert last fee paid id is equal to current batch id
-        assertEq(vault.lastFeePaidId(), vault.currentBatch());
+        assertEq(vault.lastFeePaidId(), _currentBatchId);
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsZero_shouldSettleRedeem()
@@ -136,7 +138,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = 1000 ether;
         vm.prank(oracle);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, _currentBatchId, _newTotalAssets);
 
         // assert redeem settle id is equal to current batch id
         assertEq(vault.redeemSettleId(), _currentBatchId);
@@ -163,7 +165,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 500 ether)
         );
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, _currentBatchId, _newTotalAssets);
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_shouldSucceed_singleBatch(
@@ -205,7 +207,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 1000 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, _currentBatchId, _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -275,7 +277,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 375 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, _currentBatchId, _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares

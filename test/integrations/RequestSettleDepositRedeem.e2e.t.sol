@@ -82,7 +82,7 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -128,7 +128,7 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // settle redeem
         vm.startPrank(oracle);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -194,7 +194,7 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -244,7 +244,7 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -276,7 +276,7 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // settle redeem
         vm.startPrank(oracle);
-        vault.settleRedeem(1, _newTotalAssets);
+        vault.settleRedeem(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets

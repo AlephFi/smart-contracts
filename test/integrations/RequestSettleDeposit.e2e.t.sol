@@ -90,7 +90,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(1, vault.currentBatch(), new uint256[](1));
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -144,7 +144,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -199,7 +199,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -253,7 +253,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -300,7 +300,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(1, vault.currentBatch(), new uint256[](1));
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -363,7 +363,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -432,7 +432,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -497,7 +497,7 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -573,7 +573,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -613,7 +613,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -639,7 +639,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets_2);
+        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets_2);
         vm.stopPrank();
 
         // assert total assets and total shares

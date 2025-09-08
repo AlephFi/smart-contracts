@@ -39,29 +39,35 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Settlement
-    function settleDeposit(uint8 _classId, uint256[] calldata _newTotalAssets) external {
-        _settleDeposit(_getStorage(), _classId, _newTotalAssets);
+    function settleDeposit(uint8 _classId, uint48 _toBatchId, uint256[] calldata _newTotalAssets) external {
+        _settleDeposit(_getStorage(), _classId, _toBatchId, _newTotalAssets);
     }
 
     /// @inheritdoc IERC7540Settlement
-    function settleRedeem(uint8 _classId, uint256[] calldata _newTotalAssets) external {
-        _settleRedeem(_getStorage(), _classId, _newTotalAssets);
+    function settleRedeem(uint8 _classId, uint48 _toBatchId, uint256[] calldata _newTotalAssets) external {
+        _settleRedeem(_getStorage(), _classId, _toBatchId, _newTotalAssets);
     }
 
     /**
      * @dev Internal function to settle all deposits for batches up to the current batch.
      * @param _sd The storage struct.
      * @param _classId The ID of the share class to settle deposits for.
+     * @param _toBatchId The batch ID to settle deposits up to.
      * @param _newTotalAssets The new total assets after settlement for each series.
      */
-    function _settleDeposit(AlephVaultStorageData storage _sd, uint8 _classId, uint256[] calldata _newTotalAssets)
-        internal
-    {
+    function _settleDeposit(
+        AlephVaultStorageData storage _sd,
+        uint8 _classId,
+        uint48 _toBatchId,
+        uint256[] calldata _newTotalAssets
+    ) internal {
         // verify all conditions are satisfied to settle deposits
+        if (_toBatchId > _currentBatch(_sd)) {
+            revert InvalidToBatchId();
+        }
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _depositSettleId = _shareClass.depositSettleId;
-        uint48 _currentBatchId = _currentBatch(_sd);
-        if (_currentBatchId == _depositSettleId) {
+        if (_toBatchId == _depositSettleId) {
             revert NoDepositsToSettle();
         }
         uint8 _shareSeriesId = _shareClass.shareSeriesId;
@@ -70,29 +76,27 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             revert InvalidNewTotalAssets();
         }
         // accumalate fees if applicable
-        _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
-        uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _classId, _currentBatchId);
+        _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _toBatchId, _newTotalAssets);
+        uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _classId, _toBatchId);
         SettleDepositParams memory _settleDepositParams = SettleDepositParams({
             // check if a new series needs to be created
             createSeries: _settlementSeriesId > 0,
             classId: _classId,
             seriesId: _settlementSeriesId,
             batchId: _depositSettleId,
-            currentBatchId: _currentBatchId,
+            toBatchId: _toBatchId,
             totalAssets: _shareClass.shareSeries[_settlementSeriesId].totalAssets,
             totalShares: _shareClass.shareSeries[_settlementSeriesId].totalShares
         });
         uint256 _amountToSettle;
-        for (
-            _settleDepositParams.batchId; _settleDepositParams.batchId < _currentBatchId; _settleDepositParams.batchId++
-        ) {
+        for (_settleDepositParams.batchId; _settleDepositParams.batchId < _toBatchId; _settleDepositParams.batchId++) {
             // settle deposits for each unsettled batch
             (uint256 _amount, uint256 _sharesToMint) = _settleDepositForBatch(_shareClass, _settleDepositParams);
             _amountToSettle += _amount;
             _settleDepositParams.totalAssets += _amount;
             _settleDepositParams.totalShares += _sharesToMint;
         }
-        _shareClass.depositSettleId = _currentBatchId;
+        _shareClass.depositSettleId = _toBatchId;
         _shareClass.shareSeries[_settleDepositParams.seriesId].totalAssets = _settleDepositParams.totalAssets;
         _shareClass.shareSeries[_settleDepositParams.seriesId].totalShares = _settleDepositParams.totalShares;
         if (_amountToSettle > 0) {
@@ -100,7 +104,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
         emit SettleDeposit(
             _depositSettleId,
-            _currentBatchId,
+            _toBatchId,
             _classId,
             _settleDepositParams.seriesId,
             _amountToSettle,
@@ -128,7 +132,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
         // create a new series only if there are deposits to settle (and createSeries flag is true)
         if (_settleDepositParams.createSeries) {
-            _createNewSeries(_shareClass, _settleDepositParams.classId, _settleDepositParams.currentBatchId);
+            _createNewSeries(_shareClass, _settleDepositParams.classId, _settleDepositParams.toBatchId);
             _settleDepositParams.createSeries = false;
         }
         uint256 _totalSharesToMint;
@@ -171,16 +175,22 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @dev Internal function to settle all redeems for batches up to the current batch.
      * @param _sd The storage struct.
      * @param _classId The ID of the share class to settle redeems for.
+     * @param _toBatchId The batch id to settle redeems up to.
      * @param _newTotalAssets The new total assets after settlement.
      */
-    function _settleRedeem(AlephVaultStorageData storage _sd, uint8 _classId, uint256[] calldata _newTotalAssets)
-        internal
-    {
+    function _settleRedeem(
+        AlephVaultStorageData storage _sd,
+        uint8 _classId,
+        uint48 _toBatchId,
+        uint256[] calldata _newTotalAssets
+    ) internal {
         // verify all conditions are satisfied to settle redeems
+        if (_toBatchId > _currentBatch(_sd)) {
+            revert InvalidToBatchId();
+        }
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
-        uint48 _currentBatchId = _currentBatch(_sd);
-        if (_currentBatchId == _redeemSettleId) {
+        if (_toBatchId == _redeemSettleId) {
             revert NoRedeemsToSettle();
         }
         uint8 _shareSeriesId = _shareClass.shareSeriesId;
@@ -189,16 +199,16 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             revert InvalidNewTotalAssets();
         }
         // accumalate fees if applicable
-        _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _currentBatchId, _newTotalAssets);
+        _accumulateFees(_shareClass, _classId, _lastConsolidatedSeriesId, _toBatchId, _newTotalAssets);
         address _underlyingToken = _sd.underlyingToken;
-        for (uint48 _id = _redeemSettleId; _id < _currentBatchId; _id++) {
+        for (uint48 _id = _redeemSettleId; _id < _toBatchId; _id++) {
             // settle redeems for each unsettled batch
             _settleRedeemForBatch(
                 _sd, SettleRedeemBatchParams({batchId: _id, classId: _classId, underlyingToken: _underlyingToken})
             );
         }
-        _shareClass.redeemSettleId = _currentBatchId;
-        emit SettleRedeem(_redeemSettleId, _currentBatchId, _classId);
+        _shareClass.redeemSettleId = _toBatchId;
+        emit SettleRedeem(_redeemSettleId, _toBatchId, _classId);
     }
 
     /**
@@ -329,10 +339,10 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @dev Internal function to get the settlement series id.
      * @param _sd The storage struct.
      * @param _classId The id of the class.
-     * @param _currentBatchId The current batch id.
+     * @param _toBatchId The batch id to settle deposits up to.
      * @return _seriesId The series id.
      */
-    function _getSettlementSeriesId(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _currentBatchId)
+    function _getSettlementSeriesId(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _toBatchId)
         internal
         returns (uint8 _seriesId)
     {
@@ -349,7 +359,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _seriesId = _shareSeriesId + 1;
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
                 // if new lead series highwatermark was reached in this cycle and their exists outstanding series, consolidate them into lead series
-                _consolidateSeries(_shareClass, _classId, _shareSeriesId, _lastConsolidatedSeriesId, _currentBatchId);
+                _consolidateSeries(_shareClass, _classId, _shareSeriesId, _lastConsolidatedSeriesId, _toBatchId);
             }
         }
     }
@@ -358,14 +368,12 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @dev Internal function to create a new series.
      * @param _shareClass The share class to create the new series for.
      * @param _classId The id of the class.
-     * @param _currentBatchId The current batch id.
+     * @param _toBatchId The batch id to settle deposits up to.
      */
-    function _createNewSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _currentBatchId)
-        internal
-    {
+    function _createNewSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _toBatchId) internal {
         uint8 _newSeriesId = ++_shareClass.shareSeriesId;
         _shareClass.shareSeries[_newSeriesId].highWaterMark = PRICE_DENOMINATOR;
-        emit NewSeriesCreated(_classId, _newSeriesId, _currentBatchId);
+        emit NewSeriesCreated(_classId, _newSeriesId, _toBatchId);
     }
 
     /**
@@ -374,25 +382,25 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _classId The id of the class.
      * @param _shareSeriesId The id of the share series.
      * @param _lastConsolidatedSeriesId The id of the last consolidated series.
-     * @param _currentBatchId The current batch id.
+     * @param _toBatchId The batch id to settle deposits up to.
      */
     function _consolidateSeries(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
         uint8 _shareSeriesId,
         uint8 _lastConsolidatedSeriesId,
-        uint48 _currentBatchId
+        uint48 _toBatchId
     ) internal {
         uint256 _totalAmountToTransfer;
         uint256 _totalSharesToTransfer;
         // iterate through all outstanding series
         for (uint8 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
             (uint256 _amountToTransfer, uint256 _sharesToTransfer) =
-                _consolidateUserShares(_shareClass, _classId, _seriesId, _currentBatchId);
+                _consolidateUserShares(_shareClass, _classId, _seriesId, _toBatchId);
             // sum up the total amount and shares to transfer into the lead series
             _totalAmountToTransfer += _amountToTransfer;
             _totalSharesToTransfer += _sharesToTransfer;
-            emit SeriesConsolidated(_classId, _seriesId, _currentBatchId, _amountToTransfer, _sharesToTransfer);
+            emit SeriesConsolidated(_classId, _seriesId, _toBatchId, _amountToTransfer, _sharesToTransfer);
         }
         // update the last consolidated series id and add the total amount and shares to transfer into the lead series
         _shareClass.lastConsolidatedSeriesId = _shareSeriesId;
@@ -402,7 +410,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _classId,
             _lastConsolidatedSeriesId + 1,
             _shareSeriesId,
-            _currentBatchId,
+            _toBatchId,
             _totalAmountToTransfer,
             _totalSharesToTransfer
         );
@@ -413,7 +421,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _shareClass The share class to consolidate.
      * @param _classId The id of the class.
      * @param _seriesId The id of the series.
-     * @param _currentBatchId The current batch id.
+     * @param _toBatchId The batch id to settle deposits up to.
      * @return _totalAmountToTransfer The total amount to transfer.
      * @return _totalSharesToTransfer The total shares to transfer.
      */
@@ -421,7 +429,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
         uint8 _seriesId,
-        uint48 _currentBatchId
+        uint48 _toBatchId
     ) internal returns (uint256 _totalAmountToTransfer, uint256 _totalSharesToTransfer) {
         IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[LEAD_SERIES_ID];
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
@@ -432,7 +440,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             shares: 0,
             amountToTransfer: 0,
             sharesToTransfer: 0,
-            currentBatchId: _currentBatchId
+            toBatchId: _toBatchId
         });
         // add virtual users into user list
         _shareSeries.users.add(MANAGEMENT_FEE_RECIPIENT);
@@ -474,18 +482,18 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @param _shareClass The share class to accumulate fees for.
      * @param _classId The id of the class.
      * @param _lastConsolidatedSeriesId The id of the last consolidated series.
-     * @param _currentBatchId The current batch id.
+     * @param _toBatchId The batch id to settle deposits up to.
      * @param _newTotalAssets The new total assets after settlement.
      */
     function _accumulateFees(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
         uint8 _lastConsolidatedSeriesId,
-        uint48 _currentBatchId,
+        uint48 _toBatchId,
         uint256[] calldata _newTotalAssets
     ) internal {
         uint48 _lastFeePaidId = _shareClass.lastFeePaidId;
-        if (_currentBatchId > _lastFeePaidId) {
+        if (_toBatchId > _lastFeePaidId) {
             for (uint8 _i = 0; _i < _newTotalAssets.length; _i++) {
                 uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
                 // update the series total assets and shares
@@ -493,13 +501,13 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFees(
                     _newTotalAssets[_i],
                     _shareClass.shareSeries[_seriesId].totalShares,
-                    _currentBatchId,
+                    _toBatchId,
                     _lastFeePaidId,
                     _classId,
                     _seriesId
                 );
             }
-            _shareClass.lastFeePaidId = _currentBatchId;
+            _shareClass.lastFeePaidId = _toBatchId;
         }
     }
 
@@ -507,7 +515,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      * @dev Internal function to get the accumulated fees.
      * @param _newTotalAssets The new total assets after settlement.
      * @param _totalShares The total shares in the vault.
-     * @param _currentBatchId The current batch id.
+     * @param _toBatchId The batch id to settle deposits up to.
      * @param _lastFeePaidId The last fee paid id.
      * @param _classId The id of the class.
      * @param _seriesId The id of the series.
@@ -516,7 +524,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     function _getAccumulatedFees(
         uint256 _newTotalAssets,
         uint256 _totalShares,
-        uint48 _currentBatchId,
+        uint48 _toBatchId,
         uint48 _lastFeePaidId,
         uint8 _classId,
         uint8 _seriesId
@@ -528,7 +536,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             .delegatecall(
             abi.encodeCall(
                 IFeeManager.accumulateFees,
-                (_newTotalAssets, _totalShares, _currentBatchId, _lastFeePaidId, _classId, _seriesId)
+                (_newTotalAssets, _totalShares, _toBatchId, _lastFeePaidId, _classId, _seriesId)
             )
         );
         if (!_success) {

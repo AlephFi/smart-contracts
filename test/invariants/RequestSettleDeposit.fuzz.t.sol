@@ -73,10 +73,11 @@ contract RequestSettleDepositTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(1, _currentBatchId, new uint256[](1));
 
         // get user and vault balance before deposit
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
@@ -84,12 +85,13 @@ contract RequestSettleDepositTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
+        _currentBatchId = vault.currentBatch();
 
         // settle second batch
         uint256[] memory _newTotalAssetsArr = new uint256[](1);
         _newTotalAssetsArr[0] = _newTotalAssets;
         vm.prank(oracle);
-        vault.settleDeposit(1, _newTotalAssetsArr);
+        vault.settleDeposit(1, _currentBatchId, _newTotalAssetsArr);
 
         // assert invariant
         assertLt(_vaultSharesBefore, vault.totalShares());
@@ -128,10 +130,11 @@ contract RequestSettleDepositTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(1, _currentBatchId, new uint256[](1));
 
         // request deposit
         vm.prank(_user);
@@ -145,12 +148,13 @@ contract RequestSettleDepositTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
+        _currentBatchId = vault.currentBatch();
 
         // settle second batch
         uint256[] memory _newTotalAssetsArr = new uint256[](1);
         _newTotalAssetsArr[0] = _newTotalAssets;
         vm.prank(oracle);
-        vault.settleDeposit(1, _newTotalAssetsArr);
+        vault.settleDeposit(1, _currentBatchId, _newTotalAssetsArr);
 
         // assert invariant
         assertLt(_vaultSharesBefore, vault.totalSharesPerSeries(1, 0));
@@ -191,10 +195,11 @@ contract RequestSettleDepositTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(1, _currentBatchId, new uint256[](1));
 
         // set up second settle cycle
         for (uint8 i = 0; i < _iterations; i++) {
@@ -217,12 +222,13 @@ contract RequestSettleDepositTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
+        _currentBatchId = vault.currentBatch();
 
         // settle second batch
         uint256[] memory _newTotalAssetsArr = new uint256[](1);
         _newTotalAssetsArr[0] = _newTotalAssets;
         vm.prank(oracle);
-        vault.settleDeposit(1, _newTotalAssetsArr);
+        vault.settleDeposit(1, _currentBatchId, _newTotalAssetsArr);
 
         // assert invariant
         assertLt(_leadSeriesSharesBefore, vault.totalSharesPerSeries(1, 0));
@@ -265,10 +271,11 @@ contract RequestSettleDepositTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // settle first batch
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(1, _currentBatchId, new uint256[](1));
 
         // set up next settlement cycles
         for (uint8 i = 0; i < _batches; i++) {
@@ -302,6 +309,7 @@ contract RequestSettleDepositTest is BaseTest {
 
             // roll the block forward to next batch
             vm.warp(block.timestamp + 1 days);
+            _currentBatchId = vault.currentBatch();
 
             // settle batch
             uint256 _newTotalAssets = uint256(keccak256(abi.encode(_newTotalAssetsSeed, i))) % type(uint96).max;
@@ -326,7 +334,7 @@ contract RequestSettleDepositTest is BaseTest {
                 }
 
                 vm.prank(oracle);
-                vault.settleDeposit(1, _newTotalAssetsArr);
+                vault.settleDeposit(1, _currentBatchId, _newTotalAssetsArr);
 
                 // assert invariant
                 assertLe(_vaultSharesBefore[0], vault.totalSharesPerSeries(1, 0));
