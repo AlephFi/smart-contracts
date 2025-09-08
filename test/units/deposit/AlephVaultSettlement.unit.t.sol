@@ -23,6 +23,7 @@ import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
@@ -49,14 +50,28 @@ contract AlephVaultDepositSettlementTest is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.ORACLE
             )
         );
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: 0,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
     }
 
     function test_settleDeposit_revertsGivenShareClassIsInvalid() public {
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(IAlephVault.InvalidShareClass.selector);
-        vault.settleDeposit(0, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 0,
+                toBatchId: 0,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
     }
 
     function test_settleDeposit_whenCallerIsOracle_revertsGivenFlowIsPaused() public {
@@ -67,41 +82,114 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: 0,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenDepositSettleIdIsEqualToCurrentBatchId(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsGreaterThanCurrentBatchId()
+        public
+    {
+        // settle deposit
+        vm.prank(oracle);
+        vm.expectRevert(IERC7540Settlement.InvalidToBatchId.selector);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: 1,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
+    }
+
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsEqualToDepositSettleId()
+        public
+    {
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.NoDepositsToSettle.selector);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: 0,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
     }
 
     function test_settleDeposit_whenCallerIsOracle_revertsGivenNewTotalAssetsIsInvalid() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.InvalidNewTotalAssets.selector);
-        vault.settleDeposit(1, new uint256[](2));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](2),
+                authSignature: authSignature_1
+            })
+        );
+    }
+
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenAuthSignatureIsInvalid() public {
+        // roll the block forward to make future batch available
+        vm.warp(block.timestamp + 1 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
+
+        // make invalid sig
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_REDEEM, _currentBatchId, new uint256[](1));
+
+        // settle deposit
+        vm.prank(oracle);
+        vm.expectRevert(AuthLibrary.InvalidAuthSignature.selector);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _authSignature
+            })
+        );
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees(
     ) public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
+
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
 
         // assert last fee paid id is less than current batch id
         assertLt(vault.lastFeePaidId(), vault.currentBatch());
 
         // settle deposit
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _authSignature
+            })
+        );
 
         // assert last fee paid id is equal to current batch id
-        assertEq(vault.lastFeePaidId(), vault.currentBatch());
+        assertEq(vault.lastFeePaidId(), _currentBatchId);
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsZero_shouldNotSettleDeposit()
@@ -114,9 +202,20 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         uint48 _currentBatchId = vault.currentBatch();
         assertLt(vault.depositSettleId(), _currentBatchId);
 
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
+
         // settle deposit
         vm.prank(oracle);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _authSignature
+            })
+        );
 
         // assert deposit settle id is equal to current batch id
         assertEq(vault.depositSettleId(), _currentBatchId);
@@ -126,16 +225,28 @@ contract AlephVaultDepositSettlementTest is BaseTest {
     ) public {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 3 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // check total assets and total shares
         uint256 _totalAssets = vault.totalAssets();
         uint256 _totalShares = vault.totalShares();
-
-        // settle deposit
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = _totalAssets + 100 ether;
+
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, _newTotalAssets);
+
+        // settle deposit
         vm.prank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _authSignature
+            })
+        );
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _newTotalAssets[0]);
@@ -146,14 +257,26 @@ contract AlephVaultDepositSettlementTest is BaseTest {
     ) public {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 2 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
 
         // set batch deposit requests
-        vault.setBatchDeposit(vault.currentBatch() - 1, mockUser_1, 100);
+        vault.setBatchDeposit(_currentBatchId - 1, mockUser_1, 100);
+
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
 
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 100));
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _authSignature
+            })
+        );
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch_settleInNewSeries(
@@ -180,6 +303,10 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // mint balance for vault
         underlyingToken.mint(address(vault), 300 ether);
 
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
+
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
@@ -188,7 +315,14 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         emit IERC7540Settlement.SettleDepositBatch(_currentBatchId - 1, 1, 1, 300 ether, 300 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 1, 300 ether, 300 ether, 300 ether);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _authSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -227,13 +361,24 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // mint balance for vault
         underlyingToken.mint(address(vault), 300 ether);
 
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
+
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDepositBatch(_currentBatchId - 1, 1, 0, 300 ether, 300 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 300 ether, 300 ether, 300 ether);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _authSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -276,6 +421,10 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // mint balance for vault
         underlyingToken.mint(address(vault), 600 ether);
 
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
+
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
@@ -284,7 +433,14 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         emit IERC7540Settlement.SettleDepositBatch(2, 1, 0, 500 ether, 500 ether);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Settlement.SettleDeposit(0, _currentBatchId, 1, 0, 600 ether, 600 ether, 600 ether);
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _authSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares

@@ -65,7 +65,7 @@ contract RequestDepositTest is BaseTest {
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
 
         // get  auth signature
-        AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
+        AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
 
         // request deposit
         uint48 _depositBatchId = vault.requestDeposit(
@@ -107,7 +107,7 @@ contract RequestDepositTest is BaseTest {
             uint256 _userBalanceBefore = underlyingToken.balanceOf(_user);
 
             // get  auth signature
-            AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
+            AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
 
             // request deposit
             vault.requestDeposit(
@@ -164,7 +164,7 @@ contract RequestDepositTest is BaseTest {
                 uint256 _userBalanceBefore = underlyingToken.balanceOf(_user);
 
                 // get  auth signature
-                AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_user, type(uint256).max);
+                AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
 
                 // request deposit
                 vault.requestDeposit(

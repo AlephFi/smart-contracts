@@ -133,7 +133,8 @@ contract AlephVaultDepositTest is BaseTest {
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenAuthSignatureIsInvalid() public {
         // make invalid sig
-        AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(makeAddr("invalid user"), block.number + 1);
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getDepositAuthSignature(makeAddr("invalid user"), block.number + 1);
 
         // request deposit
         vm.prank(mockUser_1);

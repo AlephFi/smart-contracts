@@ -24,6 +24,7 @@ import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
@@ -82,6 +83,9 @@ contract RequestSettleDepositTest is BaseTest {
         // get settle deposit expectations
         SettleDepositExpectations memory _params = _getSettleDepositExpectations(false, 0, 0, _depositAmount, 0);
 
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, new uint256[](1));
+
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
@@ -90,7 +94,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -131,6 +142,9 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
         uint48 _settleBatchId = vault.currentBatch();
 
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
+
         // same price per share
         uint256 _totalShares = vault.totalShares();
         SettleDepositExpectations memory _params =
@@ -144,7 +158,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -184,6 +205,8 @@ contract RequestSettleDepositTest is BaseTest {
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
         uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // new price per share
         uint256 _totalShares = vault.totalShares();
@@ -199,7 +222,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -239,6 +269,8 @@ contract RequestSettleDepositTest is BaseTest {
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
         uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // new price per share
         uint256 _totalShares = vault.totalShares();
@@ -253,7 +285,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -288,6 +327,8 @@ contract RequestSettleDepositTest is BaseTest {
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
         uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, new uint256[](1));
 
         // get settle deposit expectations
         SettleDepositExpectations memory _params = _getSettleDepositExpectations(false, 0, 0, _depositAmount, 0);
@@ -300,7 +341,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, new uint256[](1));
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: new uint256[](1),
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -349,6 +397,8 @@ contract RequestSettleDepositTest is BaseTest {
         // roll the block forward to some batches later
         vm.warp(block.timestamp + 10 days);
         uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // same price per share
         uint256 _totalShares = vault.totalShares();
@@ -363,7 +413,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -412,6 +469,8 @@ contract RequestSettleDepositTest is BaseTest {
         // roll the block forward to some batches later
         vm.warp(block.timestamp + 10 days);
         uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // same price per share
         uint256 _totalShares = vault.totalShares();
@@ -432,7 +491,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -481,6 +547,8 @@ contract RequestSettleDepositTest is BaseTest {
         // roll the block forward to some batches later
         vm.warp(block.timestamp + 10 days);
         uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // same price per share
         uint256 _totalShares = vault.totalShares();
@@ -497,7 +565,14 @@ contract RequestSettleDepositTest is BaseTest {
         emit IERC7540Settlement.SettleDeposit(
             0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -571,9 +646,21 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _expectedSharesToMint_user1 = ERC4626Math.previewDeposit(300 ether, 0, 0);
         uint256 _expectedSharesToMint_user2 = ERC4626Math.previewDeposit(500 ether, 0, 0);
 
+        // get settlement auth signature
+        uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
+
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -612,8 +699,18 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _expectedSharesToMint_3_user2 = ERC4626Math.previewDeposit(200 ether, 0, 0);
 
         // settle deposit
+        _settleBatchId = vault.currentBatch();
+        _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -638,8 +735,18 @@ contract RequestSettleDepositTest is BaseTest {
         _newTotalAssets_2[1] = 750 ether; // 50% profit
 
         // settle deposit
+        _settleBatchId = vault.currentBatch();
+        _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets_2);
         vm.startPrank(oracle);
-        vault.settleDeposit(1, _newTotalAssets_2);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets_2,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
