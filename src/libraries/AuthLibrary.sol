@@ -34,6 +34,9 @@ library AuthLibrary {
     error AuthSignatureExpired();
     error InvalidAuthSignature();
 
+    bytes4 internal constant SETTLE_DEPOSIT = bytes4(keccak256("SETTLE_DEPOSIT"));
+    bytes4 internal constant SETTLE_REDEEM = bytes4(keccak256("SETTLE_REDEEM"));
+
     function verifyVaultDeploymentAuthSignature(
         address _manager,
         address _vaultFactory,
@@ -53,6 +56,30 @@ library AuthLibrary {
     {
         bytes32 _hash =
             keccak256(abi.encode(msg.sender, address(this), block.chainid, _classId, _authSignature.expiryBlock));
+        _verifyAuthSignature(_hash, _authSigner, _authSignature);
+    }
+
+    function verifySettlementAuthSignature(
+        bytes4 _flow,
+        uint8 _classId,
+        uint48 _toBatchId,
+        address _manager,
+        uint256[] calldata _newTotalAssets,
+        address _authSigner,
+        AuthSignature memory _authSignature
+    ) internal view {
+        bytes32 _hash = keccak256(
+            abi.encode(
+                _flow,
+                _manager,
+                address(this),
+                block.chainid,
+                _classId,
+                _toBatchId,
+                _newTotalAssets,
+                _authSignature.expiryBlock
+            )
+        );
         _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 
