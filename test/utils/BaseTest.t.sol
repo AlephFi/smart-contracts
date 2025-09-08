@@ -43,6 +43,7 @@ contract BaseTest is Test {
     struct ConfigParams {
         uint48 minDepositAmountTimelock;
         uint48 maxDepositCapTimelock;
+        uint48 noticePeriodTimelock;
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
         uint48 feeRecipientTimelock;
@@ -63,6 +64,7 @@ contract BaseTest is Test {
     address public authSigner;
     uint48 public minDepositAmountTimelock;
     uint48 public maxDepositCapTimelock;
+    uint48 public noticePeriodTimelock;
     uint48 public managementFeeTimelock;
     uint48 public performanceFeeTimelock;
     uint48 public feeRecipientTimelock;
@@ -105,6 +107,7 @@ contract BaseTest is Test {
         defaultConfigParams = ConfigParams({
             minDepositAmountTimelock: 7 days,
             maxDepositCapTimelock: 7 days,
+            noticePeriodTimelock: 7 days,
             managementFeeTimelock: 7 days,
             performanceFeeTimelock: 7 days,
             feeRecipientTimelock: 7 days,
@@ -126,6 +129,7 @@ contract BaseTest is Test {
                 custodian: makeAddr("custodian"),
                 managementFee: 200, // 2%
                 performanceFee: 2000, // 20%
+                noticePeriod: 0,
                 minDepositAmount: 10 ether,
                 maxDepositCap: 1_000_000 ether,
                 authSignature: authSignature_deploy
@@ -147,6 +151,7 @@ contract BaseTest is Test {
         // set up config params
         minDepositAmountTimelock = _configParams.minDepositAmountTimelock;
         maxDepositCapTimelock = _configParams.maxDepositCapTimelock;
+        noticePeriodTimelock = _configParams.noticePeriodTimelock;
         managementFeeTimelock = _configParams.managementFeeTimelock;
         performanceFeeTimelock = _configParams.performanceFeeTimelock;
         feeRecipientTimelock = _configParams.feeRecipientTimelock;
@@ -157,7 +162,7 @@ contract BaseTest is Test {
             alephVaultDepositImplementation: address(
                 new AlephVaultDeposit(minDepositAmountTimelock, maxDepositCapTimelock, batchDuration)
             ),
-            alephVaultRedeemImplementation: address(new AlephVaultRedeem(batchDuration)),
+            alephVaultRedeemImplementation: address(new AlephVaultRedeem(noticePeriodTimelock, batchDuration)),
             alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
             feeManagerImplementation: address(
                 new FeeManager(managementFeeTimelock, performanceFeeTimelock, feeRecipientTimelock, batchDuration)

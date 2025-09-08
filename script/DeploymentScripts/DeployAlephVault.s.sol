@@ -57,6 +57,7 @@ contract DeployAlephVault is BaseScript {
             custodian: vm.envAddress("VAULT_CUSTODIAN"),
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
             performanceFee: uint32(vm.envUint("VAULT_PERFORMANCE_FEE")),
+            noticePeriod: uint48(vm.envUint("VAULT_NOTICE_PERIOD")),
             minDepositAmount: vm.envUint("VAULT_MIN_DEPOSIT_AMOUNT"),
             maxDepositCap: vm.envUint("VAULT_MAX_DEPOSIT_CAP"),
             authSignature: _authSignature
