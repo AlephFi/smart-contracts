@@ -16,6 +16,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -54,6 +55,7 @@ interface IAlephVault {
         uint32 performanceFee;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
+        AuthLibrary.AuthSignature authSignature;
     }
 
     struct ModuleInitializationParams {

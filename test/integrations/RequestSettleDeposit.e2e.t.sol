@@ -51,7 +51,8 @@ contract RequestSettleDepositTest is BaseTest {
                 managementFee: 0,
                 performanceFee: 0,
                 minDepositAmount: 0,
-                maxDepositCap: 0
+                maxDepositCap: 0,
+                authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });

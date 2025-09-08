@@ -72,6 +72,7 @@ contract BaseTest is Test {
 
     AuthLibrary.AuthSignature public authSignature_1;
     AuthLibrary.AuthSignature public authSignature_2;
+    AuthLibrary.AuthSignature public authSignature_deploy;
 
     TestToken public underlyingToken = new TestToken();
 
@@ -126,7 +127,8 @@ contract BaseTest is Test {
                 managementFee: 200, // 2%
                 performanceFee: 2000, // 20%
                 minDepositAmount: 10 ether,
-                maxDepositCap: 1_000_000 ether
+                maxDepositCap: 1_000_000 ether,
+                authSignature: authSignature_deploy
             }),
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: makeAddr("AlephVaultDeposit"),

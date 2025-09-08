@@ -18,6 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 
 struct AlephVaultFactoryStorageData {
+    bool isAuthEnabled;
     address beacon;
     address operationsMultisig;
     address oracle;

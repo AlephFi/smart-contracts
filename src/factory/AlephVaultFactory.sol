@@ -26,6 +26,7 @@ import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol
 import {IMigrationManager} from "@aleph-vault/interfaces/IMigrationManager.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {
     AlephVaultFactoryStorage, AlephVaultFactoryStorageData
@@ -69,6 +70,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         }
         __AccessControl_init();
         AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.isAuthEnabled = true;
         _sd.beacon = _initalizationParams.beacon;
         _sd.operationsMultisig = _initalizationParams.operationsMultisig;
         _sd.oracle = _initalizationParams.oracle;
@@ -98,6 +100,16 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     {
         bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
+        if (_sd.isAuthEnabled) {
+            AuthLibrary.verifyVaultDeploymentAuthSignature(
+                _userInitializationParams.manager,
+                address(this),
+                _userInitializationParams.name,
+                _userInitializationParams.configId,
+                _sd.authSigner,
+                _userInitializationParams.authSignature
+            );
+        }
         IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
             .ModuleInitializationParams({
             alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
@@ -134,6 +146,11 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
 
     function isValidVault(address _vault) external view returns (bool) {
         return _getStorage().vaults.contains(_vault);
+    }
+
+    function setIsAuthEnabled(bool _isAuthEnabled) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().isAuthEnabled = _isAuthEnabled;
+        emit IsAuthEnabledSet(_isAuthEnabled);
     }
 
     function setOperationsMultisig(address _operationsMultisig) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {

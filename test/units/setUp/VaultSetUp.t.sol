@@ -199,7 +199,8 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
-                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -226,7 +227,8 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
-                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -253,7 +255,8 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
-                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -280,7 +283,8 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: 10_001,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
-                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -307,7 +311,8 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: 10_001,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
-                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap
+                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });

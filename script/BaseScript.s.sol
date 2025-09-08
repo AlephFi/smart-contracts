@@ -28,6 +28,11 @@ abstract contract BaseScript is Script {
         return vm.parseUint(privateKey);
     }
 
+    function _getAuthSignerPrivateKey() internal view returns (uint256) {
+        string memory privateKey = vm.envString("AUTH_SIGNER_PRIVATE_KEY");
+        return vm.parseUint(privateKey);
+    }
+
     function _getChainId() internal view returns (string memory) {
         return vm.envString("CHAIN_ID");
     }
