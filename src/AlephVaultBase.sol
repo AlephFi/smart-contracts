@@ -82,7 +82,11 @@ contract AlephVaultBase {
      * @param _classId The ID of the share class.
      * @return The total assets in the vault for the given class.
      */
-    function _totalAssetsPerClass(IAlephVault.ShareClass storage _shareClass, uint8 _classId) internal view returns (uint256) {
+    function _totalAssetsPerClass(IAlephVault.ShareClass storage _shareClass, uint8 _classId)
+        internal
+        view
+        returns (uint256)
+    {
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint256 _totalAssets;
         for (uint8 _seriesId; _seriesId <= _shareClass.shareSeriesId; _seriesId++) {
@@ -101,7 +105,11 @@ contract AlephVaultBase {
      * @param _classId The ID of the share class.
      * @return The total shares in the vault for the given class.
      */
-    function _totalSharesPerClass(IAlephVault.ShareClass storage _shareClass, uint8 _classId) internal view returns (uint256) {
+    function _totalSharesPerClass(IAlephVault.ShareClass storage _shareClass, uint8 _classId)
+        internal
+        view
+        returns (uint256)
+    {
         uint256 _totalShares;
         uint8 _shareSeriesId = _shareClass.shareSeriesId;
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
@@ -219,7 +227,11 @@ contract AlephVaultBase {
      * @param _classId The ID of the share class.
      * @return The price per share of the lead series.
      */
-    function _leadPricePerShare(IAlephVault.ShareClass storage _shareClass, uint8 _classId) internal view returns (uint256) {
+    function _leadPricePerShare(IAlephVault.ShareClass storage _shareClass, uint8 _classId)
+        internal
+        view
+        returns (uint256)
+    {
         return _getPricePerShare(
             _totalAssetsPerSeries(_shareClass, _classId, LEAD_SERIES_ID),
             _totalSharesPerSeries(_shareClass, _classId, LEAD_SERIES_ID)
