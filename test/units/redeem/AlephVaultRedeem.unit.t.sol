@@ -54,25 +54,6 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(1, 0);
     }
 
-    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {
-        // request redeem
-        vm.expectRevert(IERC7540Redeem.NoBatchAvailableForRedeem.selector);
-        vault.requestRedeem(1, 100);
-    }
-
-    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenLastRedeemBatchIdIsNotLessThanCurrentBatchId() public {
-        // roll the block forward to make batch available
-        vm.warp(block.timestamp + 1 days + 1);
-
-        // set last redeem id to current batch id
-        vault.setLastRedeemBatchId(mockUser_1, vault.currentBatch());
-
-        // request redeem
-        vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Redeem.OnlyOneRequestPerBatchAllowedForRedeem.selector);
-        vault.requestRedeem(1, 100);
-    }
-
     function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -80,6 +61,20 @@ contract AlephVaultRedeemTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Redeem.InsufficientAssetsToRedeem.selector);
         vault.requestRedeem(1, 100);
+    }
+
+    function test_requestRedeem_whenFlowIsUnpaused_revertsGivenUserHasAlreadyMadeARedeemRequestForThisBatch() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // set redeem request to current batch id
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+        vault.setBatchRedeem(vault.currentBatch(), mockUser_1, vault.PRICE_DENOMINATOR() / 2);
+
+        // request redeem
+        vm.prank(mockUser_1);
+        vm.expectRevert(IERC7540Redeem.OnlyOneRequestPerBatchAllowedForRedeem.selector);
+        vault.requestRedeem(1, 50 ether);
     }
 
     function test_requestRedeem_whenFlowIsUnpaused_whenUserHasSufficientSharesToRedeem_shouldSucceed_singleUser()
@@ -101,7 +96,7 @@ contract AlephVaultRedeemTest is BaseTest {
         uint48 _batchId = vault.requestRedeem(1, 100 ether);
 
         // check the redeem request
-        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId), vault.PRICE_DENOMINATOR());
+        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId), vault.TOTAL_SHARE_UNITS());
         assertEq(vault.usersToRedeemAt(1, _batchId).length, 1);
         assertEq(vault.usersToRedeemAt(1, _batchId)[0], mockUser_1);
     }
@@ -132,8 +127,8 @@ contract AlephVaultRedeemTest is BaseTest {
 
         // check the redeem requests
         assertEq(_batchId_user1, _batchId_user2);
-        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId_user1), vault.PRICE_DENOMINATOR());
-        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _batchId_user1), vault.PRICE_DENOMINATOR() / 2);
+        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId_user1), vault.TOTAL_SHARE_UNITS());
+        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _batchId_user1), vault.TOTAL_SHARE_UNITS() / 2);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1).length, 2);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1)[0], mockUser_1);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1)[1], mockUser_2);

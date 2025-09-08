@@ -144,21 +144,14 @@ contract AlephVaultDepositTest is BaseTest {
         );
     }
 
-    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenNoBatchAvailable() public {
-        // request deposit
-        vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Deposit.NoBatchAvailableForDeposit.selector);
-        vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
-        );
-    }
-
-    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenLastDepositIdIsNotLessThanCurrentBatchId() public {
+    function test_requestDeposit_whenFlowIsUnpaused_revertsGivenUserHasAlreadyMadeADepositRequestForThisBatch()
+        public
+    {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
-        // set last deposit id to current batch id
-        vault.setLastDepositBatchId(mockUser_1, vault.currentBatch());
+        // set deposit request to current batch id
+        vault.setBatchDeposit(vault.currentBatch(), mockUser_1, 100 ether);
 
         // request deposit
         vm.prank(mockUser_1);

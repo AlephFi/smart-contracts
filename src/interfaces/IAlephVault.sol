@@ -29,7 +29,6 @@ interface IAlephVault {
     error InvalidShareSeries();
     error InvalidVaultFee();
 
-    event MetadataUriSet(string metadataUri);
     event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
     event AuthSignerSet(address authSigner);
@@ -66,6 +65,7 @@ interface IAlephVault {
         address alephVaultRedeemImplementation;
         address alephVaultSettlementImplementation;
         address feeManagerImplementation;
+        address migrationManagerImplementation;
     }
 
     struct ShareClass {
@@ -81,8 +81,6 @@ interface IAlephVault {
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
-        mapping(address user => uint48 batchId) lastDepositBatchId;
-        mapping(address user => uint48 batchId) lastRedeemBatchId;
     }
 
     struct ShareSeries {
@@ -123,6 +121,12 @@ interface IAlephVault {
      * @return The oracle.
      */
     function oracle() external view returns (address);
+
+    /**
+     * @notice Returns the operations multisig of the vault.
+     * @return The operations multisig.
+     */
+    function operationsMultisig() external view returns (address);
 
     /**
      * @notice Returns the guardian of the vault.
@@ -346,18 +350,6 @@ interface IAlephVault {
     function isSettlementAuthEnabled() external view returns (bool);
 
     /**
-     * @notice Returns the metadata URL of the vault.
-     * @return The metadata URL.
-     */
-    function metadataUri() external view returns (string memory);
-
-    /**
-     * @notice Sets the metadata URL of the vault.
-     * @param _metadataUrl The new metadata URL.
-     */
-    function setMetadataUri(string calldata _metadataUrl) external;
-
-    /**
      * @notice Sets whether authentication is enabled for deposits.
      * @param _isDepositAuthEnabled The new status of the authentication for deposits.
      */
@@ -368,12 +360,6 @@ interface IAlephVault {
      * @param _isSettlementAuthEnabled The new status of the authentication for settlements.
      */
     function setIsSettlementAuthEnabled(bool _isSettlementAuthEnabled) external;
-
-    /**
-     * @notice Sets the KYC authentication signer of the vault.
-     * @param _authSigner The new KYC authentication signer.
-     */
-    function setAuthSigner(address _authSigner) external;
 
     /**
      * @notice Creates a new share class.

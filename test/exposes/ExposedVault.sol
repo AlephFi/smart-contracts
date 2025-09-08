@@ -31,6 +31,8 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
 contract ExposedVault is AlephVault {
     using Math for uint256;
 
+    uint256 public constant TOTAL_SHARE_UNITS = 1e18;
+
     constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
 
     function depositSettleId() external view returns (uint48) {
@@ -55,14 +57,6 @@ contract ExposedVault is AlephVault {
 
     function timelocks(bytes4 _key) external view returns (TimelockRegistry.Timelock memory) {
         return _getStorage().timelocks[_key];
-    }
-
-    function setLastDepositBatchId(address _user, uint48 _lastDepositBatchId) external {
-        _getStorage().shareClasses[1].lastDepositBatchId[_user] = _lastDepositBatchId;
-    }
-
-    function setLastRedeemBatchId(address _user, uint48 _lastRedeemBatchId) external {
-        _getStorage().shareClasses[1].lastRedeemBatchId[_user] = _lastRedeemBatchId;
     }
 
     function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {

@@ -1,0 +1,8 @@
+MigrateOperationsMultisig_Unit_Test
+├── when caller is not VAULT_FACTORY
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is VAULT_FACTORY
+    ├── when newOperationsMultisig is address(0)
+    │   └── it should revert with InvalidOperationsMultisigAddress
+    └── when newOperationsMultisig is not address(0)
+        └── it should set newOperationsMultisig, grant and revoke roles and emit OperationsMultisigMigrated event
