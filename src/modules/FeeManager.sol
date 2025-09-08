@@ -124,7 +124,11 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     }
 
     ///@inheritdoc IFeeManager
-    function collectFees() external nonReentrant returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect) {
+    function collectFees()
+        external
+        nonReentrant
+        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
+    {
         return _collectFees(_getStorage());
     }
 
