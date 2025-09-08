@@ -68,6 +68,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         }
         __AccessControl_init();
         AlephVaultFactoryStorageData storage _sd = _getStorage();
+        _sd.isAuthEnabled = true;
         _sd.beacon = _initalizationParams.beacon;
         _sd.operationsMultisig = _initalizationParams.operationsMultisig;
         _sd.oracle = _initalizationParams.oracle;
@@ -95,9 +96,11 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     {
         bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
-        AuthLibrary.verifyVaultDeploymentAuthSignature(
-            _salt, _userInitializationParams.configId, _sd.authSigner, _userInitializationParams.authSignature
-        );
+        if (_sd.isAuthEnabled) {
+            AuthLibrary.verifyVaultDeploymentAuthSignature(
+                _salt, _userInitializationParams.configId, _sd.authSigner, _userInitializationParams.authSignature
+            );
+        }
         IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
             .ModuleInitializationParams({
             alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
@@ -133,6 +136,11 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
 
     function isValidVault(address _vault) external view returns (bool) {
         return _getStorage().vaults.contains(_vault);
+    }
+
+    function setIsAuthEnabled(bool _isAuthEnabled) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _getStorage().isAuthEnabled = _isAuthEnabled;
+        emit IsAuthEnabledSet(_isAuthEnabled);
     }
 
     function setOperationsMultisig(address _operationsMultisig) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {

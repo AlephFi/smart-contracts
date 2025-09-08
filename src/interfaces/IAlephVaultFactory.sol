@@ -27,6 +27,7 @@ interface IAlephVaultFactory {
     error UnsupportedChain();
 
     event VaultDeployed(address indexed vault, address indexed manager, string name, string configId);
+    event IsAuthEnabledSet(bool indexed isAuthEnabled);
     event OperationsMultisigSet(address indexed operationsMultisig);
     event OracleSet(address indexed oracle);
     event GuardianSet(address indexed guardian);
@@ -55,6 +56,12 @@ interface IAlephVaultFactory {
      * @return True if the vault is valid, false otherwise.
      */
     function isValidVault(address _vault) external view returns (bool);
+
+    /**
+     * @notice Sets if the vault is auth enabled.
+     * @param _isAuthEnabled The new status of the KYC authentication.
+     */
+    function setIsAuthEnabled(bool _isAuthEnabled) external;
 
     /**
      * @notice Deploys a new vault.
