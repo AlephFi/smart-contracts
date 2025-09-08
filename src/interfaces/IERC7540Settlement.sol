@@ -22,7 +22,14 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IERC7540Settlement {
-    struct SettleDepositParams {
+    struct SettlementParams {
+        uint8 classId;
+        uint48 toBatchId;
+        uint256[] newTotalAssets;
+        AuthLibrary.AuthSignature authSignature;
+    }
+
+    struct SettleDepositDetails {
         bool createSeries;
         uint8 classId;
         uint8 seriesId;
@@ -113,17 +120,13 @@ interface IERC7540Settlement {
 
     /**
      * @notice Settles all pending deposits up to the current batch.
-     * @param _classId The ID of the share class to settle deposits for.
-     * @param _toBatchId The batch ID to settle deposits up to.
-     * @param _newTotalAssets The new total assets after settlement for each series.
+     * @param _settlementParams The parameters for the settlement.
      */
-    function settleDeposit(uint8 _classId, uint48 _toBatchId, uint256[] calldata _newTotalAssets) external;
+    function settleDeposit(SettlementParams calldata _settlementParams) external;
 
     /**
      * @notice Settles all pending redeems up to the current batch.
-     * @param _classId The ID of the share class to settle redeems for.
-     * @param _toBatchId The batch ID to settle redeems up to.
-     * @param _newTotalAssets The new total assets after settlement for each series.
+     * @param _settlementParams The parameters for the settlement.
      */
-    function settleRedeem(uint8 _classId, uint48 _toBatchId, uint256[] calldata _newTotalAssets) external;
+    function settleRedeem(SettlementParams calldata _settlementParams) external;
 }

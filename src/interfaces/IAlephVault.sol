@@ -30,7 +30,8 @@ interface IAlephVault {
     error InvalidVaultFee();
 
     event MetadataUriSet(string metadataUri);
-    event IsAuthEnabledSet(bool isAuthEnabled);
+    event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
+    event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
     event AuthSignerSet(address authSigner);
     event ShareClassCreated(
         uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
@@ -333,10 +334,16 @@ interface IAlephVault {
     function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory);
 
     /**
-     * @notice Returns the status of the KYC authentication.
-     * @return The status of the KYC authentication.
+     * @notice Returns whether authentication is enabled for deposits.
+     * @return The status of the authentication for deposits.
      */
-    function isAuthEnabled() external view returns (bool);
+    function isDepositAuthEnabled() external view returns (bool);
+
+    /**
+     * @notice Returns whether authentication is enabled for settlements.
+     * @return The status of the authentication for settlements.
+     */
+    function isSettlementAuthEnabled() external view returns (bool);
 
     /**
      * @notice Returns the metadata URL of the vault.
@@ -351,10 +358,16 @@ interface IAlephVault {
     function setMetadataUri(string calldata _metadataUrl) external;
 
     /**
-     * @notice Sets the status of the KYC authentication.
-     * @param _isAuthEnabled The new status of the KYC authentication.
+     * @notice Sets whether authentication is enabled for deposits.
+     * @param _isDepositAuthEnabled The new status of the authentication for deposits.
      */
-    function setIsAuthEnabled(bool _isAuthEnabled) external;
+    function setIsDepositAuthEnabled(bool _isDepositAuthEnabled) external;
+
+    /**
+     * @notice Sets whether authentication is enabled for settlements.
+     * @param _isSettlementAuthEnabled The new status of the authentication for settlements.
+     */
+    function setIsSettlementAuthEnabled(bool _isSettlementAuthEnabled) external;
 
     /**
      * @notice Sets the KYC authentication signer of the vault.
