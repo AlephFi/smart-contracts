@@ -31,7 +31,6 @@ interface IAlephVault {
 
     event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
-    event AuthSignerSet(address authSigner);
     event ShareClassCreated(
         uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
     );
