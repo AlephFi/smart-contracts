@@ -30,7 +30,7 @@ import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
  */
 
 // Use to Deploy only an FeeRecipient.
-// forge script DeployFeeRecipient --sig="run()" --broadcast -vvvv --verify
+// forge script DeployFeeRecipient --sig="run()" --broadcast -vvvv
 contract DeployFeeRecipient is BaseScript {
     function setUp() public {}
 

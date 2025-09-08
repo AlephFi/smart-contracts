@@ -30,7 +30,7 @@ import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 // Use only to upgrade FeeRecipient.
-// forge script UpgradeFeeRecipient --sig="run()" --broadcast -vvvv --verify
+// forge script UpgradeFeeRecipient --sig="run()" --broadcast -vvvv
 contract UpgradeFeeRecipient is BaseScript {
     bytes32 constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
