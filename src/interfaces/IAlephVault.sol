@@ -33,7 +33,12 @@ interface IAlephVault {
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
     event AuthSignerSet(address authSigner);
     event ShareClassCreated(
-        uint8 classId, uint32 managementFee, uint32 performanceFee, uint256 minDepositAmount, uint256 maxDepositCap
+        uint8 classId,
+        uint32 managementFee,
+        uint32 performanceFee,
+        uint48 noticePeriod,
+        uint256 minDepositAmount,
+        uint256 maxDepositCap
     );
 
     struct InitializationParams {
@@ -55,6 +60,7 @@ interface IAlephVault {
         address custodian;
         uint32 managementFee;
         uint32 performanceFee;
+        uint48 noticePeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
         AuthLibrary.AuthSignature authSignature;
@@ -76,6 +82,7 @@ interface IAlephVault {
         uint48 lastFeePaidId;
         uint48 depositSettleId;
         uint48 redeemSettleId;
+        uint48 noticePeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
         mapping(uint8 => ShareSeries) shareSeries;
@@ -255,6 +262,13 @@ interface IAlephVault {
     function highWaterMark(uint8 _classId, uint8 _seriesId) external view returns (uint256);
 
     /**
+     * @notice Returns the notice period of the vault.
+     * @param _classId The ID of the share class.
+     * @return The notice period.
+     */
+    function noticePeriod(uint8 _classId) external view returns (uint48);
+
+    /**
      * @notice Returns the minimum deposit amount.
      * @param _classId The ID of the share class.
      * @return The minimum deposit amount of the share class.
@@ -365,12 +379,14 @@ interface IAlephVault {
      * @notice Creates a new share class.
      * @param _managementFee The management fee.
      * @param _performanceFee The performance fee.
+     * @param _noticePeriod The notice period.
      * @param _minDepositAmount The minimum deposit amount.
      * @param _maxDepositCap The maximum deposit cap.
      */
     function createShareClass(
         uint32 _managementFee,
         uint32 _performanceFee,
+        uint48 _noticePeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap
     ) external returns (uint8 _classId);

@@ -20,11 +20,25 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IERC7540Redeem {
+    event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
+    event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);
     event RedeemRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
     error InsufficientRedeem();
     error InsufficientAssetsToRedeem();
     error OnlyOneRequestPerBatchAllowedForRedeem();
+
+    /**
+     * @notice Queues a new notice period.
+     * @param _classId The ID of the share class to set the notice period for.
+     * @param _noticePeriod The new notice period.
+     */
+    function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external;
+
+    /**
+     * @notice Sets the notice period.
+     */
+    function setNoticePeriod() external;
 
     /**
      * @notice Requests to redeem shares from the vault for the current batch.
