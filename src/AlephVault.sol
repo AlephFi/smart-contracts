@@ -464,7 +464,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _noticePeriod The new notice period to be set.
      * @dev Only callable by the MANAGER role.
      */
-    function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external onlyRole(RolesLibrary.MANAGER) {
+    function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod)
+        external
+        onlyValidShareClass(_classId)
+        onlyRole(RolesLibrary.MANAGER)
+    {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
