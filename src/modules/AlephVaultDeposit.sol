@@ -69,7 +69,11 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     }
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(RequestDepositParams calldata _requestDepositParams) external returns (uint48 _batchId) {
+    function requestDeposit(RequestDepositParams calldata _requestDepositParams)
+        external
+        nonReentrant
+        returns (uint48 _batchId)
+    {
         return _requestDeposit(_getStorage(), _requestDepositParams);
     }
 

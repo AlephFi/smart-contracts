@@ -39,12 +39,12 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Settlement
-    function settleDeposit(uint8 _classId, uint256[] calldata _newTotalAssets) external {
+    function settleDeposit(uint8 _classId, uint256[] calldata _newTotalAssets) external nonReentrant {
         _settleDeposit(_getStorage(), _classId, _newTotalAssets);
     }
 
     /// @inheritdoc IERC7540Settlement
-    function settleRedeem(uint8 _classId, uint256[] calldata _newTotalAssets) external {
+    function settleRedeem(uint8 _classId, uint256[] calldata _newTotalAssets) external nonReentrant {
         _settleRedeem(_getStorage(), _classId, _newTotalAssets);
     }
 
