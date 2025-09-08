@@ -76,6 +76,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _settlementParams.toBatchId,
                 _sd.manager,
                 _settlementParams.newTotalAssets,
+                _sd.authSigner,
                 _settlementParams.authSignature
             );
         }
@@ -213,6 +214,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
                 _settlementParams.toBatchId,
                 _sd.manager,
                 _settlementParams.newTotalAssets,
+                _sd.authSigner,
                 _settlementParams.authSignature
             );
         }

@@ -22,7 +22,9 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
+import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
@@ -72,9 +74,12 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
-
-        // first batch to settle
-        uint256[] memory _newTotalAssets = new uint256[](1);
+        IERC7540Settlement.SettlementParams memory _settlementParams = IERC7540Settlement.SettlementParams({
+            classId: 1,
+            toBatchId: vault.currentBatch(),
+            newTotalAssets: new uint256[](1),
+            authSignature: _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1))
+        });
 
         // expected shares to mint per user
         uint256 _expectedSharesToMint_user1 = 100 ether;
@@ -82,7 +87,7 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // settle deposit
         vm.startPrank(oracle);
-        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
+        vault.settleDeposit(_settlementParams);
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -112,27 +117,35 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         // vault makes a profit
-        _newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0) + 50 ether;
+        _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0) + 50 ether;
         uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
-        uint256 _expectedManagementShares = vault.getManagementFeeShares(_newTotalAssets[0], _totalShares, 2);
-        uint256 _expectedPerformanceShares = vault.getPerformanceFeeShares(_newTotalAssets[0], _totalShares);
+        uint256 _expectedManagementShares =
+            vault.getManagementFeeShares(_settlementParams.newTotalAssets[0], _totalShares, 2);
+        uint256 _expectedPerformanceShares =
+            vault.getPerformanceFeeShares(_settlementParams.newTotalAssets[0], _totalShares);
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected assets to withdraw per user
-        uint256 _expectedAssetsToWithdraw_user1 = ERC4626Math.previewRedeem(100 ether, _newTotalAssets[0], _totalShares);
-        uint256 _expectedAssetsToWithdraw_user2 = ERC4626Math.previewRedeem(200 ether, _newTotalAssets[0], _totalShares);
+        uint256 _expectedAssetsToWithdraw_user1 =
+            ERC4626Math.previewRedeem(100 ether, _settlementParams.newTotalAssets[0], _totalShares);
+        uint256 _expectedAssetsToWithdraw_user2 =
+            ERC4626Math.previewRedeem(200 ether, _settlementParams.newTotalAssets[0], _totalShares);
         uint256 _expectedAssetsToWithdraw = _expectedAssetsToWithdraw_user1 + _expectedAssetsToWithdraw_user2;
 
         // set vault balance
         underlyingToken.mint(address(vault), _expectedAssetsToWithdraw);
 
         // settle redeem
+        _settlementParams.toBatchId = vault.currentBatch();
+        _settlementParams.authSignature = _getSettlementAuthSignature(
+            AuthLibrary.SETTLE_REDEEM, _settlementParams.toBatchId, _settlementParams.newTotalAssets
+        );
         vm.startPrank(oracle);
-        vault.settleRedeem(1, vault.currentBatch(), _newTotalAssets);
+        vault.settleRedeem(_settlementParams);
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssetsPerSeries(1, 0), _newTotalAssets[0] - _expectedAssetsToWithdraw);
+        assertEq(vault.totalAssetsPerSeries(1, 0), _settlementParams.newTotalAssets[0] - _expectedAssetsToWithdraw);
         assertEq(vault.totalSharesPerSeries(1, 0), _totalShares - 300 ether);
 
         // assert user assets are received
@@ -193,8 +206,18 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         uint256[] memory _newTotalAssets = new uint256[](1);
 
         // settle deposit
+        uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
         vm.startPrank(oracle);
-        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -243,8 +266,18 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         _expectedSharesToMint_user2 = ERC4626Math.previewDeposit(400 ether, _totalShares, _newTotalAssets[0]);
 
         // settle deposit
+        _settleBatchId = vault.currentBatch();
+        _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
         vm.startPrank(oracle);
-        vault.settleDeposit(1, vault.currentBatch(), _newTotalAssets);
+        vault.settleDeposit(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets and total shares
@@ -275,8 +308,18 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         underlyingToken.mint(address(vault), _expectedAssetsToWithdraw);
 
         // settle redeem
+        _settleBatchId = vault.currentBatch();
+        _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_REDEEM, _settleBatchId, _newTotalAssets);
         vm.startPrank(oracle);
-        vault.settleRedeem(1, vault.currentBatch(), _newTotalAssets);
+        vault.settleRedeem(
+            IERC7540Settlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
         vm.stopPrank();
 
         // assert total assets

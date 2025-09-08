@@ -65,6 +65,7 @@ library AuthLibrary {
         uint48 _toBatchId,
         address _manager,
         uint256[] calldata _newTotalAssets,
+        address _authSigner,
         AuthSignature memory _authSignature
     ) internal view {
         bytes32 _hash = keccak256(
@@ -79,7 +80,7 @@ library AuthLibrary {
                 _authSignature.expiryBlock
             )
         );
-        _verifyAuthSignature(_hash, _manager, _authSignature);
+        _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 
     function _verifyAuthSignature(bytes32 _hash, address _authSigner, AuthSignature memory _authSignature)
