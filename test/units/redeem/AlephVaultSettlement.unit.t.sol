@@ -85,7 +85,16 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vault.settleRedeem(1, 0, new uint256[](1));
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenRedeemSettleIdIsEqualToCurrentBatchId()
+    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsGreaterThanCurrentBatchId()
+        public
+    {
+        // settle redeem
+        vm.prank(oracle);
+        vm.expectRevert(IERC7540Settlement.InvalidToBatchId.selector);
+        vault.settleRedeem(1, 1, new uint256[](1));
+    }
+
+    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsEqualToRedeemSettleId()
         public
     {
         // settle redeem

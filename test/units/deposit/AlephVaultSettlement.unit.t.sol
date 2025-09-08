@@ -70,8 +70,18 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vault.settleDeposit(1, 0, new uint256[](1));
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenDepositSettleIdIsEqualToCurrentBatchId(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsGreaterThanCurrentBatchId()
+        public
+    {
+        // settle deposit
+        vm.prank(oracle);
+        vm.expectRevert(IERC7540Settlement.InvalidToBatchId.selector);
+        vault.settleDeposit(1, 1, new uint256[](1));
+    }
+
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsEqualToDepositSettleId()
+        public
+    {
         // settle deposit
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.NoDepositsToSettle.selector);
