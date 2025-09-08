@@ -85,7 +85,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _settlementParams.toBatchId,
             _settlementParams.newTotalAssets
         );
-        uint8 _settlementSeriesId = _getSettlementSeriesId(_shareClass, _settlementParams.classId, _settlementParams.toBatchId);
+        uint8 _settlementSeriesId =
+            _getSettlementSeriesId(_shareClass, _settlementParams.classId, _settlementParams.toBatchId);
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_settlementSeriesId];
         SettleDepositDetails memory _settleDepositDetails = SettleDepositDetails({
             // check if a new series needs to be created
