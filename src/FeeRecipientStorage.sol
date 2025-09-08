@@ -16,11 +16,11 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 struct FeeRecipientStorageData {
-    uint32 managementFeeCut;
-    uint32 performanceFeeCut;
     address operationsMultisig;
     address vaultFactory;
     address alephTreasury;
+    mapping(address vault => uint32) managementFeeCut;
+    mapping(address vault => uint32) performanceFeeCut;
     mapping(address vault => address) vaultTreasury;
 }
 /**

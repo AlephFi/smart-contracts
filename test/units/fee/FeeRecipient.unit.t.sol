@@ -28,6 +28,7 @@ contract FeeRecipientTest is BaseTest {
         super.setUp();
         _setUpFeeRecipient(defaultFeeRecipientInitializationParams);
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
+        _setFeeRecipientCut(2500, 5000);
         _unpauseVaultFlows();
     }
 

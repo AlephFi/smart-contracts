@@ -49,8 +49,6 @@ contract DeployFeeRecipient is BaseScript {
 
         console.log("operationsMultisig", _initializationParams.operationsMultisig);
         console.log("alephTreasury", _initializationParams.alephTreasury);
-        console.log("managementFeeCut", _initializationParams.managementFeeCut);
-        console.log("performanceFeeCut", _initializationParams.performanceFeeCut);
 
         bytes memory _initializeArgs = abi.encodeWithSelector(FeeRecipient.initialize.selector, _initializationParams);
 
@@ -79,12 +77,6 @@ contract DeployFeeRecipient is BaseScript {
         string memory _environment
     ) internal view returns (IFeeRecipient.InitializationParams memory) {
         return IFeeRecipient.InitializationParams({
-            managementFeeCut: uint32(
-                vm.parseJsonUint(_feeRecipientConfig, string.concat(".", _chainId, ".", _environment, ".managementFeeCut"))
-            ),
-            performanceFeeCut: uint32(
-                vm.parseJsonUint(_feeRecipientConfig, string.concat(".", _chainId, ".", _environment, ".performanceFeeCut"))
-            ),
             operationsMultisig: vm.parseJsonAddress(
                 _factoryConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
             ),

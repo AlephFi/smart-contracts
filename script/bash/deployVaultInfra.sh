@@ -109,6 +109,4 @@ echo -e "  ${BLUE}FeeRecipient:${NC}        $(get_factory_config_value "$CHAIN_I
 echo -e "  ${BLUE}ManagementFee:${NC}       $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFee")"
 echo -e "  ${BLUE}PerformanceFee:${NC}      $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFee")\n"
 echo -e "${BOLD}Fee Recipient Configs${NC}"
-echo -e "  ${BLUE}ManagementFeeCut:${NC}    $(get_fee_recipient_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFeeCut")"
-echo -e "  ${BLUE}PerformanceFeeCut:${NC}   $(get_fee_recipient_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFeeCut")"
 echo -e "  ${BLUE}AlephTreasury:${NC}       $(get_fee_recipient_config_value "$CHAIN_ID" "$ENVIRONMENT" "alephTreasury")\n"

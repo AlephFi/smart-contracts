@@ -48,14 +48,10 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
     function _initialize(InitializationParams calldata _initializationParams) internal onlyInitializing {
         FeeRecipientStorageData storage _sd = _getStorage();
         __AccessControl_init();
-        if (
-            _initializationParams.operationsMultisig == address(0) || _initializationParams.alephTreasury == address(0)
-                || _initializationParams.managementFeeCut == 0 || _initializationParams.performanceFeeCut == 0
-        ) {
+        if (_initializationParams.operationsMultisig == address(0) || _initializationParams.alephTreasury == address(0))
+        {
             revert InvalidInitializationParams();
         }
-        _sd.managementFeeCut = _initializationParams.managementFeeCut;
-        _sd.performanceFeeCut = _initializationParams.performanceFeeCut;
         _sd.operationsMultisig = _initializationParams.operationsMultisig;
         _sd.alephTreasury = _initializationParams.alephTreasury;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
@@ -109,15 +105,29 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
     }
 
     /// @inheritdoc IFeeRecipient
-    function setManagementFeeCut(uint32 _managementFeeCut) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        _getStorage().managementFeeCut = _managementFeeCut;
-        emit ManagementFeeCutSet(_managementFeeCut);
+    function setManagementFeeCut(address _vault, uint32 _managementFeeCut)
+        external
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
+        FeeRecipientStorageData storage _sd = _getStorage();
+        if (!IAlephVaultFactory(_sd.vaultFactory).isValidVault(_vault)) {
+            revert InvalidVault();
+        }
+        _sd.managementFeeCut[_vault] = _managementFeeCut;
+        emit ManagementFeeCutSet(_vault, _managementFeeCut);
     }
 
     /// @inheritdoc IFeeRecipient
-    function setPerformanceFeeCut(uint32 _performanceFeeCut) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        _getStorage().performanceFeeCut = _performanceFeeCut;
-        emit PerformanceFeeCutSet(_performanceFeeCut);
+    function setPerformanceFeeCut(address _vault, uint32 _performanceFeeCut)
+        external
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
+        FeeRecipientStorageData storage _sd = _getStorage();
+        if (!IAlephVaultFactory(_sd.vaultFactory).isValidVault(_vault)) {
+            revert InvalidVault();
+        }
+        _sd.performanceFeeCut[_vault] = _performanceFeeCut;
+        emit PerformanceFeeCutSet(_vault, _performanceFeeCut);
     }
 
     /// @inheritdoc IFeeRecipient
@@ -136,7 +146,7 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
             _vault, address(this), _managementFeesToCollect + _performanceFeesToCollect
         );
         (uint256 _vaultFee, uint256 _alephFee) =
-            _calculateFeeSplit(_sd, _managementFeesToCollect, _performanceFeesToCollect);
+            _calculateFeeSplit(_sd, _vault, _managementFeesToCollect, _performanceFeesToCollect);
         IERC20(_underlyingToken).safeTransfer(_vaultTreasury, _vaultFee);
         IERC20(_underlyingToken).safeTransfer(_sd.alephTreasury, _alephFee);
         emit FeesCollected(_vault, _managementFeesToCollect, _performanceFeesToCollect, _vaultFee, _alephFee);
@@ -145,6 +155,7 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
     /**
      * @dev Calculates the fees for the vault and the aleph treasury.
      * @param _sd The storage struct.
+     * @param _vault The vault to collect fees from.
      * @param _managementFeesToCollect The management fees to collect.
      * @param _performanceFeesToCollect The performance fees to collect.
      * @return _vaultFee The fee for the vault.
@@ -152,13 +163,15 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
      */
     function _calculateFeeSplit(
         FeeRecipientStorageData storage _sd,
+        address _vault,
         uint256 _managementFeesToCollect,
         uint256 _performanceFeesToCollect
     ) internal view returns (uint256 _vaultFee, uint256 _alephFee) {
         uint256 _alephManagementFee =
-            _managementFeesToCollect.mulDiv(uint256(_sd.managementFeeCut), BPS_DENOMINATOR, Math.Rounding.Ceil);
-        uint256 _alephPerformanceFee =
-            _performanceFeesToCollect.mulDiv(uint256(_sd.performanceFeeCut), BPS_DENOMINATOR, Math.Rounding.Ceil);
+            _managementFeesToCollect.mulDiv(uint256(_sd.managementFeeCut[_vault]), BPS_DENOMINATOR, Math.Rounding.Ceil);
+        uint256 _alephPerformanceFee = _performanceFeesToCollect.mulDiv(
+            uint256(_sd.performanceFeeCut[_vault]), BPS_DENOMINATOR, Math.Rounding.Ceil
+        );
         _alephFee = _alephManagementFee + _alephPerformanceFee;
         _vaultFee = _managementFeesToCollect + _performanceFeesToCollect - _alephFee;
     }

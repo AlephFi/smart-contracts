@@ -150,10 +150,8 @@ contract BaseTest is Test {
         });
 
         defaultFeeRecipientInitializationParams = IFeeRecipient.InitializationParams({
-            operationsMultisig: makeAddr("operationsMultisig"),
-            alephTreasury: makeAddr("alephTreasury"),
-            managementFeeCut: 2500,
-            performanceFeeCut: 5000
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            alephTreasury: makeAddr("alephTreasury")
         });
     }
 
@@ -165,8 +163,16 @@ contract BaseTest is Test {
         defaultInitializationParams.feeRecipient = address(_feeRecipient);
         feeRecipient = _feeRecipient;
         alephTreasury = _initializationParams.alephTreasury;
-        managementFeeCut = _initializationParams.managementFeeCut;
-        performanceFeeCut = _initializationParams.performanceFeeCut;
+    }
+
+    function _setFeeRecipientCut(uint32 _managementFeeCut, uint32 _performanceFeeCut) public {
+        mocks.mockIsValidVault(vaultFactory, address(vault), true);
+        vm.startPrank(operationsMultisig);
+        feeRecipient.setManagementFeeCut(address(vault), _managementFeeCut);
+        feeRecipient.setPerformanceFeeCut(address(vault), _performanceFeeCut);
+        vm.stopPrank();
+        managementFeeCut = _managementFeeCut;
+        performanceFeeCut = _performanceFeeCut;
     }
 
     function _setUpNewAlephVault(

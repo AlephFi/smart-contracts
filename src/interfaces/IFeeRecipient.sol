@@ -24,8 +24,8 @@ interface IFeeRecipient {
     event VaultFactorySet(address _vaultFactory);
     event AlephTreasurySet(address _alephTreasury);
     event VaultTreasurySet(address _vault, address _vaultTreasury);
-    event ManagementFeeCutSet(uint32 _managementFeeCut);
-    event PerformanceFeeCutSet(uint32 _performanceFeeCut);
+    event ManagementFeeCutSet(address _vault, uint32 _managementFeeCut);
+    event PerformanceFeeCutSet(address _vault, uint32 _performanceFeeCut);
     event FeesCollected(
         address _vault,
         uint256 _managementFeesToCollect,
@@ -41,8 +41,6 @@ interface IFeeRecipient {
     error VaultTreasuryNotSet();
 
     struct InitializationParams {
-        uint32 managementFeeCut;
-        uint32 performanceFeeCut;
         address operationsMultisig;
         address alephTreasury;
     }
@@ -79,15 +77,17 @@ interface IFeeRecipient {
 
     /**
      * @notice Sets the management fee cut.
+     * @param _vault The vault to set the management fee cut for.
      * @param _managementFeeCut The new management fee cut.
      */
-    function setManagementFeeCut(uint32 _managementFeeCut) external;
+    function setManagementFeeCut(address _vault, uint32 _managementFeeCut) external;
 
     /**
      * @notice Sets the performance fee cut.
+     * @param _vault The vault to set the performance fee cut for.
      * @param _performanceFeeCut The new performance fee cut.
      */
-    function setPerformanceFeeCut(uint32 _performanceFeeCut) external;
+    function setPerformanceFeeCut(address _vault, uint32 _performanceFeeCut) external;
 
     /**
      * @notice Collects all pending fees from a given vault.
