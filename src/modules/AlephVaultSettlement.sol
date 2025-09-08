@@ -61,7 +61,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _depositSettleId = _shareClass.depositSettleId;
-        if (_settlementParams.toBatchId == _depositSettleId) {
+        if (_settlementParams.toBatchId <= _depositSettleId) {
             revert NoDepositsToSettle();
         }
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
@@ -197,7 +197,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
         }
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
-        if (_settlementParams.toBatchId == _redeemSettleId) {
+        if (_settlementParams.toBatchId <= _redeemSettleId) {
             revert NoRedeemsToSettle();
         }
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
