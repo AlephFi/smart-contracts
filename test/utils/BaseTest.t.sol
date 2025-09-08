@@ -195,11 +195,11 @@ contract BaseTest is Test {
     }
 
     function _setAuthSignatures() public {
-        authSignature_1 = _getAuthSignature(mockUser_1, type(uint256).max);
-        authSignature_2 = _getAuthSignature(mockUser_2, type(uint256).max);
+        authSignature_1 = _getDepositAuthSignature(mockUser_1, type(uint256).max);
+        authSignature_2 = _getDepositAuthSignature(mockUser_2, type(uint256).max);
     }
 
-    function _getAuthSignature(address _user, uint256 _expiryBlock)
+    function _getDepositAuthSignature(address _user, uint256 _expiryBlock)
         internal
         view
         returns (AuthLibrary.AuthSignature memory)
@@ -209,6 +209,20 @@ contract BaseTest is Test {
         (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(authSignerPrivateKey, _ethSignedMessage);
         bytes memory _authSignature = abi.encodePacked(_r, _s, _v);
         return AuthLibrary.AuthSignature({authSignature: _authSignature, expiryBlock: _expiryBlock});
+    }
+
+    function _getSettlementAuthSignature(bytes4 _flow, uint48 _toBatchId, uint256[] memory _newTotalAssets)
+        internal
+        view
+        returns (AuthLibrary.AuthSignature memory)
+    {
+        bytes32 _authMessage = keccak256(
+            abi.encode(_flow, manager, address(vault), block.chainid, 1, _toBatchId, _newTotalAssets, type(uint256).max)
+        );
+        bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
+        (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(authSignerPrivateKey, _ethSignedMessage);
+        bytes memory _authSignature = abi.encodePacked(_r, _s, _v);
+        return AuthLibrary.AuthSignature({authSignature: _authSignature, expiryBlock: type(uint256).max});
     }
 
     function _getSettleDepositExpectations(

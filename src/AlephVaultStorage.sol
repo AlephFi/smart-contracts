@@ -20,7 +20,8 @@ import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 
 struct AlephVaultStorageData {
     string name;
-    bool isAuthEnabled;
+    bool isDepositAuthEnabled;
+    bool isSettlementAuthEnabled;
     uint8 shareClassesId;
     uint48 startTimeStamp;
     address operationsMultisig;

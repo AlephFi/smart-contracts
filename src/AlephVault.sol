@@ -23,6 +23,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
@@ -115,7 +116,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.manager = _initalizationParams.userInitializationParams.manager;
         _sd.underlyingToken = _initalizationParams.userInitializationParams.underlyingToken;
         _sd.custodian = _initalizationParams.userInitializationParams.custodian;
-        _sd.isAuthEnabled = true;
+        _sd.isDepositAuthEnabled = true;
+        _sd.isSettlementAuthEnabled = true;
         _sd.startTimeStamp = Time.timestamp();
 
         // set up module implementations
@@ -232,12 +234,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function totalAssetsPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalAssetsPerClass(_getStorage(), _classId);
+        return _totalAssetsPerClass(_getStorage().shareClasses[_classId], _classId);
     }
 
     /// @inheritdoc IAlephVault
     function totalSharesPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalSharesPerClass(_getStorage(), _classId);
+        return _totalSharesPerClass(_getStorage().shareClasses[_classId], _classId);
     }
 
     /// @inheritdoc IAlephVault
@@ -352,8 +354,9 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function redeemRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToRedeem) {
         AlephVaultStorageData storage _sd = _getStorage();
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         return _pendingAssetsOf(
-            _sd, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _sd.shareClasses[_classId])
+            _shareClass, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _shareClass)
         );
     }
 
@@ -377,14 +380,33 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function isAuthEnabled() external view returns (bool) {
-        return _getStorage().isAuthEnabled;
+    function isDepositAuthEnabled() external view returns (bool) {
+        return _getStorage().isDepositAuthEnabled;
     }
 
     /// @inheritdoc IAlephVault
-    function setIsAuthEnabled(bool _isAuthEnabled) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
-        _getStorage().isAuthEnabled = _isAuthEnabled;
-        emit IsAuthEnabledSet(_isAuthEnabled);
+    function isSettlementAuthEnabled() external view returns (bool) {
+        return _getStorage().isSettlementAuthEnabled;
+    }
+
+    /// @inheritdoc IAlephVault
+    function setIsDepositAuthEnabled(bool _isDepositAuthEnabled)
+        external
+        override(IAlephVault)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _getStorage().isDepositAuthEnabled = _isDepositAuthEnabled;
+        emit IsDepositAuthEnabledSet(_isDepositAuthEnabled);
+    }
+
+    /// @inheritdoc IAlephVault
+    function setIsSettlementAuthEnabled(bool _isSettlementAuthEnabled)
+        external
+        override(IAlephVault)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _getStorage().isSettlementAuthEnabled = _isSettlementAuthEnabled;
+        emit IsSettlementAuthEnabledSet(_isSettlementAuthEnabled);
     }
 
     /// @inheritdoc IAlephVault
@@ -530,14 +552,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Settles all pending deposits up to the current batch.
-     * @param _classId The ID of the share class to settle deposits for.
-     * @param _newTotalAssets The new total assets after settlement for each series.
+     * @param _settlementParams The parameters for the settlement.
      * @dev Only callable by the ORACLE role.
      */
-    function settleDeposit(uint8 _classId, uint256[] calldata _newTotalAssets)
+    function settleDeposit(IERC7540Settlement.SettlementParams calldata _settlementParams)
         external
         onlyRole(RolesLibrary.ORACLE)
-        onlyValidShareClass(_classId)
+        onlyValidShareClass(_settlementParams.classId)
         whenFlowNotPaused(PausableFlows.SETTLE_DEPOSIT_FLOW)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
@@ -561,14 +582,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Settles all pending redeems up to the current batch.
-     * @param _classId The ID of the share class to settle redeems for.
-     * @param _newTotalAssets The new total assets after settlement for each series.
+     * @param _settlementParams The parameters for the settlement.
      * @dev Only callable by the ORACLE role.
      */
-    function settleRedeem(uint8 _classId, uint256[] calldata _newTotalAssets)
+    function settleRedeem(IERC7540Settlement.SettlementParams calldata _settlementParams)
         external
         onlyRole(RolesLibrary.ORACLE)
-        onlyValidShareClass(_classId)
+        onlyValidShareClass(_settlementParams.classId)
         whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
