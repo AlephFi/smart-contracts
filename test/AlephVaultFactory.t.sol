@@ -79,8 +79,8 @@ contract AlephVaultFactoryTest is Test {
     }
 
     function testDeployVaultAndIsValidVault() public {
-        bytes32 _salt = keccak256(abi.encodePacked(manager, name));
-        bytes32 _authMessage = keccak256(abi.encode(block.chainid, _salt, "test", type(uint256).max));
+        bytes32 _authMessage =
+            keccak256(abi.encode(manager, address(factory), name, "test", block.chainid, type(uint256).max));
         bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
         (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(authSignerPrivateKey, _ethSignedMessage);
         bytes memory _authSignature = abi.encodePacked(_r, _s, _v);

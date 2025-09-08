@@ -35,12 +35,15 @@ library AuthLibrary {
     error InvalidAuthSignature();
 
     function verifyVaultDeploymentAuthSignature(
-        bytes32 _salt,
+        address _manager,
+        address _vaultFactory,
+        string memory _name,
         string memory _configId,
         address _authSigner,
         AuthSignature memory _authSignature
     ) internal view {
-        bytes32 _hash = keccak256(abi.encode(block.chainid, _salt, _configId, _authSignature.expiryBlock));
+        bytes32 _hash =
+            keccak256(abi.encode(_manager, _vaultFactory, _name, _configId, block.chainid, _authSignature.expiryBlock));
         _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 

@@ -98,7 +98,12 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         AlephVaultFactoryStorageData storage _sd = _getStorage();
         if (_sd.isAuthEnabled) {
             AuthLibrary.verifyVaultDeploymentAuthSignature(
-                _salt, _userInitializationParams.configId, _sd.authSigner, _userInitializationParams.authSignature
+                _userInitializationParams.manager,
+                address(this),
+                _userInitializationParams.name,
+                _userInitializationParams.configId,
+                _sd.authSigner,
+                _userInitializationParams.authSignature
             );
         }
         IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
