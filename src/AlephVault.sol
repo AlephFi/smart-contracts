@@ -148,6 +148,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.guardian,
             _initalizationParams.operationsMultisig
         );
+        // initialize reentrancy guard
+        __ReentrancyGuard_init();
 
         // create default share class
         _createShareClass(
