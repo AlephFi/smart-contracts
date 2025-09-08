@@ -65,10 +65,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             revert NoDepositsToSettle();
         }
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        _validateNewTotalAssets(_shareClass.shareSeriesId, _lastConsolidatedSeriesId, _newTotalAssets);
-        if (_settlementParams.newTotalAssets.length != _shareSeriesId - _lastConsolidatedSeriesId + 1) {
-            revert InvalidNewTotalAssets();
-        }
+        _validateNewTotalAssets(_shareClass.shareSeriesId, _lastConsolidatedSeriesId, _settlementParams.newTotalAssets);
         if (_sd.isSettlementAuthEnabled) {
             AuthLibrary.verifySettlementAuthSignature(
                 AuthLibrary.SETTLE_DEPOSIT,
@@ -204,10 +201,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             revert NoRedeemsToSettle();
         }
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        _validateNewTotalAssets(_shareClass.shareSeriesId, _lastConsolidatedSeriesId, _newTotalAssets);
-        if (_settlementParams.newTotalAssets.length != _shareSeriesId - _lastConsolidatedSeriesId + 1) {
-            revert InvalidNewTotalAssets();
-        }
+        _validateNewTotalAssets(_shareClass.shareSeriesId, _lastConsolidatedSeriesId, _settlementParams.newTotalAssets);
         if (_sd.isSettlementAuthEnabled) {
             AuthLibrary.verifySettlementAuthSignature(
                 AuthLibrary.SETTLE_REDEEM,

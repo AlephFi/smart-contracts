@@ -399,7 +399,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function setIsSettlementAuthEnabled(bool _isSettlementAuthEnabled) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
+    function setIsSettlementAuthEnabled(bool _isSettlementAuthEnabled)
+        external
+        override(IAlephVault)
+        onlyRole(RolesLibrary.MANAGER)
+    {
         _getStorage().isSettlementAuthEnabled = _isSettlementAuthEnabled;
         emit IsSettlementAuthEnabledSet(_isSettlementAuthEnabled);
     }
