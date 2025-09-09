@@ -24,14 +24,12 @@ interface IMigrationManager {
     event OracleMigrated(address indexed oracle);
     event GuardianMigrated(address indexed guardian);
     event AuthSignerMigrated(address indexed authSigner);
-    event FeeRecipientMigrated(address indexed feeRecipient);
     event ModulesMigrated(bytes4 indexed module, address indexed implementation);
 
     error InvalidOperationsMultisigAddress();
     error InvalidOracleAddress();
     error InvalidGuardianAddress();
     error InvalidAuthSignerAddress();
-    error InvalidFeeRecipientAddress();
     error InvalidModuleAddress();
 
     /**
@@ -57,12 +55,6 @@ interface IMigrationManager {
      * @param _newAuthSigner The new authentication signer.
      */
     function migrateAuthSigner(address _newAuthSigner) external;
-
-    /**
-     * @notice Migrates the fee recipient.
-     * @param _newFeeRecipient The new fee recipient.
-     */
-    function migrateFeeRecipient(address _newFeeRecipient) external;
 
     /**
      * @notice Migrates the module implementation.

@@ -212,20 +212,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         emit AuthSignerSet(_authSigner);
     }
 
-    function setFeeRecipient(address _feeRecipient) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        if (_feeRecipient == address(0)) {
-            revert InvalidParam();
-        }
-        AlephVaultFactoryStorageData storage _sd = _getStorage();
-        _sd.feeRecipient = _feeRecipient;
-        uint256 _len = _sd.vaults.length();
-        for (uint256 i = 0; i < _len; i++) {
-            address _vault = _sd.vaults.at(i);
-            IMigrationManager(_vault).migrateFeeRecipient(_feeRecipient);
-        }
-        emit FeeRecipientSet(_feeRecipient);
-    }
-
     function setModuleImplementation(bytes4 _module, address _implementation)
         external
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
