@@ -35,22 +35,6 @@ contract FeeRecipientTest is BaseTest {
     /*//////////////////////////////////////////////////////////////
                         COLLECT FEE TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_collectFees_revertsWhenCallerIsNotOperationsMultisig() public {
-        // Setup a non-authorized user
-        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
-
-        // collect fees
-        vm.prank(nonAuthorizedUser);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
-            )
-        );
-        feeRecipient.collectFees(address(vault));
-    }
-
     function test_collectFees_revertsWhenVaultIsNotValid() public {
         // Setup a non-valid vault
         address nonValidVault = makeAddr("nonValidVault");
@@ -59,9 +43,22 @@ contract FeeRecipientTest is BaseTest {
         mocks.mockIsValidVault(vaultFactory, nonValidVault, false);
 
         // collect fees
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(IFeeRecipient.InvalidVault.selector);
         feeRecipient.collectFees(nonValidVault);
+    }
+
+    function test_collectFees_revertsWhenCallerIsNotManager() public {
+        // Setup a non-manager user
+        address nonManager = makeAddr("nonManager");
+
+        // Mock the isValidVault function to return true
+        mocks.mockIsValidVault(vaultFactory, address(vault), true);
+
+        // collect fees
+        vm.prank(nonManager);
+        vm.expectRevert(IFeeRecipient.InvalidManager.selector);
+        feeRecipient.collectFees(address(vault));
     }
 
     function test_collectFees_revertsWhenVaultTreasuryIsNotSet() public {
@@ -69,7 +66,7 @@ contract FeeRecipientTest is BaseTest {
         mocks.mockIsValidVault(vaultFactory, address(vault), true);
 
         // collect fees
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(IFeeRecipient.VaultTreasuryNotSet.selector);
         feeRecipient.collectFees(address(vault));
     }
@@ -84,7 +81,7 @@ contract FeeRecipientTest is BaseTest {
         // collect fees
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         mocks.mockCollectFees(_vault, 100 ether, 100 ether);
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IERC20Errors.ERC20InsufficientAllowance.selector, address(feeRecipient), 0, 200 ether
@@ -107,7 +104,7 @@ contract FeeRecipientTest is BaseTest {
         // collect fees
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         mocks.mockCollectFees(_vault, 100 ether, 100 ether);
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, _vault, 0, 200 ether));
         feeRecipient.collectFees(_vault);
     }
@@ -133,7 +130,7 @@ contract FeeRecipientTest is BaseTest {
         // collect fees
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         mocks.mockCollectFees(_vault, 100 ether, 100 ether);
-        vm.prank(operationsMultisig);
+        vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeRecipient.FeesCollected(_vault, 100 ether, 100 ether, 125 ether, 75 ether);
         feeRecipient.collectFees(_vault);

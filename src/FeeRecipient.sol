@@ -123,9 +123,10 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
     }
 
     /// @inheritdoc IFeeRecipient
-    function collectFees(address _vault) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+    function collectFees(address _vault) external {
         FeeRecipientStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
+        _validateManager(_sd, _vault);
         address _vaultTreasury = _sd.vaultTreasury[_vault];
         if (_vaultTreasury == address(0)) {
             revert VaultTreasuryNotSet();
@@ -170,6 +171,12 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
     function _validateVault(FeeRecipientStorageData storage _sd, address _vault) internal view {
         if (!IAlephVaultFactory(_sd.vaultFactory).isValidVault(_vault)) {
             revert InvalidVault();
+        }
+    }
+
+    function _validateManager(FeeRecipientStorageData storage _sd, address _vault) internal view {
+        if (!AccessControlUpgradeable(_vault).hasRole(RolesLibrary.MANAGER, msg.sender)) {
+            revert InvalidManager();
         }
     }
 

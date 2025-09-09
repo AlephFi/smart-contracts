@@ -16,6 +16,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Test} from "forge-std/Test.sol";
+import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 
