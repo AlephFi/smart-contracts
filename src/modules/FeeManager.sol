@@ -308,13 +308,14 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     {
         uint8 _shareClasses = _sd.shareClassesId;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
-            uint8 _shareSeries = _sd.shareClasses[_classId].shareSeriesId;
-            uint8 _lastConsolidatedSeriesId = _sd.shareClasses[_classId].lastConsolidatedSeriesId;
+            IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+            uint8 _shareSeries = _shareClass.shareSeriesId;
+            uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
             for (uint8 _seriesId; _seriesId <= _shareSeries; _seriesId++) {
                 if (_seriesId > LEAD_SERIES_ID) {
                     _seriesId += _lastConsolidatedSeriesId;
                 }
-                IAlephVault.ShareSeries storage _shareSeries = _sd.shareClasses[_classId].shareSeries[_seriesId];
+                IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
                 uint256 _managementFeeShares = _shareSeries.sharesOf[MANAGEMENT_FEE_RECIPIENT];
                 uint256 _performanceFeeShares = _shareSeries.sharesOf[PERFORMANCE_FEE_RECIPIENT];
                 uint256 _totalShares = _shareSeries.totalShares;
