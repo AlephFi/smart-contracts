@@ -8,6 +8,9 @@ RequestRedeem_Unit_Test
         ├── when amountToRedeem is 0
         │   └── it should revert with InsufficientRedeem
         └── when amountToRedeem is greater than 0
+            ├── when amountToRedeem is less than min redeem amount
+            │   └── it should revert with RedeemLessThanMinRedeemAmount
+            └── when amountToRedeem is greater than or equal to min redeem amount
                 ├── when amountToRedeem is greater than total user assets
                 │   └── it should revert with InsufficientAssetsToRedeem
                 └── when amountToRedeem is less than or equal to total user assets

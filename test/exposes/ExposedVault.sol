@@ -84,16 +84,20 @@ contract ExposedVault is AlephVault {
         _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _amount;
     }
 
-    function setNoticePeriod(uint48 _noticePeriod) external {
-        _getStorage().shareClasses[1].noticePeriod = _noticePeriod;
-    }
-
     function setMinDepositAmount(uint256 _minDepositAmount) external {
         _getStorage().shareClasses[1].minDepositAmount = _minDepositAmount;
     }
 
     function setMaxDepositCap(uint256 _maxDepositCap) external {
         _getStorage().shareClasses[1].maxDepositCap = _maxDepositCap;
+    }
+
+    function setNoticePeriod(uint48 _noticePeriod) external {
+        _getStorage().shareClasses[1].noticePeriod = _noticePeriod;
+    }
+
+    function setMinRedeemAmount(uint256 _minRedeemAmount) external {
+        _getStorage().shareClasses[1].minRedeemAmount = _minRedeemAmount;
     }
 
     function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {

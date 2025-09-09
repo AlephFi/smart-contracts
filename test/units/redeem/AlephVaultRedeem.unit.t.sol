@@ -48,10 +48,19 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(1, 100);
     }
 
-    function test_requestRedeem_revertsGivenSharesToRedeemIsZero() public {
+    function test_requestRedeem_revertsGivenAmountToRedeemIsZero() public {
         // request redeem
         vm.expectRevert(IERC7540Redeem.InsufficientRedeem.selector);
         vault.requestRedeem(1, 0);
+    }
+
+    function test_requestRedeem_revertsGivenAmountToRedeemIsLessThanMinRedeemAmount() public {
+        // set min redeem amount to 100 ether
+        vault.setMinRedeemAmount(100 ether);
+
+        // request redeem
+        vm.expectRevert(IERC7540Redeem.RedeemLessThanMinRedeemAmount.selector);
+        vault.requestRedeem(1, 50 ether);
     }
 
     function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
@@ -60,7 +69,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
         vm.prank(mockUser_1);
         vm.expectRevert(IERC7540Redeem.InsufficientAssetsToRedeem.selector);
-        vault.requestRedeem(1, 100);
+        vault.requestRedeem(1, 100 ether);
     }
 
     function test_requestRedeem_whenFlowIsUnpaused_revertsGivenUserHasAlreadyMadeARedeemRequestForThisBatch() public {
