@@ -193,6 +193,15 @@ contract ExposedVault is AlephVault {
         return 0;
     }
 
+    function minRedeemAmountTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
+            .delegatecall(abi.encodeWithSignature("MIN_REDEEM_AMOUNT_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
     function managementFeeTimelock() external returns (uint48) {
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
             .delegatecall(abi.encodeWithSignature("MANAGEMENT_FEE_TIMELOCK()"));
