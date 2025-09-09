@@ -15,11 +15,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -30,11 +31,53 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
 contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     using Math for uint256;
 
-    constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
+    uint48 public immutable NOTICE_PERIOD_TIMELOCK;
+
+    constructor(uint48 _noticePeriodTimelock, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
+        if (_noticePeriodTimelock == 0) {
+            revert InvalidConstructorParams();
+        }
+        NOTICE_PERIOD_TIMELOCK = _noticePeriodTimelock;
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external {
+        _queueNoticePeriod(_getStorage(), _classId, _noticePeriod);
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function setNoticePeriod() external {
+        _setNoticePeriod(_getStorage());
+    }
 
     /// @inheritdoc IERC7540Redeem
     function requestRedeem(uint8 _classId, uint256 _estAmount) external returns (uint48 _batchId) {
         return _requestRedeem(_getStorage(), _classId, _estAmount);
+    }
+
+    /**
+     * @dev Internal function to queue a new notice period.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     * @param _noticePeriod The new notice period in batches
+     */
+    function _queueNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _noticePeriod) internal {
+        _sd.timelocks[TimelockRegistry.NOTICE_PERIOD] = TimelockRegistry.Timelock({
+            unlockTimestamp: Time.timestamp() + NOTICE_PERIOD_TIMELOCK,
+            newValue: abi.encode(_classId, _noticePeriod)
+        });
+        emit NewNoticePeriodQueued(_classId, _noticePeriod);
+    }
+
+    /**
+     * @dev Internal function to set the notice period.
+     * @param _sd The storage struct.
+     */
+    function _setNoticePeriod(AlephVaultStorageData storage _sd) internal {
+        (uint8 _classId, uint48 _noticePeriod) =
+            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.NOTICE_PERIOD), (uint8, uint48));
+        _sd.shareClasses[_classId].noticePeriod = _noticePeriod;
+        emit NewNoticePeriodSet(_classId, _noticePeriod);
     }
 
     /**
