@@ -344,6 +344,12 @@ interface IAlephVault {
     function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory);
 
     /**
+     * @notice Returns the total fee amount to collect.
+     * @return The total fee amount to collect.
+     */
+    function totalFeeAmountToCollect() external view returns (uint256);
+
+    /**
      * @notice Returns whether authentication is enabled for deposits.
      * @return The status of the authentication for deposits.
      */

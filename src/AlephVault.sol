@@ -387,6 +387,17 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function totalFeeAmountToCollect() external view returns (uint256 _totalFeeAmountToCollect) {
+        AlephVaultStorageData storage _sd = _getStorage();
+        uint8 _shareClasses = _sd.shareClassesId;
+        for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
+            IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+            _totalFeeAmountToCollect += _assetsPerClassOf(_classId, MANAGEMENT_FEE_RECIPIENT, _shareClass);
+            _totalFeeAmountToCollect += _assetsPerClassOf(_classId, PERFORMANCE_FEE_RECIPIENT, _shareClass);
+        }
+    }
+
+    /// @inheritdoc IAlephVault
     function isDepositAuthEnabled() external view returns (bool) {
         return _getStorage().isDepositAuthEnabled;
     }
