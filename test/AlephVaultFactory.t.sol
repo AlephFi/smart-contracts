@@ -31,6 +31,7 @@ contract AlephVaultFactoryTest is Test {
     address migrationManagerImplementation = makeAddr("MigrationManager");
     uint48 minDepositAmountTimelock = 7 days;
     uint48 maxDepositCapTimelock = 7 days;
+    uint48 noticePeriodTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
     uint48 performanceFeeTimelock = 7 days;
     uint48 feeRecipientTimelock = 7 days;
@@ -98,6 +99,7 @@ contract AlephVaultFactoryTest is Test {
             custodian: custodian,
             managementFee: 0,
             performanceFee: 0,
+            noticePeriod: 0,
             minDepositAmount: 0,
             maxDepositCap: 0,
             authSignature: authSignature

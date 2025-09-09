@@ -84,6 +84,10 @@ contract ExposedVault is AlephVault {
         _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _amount;
     }
 
+    function setNoticePeriod(uint48 _noticePeriod) external {
+        _getStorage().shareClasses[1].noticePeriod = _noticePeriod;
+    }
+
     function setMinDepositAmount(uint256 _minDepositAmount) external {
         _getStorage().shareClasses[1].minDepositAmount = _minDepositAmount;
     }
@@ -170,6 +174,15 @@ contract ExposedVault is AlephVault {
     function maxDepositCapTimelock() external returns (uint48) {
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
             .delegatecall(abi.encodeWithSignature("MAX_DEPOSIT_CAP_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
+    function noticePeriodTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
+            .delegatecall(abi.encodeWithSignature("NOTICE_PERIOD_TIMELOCK()"));
         if (_success) {
             return abi.decode(_data, (uint48));
         }

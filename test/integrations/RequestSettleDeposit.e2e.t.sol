@@ -51,6 +51,7 @@ contract RequestSettleDepositTest is BaseTest {
                 custodian: defaultInitializationParams.userInitializationParams.custodian,
                 managementFee: 0,
                 performanceFee: 0,
+                noticePeriod: 0,
                 minDepositAmount: 0,
                 maxDepositCap: 0,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature

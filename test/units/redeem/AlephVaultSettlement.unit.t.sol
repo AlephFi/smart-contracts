@@ -50,6 +50,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
                 custodian: defaultInitializationParams.userInitializationParams.custodian,
                 managementFee: 0, // 0%
                 performanceFee: 0, // 0%
+                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
@@ -100,9 +101,13 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsGreaterThanCurrentBatchId()
-        public
-    {
+    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenNoticePeriodHasNotExpired() public {
+        // set notice period
+        vault.setNoticePeriod(1);
+
+        // roll the block forward to make future batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
         // settle redeem
         vm.prank(oracle);
         vm.expectRevert(IERC7540Settlement.InvalidToBatchId.selector);

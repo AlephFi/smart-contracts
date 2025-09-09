@@ -51,6 +51,7 @@ contract RequestSettleRedeemTest is BaseTest {
                 custodian: defaultInitializationParams.userInitializationParams.custodian,
                 managementFee: 0,
                 performanceFee: 0,
+                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature

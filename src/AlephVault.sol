@@ -160,6 +160,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _sd,
             _initializationParams.userInitializationParams.managementFee,
             _initializationParams.userInitializationParams.performanceFee,
+            _initializationParams.userInitializationParams.noticePeriod,
             _initializationParams.userInitializationParams.minDepositAmount,
             _initializationParams.userInitializationParams.maxDepositCap
         );
@@ -314,6 +315,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function noticePeriod(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint48) {
+        return _getStorage().shareClasses[_classId].noticePeriod;
+    }
+
+    /// @inheritdoc IAlephVault
     function minDepositAmount(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
         return _getStorage().shareClasses[_classId].minDepositAmount;
     }
@@ -437,13 +443,16 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     function createShareClass(
         uint32 _managementFee,
         uint32 _performanceFee,
+        uint48 _noticePeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap
     ) external onlyRole(RolesLibrary.MANAGER) returns (uint8 _classId) {
         if (_managementFee > MAXIMUM_MANAGEMENT_FEE || _performanceFee > MAXIMUM_PERFORMANCE_FEE) {
             revert InvalidVaultFee();
         }
-        return _createShareClass(_getStorage(), _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
+        return _createShareClass(
+            _getStorage(), _managementFee, _performanceFee, _noticePeriod, _minDepositAmount, _maxDepositCap
+        );
     }
 
     /**
@@ -472,6 +481,20 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyRole(RolesLibrary.MANAGER)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
+    }
+
+    /**
+     * @notice Queues a new notice period to be set after the timelock period.
+     * @param _classId The ID of the share class to set the notice period for.
+     * @param _noticePeriod The new notice period to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod)
+        external
+        onlyValidShareClass(_classId)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
     /**
@@ -525,6 +548,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      */
     function setMaxDepositCap() external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
+    }
+
+    /**
+     * @notice Sets the notice period to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setNoticePeriod() external onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
     /**
@@ -682,6 +713,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _sd The storage struct.
      * @param _managementFee The management fee.
      * @param _performanceFee The performance fee.
+     * @param _noticePeriod The notice period.
      * @param _minDepositAmount The minimum deposit amount.
      * @param _maxDepositCap The maximum deposit cap.
      * @return _classId The ID of the new share class.
@@ -690,6 +722,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         AlephVaultStorageData storage _sd,
         uint32 _managementFee,
         uint32 _performanceFee,
+        uint48 _noticePeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap
     ) internal returns (uint8 _classId) {
@@ -699,11 +732,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         _shareClass.managementFee = _managementFee;
         _shareClass.performanceFee = _performanceFee;
+        _shareClass.noticePeriod = _noticePeriod;
         _shareClass.minDepositAmount = _minDepositAmount;
         _shareClass.maxDepositCap = _maxDepositCap;
         // set up lead series for new share class
         _shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
-        emit ShareClassCreated(_classId, _managementFee, _performanceFee, _minDepositAmount, _maxDepositCap);
+        emit ShareClassCreated(
+            _classId, _managementFee, _performanceFee, _noticePeriod, _minDepositAmount, _maxDepositCap
+        );
         return _classId;
     }
 

@@ -19,6 +19,7 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
+import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
 import {FeeManager} from "@aleph-vault/modules/FeeManager.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
@@ -40,6 +41,11 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_maxDepositCapTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new AlephVaultDeposit(defaultConfigParams.minDepositAmountTimelock, 0, defaultConfigParams.batchDuration);
+    }
+
+    function test_constructor_when_noticePeriodTimelock_passed_is_0() public {
+        vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
+        new AlephVaultRedeem(0, defaultConfigParams.batchDuration);
     }
 
     function test_constructor_when_managementFeeTimelock_passed_is_0() public {
@@ -198,6 +204,7 @@ contract VaultSetUpTest is BaseTest {
                 custodian: defaultInitializationParams.userInitializationParams.custodian,
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
@@ -226,6 +233,7 @@ contract VaultSetUpTest is BaseTest {
                 custodian: defaultInitializationParams.userInitializationParams.custodian,
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
@@ -254,6 +262,7 @@ contract VaultSetUpTest is BaseTest {
                 custodian: address(0),
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
@@ -282,6 +291,7 @@ contract VaultSetUpTest is BaseTest {
                 custodian: defaultInitializationParams.userInitializationParams.custodian,
                 managementFee: 10_001,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
+                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
@@ -310,6 +320,7 @@ contract VaultSetUpTest is BaseTest {
                 custodian: defaultInitializationParams.userInitializationParams.custodian,
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: 10_001,
+                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
@@ -483,6 +494,9 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);
         assertEq(vault.managementFee(1), defaultInitializationParams.userInitializationParams.managementFee);
         assertEq(vault.performanceFee(1), defaultInitializationParams.userInitializationParams.performanceFee);
+        assertEq(vault.noticePeriod(1), defaultInitializationParams.userInitializationParams.noticePeriod);
+        assertEq(vault.minDepositAmount(1), defaultInitializationParams.userInitializationParams.minDepositAmount);
+        assertEq(vault.maxDepositCap(1), defaultInitializationParams.userInitializationParams.maxDepositCap);
 
         assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(RolesLibrary.VAULT_FACTORY, defaultInitializationParams.vaultFactory));

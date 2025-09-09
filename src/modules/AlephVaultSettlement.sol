@@ -193,10 +193,12 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
      */
     function _settleRedeem(AlephVaultStorageData storage _sd, SettlementParams calldata _settlementParams) internal {
         // verify all conditions are satisfied to settle redeems
-        if (_settlementParams.toBatchId > _currentBatch(_sd)) {
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
+        uint48 _currentBatchId = _currentBatch(_sd);
+        uint48 _noticePeriod = _shareClass.noticePeriod;
+        if (_currentBatchId < _noticePeriod || _settlementParams.toBatchId > _currentBatchId - _noticePeriod) {
             revert InvalidToBatchId();
         }
-        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
         if (_settlementParams.toBatchId <= _redeemSettleId) {
             revert NoRedeemsToSettle();
