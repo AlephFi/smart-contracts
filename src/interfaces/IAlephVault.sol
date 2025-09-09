@@ -178,6 +178,12 @@ interface IAlephVault {
     function currentBatch() external view returns (uint48);
 
     /**
+     * @notice Returns the number of share classes in the vault.
+     * @return The number of share classes.
+     */
+    function shareClasses() external view returns (uint8);
+
+    /**
      * @notice Returns the total assets currently held by the vault.
      * @return The total assets.
      */

@@ -169,6 +169,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function shareClasses() external view returns (uint8) {
+        return _getStorage().shareClassesId;
+    }
+
+    /// @inheritdoc IAlephVault
     function name() external view returns (string memory) {
         return _getStorage().name;
     }
