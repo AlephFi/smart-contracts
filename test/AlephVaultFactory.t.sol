@@ -32,6 +32,7 @@ contract AlephVaultFactoryTest is Test {
     uint48 minDepositAmountTimelock = 7 days;
     uint48 maxDepositCapTimelock = 7 days;
     uint48 noticePeriodTimelock = 7 days;
+    uint48 minRedeemAmountTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
     uint48 performanceFeeTimelock = 7 days;
     uint48 feeRecipientTimelock = 7 days;
@@ -102,6 +103,7 @@ contract AlephVaultFactoryTest is Test {
             noticePeriod: 0,
             minDepositAmount: 0,
             maxDepositCap: 0,
+            minRedeemAmount: 0,
             authSignature: authSignature
         });
         address vault = factory.deployVault(params);
