@@ -21,10 +21,13 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  */
 interface IERC7540Redeem {
     event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
+    event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);
     event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);
+    event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
     event RedeemRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
     error InsufficientRedeem();
+    error RedeemLessThanMinRedeemAmount();
     error InsufficientAssetsToRedeem();
     error OnlyOneRequestPerBatchAllowedForRedeem();
 
@@ -36,9 +39,21 @@ interface IERC7540Redeem {
     function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external;
 
     /**
+     * @notice Queues a new minimum redeem amount.
+     * @param _classId The ID of the share class to set the minimum redeem amount for.
+     * @param _minRedeemAmount The new minimum redeem amount.
+     */
+    function queueMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount) external;
+
+    /**
      * @notice Sets the notice period.
      */
     function setNoticePeriod() external;
+
+    /**
+     * @notice Sets the minimum redeem amount.
+     */
+    function setMinRedeemAmount() external;
 
     /**
      * @notice Requests to redeem shares from the vault for the current batch.
