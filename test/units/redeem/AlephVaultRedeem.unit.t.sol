@@ -110,6 +110,32 @@ contract AlephVaultRedeemTest is BaseTest {
         assertEq(vault.usersToRedeemAt(1, _batchId)[0], mockUser_1);
     }
 
+    function test_requestRedeem_whenFlowIsUnpaused_whenUserHasSufficientSharesToRedeem_shouldSucceed_singleUser_whenAmountToRedeemIsLessThanMinDepositAmount(
+    ) public {
+        // set min deposit amount to 100 ether
+        vault.setMinDepositAmount(200 ether);
+
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // set shares of user to 200
+        vault.setSharesOf(0, mockUser_1, 200 ether);
+
+        // Capture batch ID before emit expectation
+        uint48 _expectedBatchId = vault.currentBatch();
+
+        // request redeem
+        vm.prank(mockUser_1);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Redeem.RedeemRequest(mockUser_1, 1, 200 ether, _expectedBatchId);
+        uint48 _batchId = vault.requestRedeem(1, 100 ether);
+
+        // check the redeem request
+        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId), vault.TOTAL_SHARE_UNITS());
+        assertEq(vault.usersToRedeemAt(1, _batchId).length, 1);
+        assertEq(vault.usersToRedeemAt(1, _batchId)[0], mockUser_1);
+    }
+
     function test_requestRedeem_whenFlowIsUnpaused_whenUserHasSufficientSharesToRedeem_shouldSucceed_multipleUsers()
         public
     {
