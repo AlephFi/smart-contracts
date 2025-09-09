@@ -233,6 +233,44 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function totalAssetsOfClass(uint8 _classId)
+        external
+        view
+        onlyValidShareClass(_classId)
+        returns (uint256[] memory)
+    {
+        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint8 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
+        uint256[] memory _totalAssets = new uint256[](_len);
+        for (uint8 _i; _i < _len; _i++) {
+            uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
+            _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+        }
+        return _totalAssets;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalSharesOfClass(uint8 _classId)
+        external
+        view
+        onlyValidShareClass(_classId)
+        returns (uint256[] memory)
+    {
+        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint8 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
+        uint256[] memory _totalShares = new uint256[](_len);
+        for (uint8 _i; _i < _len; _i++) {
+            uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
+            _totalShares[_i] = _totalSharesPerSeries(_shareClass, _classId, _seriesId);
+        }
+        return _totalShares;
+    }
+
+    /// @inheritdoc IAlephVault
     function totalAssetsPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
         return _totalAssetsPerClass(_getStorage().shareClasses[_classId], _classId);
     }

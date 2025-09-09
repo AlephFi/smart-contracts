@@ -194,6 +194,20 @@ interface IAlephVault {
      * @param _classId The ID of the share class.
      * @return The total assets in the vault for the given class.
      */
+    function totalAssetsOfClass(uint8 _classId) external view returns (uint256[] memory);
+
+    /**
+     * @notice Returns the total shares in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total shares in the vault for the given class.
+     */
+    function totalSharesOfClass(uint8 _classId) external view returns (uint256[] memory);
+
+    /**
+     * @notice Returns the total assets in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total assets in the vault for the given class.
+     */
     function totalAssetsPerClass(uint8 _classId) external view returns (uint256);
 
     /**
