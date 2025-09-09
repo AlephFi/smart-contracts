@@ -29,6 +29,7 @@ interface IERC7540Redeem {
     error InsufficientRedeem();
     error RedeemLessThanMinRedeemAmount();
     error InsufficientAssetsToRedeem();
+    error RedeemFallBelowMinDepositAmount(uint256 minDepositAmount);
     error OnlyOneRequestPerBatchAllowedForRedeem();
 
     /**

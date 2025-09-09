@@ -149,9 +149,10 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_pendingAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
-        uint256 _estAmountToRedeem = _estAmount;
-        if (_totalUserAssets - (_estAmount + _pendingAssets) < _shareClass.minDepositAmount) {
-            _estAmountToRedeem = _totalUserAssets - _pendingAssets;
+        uint256 _minDepositAmount = _shareClass.minDepositAmount;
+        uint256 _redeemableAmount = _totalUserAssets - (_estAmount + _pendingAssets);
+        if (_minDepositAmount > 0 && _redeemableAmount > 0 && _redeemableAmount < _minDepositAmount) {
+            revert RedeemFallBelowMinDepositAmount(_minDepositAmount);
         }
 
         // Calculate redeemable share units as a proportion of user's available assets
@@ -164,8 +165,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
-        uint256 _shareUnitsToRedeem =
-            ERC4626Math.previewWithdrawUnits(_estAmountToRedeem, _totalUserAssets - _pendingAssets);
+        uint256 _shareUnitsToRedeem = ERC4626Math.previewWithdrawUnits(_estAmount, _totalUserAssets - _pendingAssets);
 
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
         if (_redeemRequests.redeemRequest[msg.sender] > 0) {
@@ -175,7 +175,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // register redeem request
         _redeemRequests.redeemRequest[msg.sender] = _shareUnitsToRedeem;
         _redeemRequests.usersToRedeem.push(msg.sender);
-        emit RedeemRequest(msg.sender, _classId, _estAmountToRedeem, _currentBatchId);
+        emit RedeemRequest(msg.sender, _classId, _estAmount, _currentBatchId);
         return _currentBatchId;
     }
 }
