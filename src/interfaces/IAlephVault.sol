@@ -286,6 +286,13 @@ interface IAlephVault {
     function maxDepositCap(uint8 _classId) external view returns (uint256);
 
     /**
+     * @notice Returns the minimum redeem amount.
+     * @param _classId The ID of the share class.
+     * @return The minimum redeem amount of the share class.
+     */
+    function minRedeemAmount(uint8 _classId) external view returns (uint256);
+
+    /**
      * @notice Returns the total amount of unsettled deposit requests for a given class.
      * @param _classId The ID of the share class.
      * @return The total amount of unsettled deposit requests for the given class.

@@ -324,6 +324,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function minRedeemAmount(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
+        return _getStorage().shareClasses[_classId].minRedeemAmount;
+    }
+
+    /// @inheritdoc IAlephVault
     function totalAmountToDeposit(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
         return _totalAmountToDeposit(_getStorage(), _classId);
     }
