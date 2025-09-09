@@ -59,7 +59,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
      * @dev Internal function to queue a new notice period.
      * @param _sd The storage struct.
      * @param _classId The id of the class.
-     * @param _noticePeriod The new notice period.
+     * @param _noticePeriod The new notice period in batches
      */
     function _queueNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _noticePeriod) internal {
         _sd.timelocks[TimelockRegistry.NOTICE_PERIOD] = TimelockRegistry.Timelock({
