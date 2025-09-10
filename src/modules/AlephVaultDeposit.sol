@@ -193,7 +193,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_requestDepositParams.classId];
         uint256 _minDepositAmount = _shareClass.minDepositAmount;
         if (_minDepositAmount > 0 && _requestDepositParams.amount < _minDepositAmount) {
-            revert DepositLessThanMinDepositAmount();
+            revert DepositLessThanMinDepositAmount(_minDepositAmount);
         }
         uint256 _minUserBalance = _shareClass.minUserBalance;
         if (
@@ -202,7 +202,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
                     + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
                     < _minUserBalance
         ) {
-            revert DepositLessThanMinUserBalance();
+            revert DepositLessThanMinUserBalance(_minUserBalance);
         }
         uint256 _maxDepositCap = _shareClass.maxDepositCap;
         if (
@@ -210,7 +210,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
                 && _totalAssetsPerClass(_shareClass, _requestDepositParams.classId)
                     + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount > _maxDepositCap
         ) {
-            revert DepositExceedsMaxDepositCap();
+            revert DepositExceedsMaxDepositCap(_maxDepositCap);
         }
         if (_sd.isDepositAuthEnabled) {
             AuthLibrary.verifyDepositRequestAuthSignature(

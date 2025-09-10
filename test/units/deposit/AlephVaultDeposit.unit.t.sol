@@ -74,7 +74,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IAlephVaultDeposit.DepositLessThanMinDepositAmount.selector);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultDeposit.DepositLessThanMinDepositAmount.selector, 100 ether));
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
         );
@@ -88,7 +88,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IAlephVaultDeposit.DepositLessThanMinUserBalance.selector);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultDeposit.DepositLessThanMinUserBalance.selector, 200 ether));
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
@@ -105,7 +105,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector, 200 ether));
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
@@ -127,7 +127,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector, 300 ether));
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
