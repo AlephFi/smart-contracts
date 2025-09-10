@@ -109,4 +109,86 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         // check notice period is set
         assertEq(vault.noticePeriod(1), 30);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        QUEUE MIN REDEEM AMOUNT TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_queueMinRedeemAmount_revertsWhenCallerIsNotManager() public {
+        // Setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+
+        // queue min redeem amount
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
+            )
+        );
+        vault.queueMinRedeemAmount(1, 100);
+    }
+
+    function test_queueMinRedeemAmount_whenCallerIsManager_shouldSucceed() public {
+        // queue min redeem amount
+        vm.prank(manager);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Redeem.NewMinRedeemAmountQueued(1, 100);
+        vault.queueMinRedeemAmount(1, 100);
+
+        // check min redeem amount is queued
+        bytes4 _key = TimelockRegistry.MIN_REDEEM_AMOUNT;
+        uint48 _unlockTimestamp = Time.timestamp() + vault.minRedeemAmountTimelock();
+        TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
+        assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
+        assertEq(_timelock.newValue, abi.encode(1, 100));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        SET MIN REDEEM AMOUNT TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_setMinRedeemAmount_revertsWhenCallerIsNotManager() public {
+        // Setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+
+        // set min redeem amount
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
+            )
+        );
+        vault.setMinRedeemAmount();
+    }
+
+    function test_setMinRedeemAmount_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
+        // queue min redeem amount
+        vm.prank(manager);
+        vault.queueMinRedeemAmount(1, 100);
+
+        // get min redeem amount timelock params
+        bytes4 _key = TimelockRegistry.MIN_REDEEM_AMOUNT;
+        uint48 _unlockTimestamp = Time.timestamp() + vault.minRedeemAmountTimelock();
+
+        // set min redeem amount
+        vm.prank(manager);
+        vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
+        vault.setMinRedeemAmount();
+    }
+
+    function test_setMinRedeemAmount_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
+        // queue min redeem amount
+        vm.prank(manager);
+        vault.queueMinRedeemAmount(1, 100);
+
+        // roll the block forward to make timelock expired
+        vm.warp(Time.timestamp() + vault.minRedeemAmountTimelock() + 1);
+
+        // set min redeem amount
+        vm.prank(manager);
+        vm.expectEmit(true, true, true, true);
+        emit IERC7540Redeem.NewMinRedeemAmountSet(1, 100);
+        vault.setMinRedeemAmount();
+
+        // check min redeem amount is set
+        assertEq(vault.minRedeemAmount(1), 100);
+    }
 }

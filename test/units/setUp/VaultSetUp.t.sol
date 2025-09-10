@@ -45,7 +45,12 @@ contract VaultSetUpTest is BaseTest {
 
     function test_constructor_when_noticePeriodTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
-        new AlephVaultRedeem(0, defaultConfigParams.batchDuration);
+        new AlephVaultRedeem(0, defaultConfigParams.minRedeemAmountTimelock, defaultConfigParams.batchDuration);
+    }
+
+    function test_constructor_when_minRedeemAmountTimelock_passed_is_0() public {
+        vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
+        new AlephVaultRedeem(defaultConfigParams.noticePeriodTimelock, 0, defaultConfigParams.batchDuration);
     }
 
     function test_constructor_when_managementFeeTimelock_passed_is_0() public {
@@ -207,6 +212,7 @@ contract VaultSetUpTest is BaseTest {
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
@@ -236,6 +242,7 @@ contract VaultSetUpTest is BaseTest {
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
@@ -265,6 +272,7 @@ contract VaultSetUpTest is BaseTest {
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
@@ -294,6 +302,7 @@ contract VaultSetUpTest is BaseTest {
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
@@ -323,6 +332,7 @@ contract VaultSetUpTest is BaseTest {
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
@@ -497,6 +507,7 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.noticePeriod(1), defaultInitializationParams.userInitializationParams.noticePeriod);
         assertEq(vault.minDepositAmount(1), defaultInitializationParams.userInitializationParams.minDepositAmount);
         assertEq(vault.maxDepositCap(1), defaultInitializationParams.userInitializationParams.maxDepositCap);
+        assertEq(vault.minRedeemAmount(1), defaultInitializationParams.userInitializationParams.minRedeemAmount);
 
         assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(RolesLibrary.VAULT_FACTORY, defaultInitializationParams.vaultFactory));

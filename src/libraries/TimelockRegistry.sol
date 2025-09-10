@@ -30,12 +30,13 @@ library TimelockRegistry {
 
     error TimelockNotExpired(bytes4 key, uint48 unlockTimestamp);
 
+    bytes4 internal constant MIN_DEPOSIT_AMOUNT = bytes4(keccak256("MIN_DEPOSIT_AMOUNT"));
+    bytes4 internal constant MAX_DEPOSIT_CAP = bytes4(keccak256("MAX_DEPOSIT_CAP"));
+    bytes4 internal constant NOTICE_PERIOD = bytes4(keccak256("NOTICE_PERIOD"));
+    bytes4 internal constant MIN_REDEEM_AMOUNT = bytes4(keccak256("MIN_REDEEM_AMOUNT"));
     bytes4 internal constant MANAGEMENT_FEE = bytes4(keccak256("MANAGEMENT_FEE"));
     bytes4 internal constant PERFORMANCE_FEE = bytes4(keccak256("PERFORMANCE_FEE"));
     bytes4 internal constant FEE_RECIPIENT = bytes4(keccak256("FEE_RECIPIENT"));
-    bytes4 internal constant NOTICE_PERIOD = bytes4(keccak256("NOTICE_PERIOD"));
-    bytes4 internal constant MAX_DEPOSIT_CAP = bytes4(keccak256("MAX_DEPOSIT_CAP"));
-    bytes4 internal constant MIN_DEPOSIT_AMOUNT = bytes4(keccak256("MIN_DEPOSIT_AMOUNT"));
 
     function setTimelock(AlephVaultStorageData storage _sd, bytes4 _key) internal returns (bytes memory) {
         Timelock memory _timelock = _sd.timelocks[_key];

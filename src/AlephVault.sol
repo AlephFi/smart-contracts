@@ -162,7 +162,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initializationParams.userInitializationParams.performanceFee,
             _initializationParams.userInitializationParams.noticePeriod,
             _initializationParams.userInitializationParams.minDepositAmount,
-            _initializationParams.userInitializationParams.maxDepositCap
+            _initializationParams.userInitializationParams.maxDepositCap,
+            _initializationParams.userInitializationParams.minRedeemAmount
         );
     }
 
@@ -373,6 +374,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function minRedeemAmount(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
+        return _getStorage().shareClasses[_classId].minRedeemAmount;
+    }
+
+    /// @inheritdoc IAlephVault
     function totalAmountToDeposit(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
         return _totalAmountToDeposit(_getStorage(), _classId);
     }
@@ -488,13 +494,20 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint32 _performanceFee,
         uint48 _noticePeriod,
         uint256 _minDepositAmount,
-        uint256 _maxDepositCap
+        uint256 _maxDepositCap,
+        uint256 _minRedeemAmount
     ) external onlyRole(RolesLibrary.MANAGER) returns (uint8 _classId) {
         if (_managementFee > MAXIMUM_MANAGEMENT_FEE || _performanceFee > MAXIMUM_PERFORMANCE_FEE) {
             revert InvalidVaultFee();
         }
         return _createShareClass(
-            _getStorage(), _managementFee, _performanceFee, _noticePeriod, _minDepositAmount, _maxDepositCap
+            _getStorage(),
+            _managementFee,
+            _performanceFee,
+            _noticePeriod,
+            _minDepositAmount,
+            _maxDepositCap,
+            _minRedeemAmount
         );
     }
 
@@ -533,6 +546,20 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @dev Only callable by the MANAGER role.
      */
     function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod)
+        external
+        onlyValidShareClass(_classId)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
+    }
+
+    /**
+     * @notice Queues a new minimum redeem amount to be set after the timelock period.
+     * @param _classId The ID of the share class to set the minimum redeem amount for.
+     * @param _minRedeemAmount The new minimum redeem amount to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -598,6 +625,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @dev Only callable by the MANAGER role.
      */
     function setNoticePeriod() external onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
+    }
+
+    /**
+     * @notice Sets the minimum redeem amount to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setMinRedeemAmount() external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
@@ -759,6 +794,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _noticePeriod The notice period.
      * @param _minDepositAmount The minimum deposit amount.
      * @param _maxDepositCap The maximum deposit cap.
+     * @param _minRedeemAmount The minimum redeem amount.
      * @return _classId The ID of the new share class.
      */
     function _createShareClass(
@@ -767,7 +803,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint32 _performanceFee,
         uint48 _noticePeriod,
         uint256 _minDepositAmount,
-        uint256 _maxDepositCap
+        uint256 _maxDepositCap,
+        uint256 _minRedeemAmount
     ) internal returns (uint8 _classId) {
         // increment share classes id
         _classId = ++_sd.shareClassesId;
@@ -778,10 +815,17 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _shareClass.noticePeriod = _noticePeriod;
         _shareClass.minDepositAmount = _minDepositAmount;
         _shareClass.maxDepositCap = _maxDepositCap;
+        _shareClass.minRedeemAmount = _minRedeemAmount;
         // set up lead series for new share class
         _shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
         emit ShareClassCreated(
-            _classId, _managementFee, _performanceFee, _noticePeriod, _minDepositAmount, _maxDepositCap
+            _classId,
+            _managementFee,
+            _performanceFee,
+            _noticePeriod,
+            _minDepositAmount,
+            _maxDepositCap,
+            _minRedeemAmount
         );
         return _classId;
     }

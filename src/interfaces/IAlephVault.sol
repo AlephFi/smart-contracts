@@ -38,7 +38,8 @@ interface IAlephVault {
         uint32 performanceFee,
         uint48 noticePeriod,
         uint256 minDepositAmount,
-        uint256 maxDepositCap
+        uint256 maxDepositCap,
+        uint256 minRedeemAmount
     );
 
     struct InitializationParams {
@@ -63,6 +64,7 @@ interface IAlephVault {
         uint48 noticePeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
+        uint256 minRedeemAmount;
         AuthLibrary.AuthSignature authSignature;
     }
 
@@ -85,6 +87,7 @@ interface IAlephVault {
         uint48 noticePeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
+        uint256 minRedeemAmount;
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
@@ -309,6 +312,13 @@ interface IAlephVault {
     function maxDepositCap(uint8 _classId) external view returns (uint256);
 
     /**
+     * @notice Returns the minimum redeem amount.
+     * @param _classId The ID of the share class.
+     * @return The minimum redeem amount of the share class.
+     */
+    function minRedeemAmount(uint8 _classId) external view returns (uint256);
+
+    /**
      * @notice Returns the total amount of unsettled deposit requests for a given class.
      * @param _classId The ID of the share class.
      * @return The total amount of unsettled deposit requests for the given class.
@@ -420,13 +430,15 @@ interface IAlephVault {
      * @param _noticePeriod The notice period.
      * @param _minDepositAmount The minimum deposit amount.
      * @param _maxDepositCap The maximum deposit cap.
+     * @param _minRedeemAmount The minimum redeem amount.
      */
     function createShareClass(
         uint32 _managementFee,
         uint32 _performanceFee,
         uint48 _noticePeriod,
         uint256 _minDepositAmount,
-        uint256 _maxDepositCap
+        uint256 _maxDepositCap,
+        uint256 _minRedeemAmount
     ) external returns (uint8 _classId);
 
     /**

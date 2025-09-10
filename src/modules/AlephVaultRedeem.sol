@@ -32,12 +32,16 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     using Math for uint256;
 
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
+    uint48 public immutable MIN_REDEEM_AMOUNT_TIMELOCK;
 
-    constructor(uint48 _noticePeriodTimelock, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
-        if (_noticePeriodTimelock == 0) {
+    constructor(uint48 _noticePeriodTimelock, uint48 _minRedeemAmountTimelock, uint48 _batchDuration)
+        AlephVaultBase(_batchDuration)
+    {
+        if (_noticePeriodTimelock == 0 || _minRedeemAmountTimelock == 0) {
             revert InvalidConstructorParams();
         }
         NOTICE_PERIOD_TIMELOCK = _noticePeriodTimelock;
+        MIN_REDEEM_AMOUNT_TIMELOCK = _minRedeemAmountTimelock;
     }
 
     /// @inheritdoc IERC7540Redeem
@@ -46,8 +50,18 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     }
 
     /// @inheritdoc IERC7540Redeem
+    function queueMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount) external {
+        _queueMinRedeemAmount(_getStorage(), _classId, _minRedeemAmount);
+    }
+
+    /// @inheritdoc IERC7540Redeem
     function setNoticePeriod() external {
         _setNoticePeriod(_getStorage());
+    }
+
+    /// @inheritdoc IERC7540Redeem
+    function setMinRedeemAmount() external {
+        _setMinRedeemAmount(_getStorage());
     }
 
     /// @inheritdoc IERC7540Redeem
@@ -67,6 +81,33 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
             newValue: abi.encode(_classId, _noticePeriod)
         });
         emit NewNoticePeriodQueued(_classId, _noticePeriod);
+    }
+
+    /**
+     * @dev Internal function to queue a new minimum redeem amount.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     * @param _minRedeemAmount The new minimum redeem amount.
+     */
+    function _queueMinRedeemAmount(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minRedeemAmount)
+        internal
+    {
+        _sd.timelocks[TimelockRegistry.MIN_REDEEM_AMOUNT] = TimelockRegistry.Timelock({
+            unlockTimestamp: Time.timestamp() + MIN_REDEEM_AMOUNT_TIMELOCK,
+            newValue: abi.encode(_classId, _minRedeemAmount)
+        });
+        emit NewMinRedeemAmountQueued(_classId, _minRedeemAmount);
+    }
+
+    /**
+     * @dev Internal function to set a new minimum redeem amount.
+     * @param _sd The storage struct.
+     */
+    function _setMinRedeemAmount(AlephVaultStorageData storage _sd) internal {
+        (uint8 _classId, uint256 _minRedeemAmount) =
+            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MIN_REDEEM_AMOUNT), (uint8, uint256));
+        _sd.shareClasses[_classId].minRedeemAmount = _minRedeemAmount;
+        emit NewMinRedeemAmountSet(_classId, _minRedeemAmount);
     }
 
     /**
@@ -95,14 +136,24 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_estAmount == 0) {
             revert InsufficientRedeem();
         }
-        uint48 _currentBatchId = _currentBatch(_sd);
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint256 _minRedeemAmount = _shareClass.minRedeemAmount;
+        if (_minRedeemAmount > 0 && _estAmount < _minRedeemAmount) {
+            revert RedeemLessThanMinRedeemAmount(_shareClass.minRedeemAmount);
+        }
+        uint48 _currentBatchId = _currentBatch(_sd);
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle
-        uint256 _pendingAssets = _pendingAssetsOf(_shareClass, _classId, _currentBatchId, msg.sender, _totalUserAssets);
-        if (_pendingAssets + _estAmount > _totalUserAssets) {
+        uint256 _pendingUserAssets =
+            _pendingAssetsOf(_shareClass, _classId, _currentBatchId, msg.sender, _totalUserAssets);
+        if (_pendingUserAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
+        }
+        uint256 _minDepositAmount = _shareClass.minDepositAmount;
+        uint256 _remainingAmount = _totalUserAssets - (_estAmount + _pendingUserAssets);
+        if (_minDepositAmount > 0 && _remainingAmount > 0 && _remainingAmount < _minDepositAmount) {
+            revert RedeemFallBelowMinDepositAmount(_minDepositAmount);
         }
 
         // Calculate redeemable share units as a proportion of user's available assets
@@ -115,7 +166,8 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
-        uint256 _shareUnitsToRedeem = ERC4626Math.previewWithdrawUnits(_estAmount, _totalUserAssets - _pendingAssets);
+        uint256 _shareUnitsToRedeem =
+            ERC4626Math.previewWithdrawUnits(_estAmount, _totalUserAssets - _pendingUserAssets);
 
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
         if (_redeemRequests.redeemRequest[msg.sender] > 0) {
