@@ -31,13 +31,15 @@ interface IAlephVault {
 
     event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
+    event VaultTreasurySet(address vaultTreasury);
     event ShareClassCreated(
         uint8 classId,
         uint32 managementFee,
         uint32 performanceFee,
         uint48 noticePeriod,
         uint256 minDepositAmount,
-        uint256 maxDepositCap
+        uint256 maxDepositCap,
+        uint256 minRedeemAmount
     );
 
     struct InitializationParams {
@@ -62,6 +64,7 @@ interface IAlephVault {
         uint48 noticePeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
+        uint256 minRedeemAmount;
         AuthLibrary.AuthSignature authSignature;
     }
 
@@ -84,6 +87,7 @@ interface IAlephVault {
         uint48 noticePeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
+        uint256 minRedeemAmount;
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
@@ -159,6 +163,12 @@ interface IAlephVault {
     function custodian() external view returns (address);
 
     /**
+     * @notice Returns the vault treasury of the vault.
+     * @return The vault treasury.
+     */
+    function vaultTreasury() external view returns (address);
+
+    /**
      * @notice Returns the fee recipient of the vault.
      * @return The fee recipient.
      */
@@ -185,6 +195,12 @@ interface IAlephVault {
     function currentBatch() external view returns (uint48);
 
     /**
+     * @notice Returns the number of share classes in the vault.
+     * @return The number of share classes.
+     */
+    function shareClasses() external view returns (uint8);
+
+    /**
      * @notice Returns the total assets currently held by the vault.
      * @return The total assets.
      */
@@ -195,6 +211,20 @@ interface IAlephVault {
      * @return The total shares.
      */
     function totalShares() external view returns (uint256);
+
+    /**
+     * @notice Returns the total assets in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total assets in the vault for the given class.
+     */
+    function totalAssetsOfClass(uint8 _classId) external view returns (uint256[] memory);
+
+    /**
+     * @notice Returns the total shares in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total shares in the vault for the given class.
+     */
+    function totalSharesOfClass(uint8 _classId) external view returns (uint256[] memory);
 
     /**
      * @notice Returns the total assets in the vault for a given class.
@@ -282,6 +312,13 @@ interface IAlephVault {
     function maxDepositCap(uint8 _classId) external view returns (uint256);
 
     /**
+     * @notice Returns the minimum redeem amount.
+     * @param _classId The ID of the share class.
+     * @return The minimum redeem amount of the share class.
+     */
+    function minRedeemAmount(uint8 _classId) external view returns (uint256);
+
+    /**
      * @notice Returns the total amount of unsettled deposit requests for a given class.
      * @param _classId The ID of the share class.
      * @return The total amount of unsettled deposit requests for the given class.
@@ -351,6 +388,12 @@ interface IAlephVault {
     function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory);
 
     /**
+     * @notice Returns the total fee amount to collect.
+     * @return The total fee amount to collect.
+     */
+    function totalFeeAmountToCollect() external view returns (uint256);
+
+    /**
      * @notice Returns whether authentication is enabled for deposits.
      * @return The status of the authentication for deposits.
      */
@@ -375,19 +418,27 @@ interface IAlephVault {
     function setIsSettlementAuthEnabled(bool _isSettlementAuthEnabled) external;
 
     /**
+     * @notice Sets the vault treasury.
+     * @param _vaultTreasury The new vault treasury.
+     */
+    function setVaultTreasury(address _vaultTreasury) external;
+
+    /**
      * @notice Creates a new share class.
      * @param _managementFee The management fee.
      * @param _performanceFee The performance fee.
      * @param _noticePeriod The notice period.
      * @param _minDepositAmount The minimum deposit amount.
      * @param _maxDepositCap The maximum deposit cap.
+     * @param _minRedeemAmount The minimum redeem amount.
      */
     function createShareClass(
         uint32 _managementFee,
         uint32 _performanceFee,
         uint48 _noticePeriod,
         uint256 _minDepositAmount,
-        uint256 _maxDepositCap
+        uint256 _maxDepositCap,
+        uint256 _minRedeemAmount
     ) external returns (uint8 _classId);
 
     /**

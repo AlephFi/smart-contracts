@@ -54,6 +54,7 @@ contract RequestSettleDepositTest is BaseTest {
                 noticePeriod: 0,
                 minDepositAmount: 0,
                 maxDepositCap: 0,
+                minRedeemAmount: 0,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams

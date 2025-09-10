@@ -1,0 +1,35 @@
+{
+    "560048": {
+        "staging": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "nightly": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "feature": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        }
+    },
+    "11155111": {
+        "staging": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "nightly": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "feature": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        }
+    },
+    "84532": {
+        "staging": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "nightly": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "feature": {
+            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        }
+    }
+}

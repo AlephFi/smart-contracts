@@ -34,11 +34,11 @@ contract RequestRedeemTest is BaseTest {
         _unpauseVaultFlows();
     }
 
-    function test_requestRedeem_totalAmountToRedeemMustAlwaysIncrease(address _user, uint256 _redeemShares) public {
+    function test_requestRedeem_totalAmountToRedeemMustAlwaysIncrease(address _user, uint256 _redeemAmount) public {
         // redeem shares 0 will revert with InsufficientRedeem
-        vm.assume(_redeemShares > 0);
+        vm.assume(_redeemAmount > vault.minRedeemAmount(1));
         // shares to not exceed 2^96 to avoid overflow from multiplication of same data type
-        vm.assume(_redeemShares < type(uint96).max);
+        vm.assume(_redeemAmount < type(uint96).max);
         // don't use zero address
         vm.assume(_user != address(0));
         // don't use user as vault
@@ -50,12 +50,12 @@ contract RequestRedeemTest is BaseTest {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
-        // set up user with _redeemShares shares
-        vault.setSharesOf(0, _user, _redeemShares);
+        // set up user with _redeemAmount shares
+        vault.setSharesOf(0, _user, _redeemAmount);
 
         // request redeem
         vm.prank(_user);
-        vault.requestRedeem(1, _redeemShares);
+        vault.requestRedeem(1, _redeemAmount);
 
         // assert invariant
         assertLt(_amountToRedeemBefore, vault.redeemRequestOf(1, _user));
@@ -86,12 +86,14 @@ contract RequestRedeemTest is BaseTest {
             // get total amount to redeem in batch
             uint256 _totalAmountToRedeemBefore = vault.redeemRequestOf(1, _user);
 
-            // set up user with shares
-            uint256 _redeemShares = uint256(keccak256(abi.encode(_redeemSeed, i))) % type(uint96).max;
+            uint256 _redeemAmount = uint256(keccak256(abi.encode(_redeemSeed, i))) % type(uint96).max;
 
             // request redeem
+            if (_redeemAmount < vault.minRedeemAmount(1)) {
+                continue;
+            }
             vm.prank(_user);
-            vault.requestRedeem(1, _redeemShares);
+            vault.requestRedeem(1, _redeemAmount);
 
             // assert batch invariant
             assertLt(_totalAmountToRedeemBefore, vault.redeemRequestOf(1, _user));

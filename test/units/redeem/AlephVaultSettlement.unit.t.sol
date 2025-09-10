@@ -51,6 +51,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
                 managementFee: 0, // 0%
                 performanceFee: 0, // 0%
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
+                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature

@@ -41,7 +41,7 @@ contract DeployAlephVault is BaseScript {
         vm.startBroadcast(_privateKey);
 
         string memory _environment = _getEnvironment();
-        address _factory = _getProxy(_chainId, _environment);
+        address _factory = _getFactoryProxy(_chainId, _environment);
 
         string memory _vaultName = vm.envString("VAULT_NAME");
         string memory _vaultConfigId = vm.envString("VAULT_CONFIG_ID");
@@ -60,6 +60,7 @@ contract DeployAlephVault is BaseScript {
             noticePeriod: uint48(vm.envUint("VAULT_NOTICE_PERIOD")),
             minDepositAmount: vm.envUint("VAULT_MIN_DEPOSIT_AMOUNT"),
             maxDepositCap: vm.envUint("VAULT_MAX_DEPOSIT_CAP"),
+            minRedeemAmount: vm.envUint("VAULT_MIN_REDEEM_AMOUNT"),
             authSignature: _authSignature
         });
         address _vault = IAlephVaultFactory(_factory).deployVault(_userInitializationParams);

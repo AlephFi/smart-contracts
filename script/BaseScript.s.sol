@@ -51,6 +51,11 @@ abstract contract BaseScript is Script {
         return _config;
     }
 
+    function _getFeeRecipientConfig() internal view returns (string memory) {
+        string memory _config = vm.readFile("feeRecipientConfig.json");
+        return _config;
+    }
+
     function _getDeploymentConfig() internal view returns (string memory) {
         string memory _config = vm.readFile("deploymentConfig.json");
         return _config;
@@ -93,16 +98,42 @@ abstract contract BaseScript is Script {
         return _beacon;
     }
 
-    function _getProxyOwner(string memory _chainId, string memory _environment) internal view returns (address) {
+    function _getFactoryProxyOwner(string memory _chainId, string memory _environment)
+        internal
+        view
+        returns (address)
+    {
         string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
         string memory _proxyOwnerKey = string.concat(".", _chainId, ".", _environment, ".factoryProxyOwner");
         address _proxyOwner = vm.parseJsonAddress(_deploymentConfig, _proxyOwnerKey);
         return _proxyOwner;
     }
 
-    function _getProxy(string memory _chainId, string memory _environment) internal view returns (address) {
+    function _getFactoryProxy(string memory _chainId, string memory _environment) internal view returns (address) {
         string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
         string memory _proxyKey = string.concat(".", _chainId, ".", _environment, ".factoryProxyAddress");
+        address _proxy = vm.parseJsonAddress(_deploymentConfig, _proxyKey);
+        return _proxy;
+    }
+
+    function _getFeeRecipientProxyOwner(string memory _chainId, string memory _environment)
+        internal
+        view
+        returns (address)
+    {
+        string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
+        string memory _proxyOwnerKey = string.concat(".", _chainId, ".", _environment, ".feeRecipientProxyOwner");
+        address _proxyOwner = vm.parseJsonAddress(_deploymentConfig, _proxyOwnerKey);
+        return _proxyOwner;
+    }
+
+    function _getFeeRecipientProxy(string memory _chainId, string memory _environment)
+        internal
+        view
+        returns (address)
+    {
+        string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
+        string memory _proxyKey = string.concat(".", _chainId, ".", _environment, ".feeRecipientProxyAddress");
         address _proxy = vm.parseJsonAddress(_deploymentConfig, _proxyKey);
         return _proxy;
     }
@@ -115,6 +146,18 @@ abstract contract BaseScript is Script {
         string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
         string memory _implementationKey =
             string.concat(".", _chainId, ".", _environment, ".factoryImplementationAddress");
+        address _implementation = vm.parseJsonAddress(_deploymentConfig, _implementationKey);
+        return _implementation;
+    }
+
+    function _getFeeRecipientImplementation(string memory _chainId, string memory _environment)
+        internal
+        view
+        returns (address)
+    {
+        string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
+        string memory _implementationKey =
+            string.concat(".", _chainId, ".", _environment, ".feeRecipientImplementationAddress");
         address _implementation = vm.parseJsonAddress(_deploymentConfig, _implementationKey);
         return _implementation;
     }
