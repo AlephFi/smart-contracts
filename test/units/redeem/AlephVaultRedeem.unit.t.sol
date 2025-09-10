@@ -59,7 +59,7 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.setMinRedeemAmount(100 ether);
 
         // request redeem
-        vm.expectRevert(IERC7540Redeem.RedeemLessThanMinRedeemAmount.selector);
+        vm.expectRevert(abi.encodeWithSelector(IERC7540Redeem.RedeemLessThanMinRedeemAmount.selector, 100 ether));
         vault.requestRedeem(1, 50 ether);
     }
 

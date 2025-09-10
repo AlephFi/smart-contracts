@@ -139,19 +139,19 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint256 _minRedeemAmount = _shareClass.minRedeemAmount;
         if (_minRedeemAmount > 0 && _estAmount < _minRedeemAmount) {
-            revert RedeemLessThanMinRedeemAmount();
+            revert RedeemLessThanMinRedeemAmount(_shareClass.minRedeemAmount);
         }
         uint48 _currentBatchId = _currentBatch(_sd);
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle
-        uint256 _pendingAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
-        if (_pendingAssets + _estAmount > _totalUserAssets) {
+        uint256 _pendingUserAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
+        if (_pendingUserAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
         uint256 _minDepositAmount = _shareClass.minDepositAmount;
-        uint256 _redeemableAmount = _totalUserAssets - (_estAmount + _pendingAssets);
-        if (_minDepositAmount > 0 && _redeemableAmount > 0 && _redeemableAmount < _minDepositAmount) {
+        uint256 _remainingAmount = _totalUserAssets - (_estAmount + _pendingUserAssets);
+        if (_minDepositAmount > 0 && _remainingAmount > 0 && _remainingAmount < _minDepositAmount) {
             revert RedeemFallBelowMinDepositAmount(_minDepositAmount);
         }
 
@@ -165,7 +165,8 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
-        uint256 _shareUnitsToRedeem = ERC4626Math.previewWithdrawUnits(_estAmount, _totalUserAssets - _pendingAssets);
+        uint256 _shareUnitsToRedeem =
+            ERC4626Math.previewWithdrawUnits(_estAmount, _totalUserAssets - _pendingUserAssets);
 
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
         if (_redeemRequests.redeemRequest[msg.sender] > 0) {
