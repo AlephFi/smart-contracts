@@ -89,7 +89,7 @@ contract DeployAlephVaultFactory is BaseScript {
             guardian: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".guardian")),
             authSigner: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".authSigner")),
             feeRecipient: vm.parseJsonAddress(
-                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".feeRecipient")
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".feeRecipientProxyAddress")
             ),
             alephVaultDepositImplementation: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultDepositImplementationAddress")
