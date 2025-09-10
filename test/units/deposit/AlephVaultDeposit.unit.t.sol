@@ -80,6 +80,20 @@ contract AlephVaultDepositTest is BaseTest {
         );
     }
 
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountDoesntMaintainMinUserBalance()
+        public
+    {
+        // set min user balance to 200 ether
+        vault.setMinUserBalance(1, 200 ether);
+
+        // request deposit
+        vm.prank(mockUser_1);
+        vm.expectRevert(IAlephVaultDeposit.DepositLessThanMinUserBalance.selector);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+        );
+    }
+
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap()
         public
     {
