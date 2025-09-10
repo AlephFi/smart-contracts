@@ -52,6 +52,7 @@ contract RequestSettleDepositTest is BaseTest {
                 managementFee: 0,
                 performanceFee: 0,
                 noticePeriod: 0,
+                lockInPeriod: 0,
                 minDepositAmount: 0,
                 maxDepositCap: 0,
                 minRedeemAmount: 0,

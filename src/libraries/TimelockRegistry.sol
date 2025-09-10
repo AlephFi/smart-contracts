@@ -36,6 +36,7 @@ library TimelockRegistry {
     bytes4 internal constant MIN_USER_BALANCE = bytes4(keccak256("MIN_USER_BALANCE"));
     bytes4 internal constant MAX_DEPOSIT_CAP = bytes4(keccak256("MAX_DEPOSIT_CAP"));
     bytes4 internal constant NOTICE_PERIOD = bytes4(keccak256("NOTICE_PERIOD"));
+    bytes4 internal constant LOCK_IN_PERIOD = bytes4(keccak256("LOCK_IN_PERIOD"));
     bytes4 internal constant MIN_REDEEM_AMOUNT = bytes4(keccak256("MIN_REDEEM_AMOUNT"));
     bytes4 internal constant MANAGEMENT_FEE = bytes4(keccak256("MANAGEMENT_FEE"));
     bytes4 internal constant PERFORMANCE_FEE = bytes4(keccak256("PERFORMANCE_FEE"));

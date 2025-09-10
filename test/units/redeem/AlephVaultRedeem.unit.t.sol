@@ -63,6 +63,19 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(1, 50 ether);
     }
 
+    function test_requestRedeem_revertsWhenUserLockInPeriodIsSetAndHasNotElapsed() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // set user lock in period to batch 10
+        vault.setUserLockInPeriod(1, 10, mockUser_1);
+
+        // request redeem
+        vm.prank(mockUser_1);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.UserInLockInPeriodNotElapsed.selector, 10));
+        vault.requestRedeem(1, 100 ether);
+    }
+
     function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);

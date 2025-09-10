@@ -37,6 +37,7 @@ interface IAlephVault {
         uint32 managementFee,
         uint32 performanceFee,
         uint48 noticePeriod,
+        uint48 lockInPeriod,
         uint256 minDepositAmount,
         uint256 maxDepositCap,
         uint256 minRedeemAmount,
@@ -63,6 +64,7 @@ interface IAlephVault {
         uint32 managementFee;
         uint32 performanceFee;
         uint48 noticePeriod;
+        uint48 lockInPeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
         uint256 minRedeemAmount;
@@ -87,6 +89,7 @@ interface IAlephVault {
         uint48 depositSettleId;
         uint48 redeemSettleId;
         uint48 noticePeriod;
+        uint48 lockInPeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
         uint256 minRedeemAmount;
@@ -94,6 +97,7 @@ interface IAlephVault {
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
+        mapping(address user => uint48) userLockInPeriod;
     }
 
     struct ShareSeries {
@@ -301,6 +305,13 @@ interface IAlephVault {
     function noticePeriod(uint8 _classId) external view returns (uint48);
 
     /**
+     * @notice Returns the lock in period of the vault.
+     * @param _classId The ID of the share class.
+     * @return The lock in period.
+     */
+    function lockInPeriod(uint8 _classId) external view returns (uint48);
+
+    /**
      * @notice Returns the minimum deposit amount.
      * @param _classId The ID of the share class.
      * @return The minimum deposit amount of the share class.
@@ -327,6 +338,14 @@ interface IAlephVault {
      * @return The minimum redeem amount of the share class.
      */
     function minRedeemAmount(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the user lock in period.
+     * @param _classId The ID of the share class.
+     * @param _user The address of the user.
+     * @return The user lock in period.
+     */
+    function userLockInPeriod(uint8 _classId, address _user) external view returns (uint48);
 
     /**
      * @notice Returns the total amount of unsettled deposit requests for a given class.
@@ -438,6 +457,7 @@ interface IAlephVault {
      * @param _managementFee The management fee.
      * @param _performanceFee The performance fee.
      * @param _noticePeriod The notice period.
+     * @param _lockInPeriod The lock in period.
      * @param _minDepositAmount The minimum deposit amount.
      * @param _maxDepositCap The maximum deposit cap.
      * @param _minRedeemAmount The minimum redeem amount.
@@ -446,6 +466,7 @@ interface IAlephVault {
         uint32 _managementFee,
         uint32 _performanceFee,
         uint48 _noticePeriod,
+        uint48 _lockInPeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap,
         uint256 _minRedeemAmount,

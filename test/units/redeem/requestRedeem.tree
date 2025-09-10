@@ -11,13 +11,16 @@ RequestRedeem_Unit_Test
             ├── when amountToRedeem is less than min redeem amount
             │   └── it should revert with RedeemLessThanMinRedeemAmount
             └── when amountToRedeem is greater than or equal to min redeem amount
-                ├── when min user balance is set and amountToRedeem doesnt maintain min user balance
-                │   └── it should revert with RedeemLessThanMinUserBalance
-                └── when min user balance is set and amountToRedeem maintains min user balance OR min user balance is not set
-                    ├── when amountToRedeem is greater than total user assets
-                    │   └── it should revert with InsufficientAssetsToRedeem
-                    └── when amountToRedeem is less than or equal to total user assets
-                        ├── given user has already made a redeem request for this batch
-                        │   └── it should revert with OnlyOneRequestPerBatchAllowedForRedeem
-                        └── given user has not made a redeem request for this batch
-                            └── it should update batches, shares of user and emit RedeemRequest
+                ├── when user lock in period is set and has not elapsed
+                │   └── it should revert with UserInLockInPeriodNotElapsed
+                └── when user lock in period has elapsed OR was not set
+                    ├── when min user balance is set and amountToRedeem doesnt maintain min user balance
+                    │   └── it should revert with RedeemLessThanMinUserBalance
+                    └── when min user balance is set and amountToRedeem maintains min user balance OR min user balance is not set
+                        ├── when amountToRedeem is greater than total user assets
+                        │   └── it should revert with InsufficientAssetsToRedeem
+                        └── when amountToRedeem is less than or equal to total user assets
+                            ├── given user has already made a redeem request for this batch
+                            │   └── it should revert with OnlyOneRequestPerBatchAllowedForRedeem
+                            └── given user has not made a redeem request for this batch
+                                └── it should update batches, shares of user and emit RedeemRequest

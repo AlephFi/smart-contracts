@@ -100,6 +100,12 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].noticePeriod = _noticePeriod;
     }
 
+    function setUserLockInPeriod(uint8 _classId, uint48 _userLockInPeriod, address _user) external {
+        AlephVaultStorageData storage _sd = _getStorage();
+        _sd.shareClasses[_classId].lockInPeriod = 1;
+        _sd.shareClasses[_classId].userLockInPeriod[_user] = _userLockInPeriod;
+    }
+
     function setMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount) external {
         _getStorage().shareClasses[_classId].minRedeemAmount = _minRedeemAmount;
     }
@@ -200,6 +206,15 @@ contract ExposedVault is AlephVault {
     function noticePeriodTimelock() external returns (uint48) {
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
             .delegatecall(abi.encodeWithSignature("NOTICE_PERIOD_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
+    function lockInPeriodTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
+            .delegatecall(abi.encodeWithSignature("LOCK_IN_PERIOD_TIMELOCK()"));
         if (_success) {
             return abi.decode(_data, (uint48));
         }

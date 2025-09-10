@@ -65,12 +65,32 @@ contract VaultSetUpTest is BaseTest {
 
     function test_constructor_when_noticePeriodTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
-        new AlephVaultRedeem(0, defaultConfigParams.minRedeemAmountTimelock, defaultConfigParams.batchDuration);
+        new AlephVaultRedeem(
+            0,
+            defaultConfigParams.lockInPeriodTimelock,
+            defaultConfigParams.minRedeemAmountTimelock,
+            defaultConfigParams.batchDuration
+        );
+    }
+
+    function test_constructor_when_lockInPeriodTimelock_passed_is_0() public {
+        vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
+        new AlephVaultRedeem(
+            defaultConfigParams.noticePeriodTimelock,
+            0,
+            defaultConfigParams.minRedeemAmountTimelock,
+            defaultConfigParams.batchDuration
+        );
     }
 
     function test_constructor_when_minRedeemAmountTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
-        new AlephVaultRedeem(defaultConfigParams.noticePeriodTimelock, 0, defaultConfigParams.batchDuration);
+        new AlephVaultRedeem(
+            defaultConfigParams.noticePeriodTimelock,
+            defaultConfigParams.lockInPeriodTimelock,
+            0,
+            defaultConfigParams.batchDuration
+        );
     }
 
     function test_constructor_when_managementFeeTimelock_passed_is_0() public {
@@ -230,6 +250,7 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
+                lockInPeriod: defaultInitializationParams.userInitializationParams.lockInPeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
@@ -261,6 +282,7 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
+                lockInPeriod: defaultInitializationParams.userInitializationParams.lockInPeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
@@ -292,6 +314,7 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
+                lockInPeriod: defaultInitializationParams.userInitializationParams.lockInPeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
@@ -323,6 +346,7 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: 10_001,
                 performanceFee: defaultInitializationParams.userInitializationParams.performanceFee,
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
+                lockInPeriod: defaultInitializationParams.userInitializationParams.lockInPeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
@@ -354,6 +378,7 @@ contract VaultSetUpTest is BaseTest {
                 managementFee: defaultInitializationParams.userInitializationParams.managementFee,
                 performanceFee: 10_001,
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
+                lockInPeriod: defaultInitializationParams.userInitializationParams.lockInPeriod,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
                 minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
@@ -530,6 +555,7 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.managementFee(1), defaultInitializationParams.userInitializationParams.managementFee);
         assertEq(vault.performanceFee(1), defaultInitializationParams.userInitializationParams.performanceFee);
         assertEq(vault.noticePeriod(1), defaultInitializationParams.userInitializationParams.noticePeriod);
+        assertEq(vault.lockInPeriod(1), defaultInitializationParams.userInitializationParams.lockInPeriod);
         assertEq(vault.minDepositAmount(1), defaultInitializationParams.userInitializationParams.minDepositAmount);
         assertEq(vault.maxDepositCap(1), defaultInitializationParams.userInitializationParams.maxDepositCap);
         assertEq(vault.minRedeemAmount(1), defaultInitializationParams.userInitializationParams.minRedeemAmount);
