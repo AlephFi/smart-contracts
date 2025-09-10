@@ -18,7 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -49,7 +49,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         // queue min deposit amount
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMinDepositAmountQueued(1, 100);
+        emit IAlephVaultDeposit.NewMinDepositAmountQueued(1, 100);
         vault.queueMinDepositAmount(1, 100);
 
         // check min deposit amount is queued
@@ -117,7 +117,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         // set min deposit amount
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMinDepositAmountSet(1, 100);
+        emit IAlephVaultDeposit.NewMinDepositAmountSet(1, 100);
         vault.setMinDepositAmount(1);
 
         // check min deposit amount is set
@@ -145,7 +145,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         // queue max deposit cap
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMaxDepositCapQueued(1, 100);
+        emit IAlephVaultDeposit.NewMaxDepositCapQueued(1, 100);
         vault.queueMaxDepositCap(1, 100);
 
         // check max deposit cap is queued
@@ -213,7 +213,7 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         // set max deposit cap
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.NewMaxDepositCapSet(1, 100);
+        emit IAlephVaultDeposit.NewMaxDepositCapSet(1, 100);
         vault.setMaxDepositCap(1);
 
         // check max deposit cap is set

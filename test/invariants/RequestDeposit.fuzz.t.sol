@@ -19,7 +19,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
@@ -69,7 +69,7 @@ contract RequestDepositTest is BaseTest {
 
         // request deposit
         uint48 _depositBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
         vm.stopPrank();
 
@@ -111,7 +111,7 @@ contract RequestDepositTest is BaseTest {
 
             // request deposit
             vault.requestDeposit(
-                IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
+                IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
             );
             vm.stopPrank();
 
@@ -168,7 +168,7 @@ contract RequestDepositTest is BaseTest {
 
                 // request deposit
                 vault.requestDeposit(
-                    IERC7540Deposit.RequestDepositParams({
+                    IAlephVaultDeposit.RequestDepositParams({
                         classId: 1,
                         amount: _depositAmount,
                         authSignature: _authSignature

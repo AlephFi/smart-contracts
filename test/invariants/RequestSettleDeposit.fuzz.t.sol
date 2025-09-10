@@ -19,8 +19,8 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
-import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
@@ -68,7 +68,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _depositAmount);
         AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
         vm.stopPrank();
 
@@ -81,7 +81,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
         vm.prank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: new uint256[](1),
@@ -104,7 +104,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, _newTotalAssetsArr);
         vm.prank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssetsArr,
@@ -143,7 +143,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _depositAmount * 2);
         AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
         vm.stopPrank();
 
@@ -156,7 +156,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
         vm.prank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: new uint256[](1),
@@ -167,7 +167,7 @@ contract RequestSettleDepositTest is BaseTest {
         // request deposit
         vm.prank(_user);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
         );
 
         // get vault state before deposit
@@ -186,7 +186,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, _newTotalAssetsArr);
         vm.prank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssetsArr,
@@ -223,7 +223,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _firstDepositAmount);
         AuthLibrary.AuthSignature memory _authSignature_1 = _getDepositAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({
+            IAlephVaultDeposit.RequestDepositParams({
                 classId: 1,
                 amount: _firstDepositAmount,
                 authSignature: _authSignature_1
@@ -240,7 +240,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
         vm.prank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: new uint256[](1),
@@ -258,7 +258,7 @@ contract RequestSettleDepositTest is BaseTest {
             underlyingToken.approve(address(vault), _depositAmount);
             AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
             vault.requestDeposit(
-                IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
+                IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
             );
             vm.stopPrank();
         }
@@ -278,7 +278,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, _newTotalAssetsArr);
         vm.prank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssetsArr,
@@ -317,7 +317,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.approve(address(vault), _firstDepositAmount);
         AuthLibrary.AuthSignature memory _authSignature_1 = _getDepositAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({
+            IAlephVaultDeposit.RequestDepositParams({
                 classId: 1,
                 amount: _firstDepositAmount,
                 authSignature: _authSignature_1
@@ -329,7 +329,7 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         // settle first batch
-        IERC7540Settlement.SettlementParams memory _settlementParams = IERC7540Settlement.SettlementParams({
+        IAlephVaultSettlement.SettlementParams memory _settlementParams = IAlephVaultSettlement.SettlementParams({
             classId: 1,
             toBatchId: vault.currentBatch(),
             newTotalAssets: new uint256[](1),
@@ -358,7 +358,7 @@ contract RequestSettleDepositTest is BaseTest {
                     underlyingToken.approve(address(vault), _depositAmount);
                     AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
                     vault.requestDeposit(
-                        IERC7540Deposit.RequestDepositParams({
+                        IAlephVaultDeposit.RequestDepositParams({
                             classId: 1,
                             amount: _depositAmount,
                             authSignature: _authSignature

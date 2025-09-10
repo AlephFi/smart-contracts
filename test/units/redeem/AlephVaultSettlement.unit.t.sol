@@ -21,8 +21,8 @@ import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessCon
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
-import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
-import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
@@ -75,7 +75,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
             )
         );
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: 0,
                 newTotalAssets: new uint256[](1),
@@ -93,7 +93,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.prank(oracle);
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: 0,
                 newTotalAssets: new uint256[](1),
@@ -111,9 +111,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(IERC7540Settlement.InvalidToBatchId.selector);
+        vm.expectRevert(IAlephVaultSettlement.InvalidToBatchId.selector);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: 1,
                 newTotalAssets: new uint256[](1),
@@ -127,9 +127,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
     {
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(IERC7540Settlement.NoRedeemsToSettle.selector);
+        vm.expectRevert(IAlephVaultSettlement.NoRedeemsToSettle.selector);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: 0,
                 newTotalAssets: new uint256[](1),
@@ -145,9 +145,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(IERC7540Settlement.InvalidNewTotalAssets.selector);
+        vm.expectRevert(IAlephVaultSettlement.InvalidNewTotalAssets.selector);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: new uint256[](2),
@@ -169,7 +169,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.prank(oracle);
         vm.expectRevert(AuthLibrary.InvalidAuthSignature.selector);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: new uint256[](1),
@@ -198,7 +198,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.prank(oracle);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -231,7 +231,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.prank(oracle);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -269,7 +269,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 500 ether)
         );
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -312,17 +312,17 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 500 ether, 500 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 500 ether, 500 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 250 ether, 250 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 250 ether, 250 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_2, 1, 0, 250 ether, 250 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_2, 1, 0, 250 ether, 250 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 1000 ether);
+        emit IAlephVaultSettlement.SettleRedeemBatch(_currentBatchId - 1, 1, 1000 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
+        emit IAlephVaultSettlement.SettleRedeem(0, _currentBatchId, 1);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -389,21 +389,21 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_1, 1, 0, 250 ether, 250 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_1, 1, 0, 250 ether, 250 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_2, 1, 0, 500 ether, 500 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(_currentBatchId - 2, mockUser_2, 1, 0, 500 ether, 500 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 2, 1, 750 ether);
+        emit IAlephVaultSettlement.SettleRedeemBatch(_currentBatchId - 2, 1, 750 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 250 ether, 250 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 0, 250 ether, 250 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 125 ether, 125 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(_currentBatchId - 1, mockUser_1, 1, 1, 125 ether, 125 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeemBatch(_currentBatchId - 1, 1, 375 ether);
+        emit IAlephVaultSettlement.SettleRedeemBatch(_currentBatchId - 1, 1, 375 ether);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleRedeem(0, _currentBatchId, 1);
+        emit IAlephVaultSettlement.SettleRedeem(0, _currentBatchId, 1);
         vault.settleRedeem(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
                 newTotalAssets: _newTotalAssets,

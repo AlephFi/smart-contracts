@@ -18,7 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
-import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -49,7 +49,7 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         // queue notice period
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.NewNoticePeriodQueued(1, 100);
+        emit IAlephVaultRedeem.NewNoticePeriodQueued(1, 100);
         vault.queueNoticePeriod(1, 100);
 
         // check notice period is queued
@@ -117,7 +117,7 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         // set notice period
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.NewNoticePeriodSet(1, 30);
+        emit IAlephVaultRedeem.NewNoticePeriodSet(1, 30);
         vault.setNoticePeriod(1);
 
         // check notice period is set
@@ -145,7 +145,7 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         // queue min redeem amount
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.NewMinRedeemAmountQueued(1, 100);
+        emit IAlephVaultRedeem.NewMinRedeemAmountQueued(1, 100);
         vault.queueMinRedeemAmount(1, 100);
 
         // check min redeem amount is queued
@@ -213,7 +213,7 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         // set min redeem amount
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.NewMinRedeemAmountSet(1, 100);
+        emit IAlephVaultRedeem.NewMinRedeemAmountSet(1, 100);
         vault.setMinRedeemAmount(1);
 
         // check min redeem amount is set

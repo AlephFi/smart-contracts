@@ -21,9 +21,9 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
-import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
-import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
@@ -671,7 +671,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @return _batchId The batch ID of the deposit.
      * @dev Only callable when the deposit request flow is not paused.
      */
-    function requestDeposit(IERC7540Deposit.RequestDepositParams calldata _requestDepositParams)
+    function requestDeposit(IAlephVaultDeposit.RequestDepositParams calldata _requestDepositParams)
         external
         onlyValidShareClass(_requestDepositParams.classId)
         whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
@@ -685,7 +685,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _settlementParams The parameters for the settlement.
      * @dev Only callable by the ORACLE role.
      */
-    function settleDeposit(IERC7540Settlement.SettlementParams calldata _settlementParams)
+    function settleDeposit(IAlephVaultSettlement.SettlementParams calldata _settlementParams)
         external
         onlyRole(RolesLibrary.ORACLE)
         onlyValidShareClass(_settlementParams.classId)
@@ -715,7 +715,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _settlementParams The parameters for the settlement.
      * @dev Only callable by the ORACLE role.
      */
-    function settleRedeem(IERC7540Settlement.SettlementParams calldata _settlementParams)
+    function settleRedeem(IAlephVaultSettlement.SettlementParams calldata _settlementParams)
         external
         onlyRole(RolesLibrary.ORACLE)
         onlyValidShareClass(_settlementParams.classId)

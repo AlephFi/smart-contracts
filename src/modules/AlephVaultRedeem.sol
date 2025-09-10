@@ -17,7 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
@@ -28,7 +28,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
+contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     using Math for uint256;
     using TimelockRegistry for bytes4;
 
@@ -45,27 +45,27 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         MIN_REDEEM_AMOUNT_TIMELOCK = _minRedeemAmountTimelock;
     }
 
-    /// @inheritdoc IERC7540Redeem
+    /// @inheritdoc IAlephVaultRedeem
     function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external {
         _queueNoticePeriod(_getStorage(), _classId, _noticePeriod);
     }
 
-    /// @inheritdoc IERC7540Redeem
+    /// @inheritdoc IAlephVaultRedeem
     function queueMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount) external {
         _queueMinRedeemAmount(_getStorage(), _classId, _minRedeemAmount);
     }
 
-    /// @inheritdoc IERC7540Redeem
+    /// @inheritdoc IAlephVaultRedeem
     function setNoticePeriod(uint8 _classId) external {
         _setNoticePeriod(_getStorage(), _classId);
     }
 
-    /// @inheritdoc IERC7540Redeem
+    /// @inheritdoc IAlephVaultRedeem
     function setMinRedeemAmount(uint8 _classId) external {
         _setMinRedeemAmount(_getStorage(), _classId);
     }
 
-    /// @inheritdoc IERC7540Redeem
+    /// @inheritdoc IAlephVaultRedeem
     function requestRedeem(uint8 _classId, uint256 _estAmount) external returns (uint48 _batchId) {
         return _requestRedeem(_getStorage(), _classId, _estAmount);
     }
