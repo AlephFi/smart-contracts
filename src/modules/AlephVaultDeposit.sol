@@ -69,7 +69,11 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     }
 
     /// @inheritdoc IERC7540Deposit
-    function requestDeposit(RequestDepositParams calldata _requestDepositParams) external returns (uint48 _batchId) {
+    function requestDeposit(RequestDepositParams calldata _requestDepositParams)
+        external
+        nonReentrant
+        returns (uint48 _batchId)
+    {
         return _requestDeposit(_getStorage(), _requestDepositParams);
     }
 
@@ -147,7 +151,7 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         uint256 _maxDepositCap = _shareClass.maxDepositCap;
         if (
             _maxDepositCap > 0
-                && _totalAssetsPerClass(_sd, _requestDepositParams.classId)
+                && _totalAssetsPerClass(_shareClass, _requestDepositParams.classId)
                     + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount > _maxDepositCap
         ) {
             revert DepositExceedsMaxDepositCap();

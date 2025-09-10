@@ -1,5 +1,5 @@
 # Aleph Protocol
-Aleph is an Infrastructure-as-a-Service platform, enabling fund managers to launch and manage on-chain financial vehicles at scale. 
+Aleph is a financial infrastructure that connects digital asset allocators with sophisticated money managers.
 
 This repository contains the core smart contracts for Aleph Protocol. 
 

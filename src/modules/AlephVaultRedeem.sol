@@ -73,7 +73,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
      * @dev Internal function to queue a new notice period.
      * @param _sd The storage struct.
      * @param _classId The id of the class.
-     * @param _noticePeriod The new notice period.
+     * @param _noticePeriod The new notice period in batches
      */
     function _queueNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _noticePeriod) internal {
         _sd.timelocks[TimelockRegistry.NOTICE_PERIOD] = TimelockRegistry.Timelock({
@@ -145,7 +145,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle
-        uint256 _pendingUserAssets = _pendingAssetsOf(_sd, _classId, _currentBatchId, msg.sender, _totalUserAssets);
+        uint256 _pendingUserAssets = _pendingAssetsOf(_shareClass, _classId, _currentBatchId, msg.sender, _totalUserAssets);
         if (_pendingUserAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }

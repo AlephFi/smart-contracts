@@ -40,12 +40,12 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IERC7540Settlement
-    function settleDeposit(SettlementParams calldata _settlementParams) external {
+    function settleDeposit(SettlementParams calldata _settlementParams) external nonReentrant {
         _settleDeposit(_getStorage(), _settlementParams);
     }
 
     /// @inheritdoc IERC7540Settlement
-    function settleRedeem(SettlementParams calldata _settlementParams) external {
+    function settleRedeem(SettlementParams calldata _settlementParams) external nonReentrant {
         _settleRedeem(_getStorage(), _settlementParams);
     }
 
@@ -85,7 +85,8 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _settlementParams.toBatchId,
             _settlementParams.newTotalAssets
         );
-        uint8 _settlementSeriesId = _getSettlementSeriesId(_sd, _settlementParams.classId, _settlementParams.toBatchId);
+        uint8 _settlementSeriesId =
+            _getSettlementSeriesId(_shareClass, _settlementParams.classId, _settlementParams.toBatchId);
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_settlementSeriesId];
         SettleDepositDetails memory _settleDepositDetails = SettleDepositDetails({
             // check if a new series needs to be created
@@ -359,16 +360,15 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
 
     /**
      * @dev Internal function to get the settlement series id.
-     * @param _sd The storage struct.
+     * @param _shareClass The share class.
      * @param _classId The id of the class.
      * @param _toBatchId The batch id to settle deposits up to.
      * @return _seriesId The series id.
      */
-    function _getSettlementSeriesId(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _toBatchId)
+    function _getSettlementSeriesId(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _toBatchId)
         internal
         returns (uint8 _seriesId)
     {
-        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         // for non-incentive classes, all settlements take place in the lead series
         if (_shareClass.performanceFee > 0) {
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
@@ -376,7 +376,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             // if new lead series highwatermark is not reached, settlements must take place in a new series
             // if a new highwater mark is reached in this cycle, it will be updated in _accumalateFees function
             // hence, after fee accumalation process, the lead highwater mark is either greater than or equal to the lead price per share
-            if (_shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark > _leadPricePerShare(_sd, _classId)) {
+            if (_shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark > _leadPricePerShare(_shareClass, _classId)) {
                 // we don't create a new series just yet because there might not be any deposit request to settle in this cycle
                 _seriesId = _shareSeriesId + 1;
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {

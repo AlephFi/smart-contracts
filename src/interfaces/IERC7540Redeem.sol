@@ -35,7 +35,7 @@ interface IERC7540Redeem {
     /**
      * @notice Queues a new notice period.
      * @param _classId The ID of the share class to set the notice period for.
-     * @param _noticePeriod The new notice period.
+     * @param _noticePeriod The new notice period in batches.
      */
     function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external;
 
@@ -47,7 +47,7 @@ interface IERC7540Redeem {
     function queueMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount) external;
 
     /**
-     * @notice Sets the notice period.
+     * @notice Sets the notice period in batches
      */
     function setNoticePeriod() external;
 

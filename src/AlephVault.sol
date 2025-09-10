@@ -15,8 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {AccessControlUpgradeable} from
-    "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -152,6 +150,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initalizationParams.guardian,
             _initalizationParams.operationsMultisig
         );
+        // initialize reentrancy guard
+        __ReentrancyGuard_init();
 
         // create default share class
         _createShareClass(
@@ -168,6 +168,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function currentBatch() public view returns (uint48) {
         return _currentBatch(_getStorage());
+    }
+
+    /// @inheritdoc IAlephVault
+    function shareClasses() external view returns (uint8) {
+        return _getStorage().shareClassesId;
     }
 
     /// @inheritdoc IAlephVault
@@ -235,13 +240,51 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function totalAssetsOfClass(uint8 _classId)
+        external
+        view
+        onlyValidShareClass(_classId)
+        returns (uint256[] memory)
+    {
+        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint8 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
+        uint256[] memory _totalAssets = new uint256[](_len);
+        for (uint8 _i; _i < _len; _i++) {
+            uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
+            _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+        }
+        return _totalAssets;
+    }
+
+    /// @inheritdoc IAlephVault
+    function totalSharesOfClass(uint8 _classId)
+        external
+        view
+        onlyValidShareClass(_classId)
+        returns (uint256[] memory)
+    {
+        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint8 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
+        uint256[] memory _totalShares = new uint256[](_len);
+        for (uint8 _i; _i < _len; _i++) {
+            uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
+            _totalShares[_i] = _totalSharesPerSeries(_shareClass, _classId, _seriesId);
+        }
+        return _totalShares;
+    }
+
+    /// @inheritdoc IAlephVault
     function totalAssetsPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalAssetsPerClass(_getStorage(), _classId);
+        return _totalAssetsPerClass(_getStorage().shareClasses[_classId], _classId);
     }
 
     /// @inheritdoc IAlephVault
     function totalSharesPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalSharesPerClass(_getStorage(), _classId);
+        return _totalSharesPerClass(_getStorage().shareClasses[_classId], _classId);
     }
 
     /// @inheritdoc IAlephVault
@@ -366,8 +409,9 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function redeemRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToRedeem) {
         AlephVaultStorageData storage _sd = _getStorage();
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         return _pendingAssetsOf(
-            _sd, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _sd.shareClasses[_classId])
+            _shareClass, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _shareClass)
         );
     }
 
