@@ -588,6 +588,20 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /**
+     * @notice Queues a new lock in period to be set after the timelock period.
+     * @param _classId The ID of the share class to set the lock in period for.
+     * @param _lockInPeriod The new lock in period to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueLockInPeriod(uint8 _classId, uint48 _lockInPeriod)
+        external
+        onlyValidShareClass(_classId)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
+    }
+
+    /**
      * @notice Queues a new minimum redeem amount to be set after the timelock period.
      * @param _classId The ID of the share class to set the minimum redeem amount for.
      * @param _minRedeemAmount The new minimum redeem amount to be set.
@@ -666,6 +680,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @dev Only callable by the MANAGER role.
      */
     function setNoticePeriod(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
+    }
+
+    /**
+     * @notice Sets the lock in period to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the lock in period for.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setLockInPeriod(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 

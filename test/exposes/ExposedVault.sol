@@ -212,6 +212,15 @@ contract ExposedVault is AlephVault {
         return 0;
     }
 
+    function lockInPeriodTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
+            .delegatecall(abi.encodeWithSignature("LOCK_IN_PERIOD_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
     function minRedeemAmountTimelock() external returns (uint48) {
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
             .delegatecall(abi.encodeWithSignature("MIN_REDEEM_AMOUNT_TIMELOCK()"));
