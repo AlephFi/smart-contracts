@@ -29,8 +29,10 @@ interface IERC7540Deposit {
     }
 
     event NewMinDepositAmountQueued(uint8 classId, uint256 minDepositAmount);
+    event NewMinUserBalanceQueued(uint8 classId, uint256 minUserBalance);
     event NewMaxDepositCapQueued(uint8 classId, uint256 maxDepositCap);
     event NewMinDepositAmountSet(uint8 classId, uint256 minDepositAmount);
+    event NewMinUserBalanceSet(uint8 classId, uint256 minUserBalance);
     event NewMaxDepositCapSet(uint8 classId, uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
@@ -49,6 +51,13 @@ interface IERC7540Deposit {
     function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external;
 
     /**
+     * @notice Queues a new minimum user balance.
+     * @param _classId The ID of the share class to set the minimum user balance for.
+     * @param _minUserBalance The new minimum user balance.
+     */
+    function queueMinUserBalance(uint8 _classId, uint256 _minUserBalance) external;
+
+    /**
      * @notice Queues a new maximum deposit cap.
      * @param _classId The ID of the share class to set the maximum deposit cap for.
      * @param _maxDepositCap The new maximum deposit cap.
@@ -60,6 +69,12 @@ interface IERC7540Deposit {
      * @param _classId The ID of the share class to set the minimum deposit amount for.
      */
     function setMinDepositAmount(uint8 _classId) external;
+
+    /**
+     * @notice Sets the minimum user balance.
+     * @param _classId The ID of the share class to set the minimum user balance for.
+     */
+    function setMinUserBalance(uint8 _classId) external;
 
     /**
      * @notice Sets the maximum deposit cap.

@@ -529,6 +529,20 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /**
+     * @notice Queues a new minimum user balance to be set after the timelock period.
+     * @param _classId The ID of the share class to set the minimum user balance for.
+     * @param _minUserBalance The new minimum user balance to be set.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueMinUserBalance(uint8 _classId, uint256 _minUserBalance)
+        external
+        onlyValidShareClass(_classId)
+        onlyRole(RolesLibrary.MANAGER)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
+    }
+
+    /**
      * @notice Queues a new maximum deposit cap to be set after the timelock period.
      * @param _classId The ID of the share class to set the maximum deposit cap for.
      * @param _maxDepositCap The new maximum deposit cap to be set.
@@ -608,6 +622,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
     {
+        _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
+    }
+
+    /**
+     * @notice Sets the minimum user balance to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the minimum user balance for.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setMinUserBalance(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
