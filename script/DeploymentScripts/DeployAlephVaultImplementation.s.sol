@@ -46,6 +46,9 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 _minDepositAmountTimelock = uint48(
             vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minDepositAmountTimelock"))
         );
+        uint48 _minUserBalanceTimelock = uint48(
+            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minUserBalanceTimelock"))
+        );
         uint48 _maxDepositCapTimelock =
             uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".maxDepositCapTimelock")));
         uint48 _noticePeriodTimelock =
@@ -66,6 +69,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("chainId", _chainId);
         console.log("environment", _environment);
         console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
+        console.log("minUserBalanceTimelock", _minUserBalanceTimelock);
         console.log("maxDepositCapTimelock", _maxDepositCapTimelock);
         console.log("noticePeriodTimelock", _noticePeriodTimelock);
         console.log("minRedeemAmountTimelock", _minRedeemAmountTimelock);
@@ -76,6 +80,7 @@ contract DeployAlephVaultImplementation is BaseScript {
 
         IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses = _deployModules(
             _minDepositAmountTimelock,
+            _minUserBalanceTimelock,
             _maxDepositCapTimelock,
             _noticePeriodTimelock,
             _minRedeemAmountTimelock,
@@ -93,6 +98,7 @@ contract DeployAlephVaultImplementation is BaseScript {
 
     function _deployModules(
         uint48 _minDepositAmountTimelock,
+        uint48 _minUserBalanceTimelock,
         uint48 _maxDepositCapTimelock,
         uint48 _noticePeriodTimelock,
         uint48 _minRedeemAmountTimelock,
@@ -101,8 +107,9 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 _feeRecipientTimelock,
         uint48 _batchDuration
     ) internal returns (IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses) {
-        AlephVaultDeposit _alephVaultDeposit =
-            new AlephVaultDeposit(_minDepositAmountTimelock, _maxDepositCapTimelock, _batchDuration);
+        AlephVaultDeposit _alephVaultDeposit = new AlephVaultDeposit(
+            _minDepositAmountTimelock, _minUserBalanceTimelock, _maxDepositCapTimelock, _batchDuration
+        );
         AlephVaultRedeem _alephVaultRedeem =
             new AlephVaultRedeem(_noticePeriodTimelock, _minRedeemAmountTimelock, _batchDuration);
         AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(_batchDuration);
