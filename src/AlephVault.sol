@@ -396,13 +396,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function depositRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToDeposit) {
-        AlephVaultStorageData storage _sd = _getStorage();
-        uint48 _currentBatch = _currentBatch(_sd);
-        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        uint48 _depositSettleId = _shareClass.depositSettleId;
-        for (_depositSettleId; _depositSettleId <= _currentBatch; _depositSettleId++) {
-            _totalAmountToDeposit += _shareClass.depositRequests[_depositSettleId].depositRequest[_user];
-        }
+        return _depositRequestOf(_getStorage(), _classId, _user);
     }
 
     /// @inheritdoc IAlephVault

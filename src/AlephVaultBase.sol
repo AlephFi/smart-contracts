@@ -258,6 +258,28 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     }
 
     /**
+     * @dev Returns the total amount to deposit.
+     * @param _sd The storage struct.
+     * @param _classId The ID of the share class.
+     * @param _user The user to get the deposit request of.
+     * @return The total amount to deposit.
+     */
+    function _depositRequestOf(AlephVaultStorageData storage _sd, uint8 _classId, address _user)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 _totalDepositRequest;
+        uint48 _currentBatch = _currentBatch(_sd);
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _depositSettleId = _shareClass.depositSettleId;
+        for (_depositSettleId; _depositSettleId <= _currentBatch; _depositSettleId++) {
+            _totalDepositRequest += _shareClass.depositRequests[_depositSettleId].depositRequest[_user];
+        }
+        return _totalDepositRequest;
+    }
+
+    /**
      * @dev Internal function to calculate the pending assets of a user.
      * @param _shareClass The share class.
      * @param _classId The class ID to redeem from.

@@ -198,7 +198,8 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         uint256 _minUserBalance = _shareClass.minUserBalance;
         if (
             _minUserBalance > 0
-                && _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass) + _requestDepositParams.amount
+                && _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass)
+                    + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
                     < _minUserBalance
         ) {
             revert DepositLessThanMinUserBalance();
