@@ -45,6 +45,7 @@ contract BaseTest is Test {
 
     struct ConfigParams {
         uint48 minDepositAmountTimelock;
+        uint48 minUserBalanceTimelock;
         uint48 maxDepositCapTimelock;
         uint48 noticePeriodTimelock;
         uint48 minRedeemAmountTimelock;
@@ -69,6 +70,7 @@ contract BaseTest is Test {
     address public guardian;
     address public authSigner;
     uint48 public minDepositAmountTimelock;
+    uint48 public minUserBalanceTimelock;
     uint48 public maxDepositCapTimelock;
     uint48 public noticePeriodTimelock;
     uint48 public minRedeemAmountTimelock;
@@ -120,6 +122,7 @@ contract BaseTest is Test {
 
         defaultConfigParams = ConfigParams({
             minDepositAmountTimelock: 7 days,
+            minUserBalanceTimelock: 7 days,
             maxDepositCapTimelock: 7 days,
             noticePeriodTimelock: 7 days,
             minRedeemAmountTimelock: 7 days,
@@ -148,6 +151,7 @@ contract BaseTest is Test {
                 minDepositAmount: 10 ether,
                 maxDepositCap: 1_000_000 ether,
                 minRedeemAmount: 10 ether,
+                minUserBalance: 100 ether,
                 authSignature: authSignature_deploy
             }),
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
@@ -191,6 +195,7 @@ contract BaseTest is Test {
     ) public {
         // set up config params
         minDepositAmountTimelock = _configParams.minDepositAmountTimelock;
+        minUserBalanceTimelock = _configParams.minUserBalanceTimelock;
         maxDepositCapTimelock = _configParams.maxDepositCapTimelock;
         noticePeriodTimelock = _configParams.noticePeriodTimelock;
         minRedeemAmountTimelock = _configParams.minRedeemAmountTimelock;
@@ -202,7 +207,9 @@ contract BaseTest is Test {
         // deploy modules
         defaultInitializationParams.moduleInitializationParams = IAlephVault.ModuleInitializationParams({
             alephVaultDepositImplementation: address(
-                new AlephVaultDeposit(minDepositAmountTimelock, maxDepositCapTimelock, batchDuration)
+                new AlephVaultDeposit(
+                    minDepositAmountTimelock, minUserBalanceTimelock, maxDepositCapTimelock, batchDuration
+                )
             ),
             alephVaultRedeemImplementation: address(
                 new AlephVaultRedeem(noticePeriodTimelock, minRedeemAmountTimelock, batchDuration)

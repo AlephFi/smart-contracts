@@ -52,9 +52,10 @@ contract RequestSettleRedeemTest is BaseTest {
                 managementFee: 0,
                 performanceFee: 0,
                 noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
-                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
                 minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
                 maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
+                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
+                minUserBalance: defaultInitializationParams.userInitializationParams.minUserBalance,
                 authSignature: defaultInitializationParams.userInitializationParams.authSignature
             }),
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams

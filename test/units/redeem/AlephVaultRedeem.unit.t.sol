@@ -84,7 +84,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
         // request redeem
         vm.prank(mockUser_1);
-        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.RedeemFallBelowMinDepositAmount.selector, 200 ether));
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.RedeemFallBelowMinUserBalance.selector, 200 ether));
         vault.requestRedeem(1, 100 ether);
     }
 

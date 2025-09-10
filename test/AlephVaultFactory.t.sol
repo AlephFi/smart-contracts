@@ -30,6 +30,7 @@ contract AlephVaultFactoryTest is Test {
     address feeManagerImplementation = makeAddr("FeeManager");
     address migrationManagerImplementation = makeAddr("MigrationManager");
     uint48 minDepositAmountTimelock = 7 days;
+    uint48 minUserBalanceTimelock = 7 days;
     uint48 maxDepositCapTimelock = 7 days;
     uint48 noticePeriodTimelock = 7 days;
     uint48 minRedeemAmountTimelock = 7 days;
@@ -104,6 +105,7 @@ contract AlephVaultFactoryTest is Test {
             minDepositAmount: 0,
             maxDepositCap: 0,
             minRedeemAmount: 0,
+            minUserBalance: 0,
             authSignature: authSignature
         });
         address vault = factory.deployVault(params);
