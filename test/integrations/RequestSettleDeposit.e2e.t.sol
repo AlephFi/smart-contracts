@@ -21,8 +21,8 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
-import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
@@ -74,7 +74,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -91,13 +91,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: new uint256[](1),
@@ -136,7 +136,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -155,13 +155,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -200,7 +200,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -219,13 +219,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -264,7 +264,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -282,13 +282,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -322,7 +322,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -338,13 +338,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: new uint256[](1),
@@ -392,7 +392,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -410,13 +410,13 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 1, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 1, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -464,7 +464,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -488,13 +488,13 @@ contract RequestSettleDepositTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewHighWaterMarkSet(1, 0, _newPricePerShare, _settleBatchId);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -542,7 +542,7 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -560,15 +560,15 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.NewSeriesCreated(1, 1, _settleBatchId);
+        emit IAlephVaultSettlement.NewSeriesCreated(1, 1, _settleBatchId);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDepositBatch(_requestBatchId, 1, 1, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 1, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Settlement.SettleDeposit(
+        emit IAlephVaultSettlement.SettleDeposit(
             0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -616,11 +616,11 @@ contract RequestSettleDepositTest is BaseTest {
         // request deposit with users
         vm.prank(mockUser_1);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
         vm.prank(mockUser_2);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_2})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_2})
         );
         uint256 _totalDepositAmount_1 = 300 ether;
 
@@ -630,11 +630,11 @@ contract RequestSettleDepositTest is BaseTest {
         // request deposit with users
         vm.prank(mockUser_1);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_1})
         );
         vm.prank(mockUser_2);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_2})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_2})
         );
         uint256 _totalDepositAmount_2 = 500 ether;
 
@@ -656,7 +656,7 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -679,11 +679,11 @@ contract RequestSettleDepositTest is BaseTest {
         // request deposit with users
         vm.prank(mockUser_1);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_1})
         );
         vm.prank(mockUser_2);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_2})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_2})
         );
         uint256 _totalDepositAmount_3 = 500 ether;
 
@@ -706,7 +706,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
         vm.startPrank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets,
@@ -742,7 +742,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets_2);
         vm.startPrank(oracle);
         vault.settleDeposit(
-            IERC7540Settlement.SettlementParams({
+            IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _settleBatchId,
                 newTotalAssets: _newTotalAssets_2,

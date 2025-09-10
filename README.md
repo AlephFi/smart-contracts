@@ -42,13 +42,13 @@ The Vault contract implements the following interfaces:
 - View methods for Asset & Share information (totalAssets, sharesOf, assetsOf, pricePerShare), Roles & Config (custodian, oracle, guardian, etc.), highWaterMark, and other vault-level configurations.
 - AuthSigner support for KYC and Allocator whitelisting by Manager
 
-**IERC7540Deposit**
+**IAlephVaultDeposit**
 
 - Handles async deposit using `requestDeposit` and `settleDeposit`
 - Tracks per-user deposits per batch
 - Exposes pending and estimated shares
 
-**IERC7540Redeem**
+**IAlephVaultRedeem**
 
 - Handles async redeem using `requestRedeem` and `settleRedeem`
 - Tracks per-user redeem requests

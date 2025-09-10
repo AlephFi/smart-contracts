@@ -19,7 +19,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
@@ -31,7 +31,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
+contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using TimelockRegistry for bytes4;
@@ -49,27 +49,27 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         MAX_DEPOSIT_CAP_TIMELOCK = _maxDepositCapTimelock;
     }
 
-    /// @inheritdoc IERC7540Deposit
+    /// @inheritdoc IAlephVaultDeposit
     function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external {
         _queueMinDepositAmount(_getStorage(), _classId, _minDepositAmount);
     }
 
-    /// @inheritdoc IERC7540Deposit
+    /// @inheritdoc IAlephVaultDeposit
     function queueMaxDepositCap(uint8 _classId, uint256 _maxDepositCap) external {
         _queueMaxDepositCap(_getStorage(), _classId, _maxDepositCap);
     }
 
-    /// @inheritdoc IERC7540Deposit
+    /// @inheritdoc IAlephVaultDeposit
     function setMinDepositAmount(uint8 _classId) external {
         _setMinDepositAmount(_getStorage(), _classId);
     }
 
-    /// @inheritdoc IERC7540Deposit
+    /// @inheritdoc IAlephVaultDeposit
     function setMaxDepositCap(uint8 _classId) external {
         _setMaxDepositCap(_getStorage(), _classId);
     }
 
-    /// @inheritdoc IERC7540Deposit
+    /// @inheritdoc IAlephVaultDeposit
     function requestDeposit(RequestDepositParams calldata _requestDepositParams)
         external
         nonReentrant

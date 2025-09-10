@@ -16,9 +16,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
-import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
-import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 
@@ -29,9 +29,9 @@ import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
  */
 interface IAlephVaultFull is
     IAlephVault,
-    IERC7540Deposit,
-    IERC7540Redeem,
-    IERC7540Settlement,
+    IAlephVaultDeposit,
+    IAlephVaultRedeem,
+    IAlephVaultSettlement,
     IFeeManager,
     IAlephPausable
 {}

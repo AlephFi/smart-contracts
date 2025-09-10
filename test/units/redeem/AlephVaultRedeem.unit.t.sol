@@ -17,7 +17,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
-import {IERC7540Redeem} from "@aleph-vault/interfaces/IERC7540Redeem.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -50,7 +50,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
     function test_requestRedeem_revertsGivenAmountToRedeemIsZero() public {
         // request redeem
-        vm.expectRevert(IERC7540Redeem.InsufficientRedeem.selector);
+        vm.expectRevert(IAlephVaultRedeem.InsufficientRedeem.selector);
         vault.requestRedeem(1, 0);
     }
 
@@ -59,7 +59,7 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.setMinRedeemAmount(1, 100 ether);
 
         // request redeem
-        vm.expectRevert(abi.encodeWithSelector(IERC7540Redeem.RedeemLessThanMinRedeemAmount.selector, 100 ether));
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.RedeemLessThanMinRedeemAmount.selector, 100 ether));
         vault.requestRedeem(1, 50 ether);
     }
 
@@ -68,7 +68,7 @@ contract AlephVaultRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Redeem.InsufficientAssetsToRedeem.selector);
+        vm.expectRevert(IAlephVaultRedeem.InsufficientAssetsToRedeem.selector);
         vault.requestRedeem(1, 100 ether);
     }
 
@@ -84,7 +84,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
         // request redeem
         vm.prank(mockUser_1);
-        vm.expectRevert(abi.encodeWithSelector(IERC7540Redeem.RedeemFallBelowMinDepositAmount.selector, 200 ether));
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.RedeemFallBelowMinDepositAmount.selector, 200 ether));
         vault.requestRedeem(1, 100 ether);
     }
 
@@ -98,7 +98,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
         // request redeem
         vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Redeem.OnlyOneRequestPerBatchAllowedForRedeem.selector);
+        vm.expectRevert(IAlephVaultRedeem.OnlyOneRequestPerBatchAllowedForRedeem.selector);
         vault.requestRedeem(1, 50 ether);
     }
 
@@ -117,7 +117,7 @@ contract AlephVaultRedeemTest is BaseTest {
         // request redeem
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.RedeemRequest(mockUser_1, 1, 100 ether, _expectedBatchId);
+        emit IAlephVaultRedeem.RedeemRequest(mockUser_1, 1, 100 ether, _expectedBatchId);
         uint48 _batchId = vault.requestRedeem(1, 100 ether);
 
         // check the redeem request
@@ -142,12 +142,12 @@ contract AlephVaultRedeemTest is BaseTest {
         // request redeem
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.RedeemRequest(mockUser_1, 1, 100 ether, _expectedBatchId);
+        emit IAlephVaultRedeem.RedeemRequest(mockUser_1, 1, 100 ether, _expectedBatchId);
         uint48 _batchId_user1 = vault.requestRedeem(1, 100 ether);
 
         vm.prank(mockUser_2);
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Redeem.RedeemRequest(mockUser_2, 1, 150 ether, _expectedBatchId);
+        emit IAlephVaultRedeem.RedeemRequest(mockUser_2, 1, 150 ether, _expectedBatchId);
         uint48 _batchId_user2 = vault.requestRedeem(1, 150 ether);
 
         // check the redeem requests

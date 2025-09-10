@@ -19,7 +19,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IERC7540Settlement} from "@aleph-vault/interfaces/IERC7540Settlement.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
@@ -32,19 +32,19 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
+contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
-    /// @inheritdoc IERC7540Settlement
+    /// @inheritdoc IAlephVaultSettlement
     function settleDeposit(SettlementParams calldata _settlementParams) external nonReentrant {
         _settleDeposit(_getStorage(), _settlementParams);
     }
 
-    /// @inheritdoc IERC7540Settlement
+    /// @inheritdoc IAlephVaultSettlement
     function settleRedeem(SettlementParams calldata _settlementParams) external nonReentrant {
         _settleRedeem(_getStorage(), _settlementParams);
     }
@@ -167,7 +167,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestParams.user)) {
                 _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestParams.user);
             }
-            emit IERC7540Settlement.DepositRequestSettled(
+            emit IAlephVaultSettlement.DepositRequestSettled(
                 _depositRequestParams.user,
                 _settleDepositDetails.classId,
                 _settleDepositDetails.seriesId,
@@ -339,7 +339,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _shareSeries.totalAssets -= _amountInSeries;
             _shareSeries.totalShares -= _sharesInSeries;
             delete _shareSeries.sharesOf[_user];
-            emit IERC7540Settlement.RedeemRequestSliceSettled(
+            emit IAlephVaultSettlement.RedeemRequestSliceSettled(
                 _batchId, _user, _classId, _seriesId, _amountInSeries, _sharesInSeries
             );
         } else {
@@ -350,7 +350,7 @@ contract AlephVaultSettlement is IERC7540Settlement, AlephVaultBase {
             _shareSeries.totalAssets -= _remainingAmount;
             _shareSeries.totalShares -= _userSharesToBurn;
             _shareSeries.sharesOf[_user] -= _userSharesToBurn;
-            emit IERC7540Settlement.RedeemRequestSliceSettled(
+            emit IAlephVaultSettlement.RedeemRequestSliceSettled(
                 _batchId, _user, _classId, _seriesId, _remainingAmount, _userSharesToBurn
             );
             // set the remaining amount to 0 as the entire amount has been settled and we break out of the loop
