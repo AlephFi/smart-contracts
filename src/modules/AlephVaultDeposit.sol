@@ -34,6 +34,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
 contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using TimelockRegistry for bytes4;
 
     uint48 public immutable MIN_DEPOSIT_AMOUNT_TIMELOCK;
     uint48 public immutable MAX_DEPOSIT_CAP_TIMELOCK;
@@ -59,13 +60,13 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     }
 
     /// @inheritdoc IERC7540Deposit
-    function setMinDepositAmount() external {
-        _setMinDepositAmount(_getStorage());
+    function setMinDepositAmount(uint8 _classId) external {
+        _setMinDepositAmount(_getStorage(), _classId);
     }
 
     /// @inheritdoc IERC7540Deposit
-    function setMaxDepositCap() external {
-        _setMaxDepositCap(_getStorage());
+    function setMaxDepositCap(uint8 _classId) external {
+        _setMaxDepositCap(_getStorage(), _classId);
     }
 
     /// @inheritdoc IERC7540Deposit
@@ -86,9 +87,10 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     function _queueMinDepositAmount(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minDepositAmount)
         internal
     {
-        _sd.timelocks[TimelockRegistry.MIN_DEPOSIT_AMOUNT] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.MIN_DEPOSIT_AMOUNT.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + MIN_DEPOSIT_AMOUNT_TIMELOCK,
-            newValue: abi.encode(_classId, _minDepositAmount)
+            newValue: abi.encode(_minDepositAmount)
         });
         emit NewMinDepositAmountQueued(_classId, _minDepositAmount);
     }
@@ -100,9 +102,10 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
      * @param _maxDepositCap The new max deposit cap.
      */
     function _queueMaxDepositCap(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _maxDepositCap) internal {
-        _sd.timelocks[TimelockRegistry.MAX_DEPOSIT_CAP] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.MAX_DEPOSIT_CAP.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + MAX_DEPOSIT_CAP_TIMELOCK,
-            newValue: abi.encode(_classId, _maxDepositCap)
+            newValue: abi.encode(_maxDepositCap)
         });
         emit NewMaxDepositCapQueued(_classId, _maxDepositCap);
     }
@@ -110,10 +113,11 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     /**
      * @dev Internal function to set a new min deposit amount.
      * @param _sd The storage struct.
+     * @param _classId The id of the class.
      */
-    function _setMinDepositAmount(AlephVaultStorageData storage _sd) internal {
-        (uint8 _classId, uint256 _minDepositAmount) =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MIN_DEPOSIT_AMOUNT), (uint8, uint256));
+    function _setMinDepositAmount(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint256 _minDepositAmount =
+            abi.decode(TimelockRegistry.MIN_DEPOSIT_AMOUNT.setTimelock(_classId, _sd), (uint256));
         _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
         emit NewMinDepositAmountSet(_classId, _minDepositAmount);
     }
@@ -121,10 +125,10 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
     /**
      * @dev Internal function to set a new max deposit cap.
      * @param _sd The storage struct.
+     * @param _classId The id of the class.
      */
-    function _setMaxDepositCap(AlephVaultStorageData storage _sd) internal {
-        (uint8 _classId, uint256 _maxDepositCap) =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MAX_DEPOSIT_CAP), (uint8, uint256));
+    function _setMaxDepositCap(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint256 _maxDepositCap = abi.decode(TimelockRegistry.MAX_DEPOSIT_CAP.setTimelock(_classId, _sd), (uint256));
         _sd.shareClasses[_classId].maxDepositCap = _maxDepositCap;
         emit NewMaxDepositCapSet(_classId, _maxDepositCap);
     }

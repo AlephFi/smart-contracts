@@ -84,16 +84,16 @@ contract ExposedVault is AlephVault {
         _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _amount;
     }
 
-    function setNoticePeriod(uint48 _noticePeriod) external {
-        _getStorage().shareClasses[1].noticePeriod = _noticePeriod;
+    function setNoticePeriod(uint8 _classId, uint48 _noticePeriod) external {
+        _getStorage().shareClasses[_classId].noticePeriod = _noticePeriod;
     }
 
-    function setMinDepositAmount(uint256 _minDepositAmount) external {
-        _getStorage().shareClasses[1].minDepositAmount = _minDepositAmount;
+    function setMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external {
+        _getStorage().shareClasses[_classId].minDepositAmount = _minDepositAmount;
     }
 
-    function setMaxDepositCap(uint256 _maxDepositCap) external {
-        _getStorage().shareClasses[1].maxDepositCap = _maxDepositCap;
+    function setMaxDepositCap(uint8 _classId, uint256 _maxDepositCap) external {
+        _getStorage().shareClasses[_classId].maxDepositCap = _maxDepositCap;
     }
 
     function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {
@@ -112,12 +112,12 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[1].shareSeries[0].highWaterMark = _highWaterMark;
     }
 
-    function setManagementFee(uint32 _managementFee) external {
-        _getStorage().shareClasses[1].managementFee = _managementFee;
+    function setManagementFee(uint8 _classId, uint32 _managementFee) external {
+        _getStorage().shareClasses[_classId].managementFee = _managementFee;
     }
 
-    function setPerformanceFee(uint32 _performanceFee) external {
-        _getStorage().shareClasses[1].performanceFee = _performanceFee;
+    function setPerformanceFee(uint8 _classId, uint32 _performanceFee) external {
+        _getStorage().shareClasses[_classId].performanceFee = _performanceFee;
     }
 
     function accumulateFees(uint256, uint256, uint48, uint48, uint8, uint8) external returns (uint256) {

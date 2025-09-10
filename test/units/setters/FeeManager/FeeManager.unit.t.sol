@@ -60,11 +60,12 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queueManagementFee(1, 500);
 
         // check management fee is queued
-        bytes4 _key = TimelockRegistry.MANAGEMENT_FEE;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.MANAGEMENT_FEE, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.managementFeeTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
+        assertEq(_timelock.isQueued, true);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
-        assertEq(_timelock.newValue, abi.encode(1, 500));
+        assertEq(_timelock.newValue, abi.encode(500));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -81,7 +82,16 @@ contract FeeManager_Unit_Test is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
-        vault.setManagementFee();
+        vault.setManagementFee(1);
+    }
+
+    function test_setManagementFee_revertsWhenTimelockIsNotQueued() public {
+        // set management fee
+        vm.prank(manager);
+        vm.expectRevert(
+            abi.encodeWithSelector(TimelockRegistry.TimelockNotQueued.selector, TimelockRegistry.MANAGEMENT_FEE, 1)
+        );
+        vault.setManagementFee(1);
     }
 
     function test_setManagementFee_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
@@ -90,13 +100,17 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queueManagementFee(1, 500);
 
         // get management fee timelock params
-        bytes4 _key = TimelockRegistry.MANAGEMENT_FEE;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.MANAGEMENT_FEE, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.managementFeeTimelock();
 
         // set management fee
         vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
-        vault.setManagementFee();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TimelockRegistry.TimelockNotExpired.selector, TimelockRegistry.MANAGEMENT_FEE, 1, _unlockTimestamp
+            )
+        );
+        vault.setManagementFee(1);
     }
 
     function test_setManagementFee_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
@@ -114,7 +128,7 @@ contract FeeManager_Unit_Test is BaseTest {
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewManagementFeeSet(1, 500);
-        vault.setManagementFee();
+        vault.setManagementFee(1);
 
         // check management fee is set
         assertEq(vault.managementFee(1), 500);
@@ -145,7 +159,7 @@ contract FeeManager_Unit_Test is BaseTest {
     }
 
     function test_queuePerformanceFee_revertsWhenOldPerformanceFeeIsZero() public {
-        vault.setPerformanceFee(0);
+        vault.setPerformanceFee(1, 0);
 
         // queue performance fee
         vm.prank(manager);
@@ -168,11 +182,12 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queuePerformanceFee(1, 5000);
 
         // check performance fee is queued
-        bytes4 _key = TimelockRegistry.PERFORMANCE_FEE;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.PERFORMANCE_FEE, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.performanceFeeTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
+        assertEq(_timelock.isQueued, true);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
-        assertEq(_timelock.newValue, abi.encode(1, 5000));
+        assertEq(_timelock.newValue, abi.encode(5000));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -189,7 +204,16 @@ contract FeeManager_Unit_Test is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
-        vault.setPerformanceFee();
+        vault.setPerformanceFee(1);
+    }
+
+    function test_setPerformanceFee_revertsWhenTimelockIsNotQueued() public {
+        // set performance fee
+        vm.prank(manager);
+        vm.expectRevert(
+            abi.encodeWithSelector(TimelockRegistry.TimelockNotQueued.selector, TimelockRegistry.PERFORMANCE_FEE, 1)
+        );
+        vault.setPerformanceFee(1);
     }
 
     function test_setPerformanceFee_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
@@ -198,13 +222,17 @@ contract FeeManager_Unit_Test is BaseTest {
         vault.queuePerformanceFee(1, 5000);
 
         // get performance fee timelock params
-        bytes4 _key = TimelockRegistry.PERFORMANCE_FEE;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.PERFORMANCE_FEE, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.performanceFeeTimelock();
 
         // set performance fee
         vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
-        vault.setPerformanceFee();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TimelockRegistry.TimelockNotExpired.selector, TimelockRegistry.PERFORMANCE_FEE, 1, _unlockTimestamp
+            )
+        );
+        vault.setPerformanceFee(1);
     }
 
     function test_setPerformanceFee_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
@@ -222,106 +250,9 @@ contract FeeManager_Unit_Test is BaseTest {
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.NewPerformanceFeeSet(1, 5000);
-        vault.setPerformanceFee();
+        vault.setPerformanceFee(1);
 
         // check performance fee is set
         assertEq(vault.performanceFee(1), 5000);
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                        QUEUE FEE RECIPIENT TESTS
-    //////////////////////////////////////////////////////////////*/
-    function test_queueFeeRecipient_revertsWhenCallerIsNotOperationsMultisig() public {
-        address _feeRecipient = makeAddr("newFeeRecipient");
-
-        // Setup a non-authorized user
-        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
-
-        // queue fee recipient
-        vm.prank(nonAuthorizedUser);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
-            )
-        );
-        vault.queueFeeRecipient(_feeRecipient);
-    }
-
-    function test_queueFeeRecipient_whenCallerIsOperationsMultisig_shouldSucceed() public {
-        address _feeRecipient = makeAddr("newFeeRecipient");
-
-        // queue fee recipient
-        vm.prank(operationsMultisig);
-        vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewFeeRecipientQueued(_feeRecipient);
-        vault.queueFeeRecipient(_feeRecipient);
-
-        // check fee recipient is queued
-        bytes4 _key = TimelockRegistry.FEE_RECIPIENT;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.feeRecipientTimelock();
-        TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
-        assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
-        assertEq(_timelock.newValue, abi.encode(_feeRecipient));
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                        SET FEE RECIPIENT TESTS
-    //////////////////////////////////////////////////////////////*/
-    function test_setFeeRecipient_revertsWhenCallerIsNotOperationsMultisig() public {
-        // Setup a non-authorized user
-        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
-
-        // set fee recipient
-        vm.prank(nonAuthorizedUser);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                nonAuthorizedUser,
-                RolesLibrary.OPERATIONS_MULTISIG
-            )
-        );
-        vault.setFeeRecipient();
-    }
-
-    function test_setFeeRecipient_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
-        address _feeRecipient = makeAddr("newFeeRecipient");
-
-        // queue fee recipient
-        vm.prank(operationsMultisig);
-        vault.queueFeeRecipient(_feeRecipient);
-
-        // check fee recipient timelock params
-        bytes4 _key = TimelockRegistry.FEE_RECIPIENT;
-        uint48 _unlockTimestamp = Time.timestamp() + vault.feeRecipientTimelock();
-
-        // set fee recipient
-        vm.prank(operationsMultisig);
-        vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
-        vault.setFeeRecipient();
-    }
-
-    function test_setFeeRecipient_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
-        address _feeRecipient = makeAddr("newFeeRecipient");
-
-        // queue fee recipient
-        vm.prank(operationsMultisig);
-        vault.queueFeeRecipient(_feeRecipient);
-
-        // roll the block forward to make timelock expired
-        vm.warp(Time.timestamp() + vault.feeRecipientTimelock() + 1);
-
-        // check fee recipient is not set
-        assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);
-
-        // set fee recipient
-        vm.prank(operationsMultisig);
-        vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewFeeRecipientSet(_feeRecipient);
-        vault.setFeeRecipient();
-
-        // check fee recipient is set
-        assertEq(vault.feeRecipient(), _feeRecipient);
     }
 }

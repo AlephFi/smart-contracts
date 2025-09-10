@@ -30,6 +30,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
  */
 contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     using Math for uint256;
+    using TimelockRegistry for bytes4;
 
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
 
@@ -46,8 +47,8 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     }
 
     /// @inheritdoc IERC7540Redeem
-    function setNoticePeriod() external {
-        _setNoticePeriod(_getStorage());
+    function setNoticePeriod(uint8 _classId) external {
+        _setNoticePeriod(_getStorage(), _classId);
     }
 
     /// @inheritdoc IERC7540Redeem
@@ -62,9 +63,10 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
      * @param _noticePeriod The new notice period in batches
      */
     function _queueNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _noticePeriod) internal {
-        _sd.timelocks[TimelockRegistry.NOTICE_PERIOD] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.NOTICE_PERIOD.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + NOTICE_PERIOD_TIMELOCK,
-            newValue: abi.encode(_classId, _noticePeriod)
+            newValue: abi.encode(_noticePeriod)
         });
         emit NewNoticePeriodQueued(_classId, _noticePeriod);
     }
@@ -72,10 +74,10 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     /**
      * @dev Internal function to set the notice period.
      * @param _sd The storage struct.
+     * @param _classId The id of the class.
      */
-    function _setNoticePeriod(AlephVaultStorageData storage _sd) internal {
-        (uint8 _classId, uint48 _noticePeriod) =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.NOTICE_PERIOD), (uint8, uint48));
+    function _setNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint48 _noticePeriod = abi.decode(TimelockRegistry.NOTICE_PERIOD.setTimelock(_classId, _sd), (uint48));
         _sd.shareClasses[_classId].noticePeriod = _noticePeriod;
         emit NewNoticePeriodSet(_classId, _noticePeriod);
     }

@@ -312,8 +312,8 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // set fees
-        vault.setManagementFee(200); // 2%
-        vault.setPerformanceFee(2000); // 20%
+        vault.setManagementFee(1, 200); // 2%
+        vault.setPerformanceFee(1, 2000); // 20%
 
         // set up user 1 with 100 tokens
         uint256 _depositAmount = 100 ether;
@@ -376,8 +376,8 @@ contract RequestSettleDepositTest is BaseTest {
         vault.setLastFeePaidId(vault.currentBatch());
 
         // set fees
-        vault.setManagementFee(200); // 2%
-        vault.setPerformanceFee(2000); // 20%
+        vault.setManagementFee(1, 200); // 2%
+        vault.setPerformanceFee(1, 2000); // 20%
 
         // set total assets and total shares
         vault.setTotalAssets(0, 1000 ether);
@@ -448,8 +448,8 @@ contract RequestSettleDepositTest is BaseTest {
         vault.setLastFeePaidId(vault.currentBatch());
 
         // set fees
-        vault.setManagementFee(200); // 2%
-        vault.setPerformanceFee(2000); // 20%
+        vault.setManagementFee(1, 200); // 2%
+        vault.setPerformanceFee(1, 2000); // 20%
 
         // set total assets and total shares
         vault.setTotalAssets(0, 1000 ether);
@@ -526,8 +526,8 @@ contract RequestSettleDepositTest is BaseTest {
         vault.setLastFeePaidId(vault.currentBatch());
 
         // set fees
-        vault.setManagementFee(200); // 2%
-        vault.setPerformanceFee(2000); // 20%
+        vault.setManagementFee(1, 200); // 2%
+        vault.setPerformanceFee(1, 2000); // 20%
 
         // set total assets and total shares
         vault.setTotalAssets(0, 1000 ether);
@@ -599,8 +599,8 @@ contract RequestSettleDepositTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // set fees
-        vault.setManagementFee(200); // 2%
-        vault.setPerformanceFee(2000); // 20%
+        vault.setManagementFee(1, 200); // 2%
+        vault.setPerformanceFee(1, 2000); // 20%
 
         // set up users with tokens
         underlyingToken.mint(address(mockUser_1), 1000 ether);

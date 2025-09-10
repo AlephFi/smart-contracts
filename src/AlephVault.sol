@@ -512,41 +512,50 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Sets the minimum deposit amount to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the minimum deposit amount for.
      * @dev Only callable by the MANAGER role.
      */
-    function setMinDepositAmount() external onlyRole(RolesLibrary.MANAGER) {
+    function setMinDepositAmount(uint8 _classId)
+        external
+        onlyValidShareClass(_classId)
+        onlyRole(RolesLibrary.MANAGER)
+    {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
     /**
      * @notice Sets the maximum deposit cap to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the maximum deposit cap for.
      * @dev Only callable by the MANAGER role.
      */
-    function setMaxDepositCap() external onlyRole(RolesLibrary.MANAGER) {
+    function setMaxDepositCap(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
     /**
      * @notice Sets the notice period to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the notice period for.
      * @dev Only callable by the MANAGER role.
      */
-    function setNoticePeriod() external onlyRole(RolesLibrary.MANAGER) {
+    function setNoticePeriod(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
     /**
      * @notice Sets the management fee to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the management fee for.
      * @dev Only callable by the MANAGER role.
      */
-    function setManagementFee() external onlyRole(RolesLibrary.MANAGER) {
+    function setManagementFee(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
     /**
      * @notice Sets the performance fee to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the performance fee for.
      * @dev Only callable by the MANAGER role.
      */
-    function setPerformanceFee() external onlyRole(RolesLibrary.MANAGER) {
+    function setPerformanceFee(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 

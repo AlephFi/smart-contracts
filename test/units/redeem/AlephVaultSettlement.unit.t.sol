@@ -103,7 +103,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenNoticePeriodHasNotExpired() public {
         // set notice period
-        vault.setNoticePeriod(1);
+        vault.setNoticePeriod(1, 1);
 
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);

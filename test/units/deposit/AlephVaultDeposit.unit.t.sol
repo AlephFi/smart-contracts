@@ -70,7 +70,7 @@ contract AlephVaultDepositTest is BaseTest {
         public
     {
         // set min deposit amount to 100 ether
-        vault.setMinDepositAmount(100 ether);
+        vault.setMinDepositAmount(1, 100 ether);
 
         // request deposit
         vm.prank(mockUser_1);
@@ -84,7 +84,7 @@ contract AlephVaultDepositTest is BaseTest {
         public
     {
         // set max deposit cap to 100 ether
-        vault.setMaxDepositCap(100 ether);
+        vault.setMaxDepositCap(1, 100 ether);
 
         // set total assets to 100 ether
         vault.setTotalAssets(0, 100 ether);
@@ -100,7 +100,7 @@ contract AlephVaultDepositTest is BaseTest {
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap_multipleUsers(
     ) public {
         // set max deposit cap to 100 ether
-        vault.setMaxDepositCap(100 ether);
+        vault.setMaxDepositCap(1, 100 ether);
 
         // set total assets to 50 ether
         vault.setTotalAssets(0, 50 ether);

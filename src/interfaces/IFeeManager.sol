@@ -71,13 +71,15 @@ interface IFeeManager {
 
     /**
      * @notice Sets the management fee to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the management fee for.
      */
-    function setManagementFee() external;
+    function setManagementFee(uint8 _classId) external;
 
     /**
      * @notice Sets the performance fee to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the performance fee for.
      */
-    function setPerformanceFee() external;
+    function setPerformanceFee(uint8 _classId) external;
 
     /**
      * @notice Sets the fee recipient to the queued value after the timelock period.

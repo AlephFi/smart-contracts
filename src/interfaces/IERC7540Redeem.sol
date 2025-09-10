@@ -37,8 +37,9 @@ interface IERC7540Redeem {
 
     /**
      * @notice Sets the notice period in batches
+     * @param _classId The ID of the share class to set the notice period for.
      */
-    function setNoticePeriod() external;
+    function setNoticePeriod(uint8 _classId) external;
 
     /**
      * @notice Requests to redeem shares from the vault for the current batch.

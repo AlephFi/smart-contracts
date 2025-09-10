@@ -53,11 +53,12 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         vault.queueNoticePeriod(1, 100);
 
         // check notice period is queued
-        bytes4 _key = TimelockRegistry.NOTICE_PERIOD;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.NOTICE_PERIOD, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.noticePeriodTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
+        assertEq(_timelock.isQueued, true);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
-        assertEq(_timelock.newValue, abi.encode(1, 100));
+        assertEq(_timelock.newValue, abi.encode(100));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -74,7 +75,16 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
-        vault.setNoticePeriod();
+        vault.setNoticePeriod(1);
+    }
+
+    function test_setNoticePeriod_revertsWhenTimelockIsNotQueued() public {
+        // set notice period
+        vm.prank(manager);
+        vm.expectRevert(
+            abi.encodeWithSelector(TimelockRegistry.TimelockNotQueued.selector, TimelockRegistry.NOTICE_PERIOD, 1)
+        );
+        vault.setNoticePeriod(1);
     }
 
     function test_setNoticePeriod_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
@@ -83,13 +93,17 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         vault.queueNoticePeriod(1, 30);
 
         // get notice period timelock params
-        bytes4 _key = TimelockRegistry.NOTICE_PERIOD;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.NOTICE_PERIOD, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.noticePeriodTimelock();
 
         // set notice period
         vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
-        vault.setNoticePeriod();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TimelockRegistry.TimelockNotExpired.selector, TimelockRegistry.NOTICE_PERIOD, 1, _unlockTimestamp
+            )
+        );
+        vault.setNoticePeriod(1);
     }
 
     function test_setNoticePeriod_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
@@ -104,7 +118,7 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Redeem.NewNoticePeriodSet(1, 30);
-        vault.setNoticePeriod();
+        vault.setNoticePeriod(1);
 
         // check notice period is set
         assertEq(vault.noticePeriod(1), 30);

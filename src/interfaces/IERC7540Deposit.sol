@@ -56,13 +56,15 @@ interface IERC7540Deposit {
 
     /**
      * @notice Sets the minimum deposit amount.
+     * @param _classId The ID of the share class to set the minimum deposit amount for.
      */
-    function setMinDepositAmount() external;
+    function setMinDepositAmount(uint8 _classId) external;
 
     /**
      * @notice Sets the maximum deposit cap.
+     * @param _classId The ID of the share class to set the maximum deposit cap for.
      */
-    function setMaxDepositCap() external;
+    function setMaxDepositCap(uint8 _classId) external;
 
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.
