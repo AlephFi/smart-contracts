@@ -179,6 +179,15 @@ contract ExposedVault is AlephVault {
         return 0;
     }
 
+    function minUserBalanceTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
+            .delegatecall(abi.encodeWithSignature("MIN_USER_BALANCE_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
     function maxDepositCapTimelock() external returns (uint48) {
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
             .delegatecall(abi.encodeWithSignature("MAX_DEPOSIT_CAP_TIMELOCK()"));

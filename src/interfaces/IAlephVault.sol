@@ -308,6 +308,13 @@ interface IAlephVault {
     function minDepositAmount(uint8 _classId) external view returns (uint256);
 
     /**
+     * @notice Returns the minimum user balance.
+     * @param _classId The ID of the share class.
+     * @return The minimum user balance of the share class.
+     */
+    function minUserBalance(uint8 _classId) external view returns (uint256);
+
+    /**
      * @notice Returns the maximum deposit cap.
      * @param _classId The ID of the share class.
      * @return The maximum deposit cap of the share class.
