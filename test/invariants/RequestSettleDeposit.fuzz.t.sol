@@ -258,7 +258,11 @@ contract RequestSettleDepositTest is BaseTest {
             underlyingToken.approve(address(vault), _depositAmount);
             AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
             vault.requestDeposit(
-                IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: _authSignature})
+                IAlephVaultDeposit.RequestDepositParams({
+                    classId: 1,
+                    amount: _depositAmount,
+                    authSignature: _authSignature
+                })
             );
             vm.stopPrank();
         }
