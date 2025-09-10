@@ -71,7 +71,7 @@ contract FeeRecipientTest is BaseTest {
         feeRecipient.collectFees(address(vault));
     }
 
-    function test_collectFees_revertsWhenFeeRecipientHasInsufficientAllowance() public {
+    function test_collectFees_revertsWhenVaultDoesNotTransferCorrectFees() public {
         // Setup vault treasury
         address _vault = address(vault);
         mocks.mockIsValidVault(vaultFactory, _vault, true);
@@ -82,30 +82,7 @@ contract FeeRecipientTest is BaseTest {
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         mocks.mockCollectFees(_vault, 100 ether, 100 ether);
         vm.prank(manager);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IERC20Errors.ERC20InsufficientAllowance.selector, address(feeRecipient), 0, 200 ether
-            )
-        );
-        feeRecipient.collectFees(_vault);
-    }
-
-    function test_collectFees_revertsWhenVaultHasInsufficientBalance() public {
-        // Setup vault treasury
-        address _vault = address(vault);
-        mocks.mockIsValidVault(vaultFactory, _vault, true);
-        vm.prank(_vault);
-        feeRecipient.setVaultTreasury(vaultTreasury);
-
-        // approve fee recipient
-        vm.prank(_vault);
-        underlyingToken.approve(address(feeRecipient), 200 ether);
-
-        // collect fees
-        mocks.mockIsValidVault(vaultFactory, _vault, true);
-        mocks.mockCollectFees(_vault, 100 ether, 100 ether);
-        vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, _vault, 0, 200 ether));
+        vm.expectRevert(abi.encodeWithSelector(IFeeRecipient.FeesNotCollected.selector));
         feeRecipient.collectFees(_vault);
     }
 
@@ -120,7 +97,11 @@ contract FeeRecipientTest is BaseTest {
         vm.prank(_vault);
         underlyingToken.approve(address(feeRecipient), 200 ether);
 
-        // mint underlying token
+        // set up vault
+        vault.setTotalAssets(0, 200 ether);
+        vault.setTotalShares(0, 200 ether);
+        vault.setSharesOf(0, vault.managementFeeRecipient(), 100 ether);
+        vault.setSharesOf(0, vault.performanceFeeRecipient(), 100 ether);
         underlyingToken.mint(address(vault), 200 ether);
 
         // get treasury balances before
@@ -129,7 +110,6 @@ contract FeeRecipientTest is BaseTest {
 
         // collect fees
         mocks.mockIsValidVault(vaultFactory, _vault, true);
-        mocks.mockCollectFees(_vault, 100 ether, 100 ether);
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IFeeRecipient.FeesCollected(_vault, 100 ether, 100 ether, 125 ether, 75 ether);

@@ -333,9 +333,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
                 emit SeriesFeeCollected(_classId, _seriesId, _managementFeeAmount, _performanceFeeAmount);
             }
         }
-        IERC20(_sd.underlyingToken).safeIncreaseAllowance(
-            _sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect
-        );
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect);
         emit FeesCollected(_currentBatch(_sd), _managementFeesToCollect, _performanceFeesToCollect);
     }
 }

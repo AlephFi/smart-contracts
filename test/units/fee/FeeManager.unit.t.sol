@@ -184,7 +184,7 @@ contract FeeManagerTest is BaseTest {
 
         // set vault balance
         underlyingToken.mint(address(vault), _expectedTotalFeesToCollect);
-        uint256 _feeRecipientAllowanceBefore = underlyingToken.allowance(address(vault), vault.feeRecipient());
+        uint256 _feeRecipientBalanceBefore = underlyingToken.balanceOf(address(feeRecipient));
 
         // collect fees
         vm.prank(address(feeRecipient));
@@ -205,8 +205,7 @@ contract FeeManagerTest is BaseTest {
 
         // check fee is collected
         assertEq(
-            underlyingToken.allowance(address(vault), vault.feeRecipient()),
-            _feeRecipientAllowanceBefore + _expectedTotalFeesToCollect
+            underlyingToken.balanceOf(address(feeRecipient)), _feeRecipientBalanceBefore + _expectedTotalFeesToCollect
         );
     }
 }

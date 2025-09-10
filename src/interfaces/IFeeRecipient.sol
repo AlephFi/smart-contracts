@@ -39,6 +39,7 @@ interface IFeeRecipient {
     error InvalidManager();
     error InvalidVaultTreasury();
     error VaultTreasuryNotSet();
+    error FeesNotCollected();
 
     struct InitializationParams {
         address operationsMultisig;
