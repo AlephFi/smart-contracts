@@ -37,8 +37,8 @@ contract RequestSettleDepositTest is BaseTest {
         super.setUp();
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
-        vault.setMinDepositAmount(0);
-        vault.setMaxDepositCap(0);
+        vault.setMinDepositAmount(1, 0);
+        vault.setMaxDepositCap(1, 0);
     }
 
     /// total shares will only increase if management fee is set and/or performance fee is set and new highwater mark is reached

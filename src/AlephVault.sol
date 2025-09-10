@@ -596,67 +596,60 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /**
-     * @notice Queues a new fee recipient to be set after the timelock period.
-     * @param _feeRecipient The new fee recipient to be set.
-     * @dev Only callable by the OPERATIONS_MULTISIG role.
-     */
-    function queueFeeRecipient(address _feeRecipient) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        _delegate(ModulesLibrary.FEE_MANAGER);
-    }
-
-    /**
      * @notice Sets the minimum deposit amount to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the minimum deposit amount for.
      * @dev Only callable by the MANAGER role.
      */
-    function setMinDepositAmount() external onlyRole(RolesLibrary.MANAGER) {
+    function setMinDepositAmount(uint8 _classId)
+        external
+        onlyValidShareClass(_classId)
+        onlyRole(RolesLibrary.MANAGER)
+    {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
     /**
      * @notice Sets the maximum deposit cap to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the maximum deposit cap for.
      * @dev Only callable by the MANAGER role.
      */
-    function setMaxDepositCap() external onlyRole(RolesLibrary.MANAGER) {
+    function setMaxDepositCap(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
     /**
      * @notice Sets the notice period to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the notice period for.
      * @dev Only callable by the MANAGER role.
      */
-    function setNoticePeriod() external onlyRole(RolesLibrary.MANAGER) {
+    function setNoticePeriod(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
     /**
      * @notice Sets the minimum redeem amount to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the minimum redeem amount for.
      * @dev Only callable by the MANAGER role.
      */
-    function setMinRedeemAmount() external onlyRole(RolesLibrary.MANAGER) {
+    function setMinRedeemAmount(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
     /**
      * @notice Sets the management fee to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the management fee for.
      * @dev Only callable by the MANAGER role.
      */
-    function setManagementFee() external onlyRole(RolesLibrary.MANAGER) {
+    function setManagementFee(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
     /**
      * @notice Sets the performance fee to the queued value after the timelock period.
+     * @param _classId The ID of the share class to set the performance fee for.
      * @dev Only callable by the MANAGER role.
      */
-    function setPerformanceFee() external onlyRole(RolesLibrary.MANAGER) {
-        _delegate(ModulesLibrary.FEE_MANAGER);
-    }
-
-    /**
-     * @notice Sets the fee recipient to the queued value after the timelock period.
-     * @dev Only callable by the OPERATIONS_MULTISIG role.
-     */
-    function setFeeRecipient() external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+    function setPerformanceFee(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 

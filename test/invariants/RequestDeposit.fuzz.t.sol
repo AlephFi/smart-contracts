@@ -33,8 +33,8 @@ contract RequestDepositTest is BaseTest {
         super.setUp();
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
-        vault.setMinDepositAmount(0);
-        vault.setMaxDepositCap(0);
+        vault.setMinDepositAmount(1, 0);
+        vault.setMaxDepositCap(1, 0);
     }
 
     function test_requestDeposit_totalAmountToDepositMustAlwaysIncrease(address _user, uint256 _depositAmount) public {

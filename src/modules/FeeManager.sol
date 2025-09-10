@@ -33,6 +33,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 contract FeeManager is IFeeManager, AlephVaultBase {
     using SafeERC20 for IERC20;
     using Math for uint256;
+    using TimelockRegistry for bytes4;
 
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
@@ -66,13 +67,13 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     }
 
     /// @inheritdoc IFeeManager
-    function setManagementFee() external {
-        _setManagementFee(_getStorage());
+    function setManagementFee(uint8 _classId) external {
+        _setManagementFee(_getStorage(), _classId);
     }
 
     /// @inheritdoc IFeeManager
-    function setPerformanceFee() external {
-        _setPerformanceFee(_getStorage());
+    function setPerformanceFee(uint8 _classId) external {
+        _setPerformanceFee(_getStorage(), _classId);
     }
 
     ///@inheritdoc IFeeManager
@@ -142,9 +143,10 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         if (_managementFee > MAXIMUM_MANAGEMENT_FEE) {
             revert InvalidManagementFee();
         }
-        _sd.timelocks[TimelockRegistry.MANAGEMENT_FEE] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.MANAGEMENT_FEE.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + MANAGEMENT_FEE_TIMELOCK,
-            newValue: abi.encode(_classId, _managementFee)
+            newValue: abi.encode(_managementFee)
         });
         emit NewManagementFeeQueued(_classId, _managementFee);
     }
@@ -162,9 +164,10 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         if (_oldPerformanceFee == 0 || _performanceFee == 0) {
             revert InvalidShareClassConversion();
         }
-        _sd.timelocks[TimelockRegistry.PERFORMANCE_FEE] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.PERFORMANCE_FEE.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + PERFORMANCE_FEE_TIMELOCK,
-            newValue: abi.encode(_classId, _performanceFee)
+            newValue: abi.encode(_performanceFee)
         });
         emit NewPerformanceFeeQueued(_classId, _performanceFee);
     }
@@ -172,10 +175,10 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     /**
      * @dev Internal function to set the management fee.
      * @param _sd The storage struct.
+     * @param _classId The id of the class.
      */
-    function _setManagementFee(AlephVaultStorageData storage _sd) internal {
-        (uint8 _classId, uint32 _managementFee) =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MANAGEMENT_FEE), (uint8, uint32));
+    function _setManagementFee(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint32 _managementFee = abi.decode(TimelockRegistry.MANAGEMENT_FEE.setTimelock(_classId, _sd), (uint32));
         _sd.shareClasses[_classId].managementFee = _managementFee;
         emit NewManagementFeeSet(_classId, _managementFee);
     }
@@ -183,10 +186,10 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     /**
      * @dev Internal function to set the performance fee.
      * @param _sd The storage struct.
+     * @param _classId The id of the class.
      */
-    function _setPerformanceFee(AlephVaultStorageData storage _sd) internal {
-        (uint8 _classId, uint32 _performanceFee) =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.PERFORMANCE_FEE), (uint8, uint32));
+    function _setPerformanceFee(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint32 _performanceFee = abi.decode(TimelockRegistry.PERFORMANCE_FEE.setTimelock(_classId, _sd), (uint32));
         _sd.shareClasses[_classId].performanceFee = _performanceFee;
         emit NewPerformanceFeeSet(_classId, _performanceFee);
     }

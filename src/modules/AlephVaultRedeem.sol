@@ -30,6 +30,7 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
  */
 contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     using Math for uint256;
+    using TimelockRegistry for bytes4;
 
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
     uint48 public immutable MIN_REDEEM_AMOUNT_TIMELOCK;
@@ -55,13 +56,13 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     }
 
     /// @inheritdoc IERC7540Redeem
-    function setNoticePeriod() external {
-        _setNoticePeriod(_getStorage());
+    function setNoticePeriod(uint8 _classId) external {
+        _setNoticePeriod(_getStorage(), _classId);
     }
 
     /// @inheritdoc IERC7540Redeem
-    function setMinRedeemAmount() external {
-        _setMinRedeemAmount(_getStorage());
+    function setMinRedeemAmount(uint8 _classId) external {
+        _setMinRedeemAmount(_getStorage(), _classId);
     }
 
     /// @inheritdoc IERC7540Redeem
@@ -76,9 +77,10 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
      * @param _noticePeriod The new notice period in batches
      */
     function _queueNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _noticePeriod) internal {
-        _sd.timelocks[TimelockRegistry.NOTICE_PERIOD] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.NOTICE_PERIOD.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + NOTICE_PERIOD_TIMELOCK,
-            newValue: abi.encode(_classId, _noticePeriod)
+            newValue: abi.encode(_noticePeriod)
         });
         emit NewNoticePeriodQueued(_classId, _noticePeriod);
     }
@@ -92,33 +94,33 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
     function _queueMinRedeemAmount(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minRedeemAmount)
         internal
     {
-        _sd.timelocks[TimelockRegistry.MIN_REDEEM_AMOUNT] = TimelockRegistry.Timelock({
+        _sd.timelocks[TimelockRegistry.MIN_REDEEM_AMOUNT.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + MIN_REDEEM_AMOUNT_TIMELOCK,
-            newValue: abi.encode(_classId, _minRedeemAmount)
+            newValue: abi.encode(_minRedeemAmount)
         });
         emit NewMinRedeemAmountQueued(_classId, _minRedeemAmount);
+    }
+
+    /**
+     * @dev Internal function to set the notice period.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     */
+    function _setNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint48 _noticePeriod = abi.decode(TimelockRegistry.NOTICE_PERIOD.setTimelock(_classId, _sd), (uint48));
+        _sd.shareClasses[_classId].noticePeriod = _noticePeriod;
+        emit NewNoticePeriodSet(_classId, _noticePeriod);
     }
 
     /**
      * @dev Internal function to set a new minimum redeem amount.
      * @param _sd The storage struct.
      */
-    function _setMinRedeemAmount(AlephVaultStorageData storage _sd) internal {
-        (uint8 _classId, uint256 _minRedeemAmount) =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.MIN_REDEEM_AMOUNT), (uint8, uint256));
+    function _setMinRedeemAmount(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint256 _minRedeemAmount = abi.decode(TimelockRegistry.MIN_REDEEM_AMOUNT.setTimelock(_classId, _sd), (uint256));
         _sd.shareClasses[_classId].minRedeemAmount = _minRedeemAmount;
         emit NewMinRedeemAmountSet(_classId, _minRedeemAmount);
-    }
-
-    /**
-     * @dev Internal function to set the notice period.
-     * @param _sd The storage struct.
-     */
-    function _setNoticePeriod(AlephVaultStorageData storage _sd) internal {
-        (uint8 _classId, uint48 _noticePeriod) =
-            abi.decode(TimelockRegistry.setTimelock(_sd, TimelockRegistry.NOTICE_PERIOD), (uint8, uint48));
-        _sd.shareClasses[_classId].noticePeriod = _noticePeriod;
-        emit NewNoticePeriodSet(_classId, _noticePeriod);
     }
 
     /**
