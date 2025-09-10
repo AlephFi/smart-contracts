@@ -72,9 +72,9 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(1, 100 ether);
     }
 
-    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenAmountToRedeemIsLessThanMinDepositAmount() public {
-        // set min deposit amount to 100 ether
-        vault.setMinDepositAmount(1, 200 ether);
+    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenAmountToRedeemIsLessThanMinUserBalance() public {
+        // set min deposit amount to 200 ether
+        vault.setMinUserBalance(1, 200 ether);
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -93,13 +93,13 @@ contract AlephVaultRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // set redeem request to current batch id
-        vault.setSharesOf(0, mockUser_1, 100 ether);
-        vault.setBatchRedeem(vault.currentBatch(), mockUser_1, vault.PRICE_DENOMINATOR() / 2);
+        vault.setSharesOf(0, mockUser_1, 200 ether);
+        vault.setBatchRedeem(vault.currentBatch(), mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
 
         // request redeem
         vm.prank(mockUser_1);
         vm.expectRevert(IAlephVaultRedeem.OnlyOneRequestPerBatchAllowedForRedeem.selector);
-        vault.requestRedeem(1, 50 ether);
+        vault.requestRedeem(1, 100 ether);
     }
 
     function test_requestRedeem_whenFlowIsUnpaused_whenUserHasSufficientSharesToRedeem_shouldSucceed_singleUser()

@@ -47,8 +47,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _depositAmount,
         uint256 _newTotalAssets
     ) public {
-        // deposit amount value needs to be large enough for management shares to mint
-        vm.assume(_depositAmount > 1e18);
+        // deposit amount less than 100 ether will revert with DepositLessThanMinUserBalance
+        vm.assume(_depositAmount > 100 ether);
         // token amount to not exceed 2^96 to avoid overflow from multiplication of same data type
         vm.assume(_depositAmount < type(uint96).max);
         // new total assets must be greater than 0 (we'll manually settle first batch)
@@ -122,8 +122,8 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _depositAmount,
         uint256 _newTotalAssets
     ) public {
-        // deposit amount value needs to be large enough for management shares to mint
-        vm.assume(_depositAmount > 1e18);
+        // deposit amount less than 100 ether will revert with DepositLessThanMinUserBalance
+        vm.assume(_depositAmount > 100 ether);
         // token amount to not exceed 2^96 to avoid overflow from multiplication of same data type
         vm.assume(_depositAmount < type(uint96).max);
         // new total assets must be greater than 0 (we'll manually settle first batch)
@@ -216,7 +216,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // set up first settle cycle
         address _firstUser = makeAddr("user");
-        uint256 _firstDepositAmount = uint256(keccak256(abi.encode(_depositSeed, 0))) % type(uint96).max;
+        uint256 _firstDepositAmount = uint256(keccak256(abi.encode(_depositSeed, 0))) % type(uint96).max + 100 ether;
 
         vm.startPrank(_firstUser);
         underlyingToken.mint(_firstUser, _firstDepositAmount);
@@ -251,7 +251,7 @@ contract RequestSettleDepositTest is BaseTest {
         // set up second settle cycle
         for (uint8 i = 0; i < _iterations; i++) {
             address _user = makeAddr(string.concat("user", vm.toString(i)));
-            uint256 _depositAmount = uint256(keccak256(abi.encode(_depositSeed, i))) % type(uint96).max;
+            uint256 _depositAmount = uint256(keccak256(abi.encode(_depositSeed, i))) % type(uint96).max + 100 ether;
 
             vm.startPrank(_user);
             underlyingToken.mint(_user, _depositAmount);
@@ -314,7 +314,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // set up first settle cycle
         address _firstUser = makeAddr("user");
-        uint256 _firstDepositAmount = uint256(keccak256(abi.encode(_depositSeed, 0))) % type(uint96).max;
+        uint256 _firstDepositAmount = uint256(keccak256(abi.encode(_depositSeed, 0))) % type(uint96).max + 100 ether;
 
         vm.startPrank(_firstUser);
         underlyingToken.mint(_firstUser, _firstDepositAmount);
@@ -354,7 +354,8 @@ contract RequestSettleDepositTest is BaseTest {
                 if (_withNewDeposit) {
                     // set up new deposit
                     address _user = makeAddr(string.concat("user", vm.toString(j), "_", vm.toString(i)));
-                    uint256 _depositAmount = uint256(keccak256(abi.encode(_depositSeed, i, j))) % type(uint96).max;
+                    uint256 _depositAmount =
+                        uint256(keccak256(abi.encode(_depositSeed, i, j))) % type(uint96).max + 100 ether;
                     _totalDeposits += _depositAmount;
 
                     vm.startPrank(_user);

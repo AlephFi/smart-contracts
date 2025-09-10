@@ -83,39 +83,39 @@ contract AlephVaultDepositTest is BaseTest {
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap()
         public
     {
-        // set max deposit cap to 100 ether
-        vault.setMaxDepositCap(1, 100 ether);
+        // set max deposit cap to 200 ether
+        vault.setMaxDepositCap(1, 200 ether);
 
-        // set total assets to 100 ether
-        vault.setTotalAssets(0, 100 ether);
+        // set total assets to 200 ether
+        vault.setTotalAssets(0, 200 ether);
 
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector);
         vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap_multipleUsers(
     ) public {
-        // set max deposit cap to 100 ether
-        vault.setMaxDepositCap(1, 100 ether);
+        // set max deposit cap to 300 ether
+        vault.setMaxDepositCap(1, 300 ether);
 
-        // set total assets to 50 ether
-        vault.setTotalAssets(0, 50 ether);
+        // set total assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
 
         // set request deposit
         vm.warp(block.timestamp + 1 days + 1);
-        vault.setBatchDeposit(vault.currentBatch(), mockUser_1, 30 ether);
+        vault.setBatchDeposit(vault.currentBatch(), mockUser_1, 100 ether);
         vm.warp(block.timestamp + 1 days);
-        vault.setBatchDeposit(vault.currentBatch(), mockUser_2, 20 ether);
+        vault.setBatchDeposit(vault.currentBatch(), mockUser_2, 100 ether);
 
         // request deposit
         vm.prank(mockUser_1);
         vm.expectRevert(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector);
         vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 10 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 

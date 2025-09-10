@@ -88,6 +88,10 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].minDepositAmount = _minDepositAmount;
     }
 
+    function setMinUserBalance(uint8 _classId, uint256 _minUserBalance) external {
+        _getStorage().shareClasses[_classId].minUserBalance = _minUserBalance;
+    }
+
     function setMaxDepositCap(uint8 _classId, uint256 _maxDepositCap) external {
         _getStorage().shareClasses[_classId].maxDepositCap = _maxDepositCap;
     }
