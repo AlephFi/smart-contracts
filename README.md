@@ -22,7 +22,7 @@ At the core of the system are Aleph Vaults which are ERC-7540 compliant smart co
 ## Smart Contracts
 ## Vault Factory Contract
 
-The [AlephVaultFactory](https://github.com/Othentic-Labs/Aleph/blob/main/src/AlephVaultFactory.sol) is responsible for deploying Aleph vaults. 
+The [AlephVaultFactory](https://github.com/Othentic-Labs/Aleph/blob/main/src/factory/AlephVaultFactory.sol) is responsible for deploying Aleph vaults. 
 
 **Key features:**
 - Deploy vaults with deterministic addresses (CREATE2)
