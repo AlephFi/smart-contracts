@@ -163,7 +163,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initializationParams.userInitializationParams.noticePeriod,
             _initializationParams.userInitializationParams.minDepositAmount,
             _initializationParams.userInitializationParams.maxDepositCap,
-            _initializationParams.userInitializationParams.minRedeemAmount
+            _initializationParams.userInitializationParams.minRedeemAmount,
+            _initializationParams.userInitializationParams.minUserBalance
         );
     }
 
@@ -495,7 +496,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint48 _noticePeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap,
-        uint256 _minRedeemAmount
+        uint256 _minRedeemAmount,
+        uint256 _minUserBalance
     ) external onlyRole(RolesLibrary.MANAGER) returns (uint8 _classId) {
         if (_managementFee > MAXIMUM_MANAGEMENT_FEE || _performanceFee > MAXIMUM_PERFORMANCE_FEE) {
             revert InvalidVaultFee();
@@ -507,7 +509,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _noticePeriod,
             _minDepositAmount,
             _maxDepositCap,
-            _minRedeemAmount
+            _minRedeemAmount,
+            _minUserBalance
         );
     }
 
@@ -797,7 +800,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint48 _noticePeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap,
-        uint256 _minRedeemAmount
+        uint256 _minRedeemAmount,
+        uint256 _minUserBalance
     ) internal returns (uint8 _classId) {
         // increment share classes id
         _classId = ++_sd.shareClassesId;
@@ -809,6 +813,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _shareClass.minDepositAmount = _minDepositAmount;
         _shareClass.maxDepositCap = _maxDepositCap;
         _shareClass.minRedeemAmount = _minRedeemAmount;
+        _shareClass.minUserBalance = _minUserBalance;
         // set up lead series for new share class
         _shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
         emit ShareClassCreated(
@@ -818,7 +823,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _noticePeriod,
             _minDepositAmount,
             _maxDepositCap,
-            _minRedeemAmount
+            _minRedeemAmount,
+            _minUserBalance
         );
         return _classId;
     }

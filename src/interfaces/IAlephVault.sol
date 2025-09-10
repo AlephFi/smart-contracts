@@ -39,7 +39,8 @@ interface IAlephVault {
         uint48 noticePeriod,
         uint256 minDepositAmount,
         uint256 maxDepositCap,
-        uint256 minRedeemAmount
+        uint256 minRedeemAmount,
+        uint256 minUserBalance
     );
 
     struct InitializationParams {
@@ -65,6 +66,7 @@ interface IAlephVault {
         uint256 minDepositAmount;
         uint256 maxDepositCap;
         uint256 minRedeemAmount;
+        uint256 minUserBalance;
         AuthLibrary.AuthSignature authSignature;
     }
 
@@ -88,6 +90,7 @@ interface IAlephVault {
         uint256 minDepositAmount;
         uint256 maxDepositCap;
         uint256 minRedeemAmount;
+        uint256 minUserBalance;
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
@@ -438,7 +441,8 @@ interface IAlephVault {
         uint48 _noticePeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap,
-        uint256 _minRedeemAmount
+        uint256 _minRedeemAmount,
+        uint256 _minUserBalance
     ) external returns (uint8 _classId);
 
     /**

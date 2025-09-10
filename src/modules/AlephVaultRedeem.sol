@@ -152,10 +152,10 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         if (_pendingUserAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
-        uint256 _minDepositAmount = _shareClass.minDepositAmount;
+        uint256 _minUserBalance = _shareClass.minUserBalance;
         uint256 _remainingAmount = _totalUserAssets - (_estAmount + _pendingUserAssets);
-        if (_minDepositAmount > 0 && _remainingAmount > 0 && _remainingAmount < _minDepositAmount) {
-            revert RedeemFallBelowMinDepositAmount(_minDepositAmount);
+        if (_minUserBalance > 0 && _remainingAmount > 0 && _remainingAmount < _minUserBalance) {
+            revert RedeemFallBelowMinUserBalance(_minUserBalance);
         }
 
         // Calculate redeemable share units as a proportion of user's available assets

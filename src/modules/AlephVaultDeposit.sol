@@ -152,6 +152,14 @@ contract AlephVaultDeposit is IERC7540Deposit, AlephVaultBase {
         if (_minDepositAmount > 0 && _requestDepositParams.amount < _minDepositAmount) {
             revert DepositLessThanMinDepositAmount();
         }
+        uint256 _minUserBalance = _shareClass.minUserBalance;
+        if (
+            _minUserBalance > 0
+                && _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass) + _requestDepositParams.amount
+                    < _minUserBalance
+        ) {
+            revert DepositLessThanMinUserBalance();
+        }
         uint256 _maxDepositCap = _shareClass.maxDepositCap;
         if (
             _maxDepositCap > 0
