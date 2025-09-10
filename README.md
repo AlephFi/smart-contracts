@@ -56,7 +56,7 @@ The Vault contract implements the following interfaces:
 An Oracle contract calls settleDeposit or settleRedeem to settle pending deposits and withdrawals.
 
 ## Fee Manager Contract
-The [FeeManager](https://github.com/Othentic-Labs/Aleph/blob/main/src/FeeManager.sol) module calculates and handles Platform fees using:
+The [FeeManager](https://github.com/Othentic-Labs/Aleph/blob/main/src/modules/FeeManager.sol) module calculates and handles Platform fees using:
 
 - Continuous management fee accumulation for each batch settlement
 - Aleph Fee shares are minted to MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT address
