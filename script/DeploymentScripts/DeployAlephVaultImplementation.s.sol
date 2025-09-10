@@ -33,6 +33,19 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
 // Use to Deploy only an AlephVault implementation.
 // forge script DeployAlephVaultImplementation --broadcast -vvvv --verify
 contract DeployAlephVaultImplementation is BaseScript {
+    struct ConfigParams {
+        uint48 minDepositAmountTimelock;
+        uint48 minUserBalanceTimelock;
+        uint48 maxDepositCapTimelock;
+        uint48 noticePeriodTimelock;
+        uint48 lockInPeriodTimelock;
+        uint48 minRedeemAmountTimelock;
+        uint48 managementFeeTimelock;
+        uint48 performanceFeeTimelock;
+        uint48 feeRecipientTimelock;
+        uint48 batchDuration;
+    }
+
     function setUp() public {}
 
     function run() public {
@@ -43,79 +56,53 @@ contract DeployAlephVaultImplementation is BaseScript {
         string memory _environment = _getEnvironment();
 
         string memory _config = _getConfigFile();
-        uint48 _minDepositAmountTimelock = uint48(
-            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minDepositAmountTimelock"))
-        );
-        uint48 _minUserBalanceTimelock = uint48(
-            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minUserBalanceTimelock"))
-        );
-        uint48 _maxDepositCapTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".maxDepositCapTimelock")));
-        uint48 _noticePeriodTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".noticePeriodTimelock")));
-        uint48 _minRedeemAmountTimelock = uint48(
-            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minRedeemAmountTimelock"))
-        );
-        uint48 _managementFeeTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".managementFeeTimelock")));
-        uint48 _performanceFeeTimelock = uint48(
-            vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".performanceFeeTimelock"))
-        );
-        uint48 _feeRecipientTimelock =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".feeRecipientTimelock")));
-        uint48 _batchDuration =
-            uint48(vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".batchDuration")));
+        ConfigParams memory _configParams = _getConfigParams(_config, _chainId, _environment);
 
         console.log("chainId", _chainId);
         console.log("environment", _environment);
-        console.log("minDepositAmountTimelock", _minDepositAmountTimelock);
-        console.log("minUserBalanceTimelock", _minUserBalanceTimelock);
-        console.log("maxDepositCapTimelock", _maxDepositCapTimelock);
-        console.log("noticePeriodTimelock", _noticePeriodTimelock);
-        console.log("minRedeemAmountTimelock", _minRedeemAmountTimelock);
-        console.log("managementFeeTimelock", _managementFeeTimelock);
-        console.log("performanceFeeTimelock", _performanceFeeTimelock);
-        console.log("feeRecipientTimelock", _feeRecipientTimelock);
-        console.log("batchDuration", _batchDuration);
+        console.log("minDepositAmountTimelock", _configParams.minDepositAmountTimelock);
+        console.log("minUserBalanceTimelock", _configParams.minUserBalanceTimelock);
+        console.log("maxDepositCapTimelock", _configParams.maxDepositCapTimelock);
+        console.log("noticePeriodTimelock", _configParams.noticePeriodTimelock);
+        console.log("lockInPeriodTimelock", _configParams.lockInPeriodTimelock);
+        console.log("minRedeemAmountTimelock", _configParams.minRedeemAmountTimelock);
+        console.log("managementFeeTimelock", _configParams.managementFeeTimelock);
+        console.log("performanceFeeTimelock", _configParams.performanceFeeTimelock);
+        console.log("feeRecipientTimelock", _configParams.feeRecipientTimelock);
+        console.log("batchDuration", _configParams.batchDuration);
 
-        IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses = _deployModules(
-            _minDepositAmountTimelock,
-            _minUserBalanceTimelock,
-            _maxDepositCapTimelock,
-            _noticePeriodTimelock,
-            _minRedeemAmountTimelock,
-            _managementFeeTimelock,
-            _performanceFeeTimelock,
-            _feeRecipientTimelock,
-            _batchDuration
-        );
-        AlephVault _vault = new AlephVault(_batchDuration);
+        IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses = _deployModules(_configParams);
+        AlephVault _vault = new AlephVault(_configParams.batchDuration);
         console.log("Vault implementation deployed at:", address(_vault));
 
         _writeConfig(_chainId, _environment, address(_vault), _moduleImplementationAddresses);
         vm.stopBroadcast();
     }
 
-    function _deployModules(
-        uint48 _minDepositAmountTimelock,
-        uint48 _minUserBalanceTimelock,
-        uint48 _maxDepositCapTimelock,
-        uint48 _noticePeriodTimelock,
-        uint48 _minRedeemAmountTimelock,
-        uint48 _managementFeeTimelock,
-        uint48 _performanceFeeTimelock,
-        uint48 _feeRecipientTimelock,
-        uint48 _batchDuration
-    ) internal returns (IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses) {
+    function _deployModules(ConfigParams memory _configParams)
+        internal
+        returns (IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses)
+    {
         AlephVaultDeposit _alephVaultDeposit = new AlephVaultDeposit(
-            _minDepositAmountTimelock, _minUserBalanceTimelock, _maxDepositCapTimelock, _batchDuration
+            _configParams.minDepositAmountTimelock,
+            _configParams.minUserBalanceTimelock,
+            _configParams.maxDepositCapTimelock,
+            _configParams.batchDuration
         );
-        AlephVaultRedeem _alephVaultRedeem =
-            new AlephVaultRedeem(_noticePeriodTimelock, _minRedeemAmountTimelock, _batchDuration);
-        AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(_batchDuration);
-        FeeManager _feeManager =
-            new FeeManager(_managementFeeTimelock, _performanceFeeTimelock, _feeRecipientTimelock, _batchDuration);
-        MigrationManager _migrationManager = new MigrationManager(_batchDuration);
+        AlephVaultRedeem _alephVaultRedeem = new AlephVaultRedeem(
+            _configParams.noticePeriodTimelock,
+            _configParams.lockInPeriodTimelock,
+            _configParams.minRedeemAmountTimelock,
+            _configParams.batchDuration
+        );
+        AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(_configParams.batchDuration);
+        FeeManager _feeManager = new FeeManager(
+            _configParams.managementFeeTimelock,
+            _configParams.performanceFeeTimelock,
+            _configParams.feeRecipientTimelock,
+            _configParams.batchDuration
+        );
+        MigrationManager _migrationManager = new MigrationManager(_configParams.batchDuration);
 
         _moduleImplementationAddresses = IAlephVault.ModuleInitializationParams({
             alephVaultDepositImplementation: address(_alephVaultDeposit),
@@ -123,6 +110,45 @@ contract DeployAlephVaultImplementation is BaseScript {
             alephVaultSettlementImplementation: address(_alephVaultSettlement),
             feeManagerImplementation: address(_feeManager),
             migrationManagerImplementation: address(_migrationManager)
+        });
+    }
+
+    function _getConfigParams(string memory _config, string memory _chainId, string memory _environment)
+        internal
+        view
+        returns (ConfigParams memory _configParams)
+    {
+        _configParams = ConfigParams({
+            minDepositAmountTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minDepositAmountTimelock"))
+            ),
+            minUserBalanceTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minUserBalanceTimelock"))
+            ),
+            maxDepositCapTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".maxDepositCapTimelock"))
+            ),
+            noticePeriodTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".noticePeriodTimelock"))
+            ),
+            lockInPeriodTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".lockInPeriodTimelock"))
+            ),
+            minRedeemAmountTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".minRedeemAmountTimelock"))
+            ),
+            managementFeeTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".managementFeeTimelock"))
+            ),
+            performanceFeeTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".performanceFeeTimelock"))
+            ),
+            feeRecipientTimelock: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".feeRecipientTimelock"))
+            ),
+            batchDuration: uint48(
+                vm.parseJsonUint(_config, string.concat(".", _chainId, ".", _environment, ".batchDuration"))
+            )
         });
     }
 

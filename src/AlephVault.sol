@@ -391,7 +391,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function userLockInPeriod(uint8 _classId, address _user) public view onlyValidShareClass(_classId) returns (uint48) {
+    function userLockInPeriod(uint8 _classId, address _user)
+        public
+        view
+        onlyValidShareClass(_classId)
+        returns (uint48)
+    {
         return _getStorage().shareClasses[_classId].userLockInPeriod[_user];
     }
 
