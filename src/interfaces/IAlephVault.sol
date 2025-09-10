@@ -192,6 +192,12 @@ interface IAlephVault {
     function currentBatch() external view returns (uint48);
 
     /**
+     * @notice Returns the number of share classes in the vault.
+     * @return The number of share classes.
+     */
+    function shareClasses() external view returns (uint8);
+
+    /**
      * @notice Returns the total assets currently held by the vault.
      * @return The total assets.
      */
@@ -202,6 +208,20 @@ interface IAlephVault {
      * @return The total shares.
      */
     function totalShares() external view returns (uint256);
+
+    /**
+     * @notice Returns the total assets in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total assets in the vault for the given class.
+     */
+    function totalAssetsOfClass(uint8 _classId) external view returns (uint256[] memory);
+
+    /**
+     * @notice Returns the total shares in the vault for a given class.
+     * @param _classId The ID of the share class.
+     * @return The total shares in the vault for the given class.
+     */
+    function totalSharesOfClass(uint8 _classId) external view returns (uint256[] memory);
 
     /**
      * @notice Returns the total assets in the vault for a given class.
