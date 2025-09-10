@@ -52,7 +52,7 @@ contract UpgradeAlephVault is BaseScript {
     }
 
     function _updateModuleImplementations(string memory _chainId, string memory _environment) internal {
-        address _vaultFactory = _getProxy(_chainId, _environment);
+        address _vaultFactory = _getFactoryProxy(_chainId, _environment);
         address _vaultDepositImplementation =
             _getModuleImplementation(_chainId, _environment, "vaultDepositImplementationAddress");
         address _vaultRedeemImplementation =

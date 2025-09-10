@@ -32,7 +32,6 @@ interface IAlephVaultFactory {
     event OracleSet(address indexed oracle);
     event GuardianSet(address indexed guardian);
     event AuthSignerSet(address indexed authSigner);
-    event FeeRecipientSet(address indexed feeRecipient);
     event ManagementFeeSet(uint32 indexed managementFee);
     event PerformanceFeeSet(uint32 indexed performanceFee);
     event ModuleImplementationSet(bytes4 indexed module, address indexed implementation);
@@ -90,12 +89,6 @@ interface IAlephVaultFactory {
      * @param _authSigner The address of the KYC authentication signer.
      */
     function setAuthSigner(address _authSigner) external;
-
-    /**
-     * @notice Sets the fee recipient.
-     * @param _feeRecipient The address of the fee recipient.
-     */
-    function setFeeRecipient(address _feeRecipient) external;
 
     /**
      * @notice Sets the module implementation.

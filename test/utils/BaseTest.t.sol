@@ -21,6 +21,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
@@ -28,9 +29,11 @@ import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
 import {AlephVaultSettlement} from "@aleph-vault/modules/AlephVaultSettlement.sol";
 import {FeeManager} from "@aleph-vault/modules/FeeManager.sol";
+import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
 import {MigrationManager} from "@aleph-vault/modules/MigrationManager.sol";
 import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
 import {TestToken} from "@aleph-test/exposes/TestToken.sol";
+import {Mocks} from "@aleph-test/utils/Mocks.t.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -54,12 +57,14 @@ contract BaseTest is Test {
     address public mockUser_1 = makeAddr("mockUser_1");
     address public mockUser_2 = makeAddr("mockUser_2");
 
+    Mocks public mocks = new Mocks();
+
     ExposedVault public vault;
+    FeeRecipient public feeRecipient;
     address public manager;
     address public operationsMultisig;
     address public vaultFactory;
     address public custodian;
-    address public feeRecipient;
     address public oracle;
     address public guardian;
     address public authSigner;
@@ -71,6 +76,10 @@ contract BaseTest is Test {
     uint48 public performanceFeeTimelock;
     uint48 public feeRecipientTimelock;
     uint48 public batchDuration;
+    uint32 public managementFeeCut;
+    uint32 public performanceFeeCut;
+    address public alephTreasury;
+    address public vaultTreasury;
 
     uint256 public authSignerPrivateKey;
 
@@ -83,6 +92,7 @@ contract BaseTest is Test {
     ConfigParams public defaultConfigParams;
 
     IAlephVault.InitializationParams public defaultInitializationParams;
+    FeeRecipient.InitializationParams public defaultFeeRecipientInitializationParams;
 
     struct SettleDepositExpectations {
         uint256 expectedTotalAssets;
@@ -105,6 +115,8 @@ contract BaseTest is Test {
     function setUp() public virtual {
         (address _authSigner, uint256 _authSignerPrivateKey) = makeAddrAndKey("authSigner");
         authSignerPrivateKey = _authSignerPrivateKey;
+
+        vaultTreasury = makeAddr("vaultTreasury");
 
         defaultConfigParams = ConfigParams({
             minDepositAmountTimelock: 7 days,
@@ -146,6 +158,31 @@ contract BaseTest is Test {
                 migrationManagerImplementation: makeAddr("MigrationManager")
             })
         });
+
+        defaultFeeRecipientInitializationParams = IFeeRecipient.InitializationParams({
+            operationsMultisig: defaultInitializationParams.operationsMultisig,
+            alephTreasury: makeAddr("alephTreasury")
+        });
+    }
+
+    function _setUpFeeRecipient(IFeeRecipient.InitializationParams memory _initializationParams) public {
+        FeeRecipient _feeRecipient = new FeeRecipient();
+        _feeRecipient.initialize(_initializationParams);
+        vm.prank(_initializationParams.operationsMultisig);
+        _feeRecipient.setVaultFactory(defaultInitializationParams.vaultFactory);
+        defaultInitializationParams.feeRecipient = address(_feeRecipient);
+        feeRecipient = _feeRecipient;
+        alephTreasury = _initializationParams.alephTreasury;
+    }
+
+    function _setFeeRecipientCut(uint32 _managementFeeCut, uint32 _performanceFeeCut) public {
+        mocks.mockIsValidVault(vaultFactory, address(vault), true);
+        vm.startPrank(operationsMultisig);
+        feeRecipient.setManagementFeeCut(address(vault), _managementFeeCut);
+        feeRecipient.setPerformanceFeeCut(address(vault), _performanceFeeCut);
+        vm.stopPrank();
+        managementFeeCut = _managementFeeCut;
+        performanceFeeCut = _performanceFeeCut;
     }
 
     function _setUpNewAlephVault(
@@ -188,7 +225,6 @@ contract BaseTest is Test {
         guardian = _initializationParams.guardian;
         authSigner = _initializationParams.authSigner;
         custodian = _initializationParams.userInitializationParams.custodian;
-        feeRecipient = _initializationParams.feeRecipient;
 
         // set up module implementations
         _initializationParams.moduleInitializationParams = defaultInitializationParams.moduleInitializationParams;

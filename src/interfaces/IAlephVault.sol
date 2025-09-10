@@ -31,6 +31,7 @@ interface IAlephVault {
 
     event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
+    event VaultTreasurySet(address vaultTreasury);
     event ShareClassCreated(
         uint8 classId,
         uint32 managementFee,
@@ -160,6 +161,12 @@ interface IAlephVault {
      * @return The custodian.
      */
     function custodian() external view returns (address);
+
+    /**
+     * @notice Returns the vault treasury of the vault.
+     * @return The vault treasury.
+     */
+    function vaultTreasury() external view returns (address);
 
     /**
      * @notice Returns the fee recipient of the vault.
@@ -381,6 +388,12 @@ interface IAlephVault {
     function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory);
 
     /**
+     * @notice Returns the total fee amount to collect.
+     * @return The total fee amount to collect.
+     */
+    function totalFeeAmountToCollect() external view returns (uint256);
+
+    /**
      * @notice Returns whether authentication is enabled for deposits.
      * @return The status of the authentication for deposits.
      */
@@ -403,6 +416,12 @@ interface IAlephVault {
      * @param _isSettlementAuthEnabled The new status of the authentication for settlements.
      */
     function setIsSettlementAuthEnabled(bool _isSettlementAuthEnabled) external;
+
+    /**
+     * @notice Sets the vault treasury.
+     * @param _vaultTreasury The new vault treasury.
+     */
+    function setVaultTreasury(address _vaultTreasury) external;
 
     /**
      * @notice Creates a new share class.

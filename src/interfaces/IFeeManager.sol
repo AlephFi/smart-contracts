@@ -29,10 +29,8 @@ interface IFeeManager {
 
     event NewManagementFeeQueued(uint8 classId, uint32 managementFee);
     event NewPerformanceFeeQueued(uint8 classId, uint32 performanceFee);
-    event NewFeeRecipientQueued(address feeRecipient);
     event NewManagementFeeSet(uint8 classId, uint32 managementFee);
     event NewPerformanceFeeSet(uint8 classId, uint32 performanceFee);
-    event NewFeeRecipientSet(address feeRecipient);
     event FeesAccumulated(
         uint48 lastFeePaidId,
         uint48 currentBatchId,
@@ -43,7 +41,10 @@ interface IFeeManager {
         FeesAccumulatedParams feesAccumulatedParams
     );
     event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark, uint48 currentBatchId);
-    event FeesCollected(uint256 managementFeesCollected, uint256 performanceFeesCollected);
+    event SeriesFeeCollected(
+        uint8 classId, uint8 seriesId, uint256 managementFeesCollected, uint256 performanceFeesCollected
+    );
+    event FeesCollected(uint48 currentBatchId, uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
     error InvalidManagementFee();
     error InvalidPerformanceFee();
@@ -64,12 +65,6 @@ interface IFeeManager {
     function queuePerformanceFee(uint8 _classId, uint32 _performanceFee) external;
 
     /**
-     * @notice Queues a new fee recipient to be set after the timelock period.
-     * @param _feeRecipient The new fee recipient to be set.
-     */
-    function queueFeeRecipient(address _feeRecipient) external;
-
-    /**
      * @notice Sets the management fee to the queued value after the timelock period.
      */
     function setManagementFee() external;
@@ -78,11 +73,6 @@ interface IFeeManager {
      * @notice Sets the performance fee to the queued value after the timelock period.
      */
     function setPerformanceFee() external;
-
-    /**
-     * @notice Sets the fee recipient to the queued value after the timelock period.
-     */
-    function setFeeRecipient() external;
 
     /**
      * @notice Accumulates fees for a given batch.
@@ -135,6 +125,8 @@ interface IFeeManager {
 
     /**
      * @notice Collects all pending fees.
+     * @return _managementFeesToCollect The management fees to collect.
+     * @return _performanceFeesToCollect The performance fees to collect.
      */
-    function collectFees() external;
+    function collectFees() external returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect);
 }
