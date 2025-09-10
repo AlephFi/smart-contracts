@@ -33,6 +33,7 @@ contract AlephVaultFactoryTest is Test {
     uint48 minUserBalanceTimelock = 7 days;
     uint48 maxDepositCapTimelock = 7 days;
     uint48 noticePeriodTimelock = 7 days;
+    uint48 lockInPeriodTimelock = 7 days;
     uint48 minRedeemAmountTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
     uint48 performanceFeeTimelock = 7 days;
@@ -102,6 +103,7 @@ contract AlephVaultFactoryTest is Test {
             managementFee: 0,
             performanceFee: 0,
             noticePeriod: 0,
+            lockInPeriod: 0,
             minDepositAmount: 0,
             maxDepositCap: 0,
             minRedeemAmount: 0,

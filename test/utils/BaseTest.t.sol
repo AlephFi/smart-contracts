@@ -48,6 +48,7 @@ contract BaseTest is Test {
         uint48 minUserBalanceTimelock;
         uint48 maxDepositCapTimelock;
         uint48 noticePeriodTimelock;
+        uint48 lockInPeriodTimelock;
         uint48 minRedeemAmountTimelock;
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
@@ -73,6 +74,7 @@ contract BaseTest is Test {
     uint48 public minUserBalanceTimelock;
     uint48 public maxDepositCapTimelock;
     uint48 public noticePeriodTimelock;
+    uint48 public lockInPeriodTimelock;
     uint48 public minRedeemAmountTimelock;
     uint48 public managementFeeTimelock;
     uint48 public performanceFeeTimelock;
@@ -125,6 +127,7 @@ contract BaseTest is Test {
             minUserBalanceTimelock: 7 days,
             maxDepositCapTimelock: 7 days,
             noticePeriodTimelock: 7 days,
+            lockInPeriodTimelock: 7 days,
             minRedeemAmountTimelock: 7 days,
             managementFeeTimelock: 7 days,
             performanceFeeTimelock: 7 days,
@@ -148,6 +151,7 @@ contract BaseTest is Test {
                 managementFee: 200, // 2%
                 performanceFee: 2000, // 20%
                 noticePeriod: 0,
+                lockInPeriod: 0,
                 minDepositAmount: 10 ether,
                 maxDepositCap: 1_000_000 ether,
                 minRedeemAmount: 10 ether,
@@ -198,6 +202,7 @@ contract BaseTest is Test {
         minUserBalanceTimelock = _configParams.minUserBalanceTimelock;
         maxDepositCapTimelock = _configParams.maxDepositCapTimelock;
         noticePeriodTimelock = _configParams.noticePeriodTimelock;
+        lockInPeriodTimelock = _configParams.lockInPeriodTimelock;
         minRedeemAmountTimelock = _configParams.minRedeemAmountTimelock;
         managementFeeTimelock = _configParams.managementFeeTimelock;
         performanceFeeTimelock = _configParams.performanceFeeTimelock;
@@ -212,7 +217,7 @@ contract BaseTest is Test {
                 )
             ),
             alephVaultRedeemImplementation: address(
-                new AlephVaultRedeem(noticePeriodTimelock, minRedeemAmountTimelock, batchDuration)
+                new AlephVaultRedeem(noticePeriodTimelock, lockInPeriodTimelock, minRedeemAmountTimelock, batchDuration)
             ),
             alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
             feeManagerImplementation: address(
