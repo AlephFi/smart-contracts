@@ -33,21 +33,28 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     using TimelockRegistry for bytes4;
 
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
+    uint48 public immutable LOCK_IN_PERIOD_TIMELOCK;
     uint48 public immutable MIN_REDEEM_AMOUNT_TIMELOCK;
 
-    constructor(uint48 _noticePeriodTimelock, uint48 _minRedeemAmountTimelock, uint48 _batchDuration)
+    constructor(uint48 _noticePeriodTimelock, uint48 _lockInPeriodTimelock, uint48 _minRedeemAmountTimelock, uint48 _batchDuration)
         AlephVaultBase(_batchDuration)
     {
-        if (_noticePeriodTimelock == 0 || _minRedeemAmountTimelock == 0) {
+        if (_noticePeriodTimelock == 0 || _lockInPeriodTimelock == 0 || _minRedeemAmountTimelock == 0) {
             revert InvalidConstructorParams();
         }
         NOTICE_PERIOD_TIMELOCK = _noticePeriodTimelock;
+        LOCK_IN_PERIOD_TIMELOCK = _lockInPeriodTimelock;
         MIN_REDEEM_AMOUNT_TIMELOCK = _minRedeemAmountTimelock;
     }
 
     /// @inheritdoc IAlephVaultRedeem
     function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external {
         _queueNoticePeriod(_getStorage(), _classId, _noticePeriod);
+    }
+
+    /// @inheritdoc IAlephVaultRedeem
+    function queueLockInPeriod(uint8 _classId, uint48 _lockInPeriod) external {
+        _queueLockInPeriod(_getStorage(), _classId, _lockInPeriod);
     }
 
     /// @inheritdoc IAlephVaultRedeem
@@ -58,6 +65,11 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     /// @inheritdoc IAlephVaultRedeem
     function setNoticePeriod(uint8 _classId) external {
         _setNoticePeriod(_getStorage(), _classId);
+    }
+
+    /// @inheritdoc IAlephVaultRedeem
+    function setLockInPeriod(uint8 _classId) external {
+        _setLockInPeriod(_getStorage(), _classId);
     }
 
     /// @inheritdoc IAlephVaultRedeem
@@ -86,6 +98,21 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     }
 
     /**
+     * @dev Internal function to queue a new lock in period.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     * @param _lockInPeriod The new lock in period in batches.
+     */
+    function _queueLockInPeriod(AlephVaultStorageData storage _sd, uint8 _classId, uint48 _lockInPeriod) internal {
+        _sd.timelocks[TimelockRegistry.LOCK_IN_PERIOD.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
+            unlockTimestamp: Time.timestamp() + LOCK_IN_PERIOD_TIMELOCK,
+            newValue: abi.encode(_lockInPeriod)
+        });
+        emit NewLockInPeriodQueued(_classId, _lockInPeriod);
+    }
+
+    /**
      * @dev Internal function to queue a new minimum redeem amount.
      * @param _sd The storage struct.
      * @param _classId The id of the class.
@@ -111,6 +138,17 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         uint48 _noticePeriod = abi.decode(TimelockRegistry.NOTICE_PERIOD.setTimelock(_classId, _sd), (uint48));
         _sd.shareClasses[_classId].noticePeriod = _noticePeriod;
         emit NewNoticePeriodSet(_classId, _noticePeriod);
+    }
+
+    /**
+     * @dev Internal function to set the lock in period.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     */
+    function _setLockInPeriod(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint48 _lockInPeriod = abi.decode(TimelockRegistry.LOCK_IN_PERIOD.setTimelock(_classId, _sd), (uint48));
+        _sd.shareClasses[_classId].lockInPeriod = _lockInPeriod;
+        emit NewLockInPeriodSet(_classId, _lockInPeriod);
     }
 
     /**
@@ -144,6 +182,10 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
             revert RedeemLessThanMinRedeemAmount(_shareClass.minRedeemAmount);
         }
         uint48 _currentBatchId = _currentBatch(_sd);
+        uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
+        if (_shareClass.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
+            revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
+        }
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle

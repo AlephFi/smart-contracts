@@ -21,13 +21,16 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  */
 interface IAlephVaultRedeem {
     event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
+    event NewLockInPeriodQueued(uint8 classId, uint48 lockInPeriod);
     event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);
     event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);
+    event NewLockInPeriodSet(uint8 classId, uint48 lockInPeriod);
     event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
     event RedeemRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
     error InsufficientRedeem();
     error RedeemLessThanMinRedeemAmount(uint256 minRedeemAmount);
+    error UserInLockInPeriodNotElapsed(uint48 userLockInPeriod);
     error InsufficientAssetsToRedeem();
     error RedeemFallBelowMinUserBalance(uint256 minUserBalance);
     error OnlyOneRequestPerBatchAllowedForRedeem();
@@ -38,6 +41,13 @@ interface IAlephVaultRedeem {
      * @param _noticePeriod The new notice period in batches.
      */
     function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external;
+
+    /**
+     * @notice Queues a new lock in period.
+     * @param _classId The ID of the share class to set the lock in period for.
+     * @param _lockInPeriod The new lock in period in batches.
+     */
+    function queueLockInPeriod(uint8 _classId, uint48 _lockInPeriod) external;
 
     /**
      * @notice Queues a new minimum redeem amount.
@@ -51,6 +61,12 @@ interface IAlephVaultRedeem {
      * @param _classId The ID of the share class to set the notice period for.
      */
     function setNoticePeriod(uint8 _classId) external;
+
+    /**
+     * @notice Sets the lock in period in batches
+     * @param _classId The ID of the share class to set the lock in period for.
+     */
+    function setLockInPeriod(uint8 _classId) external;
 
     /**
      * @notice Sets the minimum redeem amount.

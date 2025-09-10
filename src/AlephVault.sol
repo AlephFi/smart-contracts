@@ -161,6 +161,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _initializationParams.userInitializationParams.managementFee,
             _initializationParams.userInitializationParams.performanceFee,
             _initializationParams.userInitializationParams.noticePeriod,
+            _initializationParams.userInitializationParams.lockInPeriod,
             _initializationParams.userInitializationParams.minDepositAmount,
             _initializationParams.userInitializationParams.maxDepositCap,
             _initializationParams.userInitializationParams.minRedeemAmount,
@@ -365,6 +366,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function lockInPeriod(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint48) {
+        return _getStorage().shareClasses[_classId].lockInPeriod;
+    }
+
+    /// @inheritdoc IAlephVault
     function minDepositAmount(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
         return _getStorage().shareClasses[_classId].minDepositAmount;
     }
@@ -382,6 +388,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function minRedeemAmount(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
         return _getStorage().shareClasses[_classId].minRedeemAmount;
+    }
+
+    /// @inheritdoc IAlephVault
+    function userLockInPeriod(uint8 _classId, address _user) public view onlyValidShareClass(_classId) returns (uint48) {
+        return _getStorage().shareClasses[_classId].userLockInPeriod[_user];
     }
 
     /// @inheritdoc IAlephVault
@@ -493,6 +504,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint32 _managementFee,
         uint32 _performanceFee,
         uint48 _noticePeriod,
+        uint48 _lockInPeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap,
         uint256 _minRedeemAmount,
@@ -506,6 +518,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _managementFee,
             _performanceFee,
             _noticePeriod,
+            _lockInPeriod,
             _minDepositAmount,
             _maxDepositCap,
             _minRedeemAmount,
@@ -810,6 +823,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _managementFee The management fee.
      * @param _performanceFee The performance fee.
      * @param _noticePeriod The notice period.
+     * @param _lockInPeriod The lock in period.
      * @param _minDepositAmount The minimum deposit amount.
      * @param _maxDepositCap The maximum deposit cap.
      * @param _minRedeemAmount The minimum redeem amount.
@@ -820,6 +834,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint32 _managementFee,
         uint32 _performanceFee,
         uint48 _noticePeriod,
+        uint48 _lockInPeriod,
         uint256 _minDepositAmount,
         uint256 _maxDepositCap,
         uint256 _minRedeemAmount,
@@ -832,6 +847,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _shareClass.managementFee = _managementFee;
         _shareClass.performanceFee = _performanceFee;
         _shareClass.noticePeriod = _noticePeriod;
+        _shareClass.lockInPeriod = _lockInPeriod;
         _shareClass.minDepositAmount = _minDepositAmount;
         _shareClass.maxDepositCap = _maxDepositCap;
         _shareClass.minRedeemAmount = _minRedeemAmount;
@@ -843,6 +859,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
             _managementFee,
             _performanceFee,
             _noticePeriod,
+            _lockInPeriod,
             _minDepositAmount,
             _maxDepositCap,
             _minRedeemAmount,

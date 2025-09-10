@@ -218,6 +218,10 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
             );
         }
         uint48 _currentBatchId = _currentBatch(_sd);
+        uint48 _lockInPeriod = _shareClass.lockInPeriod;
+        if (_lockInPeriod > 0 && _shareClass.userLockInPeriod[msg.sender] == 0) {
+            _shareClass.userLockInPeriod[msg.sender] = _currentBatchId + _lockInPeriod;
+        }
         IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];
         if (_depositRequests.depositRequest[msg.sender] > 0) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
