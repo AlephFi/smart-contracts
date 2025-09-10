@@ -88,6 +88,10 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].minDepositAmount = _minDepositAmount;
     }
 
+    function setMinUserBalance(uint8 _classId, uint256 _minUserBalance) external {
+        _getStorage().shareClasses[_classId].minUserBalance = _minUserBalance;
+    }
+
     function setMaxDepositCap(uint8 _classId, uint256 _maxDepositCap) external {
         _getStorage().shareClasses[_classId].maxDepositCap = _maxDepositCap;
     }
@@ -169,6 +173,15 @@ contract ExposedVault is AlephVault {
     function minDepositAmountTimelock() external returns (uint48) {
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
             .delegatecall(abi.encodeWithSignature("MIN_DEPOSIT_AMOUNT_TIMELOCK()"));
+        if (_success) {
+            return abi.decode(_data, (uint48));
+        }
+        return 0;
+    }
+
+    function minUserBalanceTimelock() external returns (uint48) {
+        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
+            .delegatecall(abi.encodeWithSignature("MIN_USER_BALANCE_TIMELOCK()"));
         if (_success) {
             return abi.decode(_data, (uint48));
         }

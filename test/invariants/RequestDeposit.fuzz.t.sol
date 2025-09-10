@@ -38,8 +38,8 @@ contract RequestDepositTest is BaseTest {
     }
 
     function test_requestDeposit_totalAmountToDepositMustAlwaysIncrease(address _user, uint256 _depositAmount) public {
-        // deposit amount 0 will revert with InsufficientDeposit
-        vm.assume(_depositAmount > 0);
+        // deposit amount less than 100 ether will revert with DepositLessThanMinUserBalance
+        vm.assume(_depositAmount > 100 ether);
         // token amount to not exceed 2^96 to avoid overflow from multiplication of same data type
         vm.assume(_depositAmount < type(uint96).max);
         // don't use zero address
@@ -97,7 +97,7 @@ contract RequestDepositTest is BaseTest {
         // set up users
         for (uint8 i = 0; i < _iterations; i++) {
             address _user = makeAddr(string.concat("user", vm.toString(i)));
-            uint256 _depositAmount = uint256(keccak256(abi.encode(_depositSeed, i))) % type(uint96).max;
+            uint256 _depositAmount = uint256(keccak256(abi.encode(_depositSeed, i))) % type(uint96).max + 100 ether;
 
             vm.startPrank(_user);
             underlyingToken.mint(address(_user), _depositAmount);
@@ -158,7 +158,8 @@ contract RequestDepositTest is BaseTest {
 
             for (uint8 j = 0; j < _iterations; j++) {
                 address _user = makeAddr(string.concat("user", vm.toString(j), "_", vm.toString(i)));
-                uint256 _depositAmount = uint256(keccak256(abi.encode(_depositSeed, i, j))) % type(uint96).max;
+                uint256 _depositAmount =
+                    uint256(keccak256(abi.encode(_depositSeed, i, j))) % type(uint96).max + 100 ether;
 
                 vm.startPrank(_user);
                 underlyingToken.mint(address(_user), _depositAmount);

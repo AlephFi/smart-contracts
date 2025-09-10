@@ -33,6 +33,7 @@ library TimelockRegistry {
     error TimelockNotExpired(bytes4 key, uint8 classId, uint48 unlockTimestamp);
 
     bytes4 internal constant MIN_DEPOSIT_AMOUNT = bytes4(keccak256("MIN_DEPOSIT_AMOUNT"));
+    bytes4 internal constant MIN_USER_BALANCE = bytes4(keccak256("MIN_USER_BALANCE"));
     bytes4 internal constant MAX_DEPOSIT_CAP = bytes4(keccak256("MAX_DEPOSIT_CAP"));
     bytes4 internal constant NOTICE_PERIOD = bytes4(keccak256("NOTICE_PERIOD"));
     bytes4 internal constant MIN_REDEEM_AMOUNT = bytes4(keccak256("MIN_REDEEM_AMOUNT"));

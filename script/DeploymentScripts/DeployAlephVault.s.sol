@@ -61,6 +61,7 @@ contract DeployAlephVault is BaseScript {
             minDepositAmount: vm.envUint("VAULT_MIN_DEPOSIT_AMOUNT"),
             maxDepositCap: vm.envUint("VAULT_MAX_DEPOSIT_CAP"),
             minRedeemAmount: vm.envUint("VAULT_MIN_REDEEM_AMOUNT"),
+            minUserBalance: vm.envUint("VAULT_MIN_USER_BALANCE"),
             authSignature: _authSignature
         });
         address _vault = IAlephVaultFactory(_factory).deployVault(_userInitializationParams);

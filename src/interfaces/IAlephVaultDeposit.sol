@@ -29,14 +29,17 @@ interface IAlephVaultDeposit {
     }
 
     event NewMinDepositAmountQueued(uint8 classId, uint256 minDepositAmount);
+    event NewMinUserBalanceQueued(uint8 classId, uint256 minUserBalance);
     event NewMaxDepositCapQueued(uint8 classId, uint256 maxDepositCap);
     event NewMinDepositAmountSet(uint8 classId, uint256 minDepositAmount);
+    event NewMinUserBalanceSet(uint8 classId, uint256 minUserBalance);
     event NewMaxDepositCapSet(uint8 classId, uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
     error InsufficientDeposit();
-    error DepositLessThanMinDepositAmount();
-    error DepositExceedsMaxDepositCap();
+    error DepositLessThanMinDepositAmount(uint256 minDepositAmount);
+    error DepositLessThanMinUserBalance(uint256 minUserBalance);
+    error DepositExceedsMaxDepositCap(uint256 maxDepositCap);
     error OnlyOneRequestPerBatchAllowedForDeposit();
     error DepositRequestFailed();
 
@@ -46,6 +49,13 @@ interface IAlephVaultDeposit {
      * @param _minDepositAmount The new minimum deposit amount.
      */
     function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external;
+
+    /**
+     * @notice Queues a new minimum user balance.
+     * @param _classId The ID of the share class to set the minimum user balance for.
+     * @param _minUserBalance The new minimum user balance.
+     */
+    function queueMinUserBalance(uint8 _classId, uint256 _minUserBalance) external;
 
     /**
      * @notice Queues a new maximum deposit cap.
@@ -59,6 +69,12 @@ interface IAlephVaultDeposit {
      * @param _classId The ID of the share class to set the minimum deposit amount for.
      */
     function setMinDepositAmount(uint8 _classId) external;
+
+    /**
+     * @notice Sets the minimum user balance.
+     * @param _classId The ID of the share class to set the minimum user balance for.
+     */
+    function setMinUserBalance(uint8 _classId) external;
 
     /**
      * @notice Sets the maximum deposit cap.

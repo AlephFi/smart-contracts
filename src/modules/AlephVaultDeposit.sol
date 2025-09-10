@@ -37,21 +37,31 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     using TimelockRegistry for bytes4;
 
     uint48 public immutable MIN_DEPOSIT_AMOUNT_TIMELOCK;
+    uint48 public immutable MIN_USER_BALANCE_TIMELOCK;
     uint48 public immutable MAX_DEPOSIT_CAP_TIMELOCK;
 
-    constructor(uint48 _minDepositAmountTimelock, uint48 _maxDepositCapTimelock, uint48 _batchDuration)
-        AlephVaultBase(_batchDuration)
-    {
-        if (_minDepositAmountTimelock == 0 || _maxDepositCapTimelock == 0) {
+    constructor(
+        uint48 _minDepositAmountTimelock,
+        uint48 _minUserBalanceTimelock,
+        uint48 _maxDepositCapTimelock,
+        uint48 _batchDuration
+    ) AlephVaultBase(_batchDuration) {
+        if (_minDepositAmountTimelock == 0 || _minUserBalanceTimelock == 0 || _maxDepositCapTimelock == 0) {
             revert InvalidConstructorParams();
         }
         MIN_DEPOSIT_AMOUNT_TIMELOCK = _minDepositAmountTimelock;
+        MIN_USER_BALANCE_TIMELOCK = _minUserBalanceTimelock;
         MAX_DEPOSIT_CAP_TIMELOCK = _maxDepositCapTimelock;
     }
 
     /// @inheritdoc IAlephVaultDeposit
     function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external {
         _queueMinDepositAmount(_getStorage(), _classId, _minDepositAmount);
+    }
+
+    /// @inheritdoc IAlephVaultDeposit
+    function queueMinUserBalance(uint8 _classId, uint256 _minUserBalance) external {
+        _queueMinUserBalance(_getStorage(), _classId, _minUserBalance);
     }
 
     /// @inheritdoc IAlephVaultDeposit
@@ -62,6 +72,11 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     /// @inheritdoc IAlephVaultDeposit
     function setMinDepositAmount(uint8 _classId) external {
         _setMinDepositAmount(_getStorage(), _classId);
+    }
+
+    /// @inheritdoc IAlephVaultDeposit
+    function setMinUserBalance(uint8 _classId) external {
+        _setMinUserBalance(_getStorage(), _classId);
     }
 
     /// @inheritdoc IAlephVaultDeposit
@@ -96,6 +111,23 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     }
 
     /**
+     * @dev Internal function to queue a new min user balance.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     * @param _minUserBalance The new min user balance.
+     */
+    function _queueMinUserBalance(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minUserBalance)
+        internal
+    {
+        _sd.timelocks[TimelockRegistry.MIN_USER_BALANCE.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
+            unlockTimestamp: Time.timestamp() + MIN_USER_BALANCE_TIMELOCK,
+            newValue: abi.encode(_minUserBalance)
+        });
+        emit NewMinUserBalanceQueued(_classId, _minUserBalance);
+    }
+
+    /**
      * @dev Internal function to queue a new max deposit cap.
      * @param _sd The storage struct.
      * @param _classId The id of the class.
@@ -120,6 +152,17 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
             abi.decode(TimelockRegistry.MIN_DEPOSIT_AMOUNT.setTimelock(_classId, _sd), (uint256));
         _sd.shareClasses[_classId].minDepositAmount = _minDepositAmount;
         emit NewMinDepositAmountSet(_classId, _minDepositAmount);
+    }
+
+    /**
+     * @dev Internal function to set a new min user balance.
+     * @param _sd The storage struct.
+     * @param _classId The id of the class.
+     */
+    function _setMinUserBalance(AlephVaultStorageData storage _sd, uint8 _classId) internal {
+        uint256 _minUserBalance = abi.decode(TimelockRegistry.MIN_USER_BALANCE.setTimelock(_classId, _sd), (uint256));
+        _sd.shareClasses[_classId].minUserBalance = _minUserBalance;
+        emit NewMinUserBalanceSet(_classId, _minUserBalance);
     }
 
     /**
@@ -150,7 +193,16 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_requestDepositParams.classId];
         uint256 _minDepositAmount = _shareClass.minDepositAmount;
         if (_minDepositAmount > 0 && _requestDepositParams.amount < _minDepositAmount) {
-            revert DepositLessThanMinDepositAmount();
+            revert DepositLessThanMinDepositAmount(_minDepositAmount);
+        }
+        uint256 _minUserBalance = _shareClass.minUserBalance;
+        if (
+            _minUserBalance > 0
+                && _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass)
+                    + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
+                    < _minUserBalance
+        ) {
+            revert DepositLessThanMinUserBalance(_minUserBalance);
         }
         uint256 _maxDepositCap = _shareClass.maxDepositCap;
         if (
@@ -158,7 +210,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
                 && _totalAssetsPerClass(_shareClass, _requestDepositParams.classId)
                     + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount > _maxDepositCap
         ) {
-            revert DepositExceedsMaxDepositCap();
+            revert DepositExceedsMaxDepositCap(_maxDepositCap);
         }
         if (_sd.isDepositAuthEnabled) {
             AuthLibrary.verifyDepositRequestAuthSignature(

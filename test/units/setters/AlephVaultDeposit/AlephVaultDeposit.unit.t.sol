@@ -125,6 +125,102 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        QUEUE MIN USER BALANCE TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_queueMinUserBalance_revertsWhenCallerIsNotManager() public {
+        // Setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+
+        // queue min user balance
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
+            )
+        );
+        vault.queueMinUserBalance(1, 100);
+    }
+
+    function test_queueMinUserBalance_whenCallerIsManager_shouldSucceed() public {
+        // queue min user balance
+        vm.prank(manager);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultDeposit.NewMinUserBalanceQueued(1, 100);
+        vault.queueMinUserBalance(1, 100);
+
+        // check min user balance is queued
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.MIN_USER_BALANCE, 1);
+        uint48 _unlockTimestamp = Time.timestamp() + vault.minUserBalanceTimelock();
+        TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
+        assertEq(_timelock.isQueued, true);
+        assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
+        assertEq(_timelock.newValue, abi.encode(100));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        SET MIN USER BALANCE TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_setMinUserBalance_revertsWhenCallerIsNotManager() public {
+        // Setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+
+        // set min user balance
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
+            )
+        );
+        vault.setMinUserBalance(1);
+    }
+
+    function test_setMinUserBalance_revertsWhenTimelockIsNotQueued() public {
+        // set min user balance
+        vm.prank(manager);
+        vm.expectRevert(
+            abi.encodeWithSelector(TimelockRegistry.TimelockNotQueued.selector, TimelockRegistry.MIN_USER_BALANCE, 1)
+        );
+        vault.setMinUserBalance(1);
+    }
+
+    function test_setMinUserBalance_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
+        // queue min deposit amount
+        vm.prank(manager);
+        vault.queueMinUserBalance(1, 100);
+
+        // get min deposit amount timelock params
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.MIN_USER_BALANCE, 1);
+        uint48 _unlockTimestamp = Time.timestamp() + vault.minUserBalanceTimelock();
+
+        // set min user balance
+        vm.prank(manager);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TimelockRegistry.TimelockNotExpired.selector, TimelockRegistry.MIN_USER_BALANCE, 1, _unlockTimestamp
+            )
+        );
+        vault.setMinUserBalance(1);
+    }
+
+    function test_setMinUserBalance_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
+        // queue min user balance
+        vm.prank(manager);
+        vault.queueMinUserBalance(1, 100);
+
+        // roll the block forward to make timelock expired
+        vm.warp(Time.timestamp() + vault.minUserBalanceTimelock() + 1);
+
+        // set min user balance
+        vm.prank(manager);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultDeposit.NewMinUserBalanceSet(1, 100);
+        vault.setMinUserBalance(1);
+
+        // check min user balance is set
+        assertEq(vault.minUserBalance(1), 100);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         QUEUE MAX DEPOSIT CAP TESTS
     //////////////////////////////////////////////////////////////*/
     function test_queueMaxDepositCap_revertsWhenCallerIsNotManager() public {
