@@ -39,7 +39,7 @@ contract DeployAlephVaultFactory is BaseScript {
         vm.createSelectFork(_chainId);
         string memory _environment = _getEnvironment();
 
-        address _proxyOwner = _getProxyOwner(_chainId, _environment);
+        address _proxyOwner = _getFactoryProxyOwner(_chainId, _environment);
 
         IAlephVaultFactory.InitializationParams memory _initializationParams;
 
@@ -89,7 +89,7 @@ contract DeployAlephVaultFactory is BaseScript {
             guardian: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".guardian")),
             authSigner: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".authSigner")),
             feeRecipient: vm.parseJsonAddress(
-                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".feeRecipient")
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".feeRecipientProxyAddress")
             ),
             alephVaultDepositImplementation: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultDepositImplementationAddress")

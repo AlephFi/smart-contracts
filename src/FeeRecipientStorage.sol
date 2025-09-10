@@ -15,15 +15,26 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+struct FeeRecipientStorageData {
+    address operationsMultisig;
+    address vaultFactory;
+    address alephTreasury;
+    mapping(address vault => uint32) managementFeeCut;
+    mapping(address vault => uint32) performanceFeeCut;
+    mapping(address vault => address) vaultTreasury;
+}
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-library RolesLibrary {
-    bytes4 internal constant ORACLE = bytes4(keccak256("ORACLE"));
-    bytes4 internal constant GUARDIAN = bytes4(keccak256("GUARDIAN"));
-    bytes4 internal constant MANAGER = bytes4(keccak256("MANAGER"));
-    bytes4 internal constant OPERATIONS_MULTISIG = bytes4(keccak256("OPERATIONS_MULTISIG"));
-    bytes4 internal constant VAULT_FACTORY = bytes4(keccak256("VAULT_FACTORY"));
-    bytes4 internal constant FEE_RECIPIENT = bytes4(keccak256("FEE_RECIPIENT"));
+
+library FeeRecipientStorage {
+    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.fee.recipient")) - 1;
+
+    function load() internal pure returns (FeeRecipientStorageData storage sd) {
+        uint256 position = STORAGE_POSITION;
+        assembly {
+            sd.slot := position
+        }
+    }
 }
