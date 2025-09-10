@@ -56,7 +56,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
     function test_requestRedeem_revertsGivenAmountToRedeemIsLessThanMinRedeemAmount() public {
         // set min redeem amount to 100 ether
-        vault.setMinRedeemAmount(100 ether);
+        vault.setMinRedeemAmount(1, 100 ether);
 
         // request redeem
         vm.expectRevert(abi.encodeWithSelector(IERC7540Redeem.RedeemLessThanMinRedeemAmount.selector, 100 ether));
@@ -74,7 +74,7 @@ contract AlephVaultRedeemTest is BaseTest {
 
     function test_requestRedeem_whenFlowIsUnpaused_revertsWhenAmountToRedeemIsLessThanMinDepositAmount() public {
         // set min deposit amount to 100 ether
-        vault.setMinDepositAmount(200 ether);
+        vault.setMinDepositAmount(1, 200 ether);
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);

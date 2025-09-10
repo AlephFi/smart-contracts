@@ -95,6 +95,7 @@ contract AlephVaultRedeem is IERC7540Redeem, AlephVaultBase {
         internal
     {
         _sd.timelocks[TimelockRegistry.MIN_REDEEM_AMOUNT.getKey(_classId)] = TimelockRegistry.Timelock({
+            isQueued: true,
             unlockTimestamp: Time.timestamp() + MIN_REDEEM_AMOUNT_TIMELOCK,
             newValue: abi.encode(_minRedeemAmount)
         });

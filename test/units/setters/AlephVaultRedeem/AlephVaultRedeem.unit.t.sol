@@ -149,11 +149,12 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         vault.queueMinRedeemAmount(1, 100);
 
         // check min redeem amount is queued
-        bytes4 _key = TimelockRegistry.MIN_REDEEM_AMOUNT;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.MIN_REDEEM_AMOUNT, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.minRedeemAmountTimelock();
         TimelockRegistry.Timelock memory _timelock = vault.timelocks(_key);
+        assertEq(_timelock.isQueued, true);
         assertEq(_timelock.unlockTimestamp, _unlockTimestamp);
-        assertEq(_timelock.newValue, abi.encode(1, 100));
+        assertEq(_timelock.newValue, abi.encode(100));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -170,7 +171,16 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
             )
         );
-        vault.setMinRedeemAmount();
+        vault.setMinRedeemAmount(1);
+    }
+
+    function test_setMinRedeemAmount_revertsWhenTimelockIsNotQueued() public {
+        // set min redeem amount
+        vm.prank(manager);
+        vm.expectRevert(
+            abi.encodeWithSelector(TimelockRegistry.TimelockNotQueued.selector, TimelockRegistry.MIN_REDEEM_AMOUNT, 1)
+        );
+        vault.setMinRedeemAmount(1);
     }
 
     function test_setMinRedeemAmount_revertsWhenUnlockTimestampIsGreaterThanCurrentTimestamp() public {
@@ -179,13 +189,17 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         vault.queueMinRedeemAmount(1, 100);
 
         // get min redeem amount timelock params
-        bytes4 _key = TimelockRegistry.MIN_REDEEM_AMOUNT;
+        bytes4 _key = TimelockRegistry.getKey(TimelockRegistry.MIN_REDEEM_AMOUNT, 1);
         uint48 _unlockTimestamp = Time.timestamp() + vault.minRedeemAmountTimelock();
 
         // set min redeem amount
         vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(TimelockRegistry.TimelockNotExpired.selector, _key, _unlockTimestamp));
-        vault.setMinRedeemAmount();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TimelockRegistry.TimelockNotExpired.selector, TimelockRegistry.MIN_REDEEM_AMOUNT, 1, _unlockTimestamp
+            )
+        );
+        vault.setMinRedeemAmount(1);
     }
 
     function test_setMinRedeemAmount_whenUnlockTimestampIsNotGreaterThanCurrentTimestamp_shouldSucceed() public {
@@ -200,7 +214,7 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
         emit IERC7540Redeem.NewMinRedeemAmountSet(1, 100);
-        vault.setMinRedeemAmount();
+        vault.setMinRedeemAmount(1);
 
         // check min redeem amount is set
         assertEq(vault.minRedeemAmount(1), 100);
