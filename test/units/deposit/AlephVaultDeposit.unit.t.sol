@@ -19,7 +19,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
-import {IERC7540Deposit} from "@aleph-vault/interfaces/IERC7540Deposit.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
@@ -41,7 +41,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(IAlephVault.InvalidShareClass.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 0, amount: 100, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 0, amount: 100, authSignature: authSignature_1})
         );
     }
 
@@ -53,16 +53,16 @@ contract AlephVaultDepositTest is BaseTest {
         // request deposit
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100, authSignature: authSignature_1})
         );
     }
 
     function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsZero() public {
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Deposit.InsufficientDeposit.selector);
+        vm.expectRevert(IAlephVaultDeposit.InsufficientDeposit.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 0, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 0, authSignature: authSignature_1})
         );
     }
 
@@ -74,9 +74,9 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Deposit.DepositLessThanMinDepositAmount.selector);
+        vm.expectRevert(IAlephVaultDeposit.DepositLessThanMinDepositAmount.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
         );
     }
 
@@ -91,9 +91,9 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
+        vm.expectRevert(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
         );
     }
 
@@ -113,9 +113,9 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Deposit.DepositExceedsMaxDepositCap.selector);
+        vm.expectRevert(IAlephVaultDeposit.DepositExceedsMaxDepositCap.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 10 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 10 ether, authSignature: authSignature_1})
         );
     }
 
@@ -127,7 +127,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(AuthLibrary.AuthSignatureExpired.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -140,7 +140,7 @@ contract AlephVaultDepositTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(AuthLibrary.InvalidAuthSignature.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: _authSignature})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: _authSignature})
         );
     }
 
@@ -155,9 +155,9 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.prank(mockUser_1);
-        vm.expectRevert(IERC7540Deposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
+        vm.expectRevert(IAlephVaultDeposit.OnlyOneRequestPerBatchAllowedForDeposit.selector);
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -171,7 +171,7 @@ contract AlephVaultDepositTest is BaseTest {
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(vault), 0, 100 ether)
         );
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -189,7 +189,7 @@ contract AlephVaultDepositTest is BaseTest {
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(mockUser_1), 0, 100 ether)
         );
         vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
     }
 
@@ -208,9 +208,9 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
+        emit IAlephVaultDeposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
         uint48 _batchId = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -235,9 +235,9 @@ contract AlephVaultDepositTest is BaseTest {
         underlyingToken.approve(address(vault), 100 ether);
 
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
+        emit IAlephVaultDeposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
         uint48 _batchId_user1 = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
         vm.stopPrank();
 
@@ -247,9 +247,9 @@ contract AlephVaultDepositTest is BaseTest {
         underlyingToken.approve(address(vault), 300 ether);
 
         vm.expectEmit(true, true, true, true);
-        emit IERC7540Deposit.DepositRequest(mockUser_2, 1, 300 ether, vault.currentBatch());
+        emit IAlephVaultDeposit.DepositRequest(mockUser_2, 1, 300 ether, vault.currentBatch());
         uint48 _batchId_user2 = vault.requestDeposit(
-            IERC7540Deposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_2})
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_2})
         );
         vm.stopPrank();
 

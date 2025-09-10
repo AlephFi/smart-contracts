@@ -19,7 +19,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-interface IERC7540Redeem {
+interface IAlephVaultRedeem {
     event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
     event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);
     event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);

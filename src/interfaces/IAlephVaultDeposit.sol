@@ -21,7 +21,7 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-interface IERC7540Deposit {
+interface IAlephVaultDeposit {
     struct RequestDepositParams {
         uint8 classId;
         uint256 amount;

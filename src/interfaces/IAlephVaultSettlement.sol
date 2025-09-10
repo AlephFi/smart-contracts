@@ -21,7 +21,7 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-interface IERC7540Settlement {
+interface IAlephVaultSettlement {
     struct SettlementParams {
         uint8 classId;
         uint48 toBatchId;
