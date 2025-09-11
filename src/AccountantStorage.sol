@@ -15,7 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-struct FeeRecipientStorageData {
+struct AccountantStorageData {
     address operationsMultisig;
     address vaultFactory;
     address alephTreasury;
@@ -28,10 +28,10 @@ struct FeeRecipientStorageData {
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-library FeeRecipientStorage {
-    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.fee.recipient")) - 1;
+library AccountantStorage {
+    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.accountant")) - 1;
 
-    function load() internal pure returns (FeeRecipientStorageData storage sd) {
+    function load() internal pure returns (AccountantStorageData storage sd) {
         uint256 position = STORAGE_POSITION;
         assembly {
             sd.slot := position

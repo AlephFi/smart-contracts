@@ -23,7 +23,7 @@ import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
-import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {IMigrationManager} from "@aleph-vault/interfaces/IMigrationManager.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
@@ -60,7 +60,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         if (
             _initializationParams.beacon == address(0) || _initializationParams.operationsMultisig == address(0)
                 || _initializationParams.oracle == address(0) || _initializationParams.guardian == address(0)
-                || _initializationParams.authSigner == address(0) || _initializationParams.feeRecipient == address(0)
+                || _initializationParams.authSigner == address(0) || _initializationParams.accountant == address(0)
                 || _initializationParams.alephVaultDepositImplementation == address(0)
                 || _initializationParams.alephVaultRedeemImplementation == address(0)
                 || _initializationParams.alephVaultSettlementImplementation == address(0)
@@ -77,7 +77,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.oracle = _initializationParams.oracle;
         _sd.guardian = _initializationParams.guardian;
         _sd.authSigner = _initializationParams.authSigner;
-        _sd.feeRecipient = _initializationParams.feeRecipient;
+        _sd.accountant = _initializationParams.accountant;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
             _initializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
@@ -125,7 +125,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             oracle: _sd.oracle,
             guardian: _sd.guardian,
             authSigner: _sd.authSigner,
-            feeRecipient: _sd.feeRecipient,
+            accountant: _sd.accountant,
             userInitializationParams: _userInitializationParams,
             moduleInitializationParams: _moduleInitializationParams
         });

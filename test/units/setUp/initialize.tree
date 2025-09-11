@@ -15,7 +15,7 @@ Initialize_Unit_Test
 │   └── it should revert with InvalidInitializationParams
 ├── when custodian passed is address(0)
 │   └── it should revert with InvalidInitializationParams
-├── when feeRecipient passed is address(0)
+├── when accountant passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when alephVaultDepositImplementation passed is address(0)
 │   └── it should revert with InvalidInitializationParams

@@ -1,10 +1,10 @@
 CollectFees_FeeManager_Unit_Test
-├── when caller is not FEE_RECIPIENT
+├── when caller is not ACCOUNTANT
 │   └── it should revert with AccessControlUnauthorizedAccount
-└── when caller is FEE_RECIPIENT
-    └── it should burn shares of MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT, update total shares and total assets, transfer fees to feeRecipient, emit FeesCollected
+└── when caller is ACCOUNTANT
+    └── it should burn shares of MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT, update total shares and total assets, transfer fees to accountant, emit FeesCollected
 
-CollectFees_FeeRecipient_Unit_Test
+CollectFees_Accountant_Unit_Test
 ├── when caller is not OPERATIONS_MULTISIG
 │   └── it should revert with AccessControlUnauthorizedAccount
 └── when caller is OPERATIONS_MULTISIG
@@ -14,10 +14,10 @@ CollectFees_FeeRecipient_Unit_Test
         ├── given vault treasury is not set
         │    └── it should revert with VaultTreasuryNotSet
         └── given vault treasury is set
-            ├── given fee recipient has insufficient allowance
+            ├── given accountant has insufficient allowance
             │   └── it should revert with ERC20InsufficientAllowance
-            └── given fee recipient has sufficient allowance
+            └── given accountant has sufficient allowance
                 ├── given vault has insufficient balance
                 │   └── it should revert with ERC20InsufficientBalance
                 └── given vault has sufficient balance
-                    └── it should transfer fees to feeRecipient, calculate fee split, transfer vault fee and aleph fee and emit FeesCollected
+                    └── it should transfer fees to accountant, calculate fee split, transfer vault fee and aleph fee and emit FeesCollected

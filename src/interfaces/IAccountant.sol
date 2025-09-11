@@ -19,7 +19,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-interface IFeeRecipient {
+interface IAccountant {
     event OperationsMultisigSet(address _operationsMultisig);
     event VaultFactorySet(address _vaultFactory);
     event AlephTreasurySet(address _alephTreasury);

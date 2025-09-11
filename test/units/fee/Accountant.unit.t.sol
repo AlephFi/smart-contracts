@@ -19,16 +19,16 @@ import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessCon
 import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
-import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 import {Mocks} from "@aleph-test/utils/Mocks.t.sol";
 
-contract FeeRecipientTest is BaseTest {
+contract AccountantTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setUpFeeRecipient(defaultFeeRecipientInitializationParams);
+        _setUpAccountant(defaultAccountantInitializationParams);
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
-        _setFeeRecipientCut(2500, 5000);
+        _setAccountantCut(2500, 5000);
         _unpauseVaultFlows();
     }
 
@@ -44,8 +44,8 @@ contract FeeRecipientTest is BaseTest {
 
         // collect fees
         vm.prank(manager);
-        vm.expectRevert(IFeeRecipient.InvalidVault.selector);
-        feeRecipient.collectFees(nonValidVault);
+        vm.expectRevert(IAccountant.InvalidVault.selector);
+        accountant.collectFees(nonValidVault);
     }
 
     function test_collectFees_revertsWhenCallerIsNotManager() public {
@@ -57,8 +57,8 @@ contract FeeRecipientTest is BaseTest {
 
         // collect fees
         vm.prank(nonManager);
-        vm.expectRevert(IFeeRecipient.InvalidManager.selector);
-        feeRecipient.collectFees(address(vault));
+        vm.expectRevert(IAccountant.InvalidManager.selector);
+        accountant.collectFees(address(vault));
     }
 
     function test_collectFees_revertsWhenVaultTreasuryIsNotSet() public {
@@ -67,8 +67,8 @@ contract FeeRecipientTest is BaseTest {
 
         // collect fees
         vm.prank(manager);
-        vm.expectRevert(IFeeRecipient.VaultTreasuryNotSet.selector);
-        feeRecipient.collectFees(address(vault));
+        vm.expectRevert(IAccountant.VaultTreasuryNotSet.selector);
+        accountant.collectFees(address(vault));
     }
 
     function test_collectFees_revertsWhenVaultDoesNotTransferCorrectFees() public {
@@ -76,14 +76,14 @@ contract FeeRecipientTest is BaseTest {
         address _vault = address(vault);
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         vm.prank(_vault);
-        feeRecipient.setVaultTreasury(vaultTreasury);
+        accountant.setVaultTreasury(vaultTreasury);
 
         // collect fees
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         mocks.mockCollectFees(_vault, 100 ether, 100 ether);
         vm.prank(manager);
-        vm.expectRevert(abi.encodeWithSelector(IFeeRecipient.FeesNotCollected.selector));
-        feeRecipient.collectFees(_vault);
+        vm.expectRevert(abi.encodeWithSelector(IAccountant.FeesNotCollected.selector));
+        accountant.collectFees(_vault);
     }
 
     function test_collectFees_shouldSucceed() public {
@@ -91,11 +91,11 @@ contract FeeRecipientTest is BaseTest {
         address _vault = address(vault);
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         vm.prank(_vault);
-        feeRecipient.setVaultTreasury(vaultTreasury);
+        accountant.setVaultTreasury(vaultTreasury);
 
-        // approve fee recipient
+        // approve accountant
         vm.prank(_vault);
-        underlyingToken.approve(address(feeRecipient), 200 ether);
+        underlyingToken.approve(address(accountant), 200 ether);
 
         // set up vault
         vault.setTotalAssets(0, 200 ether);
@@ -112,8 +112,8 @@ contract FeeRecipientTest is BaseTest {
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IFeeRecipient.FeesCollected(_vault, 100 ether, 100 ether, 125 ether, 75 ether);
-        feeRecipient.collectFees(_vault);
+        emit IAccountant.FeesCollected(_vault, 100 ether, 100 ether, 125 ether, 75 ether);
+        accountant.collectFees(_vault);
 
         // assert fee is transferred
         assertEq(underlyingToken.balanceOf(vaultTreasury), _vaultTreasuryBalanceBefore + 125 ether);

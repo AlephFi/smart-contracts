@@ -31,7 +31,7 @@ struct AlephVaultStorageData {
     address authSigner;
     address underlyingToken;
     address custodian;
-    address feeRecipient;
+    address accountant;
     mapping(uint8 classId => IAlephVault.ShareClass) shareClasses;
     mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
     mapping(bytes4 => address) moduleImplementations;

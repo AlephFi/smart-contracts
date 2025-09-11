@@ -23,15 +23,15 @@ import {
 } from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
-import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
+import {Accountant} from "@aleph-vault/Accountant.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-// Use only to upgrade FeeRecipient.
-// forge script UpgradeFeeRecipient --sig="run()" --broadcast -vvvv
-contract UpgradeFeeRecipient is BaseScript {
+// Use only to upgrade Accountant.
+// forge script UpgradeAccountant --sig="run()" --broadcast -vvvv
+contract UpgradeAccountant is BaseScript {
     bytes32 constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
     function setUp() public {}
@@ -43,18 +43,18 @@ contract UpgradeFeeRecipient is BaseScript {
         vm.startBroadcast(_privateKey);
         string memory _environment = _getEnvironment();
 
-        address _proxy = _getFeeRecipientProxy(_chainId, _environment);
-        FeeRecipient _feeRecipientImpl = new FeeRecipient();
+        address _proxy = _getAccountantProxy(_chainId, _environment);
+        Accountant _accountantImpl = new Accountant();
 
         address _proxyAdmin = address(uint160(uint256(vm.load(_proxy, ADMIN_SLOT))));
 
         ProxyAdmin(_proxyAdmin).upgradeAndCall(
-            ITransparentUpgradeableProxy(payable(_proxy)), address(_feeRecipientImpl), ""
+            ITransparentUpgradeableProxy(payable(_proxy)), address(_accountantImpl), ""
         );
-        console.log("FeeRecipient upgraded to", address(_feeRecipientImpl));
+        console.log("Accountant upgraded to", address(_accountantImpl));
 
         _writeDeploymentConfig(
-            _chainId, _environment, ".feeRecipientImplementationAddress", vm.toString(address(_feeRecipientImpl))
+            _chainId, _environment, ".accountantImplementationAddress", vm.toString(address(_accountantImpl))
         );
         vm.stopBroadcast();
     }

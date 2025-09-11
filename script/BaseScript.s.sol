@@ -51,8 +51,8 @@ abstract contract BaseScript is Script {
         return _config;
     }
 
-    function _getFeeRecipientConfig() internal view returns (string memory) {
-        string memory _config = vm.readFile("feeRecipientConfig.json");
+    function _getAccountantConfig() internal view returns (string memory) {
+        string memory _config = vm.readFile("accountantConfig.json");
         return _config;
     }
 
@@ -116,24 +116,20 @@ abstract contract BaseScript is Script {
         return _proxy;
     }
 
-    function _getFeeRecipientProxyOwner(string memory _chainId, string memory _environment)
+    function _getAccountantProxyOwner(string memory _chainId, string memory _environment)
         internal
         view
         returns (address)
     {
         string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
-        string memory _proxyOwnerKey = string.concat(".", _chainId, ".", _environment, ".feeRecipientProxyOwner");
+        string memory _proxyOwnerKey = string.concat(".", _chainId, ".", _environment, ".accountantProxyOwner");
         address _proxyOwner = vm.parseJsonAddress(_deploymentConfig, _proxyOwnerKey);
         return _proxyOwner;
     }
 
-    function _getFeeRecipientProxy(string memory _chainId, string memory _environment)
-        internal
-        view
-        returns (address)
-    {
+    function _getAccountantProxy(string memory _chainId, string memory _environment) internal view returns (address) {
         string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
-        string memory _proxyKey = string.concat(".", _chainId, ".", _environment, ".feeRecipientProxyAddress");
+        string memory _proxyKey = string.concat(".", _chainId, ".", _environment, ".accountantProxyAddress");
         address _proxy = vm.parseJsonAddress(_deploymentConfig, _proxyKey);
         return _proxy;
     }
@@ -150,14 +146,14 @@ abstract contract BaseScript is Script {
         return _implementation;
     }
 
-    function _getFeeRecipientImplementation(string memory _chainId, string memory _environment)
+    function _getAccountantImplementation(string memory _chainId, string memory _environment)
         internal
         view
         returns (address)
     {
         string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
         string memory _implementationKey =
-            string.concat(".", _chainId, ".", _environment, ".feeRecipientImplementationAddress");
+            string.concat(".", _chainId, ".", _environment, ".accountantImplementationAddress");
         address _implementation = vm.parseJsonAddress(_deploymentConfig, _implementationKey);
         return _implementation;
     }

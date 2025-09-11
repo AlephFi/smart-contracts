@@ -23,7 +23,7 @@ contract AlephVaultFactoryTest is Test {
     address authSigner;
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
-    address feeRecipient = makeAddr("feeRecipient");
+    address accountant = makeAddr("accountant");
     address alephVaultDepositImplementation = makeAddr("AlephVaultDeposit");
     address alephVaultRedeemImplementation = makeAddr("AlephVaultRedeem");
     address alephVaultSettlementImplementation = makeAddr("AlephVaultSettlement");
@@ -37,7 +37,7 @@ contract AlephVaultFactoryTest is Test {
     uint48 minRedeemAmountTimelock = 7 days;
     uint48 managementFeeTimelock = 7 days;
     uint48 performanceFeeTimelock = 7 days;
-    uint48 feeRecipientTimelock = 7 days;
+    uint48 accountantTimelock = 7 days;
     uint48 batchDuration = 1 days;
     uint256 authSignerPrivateKey;
 
@@ -56,7 +56,7 @@ contract AlephVaultFactoryTest is Test {
                 oracle: oracle,
                 guardian: guardian,
                 authSigner: authSigner,
-                feeRecipient: feeRecipient,
+                accountant: accountant,
                 alephVaultDepositImplementation: alephVaultDepositImplementation,
                 alephVaultRedeemImplementation: alephVaultRedeemImplementation,
                 alephVaultSettlementImplementation: alephVaultSettlementImplementation,
@@ -75,7 +75,7 @@ contract AlephVaultFactoryTest is Test {
                 oracle: oracle,
                 guardian: guardian,
                 authSigner: authSigner,
-                feeRecipient: feeRecipient,
+                accountant: accountant,
                 alephVaultDepositImplementation: alephVaultDepositImplementation,
                 alephVaultRedeemImplementation: alephVaultRedeemImplementation,
                 alephVaultSettlementImplementation: alephVaultSettlementImplementation,

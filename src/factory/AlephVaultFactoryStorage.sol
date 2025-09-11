@@ -24,7 +24,7 @@ struct AlephVaultFactoryStorageData {
     address oracle;
     address guardian;
     address authSigner;
-    address feeRecipient;
+    address accountant;
     EnumerableSet.AddressSet vaults;
     mapping(bytes4 => address) moduleImplementations;
 }
