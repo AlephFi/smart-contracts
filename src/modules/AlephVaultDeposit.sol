@@ -37,18 +37,18 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     uint48 public immutable MIN_USER_BALANCE_TIMELOCK;
     uint48 public immutable MAX_DEPOSIT_CAP_TIMELOCK;
 
-    constructor(
-        uint48 _minDepositAmountTimelock,
-        uint48 _minUserBalanceTimelock,
-        uint48 _maxDepositCapTimelock,
-        uint48 _batchDuration
-    ) AlephVaultBase(_batchDuration) {
-        if (_minDepositAmountTimelock == 0 || _minUserBalanceTimelock == 0 || _maxDepositCapTimelock == 0) {
+    constructor(DepositConstructorParams memory _constructorParams, uint48 _batchDuration)
+        AlephVaultBase(_batchDuration)
+    {
+        if (
+            _constructorParams.minDepositAmountTimelock == 0 || _constructorParams.minUserBalanceTimelock == 0
+                || _constructorParams.maxDepositCapTimelock == 0
+        ) {
             revert InvalidConstructorParams();
         }
-        MIN_DEPOSIT_AMOUNT_TIMELOCK = _minDepositAmountTimelock;
-        MIN_USER_BALANCE_TIMELOCK = _minUserBalanceTimelock;
-        MAX_DEPOSIT_CAP_TIMELOCK = _maxDepositCapTimelock;
+        MIN_DEPOSIT_AMOUNT_TIMELOCK = _constructorParams.minDepositAmountTimelock;
+        MIN_USER_BALANCE_TIMELOCK = _constructorParams.minUserBalanceTimelock;
+        MAX_DEPOSIT_CAP_TIMELOCK = _constructorParams.maxDepositCapTimelock;
     }
 
     /// @inheritdoc IAlephVaultDeposit

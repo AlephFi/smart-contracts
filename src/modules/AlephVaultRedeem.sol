@@ -34,18 +34,18 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     uint48 public immutable LOCK_IN_PERIOD_TIMELOCK;
     uint48 public immutable MIN_REDEEM_AMOUNT_TIMELOCK;
 
-    constructor(
-        uint48 _noticePeriodTimelock,
-        uint48 _lockInPeriodTimelock,
-        uint48 _minRedeemAmountTimelock,
-        uint48 _batchDuration
-    ) AlephVaultBase(_batchDuration) {
-        if (_noticePeriodTimelock == 0 || _lockInPeriodTimelock == 0 || _minRedeemAmountTimelock == 0) {
+    constructor(RedeemConstructorParams memory _constructorParams, uint48 _batchDuration)
+        AlephVaultBase(_batchDuration)
+    {
+        if (
+            _constructorParams.noticePeriodTimelock == 0 || _constructorParams.lockInPeriodTimelock == 0
+                || _constructorParams.minRedeemAmountTimelock == 0
+        ) {
             revert InvalidConstructorParams();
         }
-        NOTICE_PERIOD_TIMELOCK = _noticePeriodTimelock;
-        LOCK_IN_PERIOD_TIMELOCK = _lockInPeriodTimelock;
-        MIN_REDEEM_AMOUNT_TIMELOCK = _minRedeemAmountTimelock;
+        NOTICE_PERIOD_TIMELOCK = _constructorParams.noticePeriodTimelock;
+        LOCK_IN_PERIOD_TIMELOCK = _constructorParams.lockInPeriodTimelock;
+        MIN_REDEEM_AMOUNT_TIMELOCK = _constructorParams.minRedeemAmountTimelock;
     }
 
     /// @inheritdoc IAlephVaultRedeem

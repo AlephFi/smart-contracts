@@ -20,6 +20,12 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVaultRedeem {
+    struct RedeemConstructorParams {
+        uint48 noticePeriodTimelock;
+        uint48 lockInPeriodTimelock;
+        uint48 minRedeemAmountTimelock;
+    }
+
     event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
     event NewLockInPeriodQueued(uint8 classId, uint48 lockInPeriod);
     event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);

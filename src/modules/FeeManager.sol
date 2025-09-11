@@ -37,23 +37,16 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
-    uint48 public immutable ACCOUNTANT_TIMELOCK;
 
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
 
-    constructor(
-        uint48 _managementFeeTimelock,
-        uint48 _performanceFeeTimelock,
-        uint48 _accountantTimelock,
-        uint48 _batchDuration
-    ) AlephVaultBase(_batchDuration) {
-        if (_managementFeeTimelock == 0 || _performanceFeeTimelock == 0 || _accountantTimelock == 0) {
+    constructor(FeeConstructorParams memory _constructorParams, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
+        if (_constructorParams.managementFeeTimelock == 0 || _constructorParams.performanceFeeTimelock == 0) {
             revert InvalidConstructorParams();
         }
-        MANAGEMENT_FEE_TIMELOCK = _managementFeeTimelock;
-        PERFORMANCE_FEE_TIMELOCK = _performanceFeeTimelock;
-        ACCOUNTANT_TIMELOCK = _accountantTimelock;
+        MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
+        PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
     }
 
     /// @inheritdoc IFeeManager

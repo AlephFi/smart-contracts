@@ -16,6 +16,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
@@ -36,9 +39,11 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_minDepositAmountTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new AlephVaultDeposit(
-            0,
-            defaultConfigParams.minUserBalanceTimelock,
-            defaultConfigParams.maxDepositCapTimelock,
+            IAlephVaultDeposit.DepositConstructorParams({
+                minDepositAmountTimelock: 0,
+                minUserBalanceTimelock: defaultConfigParams.minUserBalanceTimelock,
+                maxDepositCapTimelock: defaultConfigParams.maxDepositCapTimelock
+            }),
             defaultConfigParams.batchDuration
         );
     }
@@ -46,9 +51,11 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_minUserBalanceTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new AlephVaultDeposit(
-            defaultConfigParams.minDepositAmountTimelock,
-            0,
-            defaultConfigParams.maxDepositCapTimelock,
+            IAlephVaultDeposit.DepositConstructorParams({
+                minDepositAmountTimelock: defaultConfigParams.minDepositAmountTimelock,
+                minUserBalanceTimelock: 0,
+                maxDepositCapTimelock: defaultConfigParams.maxDepositCapTimelock
+            }),
             defaultConfigParams.batchDuration
         );
     }
@@ -56,9 +63,11 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_maxDepositCapTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new AlephVaultDeposit(
-            defaultConfigParams.minDepositAmountTimelock,
-            defaultConfigParams.minUserBalanceTimelock,
-            0,
+            IAlephVaultDeposit.DepositConstructorParams({
+                minDepositAmountTimelock: defaultConfigParams.minDepositAmountTimelock,
+                minUserBalanceTimelock: defaultConfigParams.minUserBalanceTimelock,
+                maxDepositCapTimelock: 0
+            }),
             defaultConfigParams.batchDuration
         );
     }
@@ -66,9 +75,11 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_noticePeriodTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new AlephVaultRedeem(
-            0,
-            defaultConfigParams.lockInPeriodTimelock,
-            defaultConfigParams.minRedeemAmountTimelock,
+            IAlephVaultRedeem.RedeemConstructorParams({
+                noticePeriodTimelock: 0,
+                lockInPeriodTimelock: defaultConfigParams.lockInPeriodTimelock,
+                minRedeemAmountTimelock: defaultConfigParams.minRedeemAmountTimelock
+            }),
             defaultConfigParams.batchDuration
         );
     }
@@ -76,9 +87,11 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_lockInPeriodTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new AlephVaultRedeem(
-            defaultConfigParams.noticePeriodTimelock,
-            0,
-            defaultConfigParams.minRedeemAmountTimelock,
+            IAlephVaultRedeem.RedeemConstructorParams({
+                noticePeriodTimelock: defaultConfigParams.noticePeriodTimelock,
+                lockInPeriodTimelock: 0,
+                minRedeemAmountTimelock: defaultConfigParams.minRedeemAmountTimelock
+            }),
             defaultConfigParams.batchDuration
         );
     }
@@ -86,9 +99,11 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_minRedeemAmountTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new AlephVaultRedeem(
-            defaultConfigParams.noticePeriodTimelock,
-            defaultConfigParams.lockInPeriodTimelock,
-            0,
+            IAlephVaultRedeem.RedeemConstructorParams({
+                noticePeriodTimelock: defaultConfigParams.noticePeriodTimelock,
+                lockInPeriodTimelock: defaultConfigParams.lockInPeriodTimelock,
+                minRedeemAmountTimelock: 0
+            }),
             defaultConfigParams.batchDuration
         );
     }
@@ -96,9 +111,10 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_managementFeeTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new FeeManager(
-            0,
-            defaultConfigParams.performanceFeeTimelock,
-            defaultConfigParams.accountantTimelock,
+            IFeeManager.FeeConstructorParams({
+                managementFeeTimelock: 0,
+                performanceFeeTimelock: defaultConfigParams.performanceFeeTimelock
+            }),
             defaultConfigParams.batchDuration
         );
     }
@@ -106,19 +122,10 @@ contract VaultSetUpTest is BaseTest {
     function test_constructor_when_performanceFeeTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new FeeManager(
-            defaultConfigParams.managementFeeTimelock,
-            0,
-            defaultConfigParams.accountantTimelock,
-            defaultConfigParams.batchDuration
-        );
-    }
-
-    function test_constructor_when_accountantTimelock_passed_is_0() public {
-        vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
-        new FeeManager(
-            defaultConfigParams.managementFeeTimelock,
-            defaultConfigParams.performanceFeeTimelock,
-            0,
+            IFeeManager.FeeConstructorParams({
+                managementFeeTimelock: defaultConfigParams.managementFeeTimelock,
+                performanceFeeTimelock: 0
+            }),
             defaultConfigParams.batchDuration
         );
     }

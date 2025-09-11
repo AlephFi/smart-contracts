@@ -22,6 +22,12 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IAlephVaultDeposit {
+    struct DepositConstructorParams {
+        uint48 minDepositAmountTimelock;
+        uint48 minUserBalanceTimelock;
+        uint48 maxDepositCapTimelock;
+    }
+
     struct RequestDepositParams {
         uint8 classId;
         uint256 amount;

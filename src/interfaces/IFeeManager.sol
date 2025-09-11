@@ -20,6 +20,11 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IFeeManager {
+    struct FeeConstructorParams {
+        uint48 managementFeeTimelock;
+        uint48 performanceFeeTimelock;
+    }
+
     struct FeesAccumulatedParams {
         uint256 managementFeeAmount;
         uint256 managementFeeSharesToMint;
