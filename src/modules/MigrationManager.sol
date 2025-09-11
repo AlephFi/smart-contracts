@@ -18,10 +18,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {AccessControlUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {IMigrationManager} from "@aleph-vault/interfaces/IMigrationManager.sol";
-import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
-import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.

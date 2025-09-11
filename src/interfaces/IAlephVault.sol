@@ -472,11 +472,4 @@ interface IAlephVault {
         uint256 _minRedeemAmount,
         uint256 _minUserBalance
     ) external returns (uint8 _classId);
-
-    /**
-     * @notice Migrates the implementation of a module.
-     * @param _module The module to migrate.
-     * @param _newImplementation The new implementation.
-     */
-    function migrateModules(bytes4 _module, address _newImplementation) external;
 }

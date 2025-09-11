@@ -15,7 +15,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import {AccessControlUpgradeable} from
+    "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AlephPausableStorage, AlephPausableStorageData} from "@aleph-vault/AlephPausableStorage.sol";
