@@ -51,6 +51,7 @@ interface IAlephVault {
         address manager;
         address underlyingToken;
         address custodian;
+        address vaultTreasury;
         ShareClassParams shareClassParams;
         AuthLibrary.AuthSignature authSignature;
     }

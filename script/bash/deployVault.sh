@@ -46,6 +46,10 @@ validate_address "$VAULT_MANAGER" "Vault manager address"
 read -p "Enter vault custodian address: " VAULT_CUSTODIAN
 validate_address "$VAULT_CUSTODIAN" "Vault custodian address"
 
+# Vault treasury address
+read -p "Enter vault treasury address: " VAULT_TREASURY
+validate_address "$VAULT_TREASURY" "Vault treasury address"
+
 # Export environment variables
 export_common_vars "$CHAIN_ID" "$ENVIRONMENT" "$PRIVATE_KEY"
 
@@ -55,6 +59,7 @@ export VAULT_CONFIG_ID="$VAULT_CONFIG_ID"
 export VAULT_UNDERLYING_TOKEN="$VAULT_UNDERLYING_TOKEN"
 export VAULT_MANAGER="$VAULT_MANAGER"
 export VAULT_CUSTODIAN="$VAULT_CUSTODIAN"
+export VAULT_TREASURY="$VAULT_TREASURY"
 
 echo -e "\n${BOLD}${GREEN}🚀 Starting vault deployment...${NC}\n"
 
@@ -72,4 +77,6 @@ echo -e "  ${BLUE}Vault Name:${NC}              $VAULT_NAME"
 echo -e "  ${BLUE}Config ID:${NC}               $VAULT_CONFIG_ID"
 echo -e "  ${BLUE}Underlying Token:${NC}        $VAULT_UNDERLYING_TOKEN"
 echo -e "  ${BLUE}Manager:${NC}                 $VAULT_MANAGER"
-echo -e "  ${BLUE}Custodian:${NC}               $VAULT_CUSTODIAN\n"
+echo -e "  ${BLUE}Custodian:${NC}               $VAULT_CUSTODIAN"
+echo -e "  ${BLUE}Treasury:${NC}                $VAULT_TREASURY\n"
+

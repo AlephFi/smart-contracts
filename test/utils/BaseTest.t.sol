@@ -70,6 +70,7 @@ contract BaseTest is Test {
     address public operationsMultisig;
     address public vaultFactory;
     address public custodian;
+    address public vaultTreasury;
     address public oracle;
     address public guardian;
     address public authSigner;
@@ -86,7 +87,6 @@ contract BaseTest is Test {
     uint32 public managementFeeCut;
     uint32 public performanceFeeCut;
     address public alephTreasury;
-    address public vaultTreasury;
 
     uint256 public authSignerPrivateKey;
 
@@ -151,6 +151,7 @@ contract BaseTest is Test {
                 manager: makeAddr("manager"),
                 underlyingToken: address(underlyingToken),
                 custodian: makeAddr("custodian"),
+                vaultTreasury: makeAddr("vaultTreasury"),
                 shareClassParams: IAlephVault.ShareClassParams({
                     managementFee: 200, // 2%
                     performanceFee: 2000, // 20%
@@ -260,11 +261,15 @@ contract BaseTest is Test {
         guardian = _initializationParams.guardian;
         authSigner = _initializationParams.authSigner;
         custodian = _initializationParams.userInitializationParams.custodian;
+        vaultTreasury = _initializationParams.userInitializationParams.vaultTreasury;
 
         // set up module implementations
         _initializationParams.moduleInitializationParams = defaultInitializationParams.moduleInitializationParams;
 
         // initialize vault
+        mocks.mockSetVaultTreasury(
+            _initializationParams.accountant, _initializationParams.userInitializationParams.vaultTreasury
+        );
         vault.initialize(_initializationParams);
     }
 

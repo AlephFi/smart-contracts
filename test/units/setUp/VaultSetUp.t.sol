@@ -219,6 +219,15 @@ contract VaultSetUpTest is BaseTest {
         vault.initialize(_initializationParams);
     }
 
+    function test_initialize_when_vaultTreasury_passed_is_address_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
+        _initializationParams.userInitializationParams.vaultTreasury = address(0);
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
     function test_initialize_when_managementFee_is_greater_than_maxManagementFee() public {
         IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
         _initializationParams.userInitializationParams.shareClassParams.managementFee = 10_001;
@@ -284,6 +293,9 @@ contract VaultSetUpTest is BaseTest {
 
     function test_initialize_when_all_params_are_valid() public {
         vault = new ExposedVault(defaultConfigParams.batchDuration);
+        mocks.mockSetVaultTreasury(
+            defaultInitializationParams.accountant, defaultInitializationParams.userInitializationParams.vaultTreasury
+        );
         vault.initialize(defaultInitializationParams);
 
         assertEq(vault.name(), defaultInitializationParams.userInitializationParams.name);

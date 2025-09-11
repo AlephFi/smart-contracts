@@ -74,9 +74,10 @@ contract AccountantTest is BaseTest {
     function test_collectFees_revertsWhenVaultDoesNotTransferCorrectFees() public {
         // Setup vault treasury
         address _vault = address(vault);
+        address _vaultTreasury = makeAddr("testVaultTreasury");
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         vm.prank(_vault);
-        accountant.setVaultTreasury(vaultTreasury);
+        accountant.setVaultTreasury(_vaultTreasury);
 
         // collect fees
         mocks.mockIsValidVault(vaultFactory, _vault, true);
@@ -89,9 +90,10 @@ contract AccountantTest is BaseTest {
     function test_collectFees_shouldSucceed() public {
         // Setup vault treasury
         address _vault = address(vault);
+        address _vaultTreasury = makeAddr("testVaultTreasury");
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         vm.prank(_vault);
-        accountant.setVaultTreasury(vaultTreasury);
+        accountant.setVaultTreasury(_vaultTreasury);
 
         // approve accountant
         vm.prank(_vault);
@@ -105,7 +107,7 @@ contract AccountantTest is BaseTest {
         underlyingToken.mint(address(vault), 200 ether);
 
         // get treasury balances before
-        uint256 _vaultTreasuryBalanceBefore = underlyingToken.balanceOf(vaultTreasury);
+        uint256 _vaultTreasuryBalanceBefore = underlyingToken.balanceOf(_vaultTreasury);
         uint256 _alephTreasuryBalanceBefore = underlyingToken.balanceOf(alephTreasury);
 
         // collect fees
@@ -116,7 +118,7 @@ contract AccountantTest is BaseTest {
         accountant.collectFees(_vault);
 
         // assert fee is transferred
-        assertEq(underlyingToken.balanceOf(vaultTreasury), _vaultTreasuryBalanceBefore + 125 ether);
+        assertEq(underlyingToken.balanceOf(_vaultTreasury), _vaultTreasuryBalanceBefore + 125 ether);
         assertEq(underlyingToken.balanceOf(alephTreasury), _alephTreasuryBalanceBefore + 75 ether);
     }
 }

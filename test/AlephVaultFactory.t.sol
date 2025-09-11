@@ -10,9 +10,12 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
+import {Mocks} from "@aleph-test/utils/Mocks.t.sol";
 
 contract AlephVaultFactoryTest is Test {
     using MessageHashUtils for bytes32;
+
+    Mocks public mocks = new Mocks();
 
     AlephVaultFactory factory;
     address manager = address(0xABCD);
@@ -23,6 +26,7 @@ contract AlephVaultFactoryTest is Test {
     address authSigner;
     address underlyingToken = address(0xDEF0);
     address custodian = address(0x1111);
+    address vaultTreasury = address(0x2222);
     address accountant = makeAddr("accountant");
     address alephVaultDepositImplementation = makeAddr("AlephVaultDeposit");
     address alephVaultRedeemImplementation = makeAddr("AlephVaultRedeem");
@@ -92,9 +96,11 @@ contract AlephVaultFactoryTest is Test {
             manager: manager,
             underlyingToken: underlyingToken,
             custodian: custodian,
+            vaultTreasury: vaultTreasury,
             shareClassParams: shareClassParams,
             authSignature: authSignature
         });
+        mocks.mockSetVaultTreasury(accountant, vaultTreasury);
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
     }
