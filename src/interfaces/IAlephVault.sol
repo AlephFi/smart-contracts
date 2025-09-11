@@ -32,17 +32,7 @@ interface IAlephVault {
     event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
     event VaultTreasurySet(address vaultTreasury);
-    event ShareClassCreated(
-        uint8 classId,
-        uint32 managementFee,
-        uint32 performanceFee,
-        uint48 noticePeriod,
-        uint48 lockInPeriod,
-        uint256 minDepositAmount,
-        uint256 maxDepositCap,
-        uint256 minRedeemAmount,
-        uint256 minUserBalance
-    );
+    event ShareClassCreated(uint8 classId, ShareClassParams shareClassParams);
 
     struct InitializationParams {
         address operationsMultisig;
@@ -61,14 +51,7 @@ interface IAlephVault {
         address manager;
         address underlyingToken;
         address custodian;
-        uint32 managementFee;
-        uint32 performanceFee;
-        uint48 noticePeriod;
-        uint48 lockInPeriod;
-        uint256 minDepositAmount;
-        uint256 maxDepositCap;
-        uint256 minRedeemAmount;
-        uint256 minUserBalance;
+        ShareClassParams shareClassParams;
         AuthLibrary.AuthSignature authSignature;
     }
 
@@ -80,20 +63,24 @@ interface IAlephVault {
         address migrationManagerImplementation;
     }
 
-    struct ShareClass {
-        uint8 shareSeriesId;
-        uint8 lastConsolidatedSeriesId;
+    struct ShareClassParams {
         uint32 managementFee;
         uint32 performanceFee;
-        uint48 lastFeePaidId;
-        uint48 depositSettleId;
-        uint48 redeemSettleId;
         uint48 noticePeriod;
         uint48 lockInPeriod;
         uint256 minDepositAmount;
         uint256 maxDepositCap;
         uint256 minRedeemAmount;
         uint256 minUserBalance;
+    }
+
+    struct ShareClass {
+        uint8 shareSeriesId;
+        uint8 lastConsolidatedSeriesId;
+        uint48 lastFeePaidId;
+        uint48 depositSettleId;
+        uint48 redeemSettleId;
+        ShareClassParams shareClassParams;
         mapping(uint8 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
@@ -454,29 +441,7 @@ interface IAlephVault {
 
     /**
      * @notice Creates a new share class.
-     * @param _managementFee The management fee.
-     * @param _performanceFee The performance fee.
-     * @param _noticePeriod The notice period.
-     * @param _lockInPeriod The lock in period.
-     * @param _minDepositAmount The minimum deposit amount.
-     * @param _maxDepositCap The maximum deposit cap.
-     * @param _minRedeemAmount The minimum redeem amount.
+     * @param _shareClassParams The parameters for the share class.
      */
-    function createShareClass(
-        uint32 _managementFee,
-        uint32 _performanceFee,
-        uint48 _noticePeriod,
-        uint48 _lockInPeriod,
-        uint256 _minDepositAmount,
-        uint256 _maxDepositCap,
-        uint256 _minRedeemAmount,
-        uint256 _minUserBalance
-    ) external returns (uint8 _classId);
-
-    /**
-     * @notice Migrates the implementation of a module.
-     * @param _module The module to migrate.
-     * @param _newImplementation The new implementation.
-     */
-    function migrateModules(bytes4 _module, address _newImplementation) external;
+    function createShareClass(ShareClassParams memory _shareClassParams) external returns (uint8 _classId);
 }

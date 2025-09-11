@@ -15,30 +15,24 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
-import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
-import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
-import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
-import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
-import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
-import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephPausable} from "@aleph-vault/AlephPausable.sol";
+import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
-    using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
     modifier onlyValidShareClass(uint8 _classId) {
@@ -102,8 +96,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation == address(0)
                 || _initializationParams.moduleInitializationParams.feeManagerImplementation == address(0)
                 || _initializationParams.moduleInitializationParams.migrationManagerImplementation == address(0)
-                || _initializationParams.userInitializationParams.managementFee > MAXIMUM_MANAGEMENT_FEE
-                || _initializationParams.userInitializationParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
+                || _initializationParams.userInitializationParams.shareClassParams.managementFee > MAXIMUM_MANAGEMENT_FEE
+                || _initializationParams.userInitializationParams.shareClassParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
         ) {
             revert InvalidInitializationParams();
         }
@@ -156,17 +150,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         __ReentrancyGuard_init();
 
         // create default share class
-        _createShareClass(
-            _sd,
-            _initializationParams.userInitializationParams.managementFee,
-            _initializationParams.userInitializationParams.performanceFee,
-            _initializationParams.userInitializationParams.noticePeriod,
-            _initializationParams.userInitializationParams.lockInPeriod,
-            _initializationParams.userInitializationParams.minDepositAmount,
-            _initializationParams.userInitializationParams.maxDepositCap,
-            _initializationParams.userInitializationParams.minRedeemAmount,
-            _initializationParams.userInitializationParams.minUserBalance
-        );
+        _createShareClass(_sd, _initializationParams.userInitializationParams.shareClassParams);
     }
 
     /// @inheritdoc IAlephVault
@@ -230,12 +214,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function managementFee(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint32) {
-        return _getStorage().shareClasses[_classId].managementFee;
+        return _getStorage().shareClasses[_classId].shareClassParams.managementFee;
     }
 
     /// @inheritdoc IAlephVault
     function performanceFee(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint32) {
-        return _getStorage().shareClasses[_classId].performanceFee;
+        return _getStorage().shareClasses[_classId].shareClassParams.performanceFee;
     }
 
     /// @inheritdoc IAlephVault
@@ -362,32 +346,32 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function noticePeriod(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint48) {
-        return _getStorage().shareClasses[_classId].noticePeriod;
+        return _getStorage().shareClasses[_classId].shareClassParams.noticePeriod;
     }
 
     /// @inheritdoc IAlephVault
     function lockInPeriod(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint48) {
-        return _getStorage().shareClasses[_classId].lockInPeriod;
+        return _getStorage().shareClasses[_classId].shareClassParams.lockInPeriod;
     }
 
     /// @inheritdoc IAlephVault
     function minDepositAmount(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
-        return _getStorage().shareClasses[_classId].minDepositAmount;
+        return _getStorage().shareClasses[_classId].shareClassParams.minDepositAmount;
     }
 
     /// @inheritdoc IAlephVault
     function minUserBalance(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
-        return _getStorage().shareClasses[_classId].minUserBalance;
+        return _getStorage().shareClasses[_classId].shareClassParams.minUserBalance;
     }
 
     /// @inheritdoc IAlephVault
     function maxDepositCap(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
-        return _getStorage().shareClasses[_classId].maxDepositCap;
+        return _getStorage().shareClasses[_classId].shareClassParams.maxDepositCap;
     }
 
     /// @inheritdoc IAlephVault
     function minRedeemAmount(uint8 _classId) public view onlyValidShareClass(_classId) returns (uint256) {
-        return _getStorage().shareClasses[_classId].minRedeemAmount;
+        return _getStorage().shareClasses[_classId].shareClassParams.minRedeemAmount;
     }
 
     /// @inheritdoc IAlephVault
@@ -505,30 +489,18 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function createShareClass(
-        uint32 _managementFee,
-        uint32 _performanceFee,
-        uint48 _noticePeriod,
-        uint48 _lockInPeriod,
-        uint256 _minDepositAmount,
-        uint256 _maxDepositCap,
-        uint256 _minRedeemAmount,
-        uint256 _minUserBalance
-    ) external onlyRole(RolesLibrary.MANAGER) returns (uint8 _classId) {
-        if (_managementFee > MAXIMUM_MANAGEMENT_FEE || _performanceFee > MAXIMUM_PERFORMANCE_FEE) {
+    function createShareClass(ShareClassParams memory _shareClassParams)
+        external
+        onlyRole(RolesLibrary.MANAGER)
+        returns (uint8 _classId)
+    {
+        if (
+            _shareClassParams.managementFee > MAXIMUM_MANAGEMENT_FEE
+                || _shareClassParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
+        ) {
             revert InvalidVaultFee();
         }
-        return _createShareClass(
-            _getStorage(),
-            _managementFee,
-            _performanceFee,
-            _noticePeriod,
-            _lockInPeriod,
-            _minDepositAmount,
-            _maxDepositCap,
-            _minRedeemAmount,
-            _minUserBalance
-        );
+        return _createShareClass(_getStorage(), _shareClassParams);
     }
 
     /**
@@ -848,51 +820,21 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @dev Internal function to create a new share class.
      * @param _sd The storage struct.
-     * @param _managementFee The management fee.
-     * @param _performanceFee The performance fee.
-     * @param _noticePeriod The notice period.
-     * @param _lockInPeriod The lock in period.
-     * @param _minDepositAmount The minimum deposit amount.
-     * @param _maxDepositCap The maximum deposit cap.
-     * @param _minRedeemAmount The minimum redeem amount.
+     * @param _shareClassParams The parameters for the share class.
      * @return _classId The ID of the new share class.
      */
-    function _createShareClass(
-        AlephVaultStorageData storage _sd,
-        uint32 _managementFee,
-        uint32 _performanceFee,
-        uint48 _noticePeriod,
-        uint48 _lockInPeriod,
-        uint256 _minDepositAmount,
-        uint256 _maxDepositCap,
-        uint256 _minRedeemAmount,
-        uint256 _minUserBalance
-    ) internal returns (uint8 _classId) {
+    function _createShareClass(AlephVaultStorageData storage _sd, ShareClassParams memory _shareClassParams)
+        internal
+        returns (uint8 _classId)
+    {
         // increment share classes id
         _classId = ++_sd.shareClassesId;
         // set up share class parameters
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        _shareClass.managementFee = _managementFee;
-        _shareClass.performanceFee = _performanceFee;
-        _shareClass.noticePeriod = _noticePeriod;
-        _shareClass.lockInPeriod = _lockInPeriod;
-        _shareClass.minDepositAmount = _minDepositAmount;
-        _shareClass.maxDepositCap = _maxDepositCap;
-        _shareClass.minRedeemAmount = _minRedeemAmount;
-        _shareClass.minUserBalance = _minUserBalance;
+        _shareClass.shareClassParams = _shareClassParams;
         // set up lead series for new share class
         _shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
-        emit ShareClassCreated(
-            _classId,
-            _managementFee,
-            _performanceFee,
-            _noticePeriod,
-            _lockInPeriod,
-            _minDepositAmount,
-            _maxDepositCap,
-            _minRedeemAmount,
-            _minUserBalance
-        );
+        emit ShareClassCreated(_classId, _shareClassParams);
         return _classId;
     }
 

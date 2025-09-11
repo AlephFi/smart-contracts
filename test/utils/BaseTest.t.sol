@@ -20,8 +20,11 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
-import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
@@ -148,14 +151,16 @@ contract BaseTest is Test {
                 manager: makeAddr("manager"),
                 underlyingToken: address(underlyingToken),
                 custodian: makeAddr("custodian"),
-                managementFee: 200, // 2%
-                performanceFee: 2000, // 20%
-                noticePeriod: 0,
-                lockInPeriod: 0,
-                minDepositAmount: 10 ether,
-                maxDepositCap: 1_000_000 ether,
-                minRedeemAmount: 10 ether,
-                minUserBalance: 100 ether,
+                shareClassParams: IAlephVault.ShareClassParams({
+                    managementFee: 200, // 2%
+                    performanceFee: 2000, // 20%
+                    noticePeriod: 0,
+                    lockInPeriod: 0,
+                    minDepositAmount: 10 ether,
+                    maxDepositCap: 1_000_000 ether,
+                    minRedeemAmount: 10 ether,
+                    minUserBalance: 100 ether
+                }),
                 authSignature: authSignature_deploy
             }),
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
@@ -213,15 +218,33 @@ contract BaseTest is Test {
         defaultInitializationParams.moduleInitializationParams = IAlephVault.ModuleInitializationParams({
             alephVaultDepositImplementation: address(
                 new AlephVaultDeposit(
-                    minDepositAmountTimelock, minUserBalanceTimelock, maxDepositCapTimelock, batchDuration
+                    IAlephVaultDeposit.DepositConstructorParams({
+                        minDepositAmountTimelock: minDepositAmountTimelock,
+                        minUserBalanceTimelock: minUserBalanceTimelock,
+                        maxDepositCapTimelock: maxDepositCapTimelock
+                    }),
+                    batchDuration
                 )
             ),
             alephVaultRedeemImplementation: address(
-                new AlephVaultRedeem(noticePeriodTimelock, lockInPeriodTimelock, minRedeemAmountTimelock, batchDuration)
+                new AlephVaultRedeem(
+                    IAlephVaultRedeem.RedeemConstructorParams({
+                        noticePeriodTimelock: noticePeriodTimelock,
+                        lockInPeriodTimelock: lockInPeriodTimelock,
+                        minRedeemAmountTimelock: minRedeemAmountTimelock
+                    }),
+                    batchDuration
+                )
             ),
             alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
             feeManagerImplementation: address(
-                new FeeManager(managementFeeTimelock, performanceFeeTimelock, accountantTimelock, batchDuration)
+                new FeeManager(
+                    IFeeManager.FeeConstructorParams({
+                        managementFeeTimelock: managementFeeTimelock,
+                        performanceFeeTimelock: performanceFeeTimelock
+                    }),
+                    batchDuration
+                )
             ),
             migrationManagerImplementation: address(new MigrationManager(batchDuration))
         });

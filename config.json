@@ -9,7 +9,6 @@
             "minRedeemAmountTimelock": 604800,
             "managementFeeTimelock": 2764800,
             "performanceFeeTimelock": 2764800,
-            "accountantTimelock": 604800,
             "batchDuration": 86400
         }
     },
@@ -23,7 +22,6 @@
             "minRedeemAmountTimelock": 604800,
             "managementFeeTimelock": 2764800,
             "performanceFeeTimelock": 2764800,
-            "accountantTimelock": 604800,
             "batchDuration": 86400
         },
         "nightly": {
@@ -35,7 +33,6 @@
             "minRedeemAmountTimelock": 600,
             "managementFeeTimelock": 600,
             "performanceFeeTimelock": 600,
-            "accountantTimelock": 600,
             "batchDuration": 600
         },
         "feature": {
@@ -47,7 +44,6 @@
             "minRedeemAmountTimelock": 1,
             "managementFeeTimelock": 1,
             "performanceFeeTimelock": 1,
-            "accountantTimelock": 1,
             "batchDuration": 1
         }
     },
@@ -61,7 +57,6 @@
             "minRedeemAmountTimelock": 604800,
             "managementFeeTimelock": 2764800,
             "performanceFeeTimelock": 2764800,
-            "accountantTimelock": 604800,
             "batchDuration": 86400
         },
         "nightly": {
@@ -73,7 +68,6 @@
             "minRedeemAmountTimelock": 600,
             "managementFeeTimelock": 600,
             "performanceFeeTimelock": 600,
-            "accountantTimelock": 600,
             "batchDuration": 600
         },
         "feature": {
@@ -85,7 +79,6 @@
             "minRedeemAmountTimelock": 1,
             "managementFeeTimelock": 1,
             "performanceFeeTimelock": 1,
-            "accountantTimelock": 1,
             "batchDuration": 1
         }
     },
@@ -99,7 +92,6 @@
             "minRedeemAmountTimelock": 604800,
             "managementFeeTimelock": 2764800,
             "performanceFeeTimelock": 2764800,
-            "accountantTimelock": 604800,
             "batchDuration": 86400
         },
         "nightly": {
@@ -111,7 +103,6 @@
             "minRedeemAmountTimelock": 600,
             "managementFeeTimelock": 600,
             "performanceFeeTimelock": 600,
-            "accountantTimelock": 600,
             "batchDuration": 600
         },
         "feature": {
@@ -123,7 +114,6 @@
             "minRedeemAmountTimelock": 1,
             "managementFeeTimelock": 1,
             "performanceFeeTimelock": 1,
-            "accountantTimelock": 1,
             "batchDuration": 1
         }
     }

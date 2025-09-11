@@ -49,12 +49,7 @@ contract DeployAlephVault is BaseScript {
         AuthLibrary.AuthSignature memory _authSignature =
             _getAuthSignature(_factory, _vaultManager, _vaultName, _vaultConfigId);
 
-        IAlephVault.UserInitializationParams memory _userInitializationParams = IAlephVault.UserInitializationParams({
-            name: _vaultName,
-            configId: _vaultConfigId,
-            manager: _vaultManager,
-            underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
-            custodian: vm.envAddress("VAULT_CUSTODIAN"),
+        IAlephVault.ShareClassParams memory _shareClassParams = IAlephVault.ShareClassParams({
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
             performanceFee: uint32(vm.envUint("VAULT_PERFORMANCE_FEE")),
             noticePeriod: uint48(vm.envUint("VAULT_NOTICE_PERIOD")),
@@ -62,7 +57,16 @@ contract DeployAlephVault is BaseScript {
             minDepositAmount: vm.envUint("VAULT_MIN_DEPOSIT_AMOUNT"),
             maxDepositCap: vm.envUint("VAULT_MAX_DEPOSIT_CAP"),
             minRedeemAmount: vm.envUint("VAULT_MIN_REDEEM_AMOUNT"),
-            minUserBalance: vm.envUint("VAULT_MIN_USER_BALANCE"),
+            minUserBalance: vm.envUint("VAULT_MIN_USER_BALANCE")
+        });
+
+        IAlephVault.UserInitializationParams memory _userInitializationParams = IAlephVault.UserInitializationParams({
+            name: _vaultName,
+            configId: _vaultConfigId,
+            manager: _vaultManager,
+            underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
+            custodian: vm.envAddress("VAULT_CUSTODIAN"),
+            shareClassParams: _shareClassParams,
             authSignature: _authSignature
         });
         address _vault = IAlephVaultFactory(_factory).deployVault(_userInitializationParams);

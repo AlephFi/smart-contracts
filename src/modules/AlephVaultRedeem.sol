@@ -16,38 +16,36 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
-import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
+import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
-    using Math for uint256;
     using TimelockRegistry for bytes4;
 
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
     uint48 public immutable LOCK_IN_PERIOD_TIMELOCK;
     uint48 public immutable MIN_REDEEM_AMOUNT_TIMELOCK;
 
-    constructor(
-        uint48 _noticePeriodTimelock,
-        uint48 _lockInPeriodTimelock,
-        uint48 _minRedeemAmountTimelock,
-        uint48 _batchDuration
-    ) AlephVaultBase(_batchDuration) {
-        if (_noticePeriodTimelock == 0 || _lockInPeriodTimelock == 0 || _minRedeemAmountTimelock == 0) {
+    constructor(RedeemConstructorParams memory _constructorParams, uint48 _batchDuration)
+        AlephVaultBase(_batchDuration)
+    {
+        if (
+            _constructorParams.noticePeriodTimelock == 0 || _constructorParams.lockInPeriodTimelock == 0
+                || _constructorParams.minRedeemAmountTimelock == 0
+        ) {
             revert InvalidConstructorParams();
         }
-        NOTICE_PERIOD_TIMELOCK = _noticePeriodTimelock;
-        LOCK_IN_PERIOD_TIMELOCK = _lockInPeriodTimelock;
-        MIN_REDEEM_AMOUNT_TIMELOCK = _minRedeemAmountTimelock;
+        NOTICE_PERIOD_TIMELOCK = _constructorParams.noticePeriodTimelock;
+        LOCK_IN_PERIOD_TIMELOCK = _constructorParams.lockInPeriodTimelock;
+        MIN_REDEEM_AMOUNT_TIMELOCK = _constructorParams.minRedeemAmountTimelock;
     }
 
     /// @inheritdoc IAlephVaultRedeem
@@ -139,7 +137,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
      */
     function _setNoticePeriod(AlephVaultStorageData storage _sd, uint8 _classId) internal {
         uint48 _noticePeriod = abi.decode(TimelockRegistry.NOTICE_PERIOD.setTimelock(_classId, _sd), (uint48));
-        _sd.shareClasses[_classId].noticePeriod = _noticePeriod;
+        _sd.shareClasses[_classId].shareClassParams.noticePeriod = _noticePeriod;
         emit NewNoticePeriodSet(_classId, _noticePeriod);
     }
 
@@ -150,7 +148,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
      */
     function _setLockInPeriod(AlephVaultStorageData storage _sd, uint8 _classId) internal {
         uint48 _lockInPeriod = abi.decode(TimelockRegistry.LOCK_IN_PERIOD.setTimelock(_classId, _sd), (uint48));
-        _sd.shareClasses[_classId].lockInPeriod = _lockInPeriod;
+        _sd.shareClasses[_classId].shareClassParams.lockInPeriod = _lockInPeriod;
         emit NewLockInPeriodSet(_classId, _lockInPeriod);
     }
 
@@ -160,7 +158,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
      */
     function _setMinRedeemAmount(AlephVaultStorageData storage _sd, uint8 _classId) internal {
         uint256 _minRedeemAmount = abi.decode(TimelockRegistry.MIN_REDEEM_AMOUNT.setTimelock(_classId, _sd), (uint256));
-        _sd.shareClasses[_classId].minRedeemAmount = _minRedeemAmount;
+        _sd.shareClasses[_classId].shareClassParams.minRedeemAmount = _minRedeemAmount;
         emit NewMinRedeemAmountSet(_classId, _minRedeemAmount);
     }
 
@@ -180,14 +178,13 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
             revert InsufficientRedeem();
         }
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        uint256 _minRedeemAmount = _shareClass.minRedeemAmount;
-        if (_minRedeemAmount > 0 && _estAmount < _minRedeemAmount) {
-            revert RedeemLessThanMinRedeemAmount(_shareClass.minRedeemAmount);
+        IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
+        if (_shareClassParams.minRedeemAmount > 0 && _estAmount < _shareClassParams.minRedeemAmount) {
+            revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
         uint48 _currentBatchId = _currentBatch(_sd);
-        uint48 _lockInPeriod = _shareClass.lockInPeriod;
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
-        if (_lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
+        if (_shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }
         // get total user assets in the share class
@@ -198,12 +195,14 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         if (_pendingUserAssets + _estAmount > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
-        uint256 _minUserBalance = _shareClass.minUserBalance;
         uint256 _remainingAmount = _totalUserAssets - (_estAmount + _pendingUserAssets);
-        if (_minUserBalance > 0 && _remainingAmount > 0 && _remainingAmount < _minUserBalance) {
-            revert RedeemFallBelowMinUserBalance(_minUserBalance);
+        if (
+            _shareClassParams.minUserBalance > 0 && _remainingAmount > 0
+                && _remainingAmount < _shareClassParams.minUserBalance
+        ) {
+            revert RedeemFallBelowMinUserBalance(_shareClassParams.minUserBalance);
         }
-        if (_lockInPeriod > 0 && _remainingAmount == 0) {
+        if (_shareClassParams.lockInPeriod > 0 && _remainingAmount == 0) {
             delete _shareClass.userLockInPeriod[msg.sender];
         }
 

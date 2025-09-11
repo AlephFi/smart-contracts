@@ -15,16 +15,15 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
-import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
-import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -34,7 +33,6 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  */
 contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using SafeERC20 for IERC20;
-    using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
@@ -195,7 +193,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         // verify all conditions are satisfied to settle redeems
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _currentBatchId = _currentBatch(_sd);
-        uint48 _noticePeriod = _shareClass.noticePeriod;
+        uint48 _noticePeriod = _shareClass.shareClassParams.noticePeriod;
         if (_currentBatchId < _noticePeriod || _settlementParams.toBatchId > _currentBatchId - _noticePeriod) {
             revert InvalidToBatchId();
         }
@@ -370,7 +368,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         returns (uint8 _seriesId)
     {
         // for non-incentive classes, all settlements take place in the lead series
-        if (_shareClass.performanceFee > 0) {
+        if (_shareClass.shareClassParams.performanceFee > 0) {
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
             uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
             // if new lead series highwatermark is not reached, settlements must take place in a new series

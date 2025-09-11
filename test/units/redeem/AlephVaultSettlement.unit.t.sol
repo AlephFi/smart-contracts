@@ -35,32 +35,9 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 contract AlephVaultRedeemSettlementTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
-            operationsMultisig: defaultInitializationParams.operationsMultisig,
-            vaultFactory: defaultInitializationParams.vaultFactory,
-            oracle: defaultInitializationParams.oracle,
-            guardian: defaultInitializationParams.guardian,
-            authSigner: defaultInitializationParams.authSigner,
-            accountant: defaultInitializationParams.accountant,
-            userInitializationParams: IAlephVault.UserInitializationParams({
-                name: defaultInitializationParams.userInitializationParams.name,
-                configId: defaultInitializationParams.userInitializationParams.configId,
-                manager: defaultInitializationParams.userInitializationParams.manager,
-                underlyingToken: defaultInitializationParams.userInitializationParams.underlyingToken,
-                custodian: defaultInitializationParams.userInitializationParams.custodian,
-                managementFee: 0, // 0%
-                performanceFee: 0, // 0%
-                noticePeriod: defaultInitializationParams.userInitializationParams.noticePeriod,
-                lockInPeriod: defaultInitializationParams.userInitializationParams.lockInPeriod,
-                minDepositAmount: defaultInitializationParams.userInitializationParams.minDepositAmount,
-                maxDepositCap: defaultInitializationParams.userInitializationParams.maxDepositCap,
-                minRedeemAmount: defaultInitializationParams.userInitializationParams.minRedeemAmount,
-                minUserBalance: defaultInitializationParams.userInitializationParams.minUserBalance,
-                authSignature: defaultInitializationParams.userInitializationParams.authSignature
-            }),
-            moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
-        });
-
+        IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
+        IAlephVault.ShareClassParams memory _shareClassParams;
+        _initializationParams.userInitializationParams.shareClassParams = _shareClassParams;
         _setUpNewAlephVault(defaultConfigParams, _initializationParams);
         _unpauseVaultFlows();
     }

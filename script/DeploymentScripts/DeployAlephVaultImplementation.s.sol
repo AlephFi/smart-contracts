@@ -19,6 +19,9 @@ import {Script, console} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
+import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
+import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
 import {AlephVaultSettlement} from "@aleph-vault/modules/AlephVaultSettlement.sol";
@@ -42,7 +45,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 minRedeemAmountTimelock;
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
-        uint48 accountantTimelock;
         uint48 batchDuration;
     }
 
@@ -70,7 +72,6 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("minRedeemAmountTimelock", _configParams.minRedeemAmountTimelock);
         console.log("managementFeeTimelock", _configParams.managementFeeTimelock);
         console.log("performanceFeeTimelock", _configParams.performanceFeeTimelock);
-        console.log("accountantTimelock", _configParams.accountantTimelock);
         console.log("batchDuration", _configParams.batchDuration);
 
         IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses = _deployModules(_configParams);
@@ -86,22 +87,27 @@ contract DeployAlephVaultImplementation is BaseScript {
         returns (IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses)
     {
         AlephVaultDeposit _alephVaultDeposit = new AlephVaultDeposit(
-            _configParams.minDepositAmountTimelock,
-            _configParams.minUserBalanceTimelock,
-            _configParams.maxDepositCapTimelock,
+            IAlephVaultDeposit.DepositConstructorParams({
+                minDepositAmountTimelock: _configParams.minDepositAmountTimelock,
+                minUserBalanceTimelock: _configParams.minUserBalanceTimelock,
+                maxDepositCapTimelock: _configParams.maxDepositCapTimelock
+            }),
             _configParams.batchDuration
         );
         AlephVaultRedeem _alephVaultRedeem = new AlephVaultRedeem(
-            _configParams.noticePeriodTimelock,
-            _configParams.lockInPeriodTimelock,
-            _configParams.minRedeemAmountTimelock,
+            IAlephVaultRedeem.RedeemConstructorParams({
+                noticePeriodTimelock: _configParams.noticePeriodTimelock,
+                lockInPeriodTimelock: _configParams.lockInPeriodTimelock,
+                minRedeemAmountTimelock: _configParams.minRedeemAmountTimelock
+            }),
             _configParams.batchDuration
         );
         AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(_configParams.batchDuration);
         FeeManager _feeManager = new FeeManager(
-            _configParams.managementFeeTimelock,
-            _configParams.performanceFeeTimelock,
-            _configParams.accountantTimelock,
+            IFeeManager.FeeConstructorParams({
+                managementFeeTimelock: _configParams.managementFeeTimelock,
+                performanceFeeTimelock: _configParams.performanceFeeTimelock
+            }),
             _configParams.batchDuration
         );
         MigrationManager _migrationManager = new MigrationManager(_configParams.batchDuration);
@@ -126,7 +132,6 @@ contract DeployAlephVaultImplementation is BaseScript {
             minRedeemAmountTimelock: _getTimelock(_config, "minRedeemAmountTimelock"),
             managementFeeTimelock: _getTimelock(_config, "managementFeeTimelock"),
             performanceFeeTimelock: _getTimelock(_config, "performanceFeeTimelock"),
-            accountantTimelock: _getTimelock(_config, "accountantTimelock"),
             batchDuration: _getTimelock(_config, "batchDuration")
         });
     }

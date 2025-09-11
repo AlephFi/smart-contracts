@@ -121,9 +121,6 @@ contract FeeManager_Unit_Test is BaseTest {
         // roll the block forward to make timelock expired
         vm.warp(Time.timestamp() + vault.managementFeeTimelock() + 1);
 
-        // check management fee is not set
-        assertEq(vault.managementFee(1), defaultInitializationParams.userInitializationParams.managementFee);
-
         // set management fee
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
@@ -242,9 +239,6 @@ contract FeeManager_Unit_Test is BaseTest {
 
         // roll the block forward to make timelock expired
         vm.warp(Time.timestamp() + vault.performanceFeeTimelock() + 1);
-
-        // check performance fee is not set
-        assertEq(vault.performanceFee(1), defaultInitializationParams.userInitializationParams.performanceFee);
 
         // set performance fee
         vm.prank(manager);

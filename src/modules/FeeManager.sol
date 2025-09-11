@@ -16,9 +16,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
@@ -37,23 +37,16 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
-    uint48 public immutable ACCOUNTANT_TIMELOCK;
 
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
 
-    constructor(
-        uint48 _managementFeeTimelock,
-        uint48 _performanceFeeTimelock,
-        uint48 _accountantTimelock,
-        uint48 _batchDuration
-    ) AlephVaultBase(_batchDuration) {
-        if (_managementFeeTimelock == 0 || _performanceFeeTimelock == 0 || _accountantTimelock == 0) {
+    constructor(FeeConstructorParams memory _constructorParams, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
+        if (_constructorParams.managementFeeTimelock == 0 || _constructorParams.performanceFeeTimelock == 0) {
             revert InvalidConstructorParams();
         }
-        MANAGEMENT_FEE_TIMELOCK = _managementFeeTimelock;
-        PERFORMANCE_FEE_TIMELOCK = _performanceFeeTimelock;
-        ACCOUNTANT_TIMELOCK = _accountantTimelock;
+        MANAGEMENT_FEE_TIMELOCK = _constructorParams.managementFeeTimelock;
+        PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
     }
 
     /// @inheritdoc IFeeManager
@@ -160,7 +153,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         if (_performanceFee > MAXIMUM_PERFORMANCE_FEE) {
             revert InvalidPerformanceFee();
         }
-        uint32 _oldPerformanceFee = _sd.shareClasses[_classId].performanceFee;
+        uint32 _oldPerformanceFee = _sd.shareClasses[_classId].shareClassParams.performanceFee;
         if (_oldPerformanceFee == 0 || _performanceFee == 0) {
             revert InvalidShareClassConversion();
         }
@@ -179,7 +172,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      */
     function _setManagementFee(AlephVaultStorageData storage _sd, uint8 _classId) internal {
         uint32 _managementFee = abi.decode(TimelockRegistry.MANAGEMENT_FEE.setTimelock(_classId, _sd), (uint32));
-        _sd.shareClasses[_classId].managementFee = _managementFee;
+        _sd.shareClasses[_classId].shareClassParams.managementFee = _managementFee;
         emit NewManagementFeeSet(_classId, _managementFee);
     }
 
@@ -190,7 +183,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      */
     function _setPerformanceFee(AlephVaultStorageData storage _sd, uint8 _classId) internal {
         uint32 _performanceFee = abi.decode(TimelockRegistry.PERFORMANCE_FEE.setTimelock(_classId, _sd), (uint32));
-        _sd.shareClasses[_classId].performanceFee = _performanceFee;
+        _sd.shareClasses[_classId].shareClassParams.performanceFee = _performanceFee;
         emit NewPerformanceFeeSet(_classId, _performanceFee);
     }
 
@@ -215,12 +208,17 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint8 _seriesId
     ) internal returns (uint256) {
         FeesAccumulatedParams memory _feesAccumulatedParams;
+        IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
         // calculate management fee amount
-        _feesAccumulatedParams.managementFeeAmount =
-            _calculateManagementFeeAmount(_newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClass.managementFee);
+        _feesAccumulatedParams.managementFeeAmount = _calculateManagementFeeAmount(
+            _newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClassParams.managementFee
+        );
         // calculate performance fee amount
         _feesAccumulatedParams.performanceFeeAmount = _calculatePerformanceFeeAmount(
-            _shareClass.performanceFee, _newTotalAssets, _totalShares, _shareClass.shareSeries[_seriesId].highWaterMark
+            _shareClassParams.performanceFee,
+            _newTotalAssets,
+            _totalShares,
+            _shareClass.shareSeries[_seriesId].highWaterMark
         );
         // calculate management fee shares to mint
         _feesAccumulatedParams.managementFeeSharesToMint =
