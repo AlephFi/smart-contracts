@@ -29,17 +29,8 @@ contract AlephVaultFactoryTest is Test {
     address alephVaultSettlementImplementation = makeAddr("AlephVaultSettlement");
     address feeManagerImplementation = makeAddr("FeeManager");
     address migrationManagerImplementation = makeAddr("MigrationManager");
-    uint48 minDepositAmountTimelock = 7 days;
-    uint48 minUserBalanceTimelock = 7 days;
-    uint48 maxDepositCapTimelock = 7 days;
-    uint48 noticePeriodTimelock = 7 days;
-    uint48 lockInPeriodTimelock = 7 days;
-    uint48 minRedeemAmountTimelock = 7 days;
-    uint48 managementFeeTimelock = 7 days;
-    uint48 performanceFeeTimelock = 7 days;
-    uint48 accountantTimelock = 7 days;
-    uint48 batchDuration = 1 days;
     uint256 authSignerPrivateKey;
+    uint48 batchDuration = 1 days;
 
     AlephVault vaultImpl = new AlephVault(batchDuration);
     UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImpl), address(0x2222));
@@ -94,20 +85,14 @@ contract AlephVaultFactoryTest is Test {
         AuthLibrary.AuthSignature memory authSignature =
             AuthLibrary.AuthSignature({authSignature: _authSignature, expiryBlock: type(uint256).max});
 
+        IAlephVault.ShareClassParams memory shareClassParams;
         IAlephVault.UserInitializationParams memory params = IAlephVault.UserInitializationParams({
             name: name,
             configId: "test",
             manager: manager,
             underlyingToken: underlyingToken,
             custodian: custodian,
-            managementFee: 0,
-            performanceFee: 0,
-            noticePeriod: 0,
-            lockInPeriod: 0,
-            minDepositAmount: 0,
-            maxDepositCap: 0,
-            minRedeemAmount: 0,
-            minUserBalance: 0,
+            shareClassParams: shareClassParams,
             authSignature: authSignature
         });
         address vault = factory.deployVault(params);

@@ -148,14 +148,16 @@ contract BaseTest is Test {
                 manager: makeAddr("manager"),
                 underlyingToken: address(underlyingToken),
                 custodian: makeAddr("custodian"),
-                managementFee: 200, // 2%
-                performanceFee: 2000, // 20%
-                noticePeriod: 0,
-                lockInPeriod: 0,
-                minDepositAmount: 10 ether,
-                maxDepositCap: 1_000_000 ether,
-                minRedeemAmount: 10 ether,
-                minUserBalance: 100 ether,
+                shareClassParams: IAlephVault.ShareClassParams({
+                    managementFee: 200, // 2%
+                    performanceFee: 2000, // 20%
+                    noticePeriod: 0,
+                    lockInPeriod: 0,
+                    minDepositAmount: 10 ether,
+                    maxDepositCap: 1_000_000 ether,
+                    minRedeemAmount: 10 ether,
+                    minUserBalance: 100 ether
+                }),
                 authSignature: authSignature_deploy
             }),
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
