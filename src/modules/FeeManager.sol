@@ -160,7 +160,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         if (_performanceFee > MAXIMUM_PERFORMANCE_FEE) {
             revert InvalidPerformanceFee();
         }
-        uint32 _oldPerformanceFee = _sd.shareClasses[_classId].performanceFee;
+        uint32 _oldPerformanceFee = _sd.shareClasses[_classId].shareClassParams.performanceFee;
         if (_oldPerformanceFee == 0 || _performanceFee == 0) {
             revert InvalidShareClassConversion();
         }
@@ -179,7 +179,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      */
     function _setManagementFee(AlephVaultStorageData storage _sd, uint8 _classId) internal {
         uint32 _managementFee = abi.decode(TimelockRegistry.MANAGEMENT_FEE.setTimelock(_classId, _sd), (uint32));
-        _sd.shareClasses[_classId].managementFee = _managementFee;
+        _sd.shareClasses[_classId].shareClassParams.managementFee = _managementFee;
         emit NewManagementFeeSet(_classId, _managementFee);
     }
 
@@ -190,7 +190,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      */
     function _setPerformanceFee(AlephVaultStorageData storage _sd, uint8 _classId) internal {
         uint32 _performanceFee = abi.decode(TimelockRegistry.PERFORMANCE_FEE.setTimelock(_classId, _sd), (uint32));
-        _sd.shareClasses[_classId].performanceFee = _performanceFee;
+        _sd.shareClasses[_classId].shareClassParams.performanceFee = _performanceFee;
         emit NewPerformanceFeeSet(_classId, _performanceFee);
     }
 
@@ -215,12 +215,17 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint8 _seriesId
     ) internal returns (uint256) {
         FeesAccumulatedParams memory _feesAccumulatedParams;
+        IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
         // calculate management fee amount
-        _feesAccumulatedParams.managementFeeAmount =
-            _calculateManagementFeeAmount(_newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClass.managementFee);
+        _feesAccumulatedParams.managementFeeAmount = _calculateManagementFeeAmount(
+            _newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClassParams.managementFee
+        );
         // calculate performance fee amount
         _feesAccumulatedParams.performanceFeeAmount = _calculatePerformanceFeeAmount(
-            _shareClass.performanceFee, _newTotalAssets, _totalShares, _shareClass.shareSeries[_seriesId].highWaterMark
+            _shareClassParams.performanceFee,
+            _newTotalAssets,
+            _totalShares,
+            _shareClass.shareSeries[_seriesId].highWaterMark
         );
         // calculate management fee shares to mint
         _feesAccumulatedParams.managementFeeSharesToMint =

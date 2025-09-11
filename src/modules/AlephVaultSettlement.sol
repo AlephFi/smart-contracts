@@ -193,7 +193,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         // verify all conditions are satisfied to settle redeems
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _currentBatchId = _currentBatch(_sd);
-        uint48 _noticePeriod = _shareClass.noticePeriod;
+        uint48 _noticePeriod = _shareClass.shareClassParams.noticePeriod;
         if (_currentBatchId < _noticePeriod || _settlementParams.toBatchId > _currentBatchId - _noticePeriod) {
             revert InvalidToBatchId();
         }
@@ -368,7 +368,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         returns (uint8 _seriesId)
     {
         // for non-incentive classes, all settlements take place in the lead series
-        if (_shareClass.performanceFee > 0) {
+        if (_shareClass.shareClassParams.performanceFee > 0) {
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
             uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
             // if new lead series highwatermark is not reached, settlements must take place in a new series
