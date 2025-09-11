@@ -196,9 +196,12 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
             revert DepositLessThanMinDepositAmount(_minDepositAmount);
         }
         uint256 _minUserBalance = _shareClass.minUserBalance;
-        uint256 _pendingUserAssets = _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass)
-            + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender);
-        if (_minUserBalance > 0 && _pendingUserAssets + _requestDepositParams.amount < _minUserBalance) {
+        if (
+            _minUserBalance > 0
+                && _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass)
+                    + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
+                    < _minUserBalance
+        ) {
             revert DepositLessThanMinUserBalance(_minUserBalance);
         }
         uint256 _maxDepositCap = _shareClass.maxDepositCap;
@@ -216,7 +219,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         }
         uint48 _currentBatchId = _currentBatch(_sd);
         uint48 _lockInPeriod = _shareClass.lockInPeriod;
-        if (_lockInPeriod > 0 && _pendingUserAssets == 0) {
+        if (_lockInPeriod > 0 && _shareClass.userLockInPeriod[msg.sender] == 0) {
             _shareClass.userLockInPeriod[msg.sender] = _currentBatchId + _lockInPeriod;
         }
         IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];

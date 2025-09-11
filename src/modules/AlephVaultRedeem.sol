@@ -185,8 +185,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
             revert RedeemLessThanMinRedeemAmount(_shareClass.minRedeemAmount);
         }
         uint48 _currentBatchId = _currentBatch(_sd);
+        uint48 _lockInPeriod = _shareClass.lockInPeriod;
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
-        if (_shareClass.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
+        if (_lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }
         // get total user assets in the share class
@@ -201,6 +202,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         uint256 _remainingAmount = _totalUserAssets - (_estAmount + _pendingUserAssets);
         if (_minUserBalance > 0 && _remainingAmount > 0 && _remainingAmount < _minUserBalance) {
             revert RedeemFallBelowMinUserBalance(_minUserBalance);
+        }
+        if (_lockInPeriod > 0 && _remainingAmount == 0) {
+            delete _shareClass.userLockInPeriod[msg.sender];
         }
 
         // Calculate redeemable share units as a proportion of user's available assets
