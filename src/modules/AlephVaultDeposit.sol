@@ -15,7 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
@@ -32,7 +31,6 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  */
 contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     using SafeERC20 for IERC20;
-    using EnumerableSet for EnumerableSet.AddressSet;
     using TimelockRegistry for bytes4;
 
     uint48 public immutable MIN_DEPOSIT_AMOUNT_TIMELOCK;

@@ -15,8 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
@@ -35,7 +33,6 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
-    using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
     modifier onlyValidShareClass(uint8 _classId) {

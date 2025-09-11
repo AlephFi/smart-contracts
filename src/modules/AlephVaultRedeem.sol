@@ -15,7 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
@@ -29,7 +28,6 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
-    using Math for uint256;
     using TimelockRegistry for bytes4;
 
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
