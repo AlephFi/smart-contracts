@@ -98,7 +98,7 @@ contract VaultSetUpTest is BaseTest {
         new FeeManager(
             0,
             defaultConfigParams.performanceFeeTimelock,
-            defaultConfigParams.feeRecipientTimelock,
+            defaultConfigParams.accountantTimelock,
             defaultConfigParams.batchDuration
         );
     }
@@ -108,12 +108,12 @@ contract VaultSetUpTest is BaseTest {
         new FeeManager(
             defaultConfigParams.managementFeeTimelock,
             0,
-            defaultConfigParams.feeRecipientTimelock,
+            defaultConfigParams.accountantTimelock,
             defaultConfigParams.batchDuration
         );
     }
 
-    function test_constructor_when_feeRecipientTimelock_passed_is_0() public {
+    function test_constructor_when_accountantTimelock_passed_is_0() public {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new FeeManager(
             defaultConfigParams.managementFeeTimelock,
@@ -138,7 +138,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -155,7 +155,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -172,7 +172,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: address(0),
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -189,7 +189,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: address(0),
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -206,7 +206,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: address(0),
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -216,14 +216,14 @@ contract VaultSetUpTest is BaseTest {
         vault.initialize(_initializationParams);
     }
 
-    function test_initialize_when_feeRecipient_passed_is_address_0() public {
+    function test_initialize_when_accountant_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             vaultFactory: defaultInitializationParams.vaultFactory,
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: address(0),
+            accountant: address(0),
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: defaultInitializationParams.moduleInitializationParams
         });
@@ -240,7 +240,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
@@ -272,7 +272,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
@@ -304,7 +304,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
@@ -336,7 +336,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
@@ -368,7 +368,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,
@@ -400,7 +400,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: address(0),
@@ -429,7 +429,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: defaultInitializationParams
@@ -458,7 +458,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: defaultInitializationParams
@@ -487,7 +487,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: defaultInitializationParams
@@ -518,7 +518,7 @@ contract VaultSetUpTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: defaultInitializationParams.userInitializationParams,
             moduleInitializationParams: IAlephVault.ModuleInitializationParams({
                 alephVaultDepositImplementation: defaultInitializationParams
@@ -551,7 +551,7 @@ contract VaultSetUpTest is BaseTest {
         assertEq(vault.authSigner(), defaultInitializationParams.authSigner);
         assertEq(vault.underlyingToken(), defaultInitializationParams.userInitializationParams.underlyingToken);
         assertEq(vault.custodian(), defaultInitializationParams.userInitializationParams.custodian);
-        assertEq(vault.feeRecipient(), defaultInitializationParams.feeRecipient);
+        assertEq(vault.accountant(), defaultInitializationParams.accountant);
         assertEq(vault.managementFee(1), defaultInitializationParams.userInitializationParams.managementFee);
         assertEq(vault.performanceFee(1), defaultInitializationParams.userInitializationParams.performanceFee);
         assertEq(vault.noticePeriod(1), defaultInitializationParams.userInitializationParams.noticePeriod);
@@ -566,7 +566,7 @@ contract VaultSetUpTest is BaseTest {
         assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.userInitializationParams.manager));
         assertTrue(vault.hasRole(RolesLibrary.ORACLE, defaultInitializationParams.oracle));
         assertTrue(vault.hasRole(RolesLibrary.GUARDIAN, defaultInitializationParams.guardian));
-        assertTrue(vault.hasRole(RolesLibrary.FEE_RECIPIENT, defaultInitializationParams.feeRecipient));
+        assertTrue(vault.hasRole(RolesLibrary.ACCOUNTANT, defaultInitializationParams.accountant));
 
         assertTrue(
             vault.hasRole(

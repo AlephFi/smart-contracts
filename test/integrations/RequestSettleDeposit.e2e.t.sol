@@ -42,7 +42,7 @@ contract RequestSettleDepositTest is BaseTest {
             oracle: defaultInitializationParams.oracle,
             guardian: defaultInitializationParams.guardian,
             authSigner: defaultInitializationParams.authSigner,
-            feeRecipient: defaultInitializationParams.feeRecipient,
+            accountant: defaultInitializationParams.accountant,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: defaultInitializationParams.userInitializationParams.name,
                 configId: defaultInitializationParams.userInitializationParams.configId,

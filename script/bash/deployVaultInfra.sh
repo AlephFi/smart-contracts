@@ -53,18 +53,18 @@ VAULT_BEACON_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "vault
 echo -e "\n${GREEN}✓${NC} Vault Beacon deployed successfully"
 echo -e "  ${BLUE}Address:${NC} $VAULT_BEACON_ADDRESS\n"
 
-# Deploy Fee Recipient
-echo -e "${CYAN}╭─ Step 3: Deploying Fee Recipient${NC}"
+# Deploy Accountant
+echo -e "${CYAN}╭─ Step 3: Deploying Accountant${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
-verify_forge_script "DeployFeeRecipient" "true" "Failed to deploy fee recipient contract"
+verify_forge_script "DeployAccountant" "true" "Failed to deploy accountant contract"
 
-# Verify fee recipient addresses in deploymentConfig
-FEE_RECIPIENT_IMPL_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "feeRecipientImplementationAddress")
-FEE_RECIPIENT_PROXY_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "feeRecipientProxyAddress")
+# Verify accountant addresses in deploymentConfig
+ACCOUNTANT_IMPL_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "accountantImplementationAddress")
+ACCOUNTANT_PROXY_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "accountantProxyAddress")
 
-echo -e "\n${GREEN}✓${NC} Fee Recipient contracts deployed successfully"
-echo -e "  ${BLUE}Implementation:${NC} $FEE_RECIPIENT_IMPL_ADDRESS"
-echo -e "  ${BLUE}Proxy:${NC} $FEE_RECIPIENT_PROXY_ADDRESS\n"
+echo -e "\n${GREEN}✓${NC} Accountant contracts deployed successfully"
+echo -e "  ${BLUE}Implementation:${NC} $ACCOUNTANT_IMPL_ADDRESS"
+echo -e "  ${BLUE}Proxy:${NC} $ACCOUNTANT_PROXY_ADDRESS\n"
 
 # Deploy Factory
 echo -e "${CYAN}╭─ Step 4: Deploying Vault Factory${NC}"
@@ -79,12 +79,12 @@ echo -e "\n${GREEN}✓${NC} Factory contracts deployed successfully"
 echo -e "  ${BLUE}Implementation:${NC} $FACTORY_IMPL_ADDRESS"
 echo -e "  ${BLUE}Proxy:${NC} $FACTORY_PROXY_ADDRESS\n"
 
-# Set Factory in Fee Recipient
-echo -e "${CYAN}╭─ Step 5: Setting Factory in Fee Recipient${NC}"
+# Set Factory in Accountant
+echo -e "${CYAN}╭─ Step 5: Setting Factory in Accountant${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
-verify_forge_script "SetVaultFactory" "true" "Failed to set factory in fee recipient contract"
+verify_forge_script "SetVaultFactory" "true" "Failed to set factory in accountant contract"
 
-echo -e "\n${GREEN}✓${NC} Factory set in fee recipient successfully"
+echo -e "\n${GREEN}✓${NC} Factory set in accountant successfully"
 
 # Final success message
 print_header "Deployment Summary"
@@ -99,14 +99,14 @@ echo -e "  ${BLUE}MinDepositAmountTimelock:${NC}  $(get_config_value "$CHAIN_ID"
 echo -e "  ${BLUE}MaxDepositCapTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "maxDepositCapTimelock")"
 echo -e "  ${BLUE}ManagementFeeTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFeeTimelock")"
 echo -e "  ${BLUE}PerformanceFeeTimelock:${NC}    $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFeeTimelock")"
-echo -e "  ${BLUE}FeeRecipientTimelock:${NC}      $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "feeRecipientTimelock")"
+echo -e "  ${BLUE}AccountantTimelock:${NC}      $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "accountantTimelock")"
 echo -e "  ${BLUE}BatchDuration:${NC}             $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "batchDuration")\n"
 echo -e "${BOLD}Factory Configs${NC}"
 echo -e "  ${BLUE}OperationsMultisig:${NC}  $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "operationsMultisig")"
 echo -e "  ${BLUE}Oracle:${NC}              $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "oracle")"
 echo -e "  ${BLUE}Guardian:${NC}            $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "guardian")"
-echo -e "  ${BLUE}FeeRecipient:${NC}        $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "feeRecipient")"
+echo -e "  ${BLUE}Accountant:${NC}        $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "accountant")"
 echo -e "  ${BLUE}ManagementFee:${NC}       $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFee")"
 echo -e "  ${BLUE}PerformanceFee:${NC}      $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFee")\n"
-echo -e "${BOLD}Fee Recipient Configs${NC}"
-echo -e "  ${BLUE}AlephTreasury:${NC}       $(get_fee_recipient_config_value "$CHAIN_ID" "$ENVIRONMENT" "alephTreasury")\n"
+echo -e "${BOLD}Accountant Configs${NC}"
+echo -e "  ${BLUE}AlephTreasury:${NC}       $(get_accountant_config_value "$CHAIN_ID" "$ENVIRONMENT" "alephTreasury")\n"

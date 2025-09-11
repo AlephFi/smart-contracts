@@ -22,16 +22,16 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
-import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
-import {FeeRecipientStorage, FeeRecipientStorageData} from "@aleph-vault/FeeRecipientStorage.sol";
+import {AccountantStorage, AccountantStorageData} from "@aleph-vault/AccountantStorage.sol";
 
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
+contract Accountant is IAccountant, AccessControlUpgradeable {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
@@ -46,7 +46,7 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
     }
 
     function _initialize(InitializationParams calldata _initializationParams) internal onlyInitializing {
-        FeeRecipientStorageData storage _sd = _getStorage();
+        AccountantStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (_initializationParams.operationsMultisig == address(0) || _initializationParams.alephTreasury == address(0))
         {
@@ -57,19 +57,19 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function vaultTreasury() external view returns (address) {
-        FeeRecipientStorageData storage _sd = _getStorage();
+        AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, msg.sender);
         return _sd.vaultTreasury[msg.sender];
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function setOperationsMultisig(address _newOperationsMultisig)
         external
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
     {
-        FeeRecipientStorageData storage _sd = _getStorage();
+        AccountantStorageData storage _sd = _getStorage();
         address _oldOperationsMultisig = _sd.operationsMultisig;
         _sd.operationsMultisig = _newOperationsMultisig;
         _revokeRole(RolesLibrary.OPERATIONS_MULTISIG, _oldOperationsMultisig);
@@ -77,21 +77,21 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         emit OperationsMultisigSet(_newOperationsMultisig);
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function setVaultFactory(address _vaultFactory) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _getStorage().vaultFactory = _vaultFactory;
         emit VaultFactorySet(_vaultFactory);
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function setAlephTreasury(address _newAlephTreasury) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _getStorage().alephTreasury = _newAlephTreasury;
         emit AlephTreasurySet(_newAlephTreasury);
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function setVaultTreasury(address _vaultTreasury) external {
-        FeeRecipientStorageData storage _sd = _getStorage();
+        AccountantStorageData storage _sd = _getStorage();
         if (_vaultTreasury == address(0)) {
             revert InvalidVaultTreasury();
         }
@@ -100,31 +100,31 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         emit VaultTreasurySet(msg.sender, _vaultTreasury);
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function setManagementFeeCut(address _vault, uint32 _managementFeeCut)
         external
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
     {
-        FeeRecipientStorageData storage _sd = _getStorage();
+        AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
         _sd.managementFeeCut[_vault] = _managementFeeCut;
         emit ManagementFeeCutSet(_vault, _managementFeeCut);
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function setPerformanceFeeCut(address _vault, uint32 _performanceFeeCut)
         external
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
     {
-        FeeRecipientStorageData storage _sd = _getStorage();
+        AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
         _sd.performanceFeeCut[_vault] = _performanceFeeCut;
         emit PerformanceFeeCutSet(_vault, _performanceFeeCut);
     }
 
-    /// @inheritdoc IFeeRecipient
+    /// @inheritdoc IAccountant
     function collectFees(address _vault) external {
-        FeeRecipientStorageData storage _sd = _getStorage();
+        AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
         _validateManager(_sd, _vault);
         address _vaultTreasury = _sd.vaultTreasury[_vault];
@@ -156,7 +156,7 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
      * @return _alephFee The fee for the aleph treasury.
      */
     function _splitFees(
-        FeeRecipientStorageData storage _sd,
+        AccountantStorageData storage _sd,
         address _vault,
         address _vaultTreasury,
         address _underlyingToken,
@@ -174,23 +174,23 @@ contract FeeRecipient is IFeeRecipient, AccessControlUpgradeable {
         IERC20(_underlyingToken).safeTransfer(_sd.alephTreasury, _alephFee);
     }
 
-    function _validateVault(FeeRecipientStorageData storage _sd, address _vault) internal view {
+    function _validateVault(AccountantStorageData storage _sd, address _vault) internal view {
         if (!IAlephVaultFactory(_sd.vaultFactory).isValidVault(_vault)) {
             revert InvalidVault();
         }
     }
 
-    function _validateManager(FeeRecipientStorageData storage _sd, address _vault) internal view {
+    function _validateManager(AccountantStorageData storage _sd, address _vault) internal view {
         if (!AccessControlUpgradeable(_vault).hasRole(RolesLibrary.MANAGER, msg.sender)) {
             revert InvalidManager();
         }
     }
 
     /**
-     * @dev Returns the storage struct for the fee recipient.
+     * @dev Returns the storage struct for the accountant.
      * @return _sd The storage struct.
      */
-    function _getStorage() internal pure returns (FeeRecipientStorageData storage _sd) {
-        _sd = FeeRecipientStorage.load();
+    function _getStorage() internal pure returns (AccountantStorageData storage _sd) {
+        _sd = AccountantStorage.load();
     }
 }

@@ -248,9 +248,9 @@ contract ExposedVault is AlephVault {
         return 0;
     }
 
-    function feeRecipientTimelock() external returns (uint48) {
+    function accountantTimelock() external returns (uint48) {
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-            .delegatecall(abi.encodeWithSignature("FEE_RECIPIENT_TIMELOCK()"));
+            .delegatecall(abi.encodeWithSignature("ACCOUNTANT_TIMELOCK()"));
         if (_success) {
             return abi.decode(_data, (uint48));
         }

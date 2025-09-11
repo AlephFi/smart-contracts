@@ -9,5 +9,5 @@ Constructor_Unit_Test
 │   └── it should revert with InvalidConstructorParams
 ├── when performanceFeeTimelock passed is 0
 │   └── it should revert with InvalidConstructorParams
-└── when feeRecipientTimelock passed is 0
+└── when accountantTimelock passed is 0
     └── it should revert with InvalidConstructorParams

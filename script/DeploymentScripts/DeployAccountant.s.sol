@@ -22,16 +22,16 @@ import {
     ITransparentUpgradeableProxy
 } from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
-import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
-import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
+import {Accountant} from "@aleph-vault/Accountant.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-// Use to Deploy only an FeeRecipient.
-// forge script DeployFeeRecipient --sig="run()" --broadcast -vvvv
-contract DeployFeeRecipient is BaseScript {
+// Use to Deploy only an Accountant.
+// forge script DeployAccountant --sig="run()" --broadcast -vvvv
+contract DeployAccountant is BaseScript {
     function setUp() public {}
 
     function run() public {
@@ -39,49 +39,49 @@ contract DeployFeeRecipient is BaseScript {
         vm.createSelectFork(_chainId);
         string memory _environment = _getEnvironment();
 
-        address _proxyOwner = _getFeeRecipientProxyOwner(_chainId, _environment);
+        address _proxyOwner = _getAccountantProxyOwner(_chainId, _environment);
 
         string memory _factoryConfig = _getFactoryConfig();
-        string memory _feeRecipientConfig = _getFeeRecipientConfig();
+        string memory _accountantConfig = _getAccountantConfig();
 
-        IFeeRecipient.InitializationParams memory _initializationParams =
-            _getInitializationParams(_factoryConfig, _feeRecipientConfig, _chainId, _environment);
+        IAccountant.InitializationParams memory _initializationParams =
+            _getInitializationParams(_factoryConfig, _accountantConfig, _chainId, _environment);
 
         console.log("operationsMultisig", _initializationParams.operationsMultisig);
         console.log("alephTreasury", _initializationParams.alephTreasury);
 
-        bytes memory _initializeArgs = abi.encodeWithSelector(FeeRecipient.initialize.selector, _initializationParams);
+        bytes memory _initializeArgs = abi.encodeWithSelector(Accountant.initialize.selector, _initializationParams);
 
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
-        FeeRecipient _feeRecipientImpl = new FeeRecipient();
+        Accountant _accountantImpl = new Accountant();
 
         ITransparentUpgradeableProxy _proxy = ITransparentUpgradeableProxy(
-            address(new TransparentUpgradeableProxy(address(_feeRecipientImpl), _proxyOwner, _initializeArgs))
+            address(new TransparentUpgradeableProxy(address(_accountantImpl), _proxyOwner, _initializeArgs))
         );
 
-        console.log("FeeRecipient deployed at:", address(_proxy));
+        console.log("Accountant deployed at:", address(_proxy));
 
         _writeDeploymentConfig(
-            _chainId, _environment, ".feeRecipientImplementationAddress", vm.toString(address(_feeRecipientImpl))
+            _chainId, _environment, ".accountantImplementationAddress", vm.toString(address(_accountantImpl))
         );
-        _writeDeploymentConfig(_chainId, _environment, ".feeRecipientProxyAddress", vm.toString(address(_proxy)));
+        _writeDeploymentConfig(_chainId, _environment, ".accountantProxyAddress", vm.toString(address(_proxy)));
 
         vm.stopBroadcast();
     }
 
     function _getInitializationParams(
         string memory _factoryConfig,
-        string memory _feeRecipientConfig,
+        string memory _accountantConfig,
         string memory _chainId,
         string memory _environment
-    ) internal view returns (IFeeRecipient.InitializationParams memory) {
-        return IFeeRecipient.InitializationParams({
+    ) internal view returns (IAccountant.InitializationParams memory) {
+        return IAccountant.InitializationParams({
             operationsMultisig: vm.parseJsonAddress(
                 _factoryConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
             ),
             alephTreasury: vm.parseJsonAddress(
-                _feeRecipientConfig, string.concat(".", _chainId, ".", _environment, ".alephTreasury")
+                _accountantConfig, string.concat(".", _chainId, ".", _environment, ".alephTreasury")
             )
         });
     }

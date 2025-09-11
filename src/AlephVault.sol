@@ -25,7 +25,7 @@ import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
-import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
@@ -96,7 +96,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initializationParams.guardian == address(0) || _initializationParams.authSigner == address(0)
                 || _initializationParams.userInitializationParams.underlyingToken == address(0)
                 || _initializationParams.userInitializationParams.custodian == address(0)
-                || _initializationParams.feeRecipient == address(0)
+                || _initializationParams.accountant == address(0)
                 || _initializationParams.moduleInitializationParams.alephVaultDepositImplementation == address(0)
                 || _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation == address(0)
                 || _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation == address(0)
@@ -112,7 +112,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.oracle = _initializationParams.oracle;
         _sd.guardian = _initializationParams.guardian;
         _sd.authSigner = _initializationParams.authSigner;
-        _sd.feeRecipient = _initializationParams.feeRecipient;
+        _sd.accountant = _initializationParams.accountant;
         _sd.name = _initializationParams.userInitializationParams.name;
         _sd.manager = _initializationParams.userInitializationParams.manager;
         _sd.underlyingToken = _initializationParams.userInitializationParams.underlyingToken;
@@ -139,7 +139,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _grantRole(RolesLibrary.MANAGER, _initializationParams.userInitializationParams.manager);
         _grantRole(RolesLibrary.ORACLE, _initializationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initializationParams.guardian);
-        _grantRole(RolesLibrary.FEE_RECIPIENT, _initializationParams.feeRecipient);
+        _grantRole(RolesLibrary.ACCOUNTANT, _initializationParams.accountant);
 
         // initialize pausable modules
         __AlephVaultDeposit_init(
@@ -220,12 +220,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function vaultTreasury() external view returns (address) {
-        return IFeeRecipient(_getStorage().feeRecipient).vaultTreasury();
+        return IAccountant(_getStorage().accountant).vaultTreasury();
     }
 
     /// @inheritdoc IAlephVault
-    function feeRecipient() external view returns (address) {
-        return _getStorage().feeRecipient;
+    function accountant() external view returns (address) {
+        return _getStorage().accountant;
     }
 
     /// @inheritdoc IAlephVault
@@ -500,7 +500,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function setVaultTreasury(address _vaultTreasury) external override(IAlephVault) onlyRole(RolesLibrary.MANAGER) {
-        IFeeRecipient(_getStorage().feeRecipient).setVaultTreasury(_vaultTreasury);
+        IAccountant(_getStorage().accountant).setVaultTreasury(_vaultTreasury);
         emit VaultTreasurySet(_vaultTreasury);
     }
 
@@ -725,7 +725,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      */
     function collectFees()
         external
-        onlyRole(RolesLibrary.FEE_RECIPIENT)
+        onlyRole(RolesLibrary.ACCOUNTANT)
         returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
     {
         _delegate(ModulesLibrary.FEE_MANAGER);
@@ -827,11 +827,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /**
-     * @notice Migrates the fee recipient.
-     * @param _newFeeRecipient The new fee recipient.
+     * @notice Migrates the accountant.
+     * @param _newAccountant The new accountant.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateFeeRecipient(address _newFeeRecipient) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+    function migrateAccountant(address _newAccountant) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 

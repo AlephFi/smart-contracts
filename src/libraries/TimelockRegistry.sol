@@ -40,7 +40,7 @@ library TimelockRegistry {
     bytes4 internal constant MIN_REDEEM_AMOUNT = bytes4(keccak256("MIN_REDEEM_AMOUNT"));
     bytes4 internal constant MANAGEMENT_FEE = bytes4(keccak256("MANAGEMENT_FEE"));
     bytes4 internal constant PERFORMANCE_FEE = bytes4(keccak256("PERFORMANCE_FEE"));
-    bytes4 internal constant FEE_RECIPIENT = bytes4(keccak256("FEE_RECIPIENT"));
+    bytes4 internal constant ACCOUNTANT = bytes4(keccak256("ACCOUNTANT"));
 
     function setTimelock(bytes4 _key, uint8 _classId, AlephVaultStorageData storage _sd)
         internal

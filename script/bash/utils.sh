@@ -53,12 +53,12 @@ get_factory_config_value() {
     echo "$value"
 }
 
-# Function to get fee recipient config value
-get_fee_recipient_config_value() {
+# Function to get accountant config value
+get_accountant_config_value() {
     local chain_id="$1"
     local env="$2"
     local key="$3"
-    local value=$(jq -r ".[\"$chain_id\"][\"$env\"].$key" feeRecipientConfig.json)
+    local value=$(jq -r ".[\"$chain_id\"][\"$env\"].$key" accountantConfig.json)
     echo "$value"
 }
 

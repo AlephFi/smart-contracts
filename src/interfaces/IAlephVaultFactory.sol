@@ -42,7 +42,7 @@ interface IAlephVaultFactory {
         address oracle;
         address guardian;
         address authSigner;
-        address feeRecipient;
+        address accountant;
         address alephVaultDepositImplementation;
         address alephVaultRedeemImplementation;
         address alephVaultSettlementImplementation;

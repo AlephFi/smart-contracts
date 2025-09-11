@@ -50,7 +50,7 @@ interface IAlephVault {
         address oracle;
         address guardian;
         address authSigner;
-        address feeRecipient;
+        address accountant;
         UserInitializationParams userInitializationParams;
         ModuleInitializationParams moduleInitializationParams;
     }
@@ -176,10 +176,10 @@ interface IAlephVault {
     function vaultTreasury() external view returns (address);
 
     /**
-     * @notice Returns the fee recipient of the vault.
-     * @return The fee recipient.
+     * @notice Returns the accountant of the vault.
+     * @return The accountant.
      */
-    function feeRecipient() external view returns (address);
+    function accountant() external view returns (address);
 
     /**
      * @notice Returns the management fee of the vault.

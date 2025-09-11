@@ -37,7 +37,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
-    uint48 public immutable FEE_RECIPIENT_TIMELOCK;
+    uint48 public immutable ACCOUNTANT_TIMELOCK;
 
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
@@ -45,15 +45,15 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     constructor(
         uint48 _managementFeeTimelock,
         uint48 _performanceFeeTimelock,
-        uint48 _feeRecipientTimelock,
+        uint48 _accountantTimelock,
         uint48 _batchDuration
     ) AlephVaultBase(_batchDuration) {
-        if (_managementFeeTimelock == 0 || _performanceFeeTimelock == 0 || _feeRecipientTimelock == 0) {
+        if (_managementFeeTimelock == 0 || _performanceFeeTimelock == 0 || _accountantTimelock == 0) {
             revert InvalidConstructorParams();
         }
         MANAGEMENT_FEE_TIMELOCK = _managementFeeTimelock;
         PERFORMANCE_FEE_TIMELOCK = _performanceFeeTimelock;
-        FEE_RECIPIENT_TIMELOCK = _feeRecipientTimelock;
+        ACCOUNTANT_TIMELOCK = _accountantTimelock;
     }
 
     /// @inheritdoc IFeeManager
@@ -336,7 +336,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
                 emit SeriesFeeCollected(_classId, _seriesId, _managementFeeAmount, _performanceFeeAmount);
             }
         }
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.feeRecipient, _managementFeesToCollect + _performanceFeesToCollect);
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.accountant, _managementFeesToCollect + _performanceFeesToCollect);
         emit FeesCollected(_currentBatch(_sd), _managementFeesToCollect, _performanceFeesToCollect);
     }
 }

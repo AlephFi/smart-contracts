@@ -21,7 +21,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {IFeeRecipient} from "@aleph-vault/interfaces/IFeeRecipient.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
@@ -29,7 +29,7 @@ import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
 import {AlephVaultRedeem} from "@aleph-vault/modules/AlephVaultRedeem.sol";
 import {AlephVaultSettlement} from "@aleph-vault/modules/AlephVaultSettlement.sol";
 import {FeeManager} from "@aleph-vault/modules/FeeManager.sol";
-import {FeeRecipient} from "@aleph-vault/FeeRecipient.sol";
+import {Accountant} from "@aleph-vault/Accountant.sol";
 import {MigrationManager} from "@aleph-vault/modules/MigrationManager.sol";
 import {ExposedVault} from "@aleph-test/exposes/ExposedVault.sol";
 import {TestToken} from "@aleph-test/exposes/TestToken.sol";
@@ -52,7 +52,7 @@ contract BaseTest is Test {
         uint48 minRedeemAmountTimelock;
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
-        uint48 feeRecipientTimelock;
+        uint48 accountantTimelock;
         uint48 batchDuration;
     }
 
@@ -62,7 +62,7 @@ contract BaseTest is Test {
     Mocks public mocks = new Mocks();
 
     ExposedVault public vault;
-    FeeRecipient public feeRecipient;
+    Accountant public accountant;
     address public manager;
     address public operationsMultisig;
     address public vaultFactory;
@@ -78,7 +78,7 @@ contract BaseTest is Test {
     uint48 public minRedeemAmountTimelock;
     uint48 public managementFeeTimelock;
     uint48 public performanceFeeTimelock;
-    uint48 public feeRecipientTimelock;
+    uint48 public accountantTimelock;
     uint48 public batchDuration;
     uint32 public managementFeeCut;
     uint32 public performanceFeeCut;
@@ -96,7 +96,7 @@ contract BaseTest is Test {
     ConfigParams public defaultConfigParams;
 
     IAlephVault.InitializationParams public defaultInitializationParams;
-    FeeRecipient.InitializationParams public defaultFeeRecipientInitializationParams;
+    Accountant.InitializationParams public defaultAccountantInitializationParams;
 
     struct SettleDepositExpectations {
         uint256 expectedTotalAssets;
@@ -131,7 +131,7 @@ contract BaseTest is Test {
             minRedeemAmountTimelock: 7 days,
             managementFeeTimelock: 7 days,
             performanceFeeTimelock: 7 days,
-            feeRecipientTimelock: 7 days,
+            accountantTimelock: 7 days,
             batchDuration: 1 days
         });
 
@@ -141,7 +141,7 @@ contract BaseTest is Test {
             oracle: makeAddr("oracle"),
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
-            feeRecipient: makeAddr("feeRecipient"),
+            accountant: makeAddr("accountant"),
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: "test",
                 configId: "test-123",
@@ -167,27 +167,27 @@ contract BaseTest is Test {
             })
         });
 
-        defaultFeeRecipientInitializationParams = IFeeRecipient.InitializationParams({
+        defaultAccountantInitializationParams = IAccountant.InitializationParams({
             operationsMultisig: defaultInitializationParams.operationsMultisig,
             alephTreasury: makeAddr("alephTreasury")
         });
     }
 
-    function _setUpFeeRecipient(IFeeRecipient.InitializationParams memory _initializationParams) public {
-        FeeRecipient _feeRecipient = new FeeRecipient();
-        _feeRecipient.initialize(_initializationParams);
+    function _setUpAccountant(IAccountant.InitializationParams memory _initializationParams) public {
+        Accountant _accountant = new Accountant();
+        _accountant.initialize(_initializationParams);
         vm.prank(_initializationParams.operationsMultisig);
-        _feeRecipient.setVaultFactory(defaultInitializationParams.vaultFactory);
-        defaultInitializationParams.feeRecipient = address(_feeRecipient);
-        feeRecipient = _feeRecipient;
+        _accountant.setVaultFactory(defaultInitializationParams.vaultFactory);
+        defaultInitializationParams.accountant = address(_accountant);
+        accountant = _accountant;
         alephTreasury = _initializationParams.alephTreasury;
     }
 
-    function _setFeeRecipientCut(uint32 _managementFeeCut, uint32 _performanceFeeCut) public {
+    function _setAccountantCut(uint32 _managementFeeCut, uint32 _performanceFeeCut) public {
         mocks.mockIsValidVault(vaultFactory, address(vault), true);
         vm.startPrank(operationsMultisig);
-        feeRecipient.setManagementFeeCut(address(vault), _managementFeeCut);
-        feeRecipient.setPerformanceFeeCut(address(vault), _performanceFeeCut);
+        accountant.setManagementFeeCut(address(vault), _managementFeeCut);
+        accountant.setPerformanceFeeCut(address(vault), _performanceFeeCut);
         vm.stopPrank();
         managementFeeCut = _managementFeeCut;
         performanceFeeCut = _performanceFeeCut;
@@ -206,7 +206,7 @@ contract BaseTest is Test {
         minRedeemAmountTimelock = _configParams.minRedeemAmountTimelock;
         managementFeeTimelock = _configParams.managementFeeTimelock;
         performanceFeeTimelock = _configParams.performanceFeeTimelock;
-        feeRecipientTimelock = _configParams.feeRecipientTimelock;
+        accountantTimelock = _configParams.accountantTimelock;
         batchDuration = _configParams.batchDuration;
 
         // deploy modules
@@ -221,7 +221,7 @@ contract BaseTest is Test {
             ),
             alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
             feeManagerImplementation: address(
-                new FeeManager(managementFeeTimelock, performanceFeeTimelock, feeRecipientTimelock, batchDuration)
+                new FeeManager(managementFeeTimelock, performanceFeeTimelock, accountantTimelock, batchDuration)
             ),
             migrationManagerImplementation: address(new MigrationManager(batchDuration))
         });

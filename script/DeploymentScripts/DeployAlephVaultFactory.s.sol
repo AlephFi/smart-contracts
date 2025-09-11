@@ -51,7 +51,7 @@ contract DeployAlephVaultFactory is BaseScript {
         console.log("oracle", _initializationParams.oracle);
         console.log("guardian", _initializationParams.guardian);
         console.log("authSigner", _initializationParams.authSigner);
-        console.log("feeRecipient", _initializationParams.feeRecipient);
+        console.log("accountant", _initializationParams.accountant);
 
         bytes memory _initializeArgs =
             abi.encodeWithSelector(AlephVaultFactory.initialize.selector, _initializationParams);
@@ -88,8 +88,8 @@ contract DeployAlephVaultFactory is BaseScript {
             oracle: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".oracle")),
             guardian: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".guardian")),
             authSigner: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".authSigner")),
-            feeRecipient: vm.parseJsonAddress(
-                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".feeRecipientProxyAddress")
+            accountant: vm.parseJsonAddress(
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".accountantProxyAddress")
             ),
             alephVaultDepositImplementation: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultDepositImplementationAddress")

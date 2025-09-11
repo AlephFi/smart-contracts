@@ -23,7 +23,7 @@ import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 contract FeeManagerTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setUpFeeRecipient(defaultFeeRecipientInitializationParams);
+        _setUpAccountant(defaultAccountantInitializationParams);
         _setUpNewAlephVault(defaultConfigParams, defaultInitializationParams);
         _unpauseVaultFlows();
     }
@@ -150,7 +150,7 @@ contract FeeManagerTest is BaseTest {
     /*//////////////////////////////////////////////////////////////
                         COLLECT FEE TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_collectFees_revertsWhenCallerIsNotFeeRecipient() public {
+    function test_collectFees_revertsWhenCallerIsNotAccountant() public {
         // Setup a non-authorized user
         address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
 
@@ -158,13 +158,13 @@ contract FeeManagerTest is BaseTest {
         vm.prank(nonAuthorizedUser);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.FEE_RECIPIENT
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.ACCOUNTANT
             )
         );
         vault.collectFees();
     }
 
-    function test_collectFees_whenCallerIsFeeRecipient_shouldSucceed() public {
+    function test_collectFees_whenCallerIsAccountant_shouldSucceed() public {
         // accumalate fees to recipients
         uint256 _managementShares = 120;
         uint256 _performanceShares = 120;
@@ -184,10 +184,10 @@ contract FeeManagerTest is BaseTest {
 
         // set vault balance
         underlyingToken.mint(address(vault), _expectedTotalFeesToCollect);
-        uint256 _feeRecipientBalanceBefore = underlyingToken.balanceOf(address(feeRecipient));
+        uint256 _accountantBalanceBefore = underlyingToken.balanceOf(address(accountant));
 
         // collect fees
-        vm.prank(address(feeRecipient));
+        vm.prank(address(accountant));
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesCollected(0, _expectedManagementFeesToCollect, _expectedPerformanceFeesToCollect);
         vault.collectFees();
@@ -204,8 +204,6 @@ contract FeeManagerTest is BaseTest {
         assertEq(vault.totalSharesPerSeries(1, 0), _totalShares - _managementShares - _performanceShares);
 
         // check fee is collected
-        assertEq(
-            underlyingToken.balanceOf(address(feeRecipient)), _feeRecipientBalanceBefore + _expectedTotalFeesToCollect
-        );
+        assertEq(underlyingToken.balanceOf(address(accountant)), _accountantBalanceBefore + _expectedTotalFeesToCollect);
     }
 }
