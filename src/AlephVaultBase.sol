@@ -64,21 +64,6 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @dev Returns the total shares in the vault.
-     * @param _sd The storage struct.
-     * @return The total shares in the vault.
-     */
-    function _totalShares(AlephVaultStorageData storage _sd) internal view returns (uint256) {
-        uint256 _totalShares;
-        uint8 _shareClassesId = _sd.shareClassesId;
-        for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
-            IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-            _totalShares += _totalSharesPerClass(_shareClass, _classId);
-        }
-        return _totalShares;
-    }
-
-    /**
      * @dev Returns the total assets in the vault for a given class.
      * @param _shareClass The share class.
      * @param _classId The ID of the share class.
@@ -99,30 +84,6 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
             _totalAssets += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
         }
         return _totalAssets;
-    }
-
-    /**
-     * @dev Returns the total shares in the vault for a given class.
-     * @param _shareClass The share class.
-     * @param _classId The ID of the share class.
-     * @return The total shares in the vault for the given class.
-     */
-    function _totalSharesPerClass(IAlephVault.ShareClass storage _shareClass, uint8 _classId)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 _totalShares;
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
-        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-            if (_seriesId > LEAD_SERIES_ID) {
-                _seriesId += _lastConsolidatedSeriesId;
-            }
-            // loop through all share series and sum up the total shares
-            _totalShares += _totalSharesPerSeries(_shareClass, _classId, _seriesId);
-        }
-        return _totalShares;
     }
 
     /**

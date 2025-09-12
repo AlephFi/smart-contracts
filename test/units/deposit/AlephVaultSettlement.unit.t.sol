@@ -229,7 +229,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // check total assets and total shares
         uint256 _totalAssets = vault.totalAssets();
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         uint256[] memory _newTotalAssets = new uint256[](1);
         _newTotalAssets[0] = _totalAssets + 100 ether;
 
@@ -250,7 +250,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _newTotalAssets[0]);
-        assertEq(vault.totalShares(), _totalShares);
+        assertEq(vault.totalSharesPerSeries(1, 0), _totalShares);
     }
 
     function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_revertsGivenVaultHasInsufficientBalance(
@@ -291,7 +291,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), 0);
-        assertEq(vault.totalShares(), 0);
+        assertEq(vault.totalSharesPerSeries(1, 0), 0);
 
         // set higher water mark for lead series
         vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
@@ -326,8 +326,8 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.stopPrank();
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), 300 ether);
-        assertEq(vault.totalShares(), 300 ether);
+        assertEq(vault.totalAssetsPerSeries(1, 1), 300 ether);
+        assertEq(vault.totalSharesPerSeries(1, 1), 300 ether);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 1, mockUser_1), 100 ether);
@@ -352,7 +352,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), 0);
-        assertEq(vault.totalShares(), 0);
+        assertEq(vault.totalSharesPerSeries(1, 0), 0);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
@@ -383,7 +383,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), 300 ether);
-        assertEq(vault.totalShares(), 300 ether);
+        assertEq(vault.totalSharesPerSeries(1, 0), 300 ether);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 100 ether);
@@ -412,7 +412,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), 0);
-        assertEq(vault.totalShares(), 0);
+        assertEq(vault.totalSharesPerSeries(1, 0), 0);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
@@ -445,7 +445,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), 600 ether);
-        assertEq(vault.totalShares(), 600 ether);
+        assertEq(vault.totalSharesPerSeries(1, 0), 600 ether);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 300 ether);

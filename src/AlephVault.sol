@@ -235,11 +235,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalShares() external view returns (uint256) {
-        return _totalShares(_getStorage());
-    }
-
-    /// @inheritdoc IAlephVault
     function totalAssetsOfClass(uint8 _classId)
         external
         view
@@ -259,32 +254,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalSharesOfClass(uint8 _classId)
-        external
-        view
-        onlyValidShareClass(_classId)
-        returns (uint256[] memory)
-    {
-        IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
-        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint8 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
-        uint256[] memory _totalShares = new uint256[](_len);
-        for (uint8 _i; _i < _len; _i++) {
-            uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
-            _totalShares[_i] = _totalSharesPerSeries(_shareClass, _classId, _seriesId);
-        }
-        return _totalShares;
-    }
-
-    /// @inheritdoc IAlephVault
     function totalAssetsPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
         return _totalAssetsPerClass(_getStorage().shareClasses[_classId], _classId);
-    }
-
-    /// @inheritdoc IAlephVault
-    function totalSharesPerClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256) {
-        return _totalSharesPerClass(_getStorage().shareClasses[_classId], _classId);
     }
 
     /// @inheritdoc IAlephVault
