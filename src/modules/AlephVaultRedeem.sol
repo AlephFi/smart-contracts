@@ -176,7 +176,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_redeemRequestParams.classId];
         uint8 _shareSeries = _shareClass.shareSeriesId;
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint256 _amount;
+        uint256 _previewAmountToRedeem;
         for (uint256 _i; _i < _redeemRequestParams.shareRequests.length; _i++) {
             if (_redeemRequestParams.shareRequests[_i].shares == 0) {
                 revert InsufficientRedeem();
@@ -186,7 +186,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
                 revert InvalidSeriesId(_seriesId);
             }
             IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
-            _amount += ERC4626Math.previewRedeem(
+            _previewAmountToRedeem += ERC4626Math.previewRedeem(
                 _redeemRequestParams.shareRequests[_i].shares, _shareSeries.totalAssets, _shareSeries.totalShares
             );
         }
@@ -208,24 +208,24 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
-        if (_amount == 0 || _amount > _totalUserAssets - _pendingUserAssets) {
+        if (_previewAmountToRedeem == 0 || _previewAmountToRedeem > _totalUserAssets - _pendingUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
-        if (_shareClassParams.minRedeemAmount > 0 && _amount < _shareClassParams.minRedeemAmount) {
+        if (_shareClassParams.minRedeemAmount > 0 && _previewAmountToRedeem < _shareClassParams.minRedeemAmount) {
             revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
         if (_shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }
-        uint256 _remainingAmount = _totalUserAssets - (_amount + _pendingUserAssets);
+        uint256 _previewRemainingAmount = _totalUserAssets - (_previewAmountToRedeem + _pendingUserAssets);
         if (
-            _shareClassParams.minUserBalance > 0 && _remainingAmount > 0
-                && _remainingAmount < _shareClassParams.minUserBalance
+            _shareClassParams.minUserBalance > 0 && _previewRemainingAmount > 0
+                && _previewRemainingAmount < _shareClassParams.minUserBalance
         ) {
             revert RedeemFallBelowMinUserBalance(_shareClassParams.minUserBalance);
         }
-        if (_shareClassParams.lockInPeriod > 0 && _remainingAmount == 0) {
+        if (_shareClassParams.lockInPeriod > 0 && _previewRemainingAmount == 0) {
             delete _shareClass.userLockInPeriod[msg.sender];
         }
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
@@ -234,7 +234,8 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         }
 
         // register redeem request
-        uint256 _shareUnits = ERC4626Math.previewWithdrawUnits(_amount, _totalUserAssets - _pendingUserAssets);
+        uint256 _shareUnits =
+            ERC4626Math.previewWithdrawUnits(_previewAmountToRedeem, _totalUserAssets - _pendingUserAssets);
         _redeemRequests.redeemRequest[msg.sender] = _shareUnits;
         _redeemRequests.usersToRedeem.push(msg.sender);
         emit RedeemRequest(msg.sender, _redeemRequestParams.classId, _shareUnits, _currentBatchId);
