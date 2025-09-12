@@ -208,7 +208,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // 2. During redemption, redeem requests are settled by iterating over past unsettled batches.
         //    Using available assets (total - pending) as denominator ensures redemption requests
         //    are correctly sized relative to user's redeemable position at that particular batch
-        if (_amount == 0) {
+        if (_amount == 0 || _amount > _totalUserAssets - _pendingUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
         if (_shareClassParams.minRedeemAmount > 0 && _amount < _shareClassParams.minRedeemAmount) {
@@ -234,7 +234,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         }
 
         // register redeem request
-        uint256 _shareUnits = ERC4626Math.previewMintUnits(_amount, _totalUserAssets - _pendingUserAssets);
+        uint256 _shareUnits = ERC4626Math.previewWithdrawUnits(_amount, _totalUserAssets - _pendingUserAssets);
         _redeemRequests.redeemRequest[msg.sender] = _shareUnits;
         _redeemRequests.usersToRedeem.push(msg.sender);
         emit RedeemRequest(msg.sender, _redeemRequestParams.classId, _shareUnits, _currentBatchId);
