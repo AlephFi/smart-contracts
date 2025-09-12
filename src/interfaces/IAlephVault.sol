@@ -98,12 +98,12 @@ interface IAlephVault {
 
     struct DepositRequests {
         uint256 totalAmountToDeposit;
-        address[] usersToDeposit;
+        EnumerableSet.AddressSet usersToDeposit;
         mapping(address => uint256) depositRequest;
     }
 
     struct RedeemRequests {
-        address[] usersToRedeem;
+        EnumerableSet.AddressSet usersToRedeem;
         mapping(address => uint256) redeemRequest;
     }
 

@@ -439,12 +439,24 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /// @inheritdoc IAlephVault
     function usersToDepositAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory) {
-        return _getStorage().shareClasses[_classId].depositRequests[_batchId].usersToDeposit;
+        bytes32[] memory _bytesUsers =
+            _getStorage().shareClasses[_classId].depositRequests[_batchId].usersToDeposit._inner._values;
+        address[] memory _users = new address[](_bytesUsers.length);
+        assembly {
+            _users := _bytesUsers
+        }
+        return _users;
     }
 
     /// @inheritdoc IAlephVault
     function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory) {
-        return _getStorage().shareClasses[_classId].redeemRequests[_batchId].usersToRedeem;
+        bytes32[] memory _bytesUsers =
+            _getStorage().shareClasses[_classId].redeemRequests[_batchId].usersToRedeem._inner._values;
+        address[] memory _users = new address[](_bytesUsers.length);
+        assembly {
+            _users := _bytesUsers
+        }
+        return _users;
     }
 
     /// @inheritdoc IAlephVault
@@ -765,6 +777,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClass(_settlementParams.classId)
         whenFlowNotPaused(PausableFlows.SETTLE_REDEEM_FLOW)
     {
+        _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @notice Forces a redeem for a user.
+     * @param _user The user to force a redeem for.
+     * @dev Only callable by the MANAGER role.
+     */
+    function forceRedeem(address _user) external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
     }
 

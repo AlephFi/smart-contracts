@@ -15,6 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
@@ -29,6 +30,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  */
 contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     using TimelockRegistry for bytes4;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
     uint48 public immutable LOCK_IN_PERIOD_TIMELOCK;
@@ -225,7 +227,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
 
         // register redeem request
         _redeemRequests.redeemRequest[msg.sender] = _shareUnits;
-        _redeemRequests.usersToRedeem.push(msg.sender);
+        _redeemRequests.usersToRedeem.add(msg.sender);
         emit RedeemRequest(msg.sender, _classId, _shareUnits, _currentBatchId);
         return _currentBatchId;
     }
