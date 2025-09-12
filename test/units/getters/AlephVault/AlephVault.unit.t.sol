@@ -53,7 +53,7 @@ contract AlephVault_Unit_Test is BaseTest {
 
     //     // calculate fee shares
     //     uint256 _newTotalAssets = 1200 ether;
-    //     uint256 _totalShares = vault.totalShares();
+    //     uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
     //     uint256 _expectedManagementFeeShares = vault.getManagementFeeShares(_newTotalAssets, _totalShares, 12);
     //     uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
     //     _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;

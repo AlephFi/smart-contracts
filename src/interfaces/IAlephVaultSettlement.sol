@@ -111,6 +111,8 @@ interface IAlephVaultSettlement {
 
     event SettleRedeemBatch(uint48 indexed batchId, uint8 indexed classId, uint256 totalAmountToRedeem);
 
+    event ForceRedeem(uint48 indexed batchId, address indexed user);
+
     error InvalidNewTotalAssets();
     error InvalidToBatchId();
     error NoDepositsToSettle();
@@ -129,4 +131,10 @@ interface IAlephVaultSettlement {
      * @param _settlementParams The parameters for the settlement.
      */
     function settleRedeem(SettlementParams calldata _settlementParams) external;
+
+    /**
+     * @notice Forces a redeem for a user.
+     * @param _user The user to force a redeem for.
+     */
+    function forceRedeem(address _user) external;
 }

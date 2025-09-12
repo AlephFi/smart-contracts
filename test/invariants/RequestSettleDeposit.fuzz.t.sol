@@ -91,7 +91,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // get user and vault balance before deposit
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
-        uint256 _vaultSharesBefore = vault.totalShares();
+        uint256 _vaultSharesBefore = vault.totalSharesPerSeries(1, 0);
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
@@ -113,7 +113,7 @@ contract RequestSettleDepositTest is BaseTest {
         );
 
         // assert invariant
-        assertLt(_vaultSharesBefore, vault.totalShares());
+        assertLt(_vaultSharesBefore, vault.totalSharesPerSeries(1, 0));
         assertGe(_vaultBalanceBefore, underlyingToken.balanceOf(address(vault)));
     }
 
@@ -172,7 +172,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // get vault state before deposit
         uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
-        uint256 _vaultSharesBefore = vault.totalShares();
+        uint256 _vaultSharesBefore = vault.totalSharesPerSeries(1, 0);
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);

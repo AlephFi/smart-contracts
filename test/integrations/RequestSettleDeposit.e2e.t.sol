@@ -88,7 +88,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _params.expectedTotalAssets);
-        assertEq(vault.totalShares(), _params.expectedTotalShares);
+        assertEq(vault.totalSharesPerSeries(1, 0), _params.expectedTotalShares);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), _params.newSharesToMint);
@@ -128,7 +128,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // same price per share
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(false, _newTotalAssets[0], _totalShares, _depositAmount, 0);
 
@@ -152,7 +152,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _params.expectedTotalAssets);
-        assertEq(vault.totalShares(), _params.expectedTotalShares);
+        assertEq(vault.totalSharesPerSeries(1, 0), _params.expectedTotalShares);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), _params.newSharesToMint);
@@ -191,7 +191,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // new price per share
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         uint256 _newPricePerShare = Math.ceilDiv(_newTotalAssets[0] * vault.PRICE_DENOMINATOR(), _totalShares);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(false, _newTotalAssets[0], _totalShares, _depositAmount, 0);
@@ -216,7 +216,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _params.expectedTotalAssets);
-        assertEq(vault.totalShares(), _params.expectedTotalShares);
+        assertEq(vault.totalSharesPerSeries(1, 0), _params.expectedTotalShares);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), _params.newSharesToMint);
@@ -255,7 +255,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // new price per share
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(false, _newTotalAssets[0], _totalShares, _depositAmount, 0);
 
@@ -279,7 +279,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _params.expectedTotalAssets);
-        assertEq(vault.totalShares(), _params.expectedTotalShares);
+        assertEq(vault.totalSharesPerSeries(1, 0), _params.expectedTotalShares);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), _params.newSharesToMint);
@@ -335,7 +335,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _params.expectedTotalAssets);
-        assertEq(vault.totalShares(), _params.expectedTotalShares);
+        assertEq(vault.totalSharesPerSeries(1, 0), _params.expectedTotalShares);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), _params.newSharesToMint);
@@ -383,7 +383,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // same price per share
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(true, _newTotalAssets[0], _totalShares, _depositAmount, 10);
 
@@ -455,7 +455,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // same price per share
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(false, _newTotalAssets[0], _totalShares, _depositAmount, 10);
         uint256 _newPricePerShare = Math.ceilDiv(
@@ -485,7 +485,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // assert total assets and total shares
         assertEq(vault.totalAssets(), _params.expectedTotalAssets);
-        assertEq(vault.totalShares(), _params.expectedTotalShares);
+        assertEq(vault.totalSharesPerSeries(1, 0), _params.expectedTotalShares);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), _params.newSharesToMint);
@@ -533,7 +533,7 @@ contract RequestSettleDepositTest is BaseTest {
             _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
 
         // same price per share
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(true, _newTotalAssets[0], _totalShares, _depositAmount, 10);
 
@@ -672,7 +672,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // vault manager did not make a profit
         _newTotalAssets[0] = 700 ether;
-        uint256 _totalShares = vault.totalShares();
+        uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         uint256 _expectedManagementFeeShares = vault.getManagementFeeShares(_newTotalAssets[0], _totalShares, 11);
         _totalShares += _expectedManagementFeeShares;
 

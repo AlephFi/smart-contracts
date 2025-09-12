@@ -47,6 +47,11 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _settleRedeem(_getStorage(), _settlementParams);
     }
 
+    /// @inheritdoc IAlephVaultSettlement
+    function forceRedeem(address _user) external nonReentrant {
+        _forceRedeem(_getStorage(), _user);
+    }
+
     /**
      * @dev Internal function to settle all deposits for batches up to the current batch.
      * @param _sd The storage struct.
@@ -149,11 +154,11 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settleDepositDetails.createSeries = false;
         }
         uint256 _totalSharesToMint;
-        uint256 _len = _depositRequests.usersToDeposit.length;
+        uint256 _len = _depositRequests.usersToDeposit.length();
         // iterate through all requests in batch (one user can only make one request per batch)
         for (uint256 _i; _i < _len; _i++) {
             DepositRequestParams memory _depositRequestParams;
-            _depositRequestParams.user = _depositRequests.usersToDeposit[_i];
+            _depositRequestParams.user = _depositRequests.usersToDeposit.at(_i);
             _depositRequestParams.amount = _depositRequests.depositRequest[_depositRequestParams.user];
             _depositRequestParams.sharesToMint = ERC4626Math.previewDeposit(
                 _depositRequestParams.amount, _settleDepositDetails.totalShares, _settleDepositDetails.totalAssets
@@ -246,10 +251,10 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     ) internal {
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_batchId];
         uint256 _totalAmountToRedeem;
-        uint256 _len = _redeemRequests.usersToRedeem.length;
+        uint256 _len = _redeemRequests.usersToRedeem.length();
         // iterate through all requests in batch (one user can only make one request per batch)
         for (uint256 _i; _i < _len; _i++) {
-            address _user = _redeemRequests.usersToRedeem[_i];
+            address _user = _redeemRequests.usersToRedeem.at(_i);
             // calculate amount to redeem for the user
             // redeem request value is the proportional amount user requested to redeem
             // this amount can now be different from the original amount requested as the price per share
@@ -329,13 +334,14 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         uint256 _sharesInSeries = _sharesOf(_shareClass, _seriesId, _user);
         uint256 _amountInSeries =
             ERC4626Math.previewRedeem(_sharesInSeries, _shareSeries.totalAssets, _shareSeries.totalShares);
-        // if the amount available in the series is less than the remaining amount, we settle the entire
+        // if the amount available in the series is less than or equal to the remaining amount, we settle the entire
         // amount in the series and move on to the next series by updating the remaining amount
-        if (_amountInSeries < _remainingAmount) {
+        if (_amountInSeries <= _remainingAmount) {
             _remainingAmount -= _amountInSeries;
             // redeem the entire amount in the series and update the series total assets and shares
             _shareSeries.totalAssets -= _amountInSeries;
             _shareSeries.totalShares -= _sharesInSeries;
+            _shareSeries.users.remove(_user);
             delete _shareSeries.sharesOf[_user];
             emit IAlephVaultSettlement.RedeemRequestSliceSettled(
                 _batchId, _user, _classId, _seriesId, _amountInSeries, _sharesInSeries
@@ -354,6 +360,45 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             // set the remaining amount to 0 as the entire amount has been settled and we break out of the loop
             _remainingAmount = 0;
         }
+    }
+
+    /**
+     * @dev Internal function to force a redeem for a user.
+     * @param _sd The storage struct.
+     * @param _user The user to force a redeem for.
+     */
+    function _forceRedeem(AlephVaultStorageData storage _sd, address _user) internal {
+        uint8 _shareClasses = _sd.shareClassesId;
+        uint48 _currentBatchId = _currentBatch(_sd);
+        for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
+            IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+            uint48 _depositSettleId = _shareClass.depositSettleId;
+            uint48 _redeemSettleId = _shareClass.redeemSettleId;
+            uint256 _newDepositsToRedeem;
+            for (
+                uint48 _batchId = _depositSettleId > _redeemSettleId ? _redeemSettleId : _depositSettleId;
+                _batchId <= _currentBatchId;
+                _batchId++
+            ) {
+                if (_batchId >= _depositSettleId) {
+                    IAlephVault.DepositRequests storage _depositRequest = _shareClass.depositRequests[_batchId];
+                    uint256 _amount = _depositRequest.depositRequest[_user];
+                    _newDepositsToRedeem += _amount;
+                    _depositRequest.totalAmountToDeposit -= _amount;
+                    _depositRequest.usersToDeposit.remove(_user);
+                    delete _depositRequest.depositRequest[_user];
+                }
+                if (_batchId >= _redeemSettleId) {
+                    IAlephVault.RedeemRequests storage _redeemRequest = _shareClass.redeemRequests[_batchId];
+                    _redeemRequest.usersToRedeem.remove(_user);
+                    delete _redeemRequest.redeemRequest[_user];
+                }
+            }
+            uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
+            _settleRedeemForUser(_sd, _currentBatchId, _user, _totalUserAssets, _classId, _shareClass);
+            IERC20(_sd.underlyingToken).safeTransfer(_user, _totalUserAssets + _newDepositsToRedeem);
+        }
+        emit ForceRedeem(_currentBatchId, _user);
     }
 
     /**

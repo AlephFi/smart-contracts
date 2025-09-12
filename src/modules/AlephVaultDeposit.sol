@@ -15,6 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
@@ -32,6 +33,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     using SafeERC20 for IERC20;
     using TimelockRegistry for bytes4;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     uint48 public immutable MIN_DEPOSIT_AMOUNT_TIMELOCK;
     uint48 public immutable MIN_USER_BALANCE_TIMELOCK;
@@ -226,7 +228,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         // register deposit request
         _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
         _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
-        _depositRequests.usersToDeposit.push(msg.sender);
+        _depositRequests.usersToDeposit.add(msg.sender);
         emit DepositRequest(msg.sender, _requestDepositParams.classId, _requestDepositParams.amount, _currentBatchId);
 
         // transfer underlying token from user to vault
