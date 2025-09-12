@@ -374,6 +374,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
             uint48 _depositSettleId = _shareClass.depositSettleId;
             uint48 _redeemSettleId = _shareClass.redeemSettleId;
+            uint256 _totalAmountToDeposit;
             for (
                 uint48 _batchId = _depositSettleId > _redeemSettleId ? _redeemSettleId : _depositSettleId;
                 _batchId <= _currentBatchId;
@@ -382,6 +383,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 if (_batchId >= _depositSettleId) {
                     IAlephVault.DepositRequests storage _depositRequest = _shareClass.depositRequests[_batchId];
                     uint256 _amount = _depositRequest.depositRequest[_user];
+                    _totalAmountToDeposit += _amount;
                     _depositRequest.totalAmountToDeposit -= _amount;
                     _depositRequest.usersToDeposit.remove(_user);
                     delete _depositRequest.depositRequest[_user];
@@ -394,7 +396,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             }
             uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
             _settleRedeemForUser(_sd, _currentBatchId, _user, _totalUserAssets, _classId, _shareClass);
-            IERC20(_sd.underlyingToken).safeTransfer(_user, _totalUserAssets);
+            IERC20(_sd.underlyingToken).safeTransfer(_user, _totalUserAssets + _totalAmountToDeposit);
         }
         emit ForceRedeem(_currentBatchId, _user);
     }
