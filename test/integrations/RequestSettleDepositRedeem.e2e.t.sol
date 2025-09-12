@@ -102,17 +102,22 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         // request redeem
-        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
         uint48 _requestBatchId_2 = vault.currentBatch();
+        IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
+            classId: 1,
+            shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
+        });
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 100 ether});
         vm.prank(mockUser_1);
-        vault.requestRedeem(1, _shareUnits);
+        vault.requestRedeem(params);
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 200 ether});
         vm.prank(mockUser_2);
-        vault.requestRedeem(1, _shareUnits);
+        vault.requestRedeem(params);
         uint256 _totalAmountToRedeem = 300 ether;
 
         // assert redeem requests
-        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _requestBatchId_2), _shareUnits);
-        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _requestBatchId_2), _shareUnits);
+        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _requestBatchId_2), vault.TOTAL_SHARE_UNITS());
+        assertEq(vault.redeemRequestOfAt(1, mockUser_2, _requestBatchId_2), vault.TOTAL_SHARE_UNITS());
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);
@@ -247,11 +252,16 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         // request redeem
-        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
+        IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
+            classId: 1,
+            shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
+        });
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 300 ether});
         vm.prank(mockUser_1);
-        vault.requestRedeem(1, _shareUnits);
+        vault.requestRedeem(params);
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 400 ether});
         vm.prank(mockUser_2);
-        vault.requestRedeem(1, 4 * _shareUnits / 5);
+        vault.requestRedeem(params);
 
         // roll the block forward to next batch
         vm.warp(block.timestamp + 1 days);

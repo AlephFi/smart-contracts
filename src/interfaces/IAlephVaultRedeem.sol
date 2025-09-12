@@ -26,6 +26,16 @@ interface IAlephVaultRedeem {
         uint48 minRedeemAmountTimelock;
     }
 
+    struct RedeemRequestParams {
+        uint8 classId;
+        ShareRedeemRequest[] shareRequests;
+    }
+
+    struct ShareRedeemRequest {
+        uint8 seriesId;
+        uint256 shares;
+    }
+
     event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
     event NewLockInPeriodQueued(uint8 classId, uint48 lockInPeriod);
     event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);
@@ -34,6 +44,7 @@ interface IAlephVaultRedeem {
     event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
     event RedeemRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
+    error InvalidSeriesId(uint8 seriesId);
     error InsufficientRedeem();
     error RedeemLessThanMinRedeemAmount(uint256 minRedeemAmount);
     error UserInLockInPeriodNotElapsed(uint48 userLockInPeriod);
@@ -82,9 +93,8 @@ interface IAlephVaultRedeem {
 
     /**
      * @notice Requests to redeem shares from the vault for the current batch.
-     * @param _classId The ID of the share class to redeem shares from.
-     * @param _shareUnits The share units to redeem from remaing assets.
+     * @param _redeemRequestParams The parameters for the redeem request.
      * @return _batchId The batch ID for the redeem request.
      */
-    function requestRedeem(uint8 _classId, uint256 _shareUnits) external returns (uint48 _batchId);
+    function requestRedeem(RedeemRequestParams calldata _redeemRequestParams) external returns (uint48 _batchId);
 }

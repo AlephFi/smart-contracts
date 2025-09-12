@@ -20,6 +20,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
+import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
@@ -752,14 +753,13 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Requests a redeem of shares.
-     * @param _classId The ID of the share class to redeem shares from.
-     * @param _shareUnits The share units to redeem from remaing assets.
+     * @param _redeemRequestParams The parameters for the redeem request.
      * @return _batchId The batch ID of the redeem.
      * @dev Only callable when the redeem request flow is not paused.
      */
-    function requestRedeem(uint8 _classId, uint256 _shareUnits)
+    function requestRedeem(IAlephVaultRedeem.RedeemRequestParams calldata _redeemRequestParams)
         external
-        onlyValidShareClass(_classId)
+        onlyValidShareClass(_redeemRequestParams.classId)
         whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
         returns (uint48 _batchId)
     {

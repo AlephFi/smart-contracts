@@ -57,9 +57,13 @@ contract RequestRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // request redeem
-        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
+        IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
+            classId: 1,
+            shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
+        });
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: _redeemAmount});
         vm.prank(_user);
-        vault.requestRedeem(1, _shareUnits);
+        vault.requestRedeem(params);
 
         // assert invariant
         assertLt(_amountToRedeemBefore, vault.redeemRequestOf(1, _user));
@@ -79,7 +83,7 @@ contract RequestRedeemTest is BaseTest {
         uint256 _amountToRedeemBefore = vault.redeemRequestOf(1, _user);
         vault.setTotalAssets(0, uint256(type(uint96).max));
         vault.setTotalShares(0, uint256(type(uint96).max));
-        vault.setSharesOf(0, _user, uint256(type(uint96).max));
+        vault.setSharesOf(0, _user, 100 * uint256(type(uint96).max));
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -91,21 +95,23 @@ contract RequestRedeemTest is BaseTest {
 
             // get total amount to redeem in batch
             uint256 _totalAmountToRedeemBefore = vault.redeemRequestOf(1, _user);
-
-            uint256 _redeemUnits = uint256(keccak256(abi.encode(_redeemSeed, i))) % vault.TOTAL_SHARE_UNITS();
-            uint256 _redeemAmount =
-                ERC4626Math.previewMintUnits(_redeemUnits, uint256(type(uint96).max) - _totalAmountToRedeemBefore);
+            uint256 _redeemAmount = uint256(keccak256(abi.encode(_redeemSeed, i))) % uint256(type(uint96).max);
 
             // request redeem
-            uint256 _remainingAmount = uint256(type(uint96).max) - (_redeemAmount + _totalAmountToRedeemBefore);
+            uint256 _remainingAmount = 100 * uint256(type(uint96).max) - (_redeemAmount + _totalAmountToRedeemBefore);
             if (_redeemAmount == 0) {
                 break;
             }
             if (_redeemAmount < vault.minRedeemAmount(1) || _remainingAmount < vault.minUserBalance(1)) {
                 continue;
             }
+            IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
+                classId: 1,
+                shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
+            });
+            params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: _redeemAmount});
             vm.prank(_user);
-            vault.requestRedeem(1, _redeemUnits);
+            vault.requestRedeem(params);
 
             // assert batch invariant
             assertLt(_totalAmountToRedeemBefore, vault.redeemRequestOf(1, _user));
