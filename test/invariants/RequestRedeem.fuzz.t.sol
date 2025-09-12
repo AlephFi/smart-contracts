@@ -20,6 +20,7 @@ import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IE
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -44,18 +45,21 @@ contract RequestRedeemTest is BaseTest {
         // don't use user as vault
         vm.assume(_user != address(vault));
 
+        // set user users share
+        vault.setTotalAssets(0, _redeemAmount);
+        vault.setTotalShares(0, _redeemAmount);
+        vault.setSharesOf(0, _user, _redeemAmount);
+
         // get pending assets to redeem
         uint256 _amountToRedeemBefore = vault.redeemRequestOf(1, _user);
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
-        // set up user with _redeemAmount shares
-        vault.setSharesOf(0, _user, _redeemAmount);
-
         // request redeem
+        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
         vm.prank(_user);
-        vault.requestRedeem(1, _redeemAmount);
+        vault.requestRedeem(1, _shareUnits);
 
         // assert invariant
         assertLt(_amountToRedeemBefore, vault.redeemRequestOf(1, _user));
@@ -73,7 +77,9 @@ contract RequestRedeemTest is BaseTest {
 
         // get pending assets to redeem
         uint256 _amountToRedeemBefore = vault.redeemRequestOf(1, _user);
-        vault.setSharesOf(0, _user, 100 * uint256(type(uint96).max));
+        vault.setTotalAssets(0, uint256(type(uint96).max));
+        vault.setTotalShares(0, uint256(type(uint96).max));
+        vault.setSharesOf(0, _user, uint256(type(uint96).max));
 
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
@@ -86,14 +92,20 @@ contract RequestRedeemTest is BaseTest {
             // get total amount to redeem in batch
             uint256 _totalAmountToRedeemBefore = vault.redeemRequestOf(1, _user);
 
-            uint256 _redeemAmount = uint256(keccak256(abi.encode(_redeemSeed, i))) % type(uint96).max;
+            uint256 _redeemUnits = uint256(keccak256(abi.encode(_redeemSeed, i))) % vault.TOTAL_SHARE_UNITS();
+            uint256 _redeemAmount =
+                ERC4626Math.previewMintUnits(_redeemUnits, uint256(type(uint96).max) - _totalAmountToRedeemBefore);
 
             // request redeem
-            if (_redeemAmount < vault.minRedeemAmount(1)) {
+            uint256 _remainingAmount = uint256(type(uint96).max) - (_redeemAmount + _totalAmountToRedeemBefore);
+            if (_redeemAmount == 0) {
+                break;
+            }
+            if (_redeemAmount < vault.minRedeemAmount(1) || _remainingAmount < vault.minUserBalance(1)) {
                 continue;
             }
             vm.prank(_user);
-            vault.requestRedeem(1, _redeemAmount);
+            vault.requestRedeem(1, _redeemUnits);
 
             // assert batch invariant
             assertLt(_totalAmountToRedeemBefore, vault.redeemRequestOf(1, _user));

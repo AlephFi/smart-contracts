@@ -58,8 +58,9 @@ contract RequestSettleRedeemTest is BaseTest {
         vault.setSharesOf(0, mockUser_1, 100 ether);
 
         // request redeem
+        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
         vm.startPrank(mockUser_1);
-        vault.requestRedeem(1, 100 ether);
+        vault.requestRedeem(1, _shareUnits);
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -113,13 +114,14 @@ contract RequestSettleRedeemTest is BaseTest {
         vault.setSharesOf(0, mockUser_1, 100 ether);
 
         // request redeem
+        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
         vm.startPrank(mockUser_1);
-        vault.requestRedeem(1, 50 ether);
+        vault.requestRedeem(1, _shareUnits / 2);
         vm.stopPrank();
 
         vm.warp(block.timestamp + 1 days);
         vm.startPrank(mockUser_1);
-        vault.requestRedeem(1, 50 ether);
+        vault.requestRedeem(1, _shareUnits);
         vm.stopPrank();
 
         // roll the block forward to next batch
@@ -173,17 +175,18 @@ contract RequestSettleRedeemTest is BaseTest {
         _newTotalAssets[1] = 800 ether;
 
         // set user shares to 100
+        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
         vault.setSharesOf(0, mockUser_1, 100 ether);
         vault.setSharesOf(1, mockUser_1, 300 ether);
 
         // request redeem
         vm.startPrank(mockUser_1);
-        vault.requestRedeem(1, 100 ether);
+        vault.requestRedeem(1, _shareUnits / 4);
         vm.stopPrank();
 
         vm.warp(block.timestamp + 1 days);
         vm.startPrank(mockUser_1);
-        vault.requestRedeem(1, 150 ether);
+        vault.requestRedeem(1, _shareUnits / 2);
         vm.stopPrank();
 
         // roll the block forward to next batch
