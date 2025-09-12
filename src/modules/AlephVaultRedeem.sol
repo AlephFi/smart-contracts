@@ -182,7 +182,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
                 revert InsufficientRedeem();
             }
             uint8 _seriesId = _redeemRequestParams.shareRequests[_i].seriesId;
-            if (_seriesId > LEAD_SERIES_ID && (_seriesId + _lastConsolidatedSeriesId) > _shareSeries) {
+            if (_seriesId > LEAD_SERIES_ID && (_seriesId <= _lastConsolidatedSeriesId || _seriesId > _shareSeries)) {
                 revert InvalidSeriesId(_seriesId);
             }
             IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];

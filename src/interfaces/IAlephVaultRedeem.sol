@@ -28,10 +28,10 @@ interface IAlephVaultRedeem {
 
     struct RedeemRequestParams {
         uint8 classId;
-        ShareRequest[] shareRequests;
+        ShareRedeemRequest[] shareRequests;
     }
 
-    struct ShareRequest {
+    struct ShareRedeemRequest {
         uint8 seriesId;
         uint256 shares;
     }

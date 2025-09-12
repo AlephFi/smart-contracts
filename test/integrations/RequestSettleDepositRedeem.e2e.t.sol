@@ -103,12 +103,14 @@ contract RequestSettleDepositRedeemTest is BaseTest {
 
         // request redeem
         uint48 _requestBatchId_2 = vault.currentBatch();
-        IAlephVaultRedeem.RedeemRequestParams memory params =
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, shareRequests: new IAlephVaultRedeem.ShareRequest[](1)});
-        params.shareRequests[0] = IAlephVaultRedeem.ShareRequest({seriesId: 0, shares: 100 ether});
+        IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
+            classId: 1,
+            shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
+        });
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 100 ether});
         vm.prank(mockUser_1);
         vault.requestRedeem(params);
-        params.shareRequests[0] = IAlephVaultRedeem.ShareRequest({seriesId: 0, shares: 200 ether});
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 200 ether});
         vm.prank(mockUser_2);
         vault.requestRedeem(params);
         uint256 _totalAmountToRedeem = 300 ether;
@@ -250,12 +252,14 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         // request redeem
-        IAlephVaultRedeem.RedeemRequestParams memory params =
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, shareRequests: new IAlephVaultRedeem.ShareRequest[](1)});
-        params.shareRequests[0] = IAlephVaultRedeem.ShareRequest({seriesId: 0, shares: 300 ether});
+        IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
+            classId: 1,
+            shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
+        });
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 300 ether});
         vm.prank(mockUser_1);
         vault.requestRedeem(params);
-        params.shareRequests[0] = IAlephVaultRedeem.ShareRequest({seriesId: 0, shares: 400 ether});
+        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: 400 ether});
         vm.prank(mockUser_2);
         vault.requestRedeem(params);
 
