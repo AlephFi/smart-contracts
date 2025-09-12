@@ -381,15 +381,15 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             ) {
                 if (_batchId >= _depositSettleId) {
                     IAlephVault.DepositRequests storage _depositRequest = _shareClass.depositRequests[_batchId];
-                    uint256 _amount = _depositRequest.depositRequest[msg.sender];
+                    uint256 _amount = _depositRequest.depositRequest[_user];
                     _depositRequest.totalAmountToDeposit -= _amount;
                     _depositRequest.usersToDeposit.remove(_user);
-                    delete _depositRequest.depositRequest[msg.sender];
+                    delete _depositRequest.depositRequest[_user];
                 }
                 if (_batchId >= _redeemSettleId) {
                     IAlephVault.RedeemRequests storage _redeemRequest = _shareClass.redeemRequests[_batchId];
                     _redeemRequest.usersToRedeem.remove(_user);
-                    delete _redeemRequest.redeemRequest[msg.sender];
+                    delete _redeemRequest.redeemRequest[_user];
                 }
             }
             uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
