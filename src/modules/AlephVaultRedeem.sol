@@ -202,8 +202,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_redeemRequestParams.classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle
-        uint256 _pendingUserAssets =
-            _pendingAssetsOf(_shareClass, _currentBatchId, msg.sender, _totalUserAssets);
+        uint256 _pendingUserAssets = _pendingAssetsOf(_shareClass, _currentBatchId, msg.sender, _totalUserAssets);
 
         // Share units are a proportion of user's available assets
         // Formula: shares = amount * TOTAL_SHARE_UNITS / (totalUserAssets - pendingAssets)

@@ -398,9 +398,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     function redeemRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToRedeem) {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        return _pendingAssetsOf(
-            _shareClass, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _shareClass)
-        );
+        return _pendingAssetsOf(_shareClass, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _shareClass));
     }
 
     /// @inheritdoc IAlephVault
@@ -770,10 +768,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _newOperationsMultisig The new operations multisig address.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateOperationsMultisig(address _newOperationsMultisig)
-        external
-        onlyRole(RolesLibrary.VAULT_FACTORY)
-    {
+    function migrateOperationsMultisig(address _newOperationsMultisig) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 
@@ -819,10 +814,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _newImplementation The new implementation address for the module.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateModules(bytes4 _module, address _newImplementation)
-        external
-        onlyRole(RolesLibrary.VAULT_FACTORY)
-    {
+    function migrateModules(bytes4 _module, address _newImplementation) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 
