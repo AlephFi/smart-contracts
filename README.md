@@ -9,7 +9,7 @@
 
 **Next-generation DeFi infrastructure connecting digital asset allocators with sophisticated money managers**
 
-[Documentation](https://docs.aleph.finance) • [Website](https://aleph.finance) • [Discord](https://discord.gg/aleph) • [Twitter](https://twitter.com/alephfinance)
+[Documentation](https://docs.aleph.finance) • [Website](https://aleph.finance) • [Twitter](https://x.com/Alephfi) • [GitHub](https://github.com/Othentic-Labs/Aleph)
 
 </div>
 
@@ -21,11 +21,11 @@ Aleph Protocol is a comprehensive financial infrastructure that revolutionizes h
 
 ### Key Innovations
 
-- **🔄 Asynchronous Operations**: ERC-7540 compliant vaults with batch-based settlements
+- **🔄 Asynchronous Operations**: Custom async deposit/redemption system with batch-based settlements
 - **🏛️ Institutional Grade**: Built for professional asset management with advanced governance
 - **🔐 Multi-Layer Security**: Role-based access control with pausable emergency systems
 - **📊 Transparent Fees**: Protocol-level fee management with performance tracking
-- **🌐 Cross-Chain Ready**: Designed for multi-chain deployment and operation
+- **🌐 EVM Compatible**: Deployable on any EVM-compatible blockchain
 
 ---
 
@@ -53,7 +53,7 @@ graph TB
 | Contract | Purpose | Key Features |
 |----------|---------|--------------|
 | **AlephVaultFactory** | Vault deployment and management | CREATE2 deployment, protocol parameters |
-| **AlephVault** | Main vault logic | ERC-7540 compliance, share management |
+| **AlephVault** | Main vault logic | Async operations, share management |
 | **AlephVaultDeposit** | Deposit handling | Async deposits, batch processing |
 | **AlephVaultRedeem** | Redemption handling | Async redemptions, notice periods |
 | **AlephVaultSettlement** | NAV settlements | Oracle integration, batch settlements |
@@ -328,32 +328,9 @@ npm run upgrade-vault
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch
-3. Write tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-### Code Review Process
-
-- All PRs require review from core team
-- Automated testing must pass
-- Gas optimization analysis required
-- Security implications assessed
-
----
-
 ## 📄 License
 
 This project is licensed under the Business Source License 1.1 (BUSL-1.1). See the [LICENSE](LICENSE) file for details.
-
-The licensed work will eventually be made available under the GPL v3.0 license on the fourth anniversary of the first publicly available distribution of the licensed work.
 
 ---
 
@@ -361,17 +338,17 @@ The licensed work will eventually be made available under the GPL v3.0 license o
 
 - **Documentation**: [docs.aleph.finance](https://docs.aleph.finance)
 - **Website**: [aleph.finance](https://aleph.finance)
-- **Discord**: [Join our community](https://discord.gg/aleph)
-- **Twitter**: [@alephfinance](https://twitter.com/alephfinance)
-- **Email**: [hello@aleph.finance](mailto:hello@aleph.finance)
+- **Twitter**: [@Alephfi](https://x.com/Alephfi)
+- **GitHub**: [Othentic-Labs/Aleph](https://github.com/Othentic-Labs/Aleph)
+- **Email**: [hi@aleph.finance](mailto:hi@aleph.finance)
 
 ---
 
 ## 🔗 Related Projects
 
-- **ERC-7540 Standard**: [EIP-7540](https://eips.ethereum.org/EIPS/eip-7540)
 - **Foundry**: [getfoundry.sh](https://getfoundry.sh/)
 - **OpenZeppelin**: [openzeppelin.com](https://openzeppelin.com/)
+- **Safe Multisig**: [safe.global](https://safe.global/)
 
 ---
 
