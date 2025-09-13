@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -41,6 +41,11 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
 
+    /**
+     * @notice Constructor for FeeManager module
+     * @param _constructorParams The initialization parameters for fee configuration
+     * @param _batchDuration The duration of each batch cycle in seconds
+     */
     constructor(FeeConstructorParams memory _constructorParams, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
         if (_constructorParams.managementFeeTimelock == 0 || _constructorParams.performanceFeeTimelock == 0) {
             revert InvalidConstructorParams();
@@ -310,9 +315,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint8 _shareClasses = _sd.shareClassesId;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-            uint8 _shareSeries = _shareClass.shareSeriesId;
+            uint8 _shareSeriesId = _shareClass.shareSeriesId;
             uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-            for (uint8 _seriesId; _seriesId <= _shareSeries; _seriesId++) {
+            for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
                 if (_seriesId > LEAD_SERIES_ID) {
                     _seriesId += _lastConsolidatedSeriesId;
                 }

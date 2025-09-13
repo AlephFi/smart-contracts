@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -40,14 +40,17 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
 
     // EXTERNAL FUNCTIONS
 
+    /// @inheritdoc IAlephPausable
     function isFlowPaused(bytes4 _pausableFlow) external view returns (bool _isPaused) {
         return _getPausableStorage().flowsPauseStates[_pausableFlow];
     }
 
+    /// @inheritdoc IAlephPausable
     function pause(bytes4 _pausableFlow) external onlyRole(_pausableFlow) {
         _pause(_pausableFlow);
     }
 
+    /// @inheritdoc IAlephPausable
     function unpause(bytes4 _pausableFlow) external onlyRole(_pausableFlow) {
         _unpause(_pausableFlow);
     }

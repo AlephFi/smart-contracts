@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -41,6 +41,11 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
 
     error InvalidConstructorParams();
 
+    /**
+     * @notice Constructor for AlephVaultBase
+     * @param _batchDuration The duration of each batch cycle in seconds
+     * @dev Reverts if batch duration is zero
+     */
     constructor(uint48 _batchDuration) {
         if (_batchDuration == 0) {
             revert InvalidConstructorParams();
@@ -54,13 +59,13 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @return The total assets in the vault.
      */
     function _totalAssets(AlephVaultStorageData storage _sd) internal view returns (uint256) {
-        uint256 _totalAssets;
+        uint256 _totalAssetsSum;
         uint8 _shareClassesId = _sd.shareClassesId;
         for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-            _totalAssets += _totalAssetsPerClass(_shareClass, _classId);
+            _totalAssetsSum += _totalAssetsPerClass(_shareClass, _classId);
         }
-        return _totalAssets;
+        return _totalAssetsSum;
     }
 
     /**
@@ -75,15 +80,15 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint256 _totalAssets;
+        uint256 _totalAssetsSum;
         for (uint8 _seriesId; _seriesId <= _shareClass.shareSeriesId; _seriesId++) {
             if (_seriesId > LEAD_SERIES_ID) {
                 _seriesId += _lastConsolidatedSeriesId;
             }
             // loop through all share series and sum up the total assets
-            _totalAssets += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+            _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
         }
-        return _totalAssets;
+        return _totalAssetsSum;
     }
 
     /**
@@ -231,10 +236,10 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 _totalDepositRequest;
-        uint48 _currentBatch = _currentBatch(_sd);
+        uint48 _currentBatchId = _currentBatch(_sd);
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _depositSettleId = _shareClass.depositSettleId;
-        for (_depositSettleId; _depositSettleId <= _currentBatch; _depositSettleId++) {
+        for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
             _totalDepositRequest += _shareClass.depositRequests[_depositSettleId].depositRequest[_user];
         }
         return _totalDepositRequest;
@@ -243,7 +248,6 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     /**
      * @dev Internal function to calculate the pending assets of a user.
      * @param _shareClass The share class.
-     * @param _classId The class ID to redeem from.
      * @param _currentBatchId The current batch ID.
      * @param _user The user to calculate the pending assets for.
      * @param _totalUserAssets The total assets of the user.
@@ -251,7 +255,6 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      */
     function _pendingAssetsOf(
         IAlephVault.ShareClass storage _shareClass,
-        uint8 _classId,
         uint48 _currentBatchId,
         address _user,
         uint256 _totalUserAssets

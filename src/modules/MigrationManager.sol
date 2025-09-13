@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -28,6 +28,10 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract MigrationManager is IMigrationManager, AlephVaultBase, AccessControlUpgradeable {
+    /**
+     * @notice Constructor for MigrationManager module
+     * @param _batchDuration The duration of each batch cycle in seconds
+     */
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IMigrationManager

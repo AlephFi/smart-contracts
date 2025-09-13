@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -126,7 +126,7 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
     function collectFees(address _vault) external {
         AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
-        _validateManager(_sd, _vault);
+        _validateManager(_vault);
         address _vaultTreasury = _sd.vaultTreasury[_vault];
         if (_vaultTreasury == address(0)) {
             revert VaultTreasuryNotSet();
@@ -180,7 +180,7 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         }
     }
 
-    function _validateManager(AccountantStorageData storage _sd, address _vault) internal view {
+    function _validateManager(address _vault) internal view {
         if (!AccessControlUpgradeable(_vault).hasRole(RolesLibrary.MANAGER, msg.sender)) {
             revert InvalidManager();
         }

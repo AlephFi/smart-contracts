@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -36,6 +36,11 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     uint48 public immutable LOCK_IN_PERIOD_TIMELOCK;
     uint48 public immutable MIN_REDEEM_AMOUNT_TIMELOCK;
 
+    /**
+     * @notice Constructor for AlephVaultRedeem module
+     * @param _constructorParams The initialization parameters for redeem configuration
+     * @param _batchDuration The duration of each batch cycle in seconds
+     */
     constructor(RedeemConstructorParams memory _constructorParams, uint48 _batchDuration)
         AlephVaultBase(_batchDuration)
     {
@@ -176,7 +181,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     {
         // verify all conditions are satisfied to make redeem request
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_redeemRequestParams.classId];
-        uint8 _shareSeries = _shareClass.shareSeriesId;
+        uint8 _shareSeriesId = _shareClass.shareSeriesId;
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint256 _previewAmountToRedeem;
         for (uint256 _i; _i < _redeemRequestParams.shareRequests.length; _i++) {
@@ -184,7 +189,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
                 revert InsufficientRedeem();
             }
             uint8 _seriesId = _redeemRequestParams.shareRequests[_i].seriesId;
-            if (_seriesId > LEAD_SERIES_ID && (_seriesId <= _lastConsolidatedSeriesId || _seriesId > _shareSeries)) {
+            if (_seriesId > LEAD_SERIES_ID && (_seriesId <= _lastConsolidatedSeriesId || _seriesId > _shareSeriesId)) {
                 revert InvalidSeriesId(_seriesId);
             }
             IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
@@ -197,8 +202,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // get total user assets in the share class
         uint256 _totalUserAssets = _assetsPerClassOf(_redeemRequestParams.classId, msg.sender, _shareClass);
         // get pending assets of the user that will be settled in upcoming cycle
-        uint256 _pendingUserAssets =
-            _pendingAssetsOf(_shareClass, _redeemRequestParams.classId, _currentBatchId, msg.sender, _totalUserAssets);
+        uint256 _pendingUserAssets = _pendingAssetsOf(_shareClass, _currentBatchId, msg.sender, _totalUserAssets);
 
         // Share units are a proportion of user's available assets
         // Formula: shares = amount * TOTAL_SHARE_UNITS / (totalUserAssets - pendingAssets)

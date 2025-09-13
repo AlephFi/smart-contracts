@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -51,17 +51,25 @@ interface IAlephVaultFactory {
     }
 
     /**
-     * @notice Returns if a vault is valid.
-     * @param _vault The address of the vault.
-     * @return True if the vault is valid, false otherwise.
+     * @notice Checks if an address is a valid vault deployed by this factory
+     * @param _vault The address to check
+     * @return True if the vault was deployed by this factory, false otherwise
      */
     function isValidVault(address _vault) external view returns (bool);
 
     /**
-     * @notice Sets if the vault is auth enabled.
-     * @param _isAuthEnabled The new status of the KYC authentication.
+     * @notice Sets whether authentication is enabled for vault deployment
+     * @param _isAuthEnabled True to enable authentication, false to disable
+     * @dev Only callable by OPERATIONS_MULTISIG role
      */
     function setIsAuthEnabled(bool _isAuthEnabled) external;
+
+    /**
+     * @notice Updates the operations multisig address for the factory and all deployed vaults
+     * @param _operationsMultisig The new operations multisig address
+     * @dev Only callable by OPERATIONS_MULTISIG role. Updates all deployed vaults.
+     */
+    function setOperationsMultisig(address _operationsMultisig) external;
 
     /**
      * @notice Deploys a new vault.
@@ -73,27 +81,31 @@ interface IAlephVaultFactory {
         returns (address);
 
     /**
-     * @notice Sets the oracle.
-     * @param _oracle The address of the oracle.
+     * @notice Updates the oracle address for all deployed vaults
+     * @param _oracle The new oracle address
+     * @dev Only callable by OPERATIONS_MULTISIG role. Updates all deployed vaults.
      */
     function setOracle(address _oracle) external;
 
     /**
-     * @notice Sets the guardian.
-     * @param _guardian The address of the guardian.
+     * @notice Updates the guardian address for all deployed vaults
+     * @param _guardian The new guardian address
+     * @dev Only callable by OPERATIONS_MULTISIG role. Updates all deployed vaults.
      */
     function setGuardian(address _guardian) external;
 
     /**
-     * @notice Sets the KYC authentication signer.
-     * @param _authSigner The address of the KYC authentication signer.
+     * @notice Updates the authentication signer address for vault deployment
+     * @param _authSigner The new authentication signer address
+     * @dev Only callable by OPERATIONS_MULTISIG role. Updates all deployed vaults.
      */
     function setAuthSigner(address _authSigner) external;
 
     /**
-     * @notice Sets the module implementation.
-     * @param _module The module.
-     * @param _implementation The implementation.
+     * @notice Updates a module implementation address for all deployed vaults
+     * @param _module The module identifier to update
+     * @param _implementation The new implementation address for the module
+     * @dev Only callable by OPERATIONS_MULTISIG role. Updates all deployed vaults.
      */
     function setModuleImplementation(bytes4 _module, address _implementation) external;
 }
