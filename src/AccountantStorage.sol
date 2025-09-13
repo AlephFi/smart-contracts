@@ -32,9 +32,9 @@ library AccountantStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.accountant")) - 1;
 
     function load() internal pure returns (AccountantStorageData storage sd) {
-        uint256 position = STORAGE_POSITION;
+        uint256 _position = STORAGE_POSITION;
         assembly {
-            sd.slot := position
+            sd.slot := _position
         }
     }
 }

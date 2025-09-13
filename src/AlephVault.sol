@@ -397,7 +397,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         return _pendingAssetsOf(
-            _shareClass, _classId, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _shareClass)
+            _shareClass, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _shareClass)
         );
     }
 
@@ -497,9 +497,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new minimum deposit amount to be set after the timelock period
      * @param _classId The ID of the share class to set the minimum deposit amount for.
+     * @param _minDepositAmount The new minimum deposit amount to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queueMinDepositAmount(uint8 _classId, uint256 /* _minDepositAmount */ )
+    function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -510,9 +511,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new minimum user balance to be set after the timelock period.
      * @param _classId The ID of the share class to set the minimum user balance for.
+     * @param _minUserBalance The new minimum user balance to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queueMinUserBalance(uint8 _classId, uint256 /* _minUserBalance */ )
+    function queueMinUserBalance(uint8 _classId, uint256 _minUserBalance)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -523,9 +525,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new maximum deposit cap to be set after the timelock period.
      * @param _classId The ID of the share class to set the maximum deposit cap for.
+     * @param _maxDepositCap The new maximum deposit cap to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queueMaxDepositCap(uint8 _classId, uint256 /* _maxDepositCap */ )
+    function queueMaxDepositCap(uint8 _classId, uint256 _maxDepositCap)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -536,9 +539,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new notice period to be set after the timelock period.
      * @param _classId The ID of the share class to set the notice period for.
+     * @param _noticePeriod The new notice period to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queueNoticePeriod(uint8 _classId, uint48 /* _noticePeriod */ )
+    function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -549,9 +553,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new lock in period to be set after the timelock period.
      * @param _classId The ID of the share class to set the lock in period for.
+     * @param _lockInPeriod The new lock in period to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queueLockInPeriod(uint8 _classId, uint48 /* _lockInPeriod */ )
+    function queueLockInPeriod(uint8 _classId, uint48 _lockInPeriod)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -562,9 +567,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new minimum redeem amount to be set after the timelock period.
      * @param _classId The ID of the share class to set the minimum redeem amount for.
+     * @param _minRedeemAmount The new minimum redeem amount to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queueMinRedeemAmount(uint8 _classId, uint256 /* _minRedeemAmount */ )
+    function queueMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -575,9 +581,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new management fee to be set after the timelock period.
      * @param _classId The ID of the share class to set the management fee for.
+     * @param _managementFee The new management fee to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queueManagementFee(uint8 _classId, uint32 /* _managementFee */ )
+    function queueManagementFee(uint8 _classId, uint32 _managementFee)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -588,9 +595,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /**
      * @notice Queues a new performance fee to be set after the timelock period.
      * @param _classId The ID of the share class to set the performance fee for.
+     * @param _performanceFee The new performance fee to queue.
      * @dev Only callable by the MANAGER role.
      */
-    function queuePerformanceFee(uint8 _classId, uint32 /* _performanceFee */ )
+    function queuePerformanceFee(uint8 _classId, uint32 _performanceFee)
         external
         onlyValidShareClass(_classId)
         onlyRole(RolesLibrary.MANAGER)
@@ -676,12 +684,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Collects all pending fees.
-     * @dev Only callable by the OPERATIONS_MULTISIG role.
+     * @return _managementFeesToCollect The total management fees collected.
+     * @return _performanceFeesToCollect The total performance fees collected.
+     * @dev Only callable by the ACCOUNTANT role.
      */
     function collectFees()
         external
         onlyRole(RolesLibrary.ACCOUNTANT)
-        returns (uint256, /* _managementFeesToCollect */ uint256 /* _performanceFeesToCollect */ )
+        returns (uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
     {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
@@ -696,7 +706,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         external
         onlyValidShareClass(_requestDepositParams.classId)
         whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
-        returns (uint48 /* _batchId */ )
+        returns (uint48 _batchId)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
@@ -725,7 +735,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         external
         onlyValidShareClass(_redeemRequestParams.classId)
         whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
-        returns (uint48 /* _batchId */ )
+        returns (uint48 _batchId)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
@@ -746,17 +756,19 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Forces a redeem for a user.
+     * @param _user The user to force redeem for.
      * @dev Only callable by the MANAGER role.
      */
-    function forceRedeem(address /* _user */ ) external onlyRole(RolesLibrary.MANAGER) {
+    function forceRedeem(address _user) external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
     }
 
     /**
      * @notice Migrates the operations multisig.
+     * @param _newOperationsMultisig The new operations multisig address.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateOperationsMultisig(address /* _newOperationsMultisig */ )
+    function migrateOperationsMultisig(address _newOperationsMultisig)
         external
         onlyRole(RolesLibrary.VAULT_FACTORY)
     {
@@ -765,41 +777,47 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
     /**
      * @notice Migrates the oracle.
+     * @param _newOracle The new oracle address.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateOracle(address /* _newOracle */ ) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+    function migrateOracle(address _newOracle) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 
     /**
      * @notice Migrates the guardian.
+     * @param _newGuardian The new guardian address.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateGuardian(address /* _newGuardian */ ) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+    function migrateGuardian(address _newGuardian) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 
     /**
      * @notice Migrates the authentication signer.
+     * @param _newAuthSigner The new authentication signer address.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateAuthSigner(address /* _newAuthSigner */ ) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+    function migrateAuthSigner(address _newAuthSigner) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 
     /**
      * @notice Migrates the accountant.
+     * @param _newAccountant The new accountant address.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateAccountant(address /* _newAccountant */ ) external onlyRole(RolesLibrary.VAULT_FACTORY) {
+    function migrateAccountant(address _newAccountant) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 
     /**
      * @notice Migrates the module implementation.
+     * @param _module The module selector to migrate.
+     * @param _newImplementation The new implementation address for the module.
      * @dev Only callable by the VAULT_FACTORY role.
      */
-    function migrateModules(bytes4, /* _module */ address /* _newImplementation */ )
+    function migrateModules(bytes4 _module, address _newImplementation)
         external
         onlyRole(RolesLibrary.VAULT_FACTORY)
     {

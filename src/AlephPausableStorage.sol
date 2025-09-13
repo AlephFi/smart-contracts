@@ -27,9 +27,9 @@ library AlephPausableStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.pausable.flows")) - 1;
 
     function load() internal pure returns (AlephPausableStorageData storage sd) {
-        uint256 position = STORAGE_POSITION;
+        uint256 _position = STORAGE_POSITION;
         assembly {
-            sd.slot := position
+            sd.slot := _position
         }
     }
 }

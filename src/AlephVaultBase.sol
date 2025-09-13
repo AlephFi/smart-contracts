@@ -59,13 +59,13 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @return The total assets in the vault.
      */
     function _totalAssets(AlephVaultStorageData storage _sd) internal view returns (uint256) {
-        uint256 _totalAssets;
+        uint256 _totalAssetsSum;
         uint8 _shareClassesId = _sd.shareClassesId;
         for (uint8 _classId = 1; _classId <= _shareClassesId; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-            _totalAssets += _totalAssetsPerClass(_shareClass, _classId);
+            _totalAssetsSum += _totalAssetsPerClass(_shareClass, _classId);
         }
-        return _totalAssets;
+        return _totalAssetsSum;
     }
 
     /**
@@ -80,24 +80,25 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint256 _totalAssets;
+        uint256 _totalAssetsSum;
         for (uint8 _seriesId; _seriesId <= _shareClass.shareSeriesId; _seriesId++) {
             if (_seriesId > LEAD_SERIES_ID) {
                 _seriesId += _lastConsolidatedSeriesId;
             }
             // loop through all share series and sum up the total assets
-            _totalAssets += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+            _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
         }
-        return _totalAssets;
+        return _totalAssetsSum;
     }
 
     /**
      * @dev Returns the total assets in the vault.
      * @param _shareClass The share class.
+     * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8, /* _classId */ uint8 _seriesId)
+    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint8 _seriesId)
         internal
         view
         returns (uint256)
@@ -108,10 +109,11 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     /**
      * @dev Returns the total shares in the vault.
      * @param _shareClass The share class.
+     * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8, /* _classId */ uint8 _seriesId)
+    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint8 _seriesId)
         internal
         view
         returns (uint256)
@@ -234,10 +236,10 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 _totalDepositRequest;
-        uint48 _currentBatch = _currentBatch(_sd);
+        uint48 _currentBatchId = _currentBatch(_sd);
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         uint48 _depositSettleId = _shareClass.depositSettleId;
-        for (_depositSettleId; _depositSettleId <= _currentBatch; _depositSettleId++) {
+        for (_depositSettleId; _depositSettleId <= _currentBatchId; _depositSettleId++) {
             _totalDepositRequest += _shareClass.depositRequests[_depositSettleId].depositRequest[_user];
         }
         return _totalDepositRequest;
@@ -253,7 +255,6 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      */
     function _pendingAssetsOf(
         IAlephVault.ShareClass storage _shareClass,
-        uint8, /* _classId */
         uint48 _currentBatchId,
         address _user,
         uint256 _totalUserAssets
