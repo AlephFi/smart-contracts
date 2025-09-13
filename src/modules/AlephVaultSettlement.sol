@@ -35,6 +35,10 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    /**
+     * @notice Constructor for AlephVaultSettlement module
+     * @param _batchDuration The duration of each batch cycle in seconds
+     */
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
     /// @inheritdoc IAlephVaultSettlement
@@ -305,13 +309,12 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             // we attempt to settle the remaining amount from this series
             // this continues to happen for all outstanding series until the complete amount is settled
             _remainingAmount =
-                _settleRedeemSlice(_sd, _batchId, _user, _remainingAmount, _classId, _seriesId, _shareClass);
+                _settleRedeemSlice(_batchId, _user, _remainingAmount, _classId, _seriesId, _shareClass);
         }
     }
 
     /**
      * @dev Internal function to settle a redeem slice.
-     * @param _sd The storage struct.
      * @param _batchId The id of the batch.
      * @param _user The user to settle the redeem for.
      * @param _amount The amount to settle.
@@ -320,7 +323,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @return _remainingAmount The remaining amount to redeem.
      */
     function _settleRedeemSlice(
-        AlephVaultStorageData storage _sd,
         uint48 _batchId,
         address _user,
         uint256 _amount,

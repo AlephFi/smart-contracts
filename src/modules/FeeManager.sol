@@ -41,6 +41,11 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     uint48 public constant ONE_YEAR = 365 days;
     uint48 public constant BPS_DENOMINATOR = 10_000;
 
+    /**
+     * @notice Constructor for FeeManager module
+     * @param _constructorParams The initialization parameters for fee configuration
+     * @param _batchDuration The duration of each batch cycle in seconds
+     */
     constructor(FeeConstructorParams memory _constructorParams, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
         if (_constructorParams.managementFeeTimelock == 0 || _constructorParams.performanceFeeTimelock == 0) {
             revert InvalidConstructorParams();

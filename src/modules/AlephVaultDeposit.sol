@@ -39,6 +39,11 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     uint48 public immutable MIN_USER_BALANCE_TIMELOCK;
     uint48 public immutable MAX_DEPOSIT_CAP_TIMELOCK;
 
+    /**
+     * @notice Constructor for AlephVaultDeposit module
+     * @param _constructorParams The initialization parameters for deposit configuration
+     * @param _batchDuration The duration of each batch cycle in seconds
+     */
     constructor(DepositConstructorParams memory _constructorParams, uint48 _batchDuration)
         AlephVaultBase(_batchDuration)
     {

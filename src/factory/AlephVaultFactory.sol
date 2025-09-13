@@ -143,15 +143,18 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         return _vault;
     }
 
+    /// @inheritdoc IAlephVaultFactory
     function isValidVault(address _vault) external view returns (bool) {
         return _getStorage().vaults.contains(_vault);
     }
 
+    /// @inheritdoc IAlephVaultFactory
     function setIsAuthEnabled(bool _isAuthEnabled) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _getStorage().isAuthEnabled = _isAuthEnabled;
         emit IsAuthEnabledSet(_isAuthEnabled);
     }
 
+    /// @inheritdoc IAlephVaultFactory
     function setOperationsMultisig(address _operationsMultisig) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         if (_operationsMultisig == address(0)) {
             revert InvalidParam();
@@ -168,6 +171,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         emit OperationsMultisigSet(_operationsMultisig);
     }
 
+    /// @inheritdoc IAlephVaultFactory
     function setOracle(address _oracle) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         if (_oracle == address(0)) {
             revert InvalidParam();
@@ -182,6 +186,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         emit OracleSet(_oracle);
     }
 
+    /// @inheritdoc IAlephVaultFactory
     function setGuardian(address _guardian) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         if (_guardian == address(0)) {
             revert InvalidParam();
@@ -196,6 +201,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         emit GuardianSet(_guardian);
     }
 
+    /// @inheritdoc IAlephVaultFactory
     function setAuthSigner(address _authSigner) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         if (_authSigner == address(0)) {
             revert InvalidParam();
@@ -210,6 +216,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         emit AuthSignerSet(_authSigner);
     }
 
+    /// @inheritdoc IAlephVaultFactory
     function setModuleImplementation(bytes4 _module, address _implementation)
         external
         onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
