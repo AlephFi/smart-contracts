@@ -313,6 +313,13 @@ Please report security vulnerabilities to [security@aleph.finance](mailto:securi
 | Sepolia Testnet | 11155111 | ✅ Active |
 | Hoodi Testnet | 560048 | ✅ Active |
 
+### Factory Addresses
+
+| Network | Factory Address |
+|---------|----------------|
+| Sepolia Testnet | `TBD` |
+| Hoodi Testnet | `TBD` |
+
 ### Deployment Scripts
 
 ```bash
