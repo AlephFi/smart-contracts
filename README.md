@@ -1,4 +1,4 @@
-# Aleph Protocol 🚀
+# Aleph Protocol
 
 <div align="center">
 
