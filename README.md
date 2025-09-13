@@ -7,7 +7,7 @@
 [![Foundry](https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg)](https://getfoundry.sh/)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.27-gray.svg)](https://soliditylang.org/)
 
-**Next-generation DeFi infrastructure connecting digital asset allocators with sophisticated money managers**
+Aleph is a financial infrastructure for uncorrelated yield strategies, connecting digital asset allocators with institutional money managers.
 
 [Documentation](https://docs.aleph.finance) • [Website](https://aleph.finance) • [Twitter](https://x.com/Alephfi) • [GitHub](https://github.com/Othentic-Labs/Aleph)
 
@@ -15,23 +15,24 @@
 
 ---
 
-## 🌟 Overview
+## Overview
 
-Aleph Protocol is a comprehensive financial infrastructure that revolutionizes how digital assets are managed and allocated in DeFi. Our protocol enables seamless connections between asset allocators and professional money managers through sophisticated, battle-tested smart contracts.
+Aleph Vault tokenizes off-chain yield strategies into asynchronous vaults, deriving their value from the underlying NAV.
+The system simplifies complex operations for managers and allocators, handles whitelisting, subscriptions, Classes and Series, HWM, fee accrual, and capital distribution.
 
-### Key Innovations
+Aleph Vault operates as a settlement-based system; deposits/redemptions are settled only after a new NAV is published. The vault manager initiates NAV updates and settlement cycles, and the whitelisted vault is used as the “subscription escrow”.
 
-- **🔄 Asynchronous Operations**: Custom async deposit/redemption system with batch-based settlements
-- **🏛️ Institutional Grade**: Built for professional asset management with advanced governance
-- **🔐 Multi-Layer Security**: Role-based access control with pausable emergency systems
-- **📊 Transparent Fees**: Protocol-level fee management with performance tracking
-- **🌐 EVM Compatible**: Deployable on any EVM-compatible blockchain
+### Features
+Customization: Apply custom parameters for subscription, fee logic, and other key controls. 
+Fee management: calculated per class/series and enforced by contracts.
+Built-in compliance: whitelisted access through a verification process.
+Canonical states: deposits/redemptions settle in batches at the same per-share price.
 
 ---
 
 ## 🏗️ Architecture
 
-<img width="1868" height="755" alt="Aleph Protocol Architecture" src="https://github.com/user-attachments/assets/159f0d2a-e47c-4afb-b4f6-7eb32636dce2" />
+<img width="1868" height="755" alt="Aleph Architecture" src="https://github.com/user-attachments/assets/159f0d2a-e47c-4afb-b4f6-7eb32636dce2" />
 
 ### Core Components
 
