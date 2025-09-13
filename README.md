@@ -23,7 +23,7 @@ The system simplifies complex operations for managers and allocators, handles wh
 Aleph Vault operates as a settlement-based system; deposits/redemptions are settled only after a new NAV is published. The vault manager initiates NAV updates and settlement cycles, and the whitelisted vault is used as the “subscription escrow”.
 
 ### Features
-- Customization: Apply custom parameters for subscription, fee logic, and other key controls. 
+- Customization: apply custom parameters for subscription, fee logic, and other key controls. 
 - Fee management: calculated per class/series and enforced by contracts.
 - Built-in compliance: whitelisted access through a verification process.
 - Canonical states: deposits/redemptions settle in batches at the same per-share price.
