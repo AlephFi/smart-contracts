@@ -308,8 +308,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             }
             // we attempt to settle the remaining amount from this series
             // this continues to happen for all outstanding series until the complete amount is settled
-            _remainingAmount =
-                _settleRedeemSlice(_batchId, _user, _remainingAmount, _classId, _seriesId, _shareClass);
+            _remainingAmount = _settleRedeemSlice(_batchId, _user, _remainingAmount, _classId, _seriesId, _shareClass);
         }
     }
 

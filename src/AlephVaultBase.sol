@@ -97,7 +97,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 /* _classId */, uint8 _seriesId)
+    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8, /* _classId */ uint8 _seriesId)
         internal
         view
         returns (uint256)
@@ -111,7 +111,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 /* _classId */, uint8 _seriesId)
+    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8, /* _classId */ uint8 _seriesId)
         internal
         view
         returns (uint256)
@@ -253,7 +253,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      */
     function _pendingAssetsOf(
         IAlephVault.ShareClass storage _shareClass,
-        uint8 /* _classId */,
+        uint8, /* _classId */
         uint48 _currentBatchId,
         address _user,
         uint256 _totalUserAssets
