@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.27;
 /*
   ______   __                      __       
  /      \ /  |                    /  |      
@@ -32,6 +32,8 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
+ * @dev Functions that use _delegate() may have parameters that appear unused
+ *      but are actually passed through to the delegated implementation via calldata
  */
 contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     using SafeCast for uint256;
