@@ -234,6 +234,15 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         return _currentBatchId;
     }
 
+    /**
+     * @dev Internal function to validate a redeem request.
+     * @param _shareClass The share class.
+     * @param _currentBatchId The current batch ID.
+     * @param _totalUserAssets The total user assets.
+     * @param _pendingUserAssets The pending user assets.
+     * @param _previewAmountToRedeem The preview amount to redeem.
+     * @param _redeemRequestParams The redeem request parameters.
+     */
     function _validateRedeemRequest(
         IAlephVault.ShareClass storage _shareClass,
         uint48 _currentBatchId,
