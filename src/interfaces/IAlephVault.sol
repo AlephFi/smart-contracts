@@ -27,7 +27,7 @@ interface IAlephVault {
     error InvalidAuthSigner();
     error InvalidShareClass();
     error InvalidShareSeries();
-    error InvalidVaultFee();
+    error InvalidShareClassParams();
 
     event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);

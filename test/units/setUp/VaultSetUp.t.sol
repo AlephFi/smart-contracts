@@ -237,6 +237,24 @@ contract VaultSetUpTest is BaseTest {
         vault.initialize(_initializationParams);
     }
 
+    function test_initialize_when_minDepositAmount_is_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
+        _initializationParams.userInitializationParams.shareClassParams.minDepositAmount = 0;
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
+    function test_initialize_when_minRedeemAmount_is_0() public {
+        IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
+        _initializationParams.userInitializationParams.shareClassParams.minRedeemAmount = 0;
+
+        vault = new ExposedVault(defaultConfigParams.batchDuration);
+        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
+        vault.initialize(_initializationParams);
+    }
+
     function test_initialize_when_alephVaultDepositImplementation_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
         _initializationParams.moduleInitializationParams.alephVaultDepositImplementation = address(0);

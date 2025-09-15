@@ -130,6 +130,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     function _queueMinRedeemAmount(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minRedeemAmount)
         internal
     {
+        if (_minRedeemAmount == 0) {
+            revert InvalidMinRedeemAmount();
+        }
         _sd.timelocks[TimelockRegistry.MIN_REDEEM_AMOUNT.getKey(_classId)] = TimelockRegistry.Timelock({
             isQueued: true,
             unlockTimestamp: Time.timestamp() + MIN_REDEEM_AMOUNT_TIMELOCK,

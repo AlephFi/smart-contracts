@@ -44,6 +44,7 @@ interface IAlephVaultRedeem {
     event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
     event RedeemRequest(address indexed user, uint48 batchId, RedeemRequestParams redeemRequestParams);
 
+    error InvalidMinRedeemAmount();
     error InvalidSeriesId(uint8 seriesId);
     error InsufficientRedeem();
     error RedeemLessThanMinRedeemAmount(uint256 minRedeemAmount);

@@ -106,6 +106,9 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     function _queueMinDepositAmount(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minDepositAmount)
         internal
     {
+        if (_minDepositAmount == 0) {
+            revert InvalidMinDepositAmount();
+        }
         _sd.timelocks[TimelockRegistry.MIN_DEPOSIT_AMOUNT.getKey(_classId)] = TimelockRegistry.Timelock({
             isQueued: true,
             unlockTimestamp: Time.timestamp() + MIN_DEPOSIT_AMOUNT_TIMELOCK,

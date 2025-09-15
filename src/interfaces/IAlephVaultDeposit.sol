@@ -42,6 +42,7 @@ interface IAlephVaultDeposit {
     event NewMaxDepositCapSet(uint8 classId, uint256 maxDepositCap);
     event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
+    error InvalidMinDepositAmount();
     error InsufficientDeposit();
     error DepositLessThanMinDepositAmount(uint256 minDepositAmount);
     error DepositLessThanMinUserBalance(uint256 minUserBalance);

@@ -38,6 +38,8 @@ contract RequestSettleRedeemTest is BaseTest {
         super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
         IAlephVault.ShareClassParams memory _shareClassParams;
+        _shareClassParams.minDepositAmount = 10 ether;
+        _shareClassParams.minRedeemAmount = 10 ether;
         _initializationParams.userInitializationParams.shareClassParams = _shareClassParams;
         _setUpNewAlephVault(defaultConfigParams, _initializationParams);
         _unpauseVaultFlows();

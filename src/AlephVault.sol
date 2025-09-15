@@ -98,6 +98,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initializationParams.moduleInitializationParams.migrationManagerImplementation == address(0)
                 || _initializationParams.userInitializationParams.shareClassParams.managementFee > MAXIMUM_MANAGEMENT_FEE
                 || _initializationParams.userInitializationParams.shareClassParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
+                || _initializationParams.userInitializationParams.shareClassParams.minDepositAmount == 0
+                || _initializationParams.userInitializationParams.shareClassParams.minRedeemAmount == 0
         ) {
             revert InvalidInitializationParams();
         }
@@ -481,9 +483,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     {
         if (
             _shareClassParams.managementFee > MAXIMUM_MANAGEMENT_FEE
-                || _shareClassParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
+                || _shareClassParams.performanceFee > MAXIMUM_PERFORMANCE_FEE || _shareClassParams.minDepositAmount == 0
+                || _shareClassParams.minRedeemAmount == 0
         ) {
-            revert InvalidVaultFee();
+            revert InvalidShareClassParams();
         }
         return _createShareClass(_getStorage(), _shareClassParams);
     }
