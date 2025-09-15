@@ -20,6 +20,7 @@ import {AccessControlUpgradeable} from
 import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconProxy.sol";
 import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {IMigrationManager} from "@aleph-vault/interfaces/IMigrationManager.sol";
@@ -134,6 +135,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
 
         address _vault = Create2.deploy(0, _salt, _bytecode);
         _sd.vaults.add(_vault);
+        IAccountant(_sd.accountant).initializeVaultTreasury(_vault, _userInitializationParams.vaultTreasury);
         emit VaultDeployed(
             _vault,
             _userInitializationParams.manager,

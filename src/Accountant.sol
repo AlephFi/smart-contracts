@@ -64,6 +64,17 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         return _sd.vaultTreasury[msg.sender];
     }
 
+    function initializeVaultTreasury(address _vault, address _vaultTreasury)
+        external
+        onlyRole(RolesLibrary.VAULT_FACTORY)
+    {
+        if (_vaultTreasury == address(0)) {
+            revert InvalidVaultTreasury();
+        }
+        _getStorage().vaultTreasury[_vault] = _vaultTreasury;
+        emit VaultTreasurySet(_vault, _vaultTreasury);
+    }
+
     /// @inheritdoc IAccountant
     function setOperationsMultisig(address _newOperationsMultisig)
         external
@@ -78,9 +89,13 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
     }
 
     /// @inheritdoc IAccountant
-    function setVaultFactory(address _vaultFactory) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        _getStorage().vaultFactory = _vaultFactory;
-        emit VaultFactorySet(_vaultFactory);
+    function setVaultFactory(address _newVaultFactory) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        AccountantStorageData storage _sd = _getStorage();
+        address _oldVaultFactory = _sd.vaultFactory;
+        _sd.vaultFactory = _newVaultFactory;
+        _revokeRole(RolesLibrary.VAULT_FACTORY, _oldVaultFactory);
+        _grantRole(RolesLibrary.VAULT_FACTORY, _newVaultFactory);
+        emit VaultFactorySet(_newVaultFactory);
     }
 
     /// @inheritdoc IAccountant

@@ -53,6 +53,13 @@ interface IAccountant {
     function vaultTreasury() external view returns (address);
 
     /**
+     * @notice Initializes the vault treasury.
+     * @param _vault The vault to initialize the treasury for.
+     * @param _vaultTreasury The new vault treasury.
+     */
+    function initializeVaultTreasury(address _vault, address _vaultTreasury) external;
+
+    /**
      * @notice Sets the operations multisig.
      * @param _operationsMultisig The new operations multisig.
      */
