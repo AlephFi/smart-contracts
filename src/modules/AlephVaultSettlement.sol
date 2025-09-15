@@ -24,6 +24,7 @@ import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -34,6 +35,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SeriesAccounting for IAlephVault.ShareClass;
 
     /**
      * @notice Constructor for AlephVaultSettlement module
@@ -154,7 +156,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         }
         // create a new series only if there are deposits to settle (and createSeries flag is true)
         if (_settleDepositDetails.createSeries) {
-            _createNewSeries(_shareClass, _settleDepositDetails.classId, _settleDepositDetails.toBatchId);
+            _shareClass.createNewSeries(_settleDepositDetails.classId, _settleDepositDetails.toBatchId);
             _settleDepositDetails.createSeries = false;
         }
         uint256 _totalSharesToMint;
@@ -265,101 +267,12 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             uint256 _amount = ERC4626Math.previewMintUnits(
                 _redeemRequests.redeemRequest[_user], _assetsPerClassOf(_classId, _user, _shareClass)
             );
-            _settleRedeemForUser(_batchId, _user, _amount, _classId, _shareClass);
+            _shareClass.settleRedeemForUser(_classId, _batchId, _user, _amount);
             _totalAmountToRedeem += _amount;
             IERC20(_underlyingToken).safeTransfer(_user, _amount);
             emit RedeemRequestSettled(_batchId, _user, _classId, _amount);
         }
         emit SettleRedeemBatch(_batchId, _classId, _totalAmountToRedeem);
-    }
-
-    /**
-     * @dev Internal function to settle a redeem for a user.
-     * @param _batchId The id of the batch.
-     * @param _user The user to settle the redeem for.
-     * @param _amount The amount to settle.
-     * @param _classId The id of the class.
-     * @param _shareClass The share class storage reference.
-     */
-    function _settleRedeemForUser(
-        uint48 _batchId,
-        address _user,
-        uint256 _amount,
-        uint8 _classId,
-        IAlephVault.ShareClass storage _shareClass
-    ) internal {
-        // the amount requested is redeemed from teh class in a first-in first-out basis
-        // we first try to settle the redemption from the lead series
-        // remaining amount is assets that were not settled in the lead series (this happens if user does not have
-        // enough assets in the lead series to complete the redemption)
-        uint256 _remainingAmount = _amount;
-        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
-
-        // we now iterate through all series to settle the remaining user amount
-        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-            // if the user request amount is settled completely, we break out of the loop
-            if (_remainingAmount == 0) {
-                break;
-            }
-            if (_seriesId > LEAD_SERIES_ID) {
-                _seriesId += _lastConsolidatedSeriesId;
-            }
-            // we attempt to settle the remaining amount from this series
-            // this continues to happen for all outstanding series until the complete amount is settled
-            _remainingAmount = _settleRedeemSlice(_batchId, _user, _remainingAmount, _classId, _seriesId, _shareClass);
-        }
-    }
-
-    /**
-     * @dev Internal function to settle a redeem slice.
-     * @param _batchId The id of the batch.
-     * @param _user The user to settle the redeem for.
-     * @param _amount The amount to settle.
-     * @param _classId The id of the class.
-     * @param _seriesId The id of the series.
-     * @return _remainingAmount The remaining amount to redeem.
-     */
-    function _settleRedeemSlice(
-        uint48 _batchId,
-        address _user,
-        uint256 _amount,
-        uint8 _classId,
-        uint8 _seriesId,
-        IAlephVault.ShareClass storage _shareClass
-    ) internal returns (uint256 _remainingAmount) {
-        _remainingAmount = _amount;
-        IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
-        // check total assets available in the series for the user
-        uint256 _sharesInSeries = _sharesOf(_shareClass, _seriesId, _user);
-        uint256 _amountInSeries =
-            ERC4626Math.previewRedeem(_sharesInSeries, _shareSeries.totalAssets, _shareSeries.totalShares);
-        // if the amount available in the series is less than or equal to the remaining amount, we settle the entire
-        // amount in the series and move on to the next series by updating the remaining amount
-        if (_amountInSeries <= _remainingAmount) {
-            _remainingAmount -= _amountInSeries;
-            // redeem the entire amount in the series and update the series total assets and shares
-            _shareSeries.totalAssets -= _amountInSeries;
-            _shareSeries.totalShares -= _sharesInSeries;
-            _shareSeries.users.remove(_user);
-            delete _shareSeries.sharesOf[_user];
-            emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-                _batchId, _user, _classId, _seriesId, _amountInSeries, _sharesInSeries
-            );
-        } else {
-            // if the amount available in the series is greater than or equal to the remaining amount,
-            // we settle the remaining amount in the series and update the series total assets and shares
-            uint256 _userSharesToBurn =
-                ERC4626Math.previewWithdraw(_remainingAmount, _shareSeries.totalShares, _shareSeries.totalAssets);
-            _shareSeries.totalAssets -= _remainingAmount;
-            _shareSeries.totalShares -= _userSharesToBurn;
-            _shareSeries.sharesOf[_user] -= _userSharesToBurn;
-            emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-                _batchId, _user, _classId, _seriesId, _remainingAmount, _userSharesToBurn
-            );
-            // set the remaining amount to 0 as the entire amount has been settled and we break out of the loop
-            _remainingAmount = 0;
-        }
     }
 
     /**
@@ -395,7 +308,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 }
             }
             uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
-            _settleRedeemForUser(_currentBatchId, _user, _totalUserAssets, _classId, _shareClass);
+            _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _totalUserAssets);
             IERC20(_sd.underlyingToken).safeTransfer(_user, _totalUserAssets + _newDepositsToRedeem);
         }
         emit ForceRedeem(_currentBatchId, _user);
@@ -419,133 +332,16 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             // if new lead series highwatermark is not reached, settlements must take place in a new series
             // if a new highwater mark is reached in this cycle, it will be updated in _accumalateFees function
             // hence, after fee accumalation process, the lead highwater mark is either greater than or equal to the lead price per share
-            if (_shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark > _leadPricePerShare(_shareClass, _classId)) {
+            if (
+                _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark
+                    > _leadPricePerShare(_shareClass, _classId)
+            ) {
                 // we don't create a new series just yet because there might not be any deposit request to settle in this cycle
                 _seriesId = _shareSeriesId + 1;
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
                 // if new lead series highwatermark was reached in this cycle and their exists outstanding series, consolidate them into lead series
-                _consolidateSeries(_shareClass, _classId, _shareSeriesId, _lastConsolidatedSeriesId, _toBatchId);
+                _shareClass.consolidateSeries(_classId, _shareSeriesId, _lastConsolidatedSeriesId, _toBatchId);
             }
-        }
-    }
-
-    /**
-     * @dev Internal function to create a new series.
-     * @param _shareClass The share class to create the new series for.
-     * @param _classId The id of the class.
-     * @param _toBatchId The batch id to settle deposits up to.
-     */
-    function _createNewSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _toBatchId) internal {
-        uint8 _newSeriesId = ++_shareClass.shareSeriesId;
-        _shareClass.shareSeries[_newSeriesId].highWaterMark = PRICE_DENOMINATOR;
-        emit NewSeriesCreated(_classId, _newSeriesId, _toBatchId);
-    }
-
-    /**
-     * @dev Internal function to consolidate series.
-     * @param _shareClass The share class to consolidate.
-     * @param _classId The id of the class.
-     * @param _shareSeriesId The id of the share series.
-     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
-     * @param _toBatchId The batch id to settle deposits up to.
-     */
-    function _consolidateSeries(
-        IAlephVault.ShareClass storage _shareClass,
-        uint8 _classId,
-        uint8 _shareSeriesId,
-        uint8 _lastConsolidatedSeriesId,
-        uint48 _toBatchId
-    ) internal {
-        uint256 _totalAmountToTransfer;
-        uint256 _totalSharesToTransfer;
-        // iterate through all outstanding series
-        IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[LEAD_SERIES_ID];
-        for (uint8 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
-            IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
-            (uint256 _amountToTransfer, uint256 _sharesToTransfer) =
-                _consolidateUserShares(_leadSeries, _shareSeries, _classId, _seriesId, _toBatchId);
-            // sum up the total amount and shares to transfer into the lead series
-            _totalAmountToTransfer += _amountToTransfer;
-            _totalSharesToTransfer += _sharesToTransfer;
-            // delete series
-            _shareSeries.users.clear();
-            delete _shareClass.shareSeries[_seriesId];
-            emit SeriesConsolidated(_classId, _seriesId, _toBatchId, _amountToTransfer, _sharesToTransfer);
-        }
-        // update the last consolidated series id and add the total amount and shares to transfer into the lead series
-        _shareClass.lastConsolidatedSeriesId = _shareSeriesId;
-        _shareClass.shareSeries[LEAD_SERIES_ID].totalAssets += _totalAmountToTransfer;
-        _shareClass.shareSeries[LEAD_SERIES_ID].totalShares += _totalSharesToTransfer;
-        emit AllSeriesConsolidated(
-            _classId,
-            _lastConsolidatedSeriesId + 1,
-            _shareSeriesId,
-            _toBatchId,
-            _totalAmountToTransfer,
-            _totalSharesToTransfer
-        );
-    }
-
-    /**
-     * @dev Internal function to consolidate user shares.
-     * @param _leadSeries The lead series to consolidate.
-     * @param _shareSeries The share series to consolidate.
-     * @param _classId The id of the class.
-     * @param _seriesId The id of the series.
-     * @param _toBatchId The batch id to settle deposits up to.
-     * @return _totalAmountToTransfer The total amount to transfer.
-     * @return _totalSharesToTransfer The total shares to transfer.
-     */
-    function _consolidateUserShares(
-        IAlephVault.ShareSeries storage _leadSeries,
-        IAlephVault.ShareSeries storage _shareSeries,
-        uint8 _classId,
-        uint8 _seriesId,
-        uint48 _toBatchId
-    ) internal returns (uint256 _totalAmountToTransfer, uint256 _totalSharesToTransfer) {
-        UserConsolidationDetails memory _userConsolidationDetails = UserConsolidationDetails({
-            user: address(0),
-            classId: _classId,
-            seriesId: _seriesId,
-            shares: 0,
-            amountToTransfer: 0,
-            sharesToTransfer: 0,
-            toBatchId: _toBatchId
-        });
-        // add virtual users into user list
-        _shareSeries.users.add(MANAGEMENT_FEE_RECIPIENT);
-        _shareSeries.users.add(PERFORMANCE_FEE_RECIPIENT);
-        uint256 _len = _shareSeries.users.length();
-        // iterate through all users in the series and transfer their shares to the lead series
-        for (uint256 _i; _i < _len; _i++) {
-            _userConsolidationDetails.user = _shareSeries.users.at(_i);
-            _userConsolidationDetails.shares = _shareSeries.sharesOf[_userConsolidationDetails.user];
-            // calculate amount to transfer from outstanding series to lead series
-            _userConsolidationDetails.amountToTransfer = ERC4626Math.previewMint(
-                _userConsolidationDetails.shares, _shareSeries.totalAssets, _shareSeries.totalShares
-            );
-            // calculate corresponding shares to deposit in lead series
-            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewWithdraw(
-                _userConsolidationDetails.amountToTransfer, _leadSeries.totalShares, _leadSeries.totalAssets
-            );
-            // sum up the total amount and shares to transfer into the lead series
-            _totalAmountToTransfer += _userConsolidationDetails.amountToTransfer;
-            _totalSharesToTransfer += _userConsolidationDetails.sharesToTransfer;
-            // add the user's shares to the lead series
-            _leadSeries.sharesOf[_userConsolidationDetails.user] += _userConsolidationDetails.sharesToTransfer;
-            // if user does not exist in lead series, add them in lead series (except for virtual users)
-            if (
-                !_leadSeries.users.contains(_userConsolidationDetails.user)
-                    && (
-                        _userConsolidationDetails.user != MANAGEMENT_FEE_RECIPIENT
-                            || _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT
-                    )
-            ) {
-                _leadSeries.users.add(_userConsolidationDetails.user);
-            }
-            // remove user shares from the series
-            delete _shareSeries.sharesOf[_userConsolidationDetails.user];
-            emit UserSharesConsolidated(_userConsolidationDetails);
         }
     }
 
@@ -583,10 +379,12 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         uint48 _lastFeePaidId = _shareClass.lastFeePaidId;
         if (_toBatchId > _lastFeePaidId) {
             for (uint8 _i = 0; _i < _newTotalAssets.length; _i++) {
-                uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
+                uint8 _seriesId = _i > SeriesAccounting.LEAD_SERIES_ID
+                    ? _lastConsolidatedSeriesId + _i
+                    : SeriesAccounting.LEAD_SERIES_ID;
                 // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
-                _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFees(
+                _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFeeShares(
                     _newTotalAssets[_i],
                     _shareClass.shareSeries[_seriesId].totalShares,
                     _toBatchId,
@@ -600,16 +398,16 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     }
 
     /**
-     * @dev Internal function to get the accumulated fees.
+     * @dev Internal function to get the accumulated fee shares.
      * @param _newTotalAssets The new total assets after settlement.
      * @param _totalShares The total shares in the vault.
      * @param _toBatchId The batch id to settle deposits up to.
      * @param _lastFeePaidId The last fee paid id.
      * @param _classId The id of the class.
      * @param _seriesId The id of the series.
-     * @return The accumulated fees shares to mint.
+     * @return The accumulated fee shares to mint.
      */
-    function _getAccumulatedFees(
+    function _getAccumulatedFeeShares(
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint48 _toBatchId,

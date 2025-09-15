@@ -21,6 +21,7 @@ import {ReentrancyGuardUpgradeable} from
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
 import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
 /**
@@ -30,12 +31,8 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
 contract AlephVaultBase is ReentrancyGuardUpgradeable {
     using Math for uint256;
 
-    uint8 public constant LEAD_SERIES_ID = 0;
     uint32 public constant MAXIMUM_MANAGEMENT_FEE = 1000; // 10%
     uint32 public constant MAXIMUM_PERFORMANCE_FEE = 5000; // 50%
-    uint48 public constant PRICE_DENOMINATOR = 1e6;
-    address public constant MANAGEMENT_FEE_RECIPIENT = address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
-    address public constant PERFORMANCE_FEE_RECIPIENT = address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
 
     uint48 public immutable BATCH_DURATION;
 
@@ -82,7 +79,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint256 _totalAssetsSum;
         for (uint8 _seriesId; _seriesId <= _shareClass.shareSeriesId; _seriesId++) {
-            if (_seriesId > LEAD_SERIES_ID) {
+            if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
                 _seriesId += _lastConsolidatedSeriesId;
             }
             // loop through all share series and sum up the total assets
@@ -171,7 +168,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint8 _shareSeriesId = _shareClass.shareSeriesId;
         for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-            if (_seriesId > LEAD_SERIES_ID) {
+            if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
                 _seriesId += _lastConsolidatedSeriesId;
             }
             // loop through all share series and sum up the assets
@@ -201,8 +198,8 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         return _getPricePerShare(
-            _totalAssetsPerSeries(_shareClass, _classId, LEAD_SERIES_ID),
-            _totalSharesPerSeries(_shareClass, _classId, LEAD_SERIES_ID)
+            _totalAssetsPerSeries(_shareClass, _classId, SeriesAccounting.LEAD_SERIES_ID),
+            _totalSharesPerSeries(_shareClass, _classId, SeriesAccounting.LEAD_SERIES_ID)
         );
     }
 
@@ -280,9 +277,9 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @return The price per share.
      */
     function _getPricePerShare(uint256 _assets, uint256 _shares) public pure returns (uint256) {
-        uint256 _pricePerShare = PRICE_DENOMINATOR;
+        uint256 _pricePerShare = SeriesAccounting.PRICE_DENOMINATOR;
         if (_shares > 0) {
-            _pricePerShare = _assets.mulDiv(PRICE_DENOMINATOR, _shares, Math.Rounding.Ceil);
+            _pricePerShare = _assets.mulDiv(SeriesAccounting.PRICE_DENOMINATOR, _shares, Math.Rounding.Ceil);
         }
         return _pricePerShare;
     }

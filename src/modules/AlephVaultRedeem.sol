@@ -20,6 +20,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
@@ -189,7 +190,10 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
                 revert InsufficientRedeem();
             }
             uint8 _seriesId = _redeemRequestParams.shareRequests[_i].seriesId;
-            if (_seriesId > LEAD_SERIES_ID && (_seriesId <= _lastConsolidatedSeriesId || _seriesId > _shareSeriesId)) {
+            if (
+                _seriesId > SeriesAccounting.LEAD_SERIES_ID
+                    && (_seriesId <= _lastConsolidatedSeriesId || _seriesId > _shareSeriesId)
+            ) {
                 revert InvalidSeriesId(_seriesId);
             }
             IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];

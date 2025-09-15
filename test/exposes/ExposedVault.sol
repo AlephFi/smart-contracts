@@ -33,6 +33,7 @@ contract ExposedVault is AlephVault {
     using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    uint256 public constant PRICE_DENOMINATOR = 1e6;
     uint256 public constant TOTAL_SHARE_UNITS = 1e18;
 
     constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
