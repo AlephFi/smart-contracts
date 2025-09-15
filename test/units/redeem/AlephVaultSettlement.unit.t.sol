@@ -92,7 +92,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(IAlephVaultSettlement.InvalidToBatchId.selector);
+        vm.expectRevert(IAlephVaultSettlement.NoRedeemsToSettle.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,

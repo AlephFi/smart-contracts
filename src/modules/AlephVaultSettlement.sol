@@ -209,12 +209,12 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         // verify all conditions are satisfied to settle redeems
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _currentBatchId = _currentBatch(_sd);
-        uint48 _noticePeriod = _shareClass.shareClassParams.noticePeriod;
-        if (_currentBatchId < _noticePeriod || _settlementParams.toBatchId > _currentBatchId - _noticePeriod) {
+        if (_settlementParams.toBatchId > _currentBatchId) {
             revert InvalidToBatchId();
         }
+        uint48 _noticePeriod = _shareClass.shareClassParams.noticePeriod;
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
-        if (_settlementParams.toBatchId <= _redeemSettleId) {
+        if (_settlementParams.toBatchId - _noticePeriod <= _redeemSettleId) {
             revert NoRedeemsToSettle();
         }
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
@@ -239,10 +239,10 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.newTotalAssets
         );
         address _underlyingToken = _sd.underlyingToken;
-        for (uint48 _batchId = _redeemSettleId; _batchId < _settlementParams.toBatchId; _batchId++) {
+        for (uint48 _batchId = _redeemSettleId; _batchId < _settlementParams.toBatchId - _noticePeriod; _batchId++) {
             _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId, _underlyingToken);
         }
-        _shareClass.redeemSettleId = _settlementParams.toBatchId;
+        _shareClass.redeemSettleId = _settlementParams.toBatchId - _noticePeriod;
         emit SettleRedeem(_redeemSettleId, _settlementParams.toBatchId, _settlementParams.classId);
     }
 
@@ -396,7 +396,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     : SeriesAccounting.LEAD_SERIES_ID;
                 // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
-                _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFeeShares(
+                _shareClass.shareSeries[_seriesId].totalShares += _accumulateFeeShares(
                     _newTotalAssets[_i],
                     _shareClass.shareSeries[_seriesId].totalShares,
                     _toBatchId,
@@ -419,7 +419,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @param _seriesId The id of the series.
      * @return The accumulated fee shares to mint.
      */
-    function _getAccumulatedFeeShares(
+    function _accumulateFeeShares(
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint48 _toBatchId,
