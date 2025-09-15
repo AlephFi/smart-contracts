@@ -93,7 +93,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initializationParams.guardian == address(0) || _initializationParams.authSigner == address(0)
                 || _initializationParams.userInitializationParams.underlyingToken == address(0)
                 || _initializationParams.userInitializationParams.custodian == address(0)
-                || _initializationParams.userInitializationParams.vaultTreasury == address(0)
                 || _initializationParams.accountant == address(0)
                 || _initializationParams.moduleInitializationParams.alephVaultDepositImplementation == address(0)
                 || _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation == address(0)
@@ -155,11 +154,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
         // create default share class
         _createShareClass(_sd, _initializationParams.userInitializationParams.shareClassParams);
-
-        // set vault treasury
-        IAccountant(_initializationParams.accountant).setVaultTreasury(
-            _initializationParams.userInitializationParams.vaultTreasury
-        );
     }
 
     /// @inheritdoc IAlephVault
