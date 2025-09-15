@@ -176,6 +176,8 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestParams.user)) {
                 _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestParams.user);
             }
+            // delete user deposit request
+            delete _depositRequests.depositRequest[_depositRequestParams.user];
             emit IAlephVaultSettlement.DepositRequestSettled(
                 _depositRequestParams.user,
                 _settleDepositDetails.classId,
@@ -185,6 +187,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 _settleDepositDetails.batchId
             );
         }
+        // delete deposit requests
+        _depositRequests.usersToDeposit.clear();
+        delete _shareClass.depositRequests[_settleDepositDetails.batchId];
         emit SettleDepositBatch(
             _settleDepositDetails.batchId,
             _settleDepositDetails.classId,
@@ -235,7 +240,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         );
         address _underlyingToken = _sd.underlyingToken;
         for (uint48 _batchId = _redeemSettleId; _batchId < _settlementParams.toBatchId; _batchId++) {
-            _settleRedeemForBatch(_batchId, _settlementParams.classId, _underlyingToken, _shareClass);
+            _settleRedeemForBatch(_shareClass, _settlementParams.classId, _batchId, _underlyingToken);
         }
         _shareClass.redeemSettleId = _settlementParams.toBatchId;
         emit SettleRedeem(_redeemSettleId, _settlementParams.toBatchId, _settlementParams.classId);
@@ -243,16 +248,16 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
 
     /**
      * @dev Internal function to settle redeems for a specific batch.
-     * @param _batchId The id of the batch.
-     * @param _classId The id of the class.
-     * @param _underlyingToken The underlying token.
      * @param _shareClass The share class storage reference.
+     * @param _classId The id of the class.
+     * @param _batchId The id of the batch.
+     * @param _underlyingToken The underlying token.
      */
     function _settleRedeemForBatch(
-        uint48 _batchId,
+        IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
-        address _underlyingToken,
-        IAlephVault.ShareClass storage _shareClass
+        uint48 _batchId,
+        address _underlyingToken
     ) internal {
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_batchId];
         uint256 _totalAmountToRedeem;
@@ -270,8 +275,13 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _shareClass.settleRedeemForUser(_classId, _batchId, _user, _amount);
             _totalAmountToRedeem += _amount;
             IERC20(_underlyingToken).safeTransfer(_user, _amount);
+            // delete redeem request
+            delete _redeemRequests.redeemRequest[_user];
             emit RedeemRequestSettled(_batchId, _user, _classId, _amount);
         }
+        // delete redeem requests
+        _redeemRequests.usersToRedeem.clear();
+        delete _shareClass.redeemRequests[_batchId];
         emit SettleRedeemBatch(_batchId, _classId, _totalAmountToRedeem);
     }
 
