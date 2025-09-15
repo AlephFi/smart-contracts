@@ -42,7 +42,7 @@ interface IAlephVaultRedeem {
     event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);
     event NewLockInPeriodSet(uint8 classId, uint48 lockInPeriod);
     event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
-    event RedeemRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
+    event RedeemRequest(address indexed user, uint48 batchId, RedeemRequestParams redeemRequestParams);
 
     error InvalidSeriesId(uint8 seriesId);
     error InsufficientRedeem();
