@@ -214,7 +214,8 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             revert InvalidToBatchId();
         }
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
-        if (_settlementParams.toBatchId - _noticePeriod <= _redeemSettleId) {
+        uint48 _settleUptoBatchId = _settlementParams.toBatchId - _noticePeriod;
+        if (_settleUptoBatchId <= _redeemSettleId) {
             revert NoRedeemsToSettle();
         }
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
@@ -239,10 +240,10 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.newTotalAssets
         );
         address _underlyingToken = _sd.underlyingToken;
-        for (uint48 _batchId = _redeemSettleId; _batchId < _settlementParams.toBatchId - _noticePeriod; _batchId++) {
+        for (uint48 _batchId = _redeemSettleId; _batchId < _settleUptoBatchId; _batchId++) {
             _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId, _underlyingToken);
         }
-        _shareClass.redeemSettleId = _settlementParams.toBatchId - _noticePeriod;
+        _shareClass.redeemSettleId = _settleUptoBatchId;
         emit SettleRedeem(_redeemSettleId, _settlementParams.toBatchId, _settlementParams.classId);
     }
 
