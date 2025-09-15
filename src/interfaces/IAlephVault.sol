@@ -250,6 +250,13 @@ interface IAlephVault {
     function sharesOf(uint8 _classId, uint8 _seriesId, address _user) external view returns (uint256);
 
     /**
+     * @notice Returns the amount of assets claimable by a user.
+     * @param _user The address of the user.
+     * @return The amount of assets claimable by the user.
+     */
+    function redeemableAmount(address _user) external view returns (uint256);
+
+    /**
      * @notice Returns the current price per share of the vault.
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.

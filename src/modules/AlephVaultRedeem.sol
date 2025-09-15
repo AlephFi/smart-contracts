@@ -16,6 +16,8 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
@@ -30,6 +32,7 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
+    using SafeERC20 for IERC20;
     using TimelockRegistry for bytes4;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -89,6 +92,11 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     /// @inheritdoc IAlephVaultRedeem
     function requestRedeem(RedeemRequestParams calldata _redeemRequestParams) external returns (uint48 _batchId) {
         return _requestRedeem(_getStorage(), _redeemRequestParams);
+    }
+
+    /// @inheritdoc IAlephVaultRedeem
+    function withdrawRedeemableAmount() external nonReentrant {
+        _withdrawRedeemableAmount(_getStorage());
     }
 
     /**
@@ -282,5 +290,16 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         if (_shareClass.redeemRequests[_currentBatchId].redeemRequest[msg.sender] > 0) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
+    }
+
+    /**
+     * @dev Internal function to withdraw the redeemable amount.
+     * @param _sd The storage struct.
+     */
+    function _withdrawRedeemableAmount(AlephVaultStorageData storage _sd) internal {
+        uint256 _redeemableAmount = _sd.redeemableAmount[msg.sender];
+        delete _sd.redeemableAmount[msg.sender];
+        IERC20(_sd.underlyingToken).safeTransfer(msg.sender, _redeemableAmount);
+        emit RedeemableAmountWithdrawn(msg.sender, _redeemableAmount);
     }
 }

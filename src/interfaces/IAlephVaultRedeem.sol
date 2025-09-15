@@ -43,6 +43,7 @@ interface IAlephVaultRedeem {
     event NewLockInPeriodSet(uint8 classId, uint48 lockInPeriod);
     event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
     event RedeemRequest(address indexed user, uint48 batchId, RedeemRequestParams redeemRequestParams);
+    event RedeemableAmountWithdrawn(address indexed user, uint256 redeemableAmount);
 
     error InvalidMinRedeemAmount();
     error InvalidSeriesId(uint8 seriesId);
@@ -98,4 +99,9 @@ interface IAlephVaultRedeem {
      * @return _batchId The batch ID for the redeem request.
      */
     function requestRedeem(RedeemRequestParams calldata _redeemRequestParams) external returns (uint48 _batchId);
+
+    /**
+     * @notice Withdraws the redeemable amount for the user.
+     */
+    function withdrawRedeemableAmount() external;
 }

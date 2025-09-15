@@ -379,6 +379,7 @@ contract VaultSetUpTest is BaseTest {
         );
         assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.guardian));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.operationsMultisig));
+        assertTrue(vault.hasRole(PausableFlows.WITHDRAW_FLOW, defaultInitializationParams.guardian));
 
         assertTrue(vault.isFlowPaused(PausableFlows.DEPOSIT_REQUEST_FLOW));
         assertTrue(vault.isFlowPaused(PausableFlows.SETTLE_DEPOSIT_FLOW));

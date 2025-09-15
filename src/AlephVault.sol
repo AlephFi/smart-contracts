@@ -296,6 +296,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function redeemableAmount(address _user) external view returns (uint256) {
+        return _getStorage().redeemableAmount[_user];
+    }
+
+    /// @inheritdoc IAlephVault
     function pricePerShare(uint8 _classId, uint8 _seriesId)
         external
         view
@@ -758,6 +763,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      */
     function forceRedeem(address _user) external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @notice Withdraws the redeemable amount for the user.
+     * @dev Only callable when the withdraw flow is not paused.
+     */
+    function withdrawRedeemableAmount() external whenFlowNotPaused(PausableFlows.WITHDRAW_FLOW) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
     /**

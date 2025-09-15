@@ -49,12 +49,12 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function settleRedeem(SettlementParams calldata _settlementParams) external nonReentrant {
+    function settleRedeem(SettlementParams calldata _settlementParams) external {
         _settleRedeem(_getStorage(), _settlementParams);
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function forceRedeem(address _user) external nonReentrant {
+    function forceRedeem(address _user) external {
         _forceRedeem(_getStorage(), _user);
     }
 
@@ -240,7 +240,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         );
         address _underlyingToken = _sd.underlyingToken;
         for (uint48 _batchId = _redeemSettleId; _batchId < _settlementParams.toBatchId; _batchId++) {
-            _settleRedeemForBatch(_shareClass, _settlementParams.classId, _batchId, _underlyingToken);
+            _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId, _underlyingToken);
         }
         _shareClass.redeemSettleId = _settlementParams.toBatchId;
         emit SettleRedeem(_redeemSettleId, _settlementParams.toBatchId, _settlementParams.classId);
@@ -248,12 +248,14 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
 
     /**
      * @dev Internal function to settle redeems for a specific batch.
+     * @param _sd The storage struct.
      * @param _shareClass The share class storage reference.
      * @param _classId The id of the class.
      * @param _batchId The id of the batch.
      * @param _underlyingToken The underlying token.
      */
     function _settleRedeemForBatch(
+        AlephVaultStorageData storage _sd,
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
         uint48 _batchId,
@@ -274,7 +276,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             );
             _shareClass.settleRedeemForUser(_classId, _batchId, _user, _amount);
             _totalAmountToRedeem += _amount;
-            IERC20(_underlyingToken).safeTransfer(_user, _amount);
+            _sd.redeemableAmount[_user] += _amount;
             // delete redeem request
             delete _redeemRequests.redeemRequest[_user];
             emit RedeemRequestSettled(_batchId, _user, _classId, _amount);
@@ -319,7 +321,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             }
             uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
             _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _totalUserAssets);
-            IERC20(_sd.underlyingToken).safeTransfer(_user, _totalUserAssets + _newDepositsToRedeem);
+            _sd.redeemableAmount[_user] += _totalUserAssets + _newDepositsToRedeem;
         }
         emit ForceRedeem(_currentBatchId, _user);
     }

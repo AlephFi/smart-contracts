@@ -107,6 +107,7 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _manager);
         _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _guardian);
         _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _operationsMultisig);
+        _grantRole(PausableFlows.WITHDRAW_FLOW, _guardian);
     }
 
     function _getPausableStorage() internal pure returns (AlephPausableStorageData storage _sd) {
