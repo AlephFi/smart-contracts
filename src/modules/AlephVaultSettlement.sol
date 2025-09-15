@@ -209,10 +209,10 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         // verify all conditions are satisfied to settle redeems
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _currentBatchId = _currentBatch(_sd);
-        if (_settlementParams.toBatchId > _currentBatchId) {
+        uint48 _noticePeriod = _shareClass.shareClassParams.noticePeriod;
+        if (_settlementParams.toBatchId > _currentBatchId || _settlementParams.toBatchId < _noticePeriod) {
             revert InvalidToBatchId();
         }
-        uint48 _noticePeriod = _shareClass.shareClassParams.noticePeriod;
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
         if (_settlementParams.toBatchId - _noticePeriod <= _redeemSettleId) {
             revert NoRedeemsToSettle();
