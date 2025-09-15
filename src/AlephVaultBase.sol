@@ -276,7 +276,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _shares The total shares in the vault.
      * @return The price per share.
      */
-    function _getPricePerShare(uint256 _assets, uint256 _shares) public pure returns (uint256) {
+    function _getPricePerShare(uint256 _assets, uint256 _shares) internal pure returns (uint256) {
         uint256 _pricePerShare = SeriesAccounting.PRICE_DENOMINATOR;
         if (_shares > 0) {
             _pricePerShare = _assets.mulDiv(SeriesAccounting.PRICE_DENOMINATOR, _shares, Math.Rounding.Ceil);
