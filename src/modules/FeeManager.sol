@@ -22,6 +22,7 @@ import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
@@ -235,11 +236,11 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _totalFeeSharesToMint =
             _feesAccumulatedParams.managementFeeSharesToMint + _feesAccumulatedParams.performanceFeeSharesToMint;
         // update management fee shares of the series
-        _shareClass.shareSeries[_seriesId].sharesOf[MANAGEMENT_FEE_RECIPIENT] +=
+        _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT] +=
             _feesAccumulatedParams.managementFeeSharesToMint;
         if (_feesAccumulatedParams.performanceFeeSharesToMint > 0) {
             // update performance fee shares of the series
-            _shareClass.shareSeries[_seriesId].sharesOf[PERFORMANCE_FEE_RECIPIENT] +=
+            _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT] +=
                 _feesAccumulatedParams.performanceFeeSharesToMint;
             // update high water mark of the series
             uint256 _highWaterMark = _getPricePerShare(_newTotalAssets, _totalShares + _totalFeeSharesToMint);
@@ -299,7 +300,8 @@ contract FeeManager is IFeeManager, AlephVaultBase {
             // performance fee amount formula:
             // (price per share - high water mark) * total shares * performance fee rate
             uint256 _profitPerShare = _pricePerShare - _highWaterMark;
-            uint256 _profit = _profitPerShare.mulDiv(_totalShares, PRICE_DENOMINATOR, Math.Rounding.Ceil);
+            uint256 _profit =
+                _profitPerShare.mulDiv(_totalShares, SeriesAccounting.PRICE_DENOMINATOR, Math.Rounding.Ceil);
             _performanceFeeAmount =
                 _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR - _performanceFee), Math.Rounding.Ceil);
         }
@@ -318,20 +320,20 @@ contract FeeManager is IFeeManager, AlephVaultBase {
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
             uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
             for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-                if (_seriesId > LEAD_SERIES_ID) {
+                if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
                     _seriesId += _lastConsolidatedSeriesId;
                 }
                 IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
-                uint256 _managementFeeShares = _shareSeries.sharesOf[MANAGEMENT_FEE_RECIPIENT];
-                uint256 _performanceFeeShares = _shareSeries.sharesOf[PERFORMANCE_FEE_RECIPIENT];
+                uint256 _managementFeeShares = _shareSeries.sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT];
+                uint256 _performanceFeeShares = _shareSeries.sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT];
                 uint256 _totalShares = _shareSeries.totalShares;
                 uint256 _totalAssets = _shareSeries.totalAssets;
                 uint256 _managementFeeAmount =
                     ERC4626Math.previewRedeem(_managementFeeShares, _totalAssets, _totalShares);
                 uint256 _performanceFeeAmount =
                     ERC4626Math.previewRedeem(_performanceFeeShares, _totalAssets, _totalShares);
-                delete _shareSeries.sharesOf[MANAGEMENT_FEE_RECIPIENT];
-                delete _shareSeries.sharesOf[PERFORMANCE_FEE_RECIPIENT];
+                delete _shareSeries.sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT];
+                delete _shareSeries.sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT];
                 _shareSeries.totalShares -= (_managementFeeShares + _performanceFeeShares);
                 _shareSeries.totalAssets -= (_managementFeeAmount + _performanceFeeAmount);
                 _managementFeesToCollect += _managementFeeAmount;

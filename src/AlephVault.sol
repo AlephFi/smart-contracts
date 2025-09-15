@@ -25,6 +25,7 @@ import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettleme
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
 import {AlephPausable} from "@aleph-vault/AlephPausable.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
@@ -58,7 +59,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
         if (
             _seriesId > _shareClass.shareSeriesId
-                || (_seriesId > LEAD_SERIES_ID && _seriesId <= _shareClass.lastConsolidatedSeriesId)
+                || (_seriesId > SeriesAccounting.LEAD_SERIES_ID && _seriesId <= _shareClass.lastConsolidatedSeriesId)
         ) {
             revert InvalidShareSeries();
         }
@@ -244,7 +245,8 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint8 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
         uint256[] memory _totalAssets = new uint256[](_len);
         for (uint8 _i; _i < _len; _i++) {
-            uint8 _seriesId = _i > LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : LEAD_SERIES_ID;
+            uint8 _seriesId =
+                _i > SeriesAccounting.LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : SeriesAccounting.LEAD_SERIES_ID;
             _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
         }
         return _totalAssets;
@@ -432,8 +434,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint8 _shareClasses = _sd.shareClassesId;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-            _totalFeeAmountToCollect += _assetsPerClassOf(_classId, MANAGEMENT_FEE_RECIPIENT, _shareClass);
-            _totalFeeAmountToCollect += _assetsPerClassOf(_classId, PERFORMANCE_FEE_RECIPIENT, _shareClass);
+            _totalFeeAmountToCollect +=
+                _assetsPerClassOf(_classId, SeriesAccounting.MANAGEMENT_FEE_RECIPIENT, _shareClass);
+            _totalFeeAmountToCollect +=
+                _assetsPerClassOf(_classId, SeriesAccounting.PERFORMANCE_FEE_RECIPIENT, _shareClass);
         }
     }
 
@@ -828,7 +832,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
         _shareClass.shareClassParams = _shareClassParams;
         // set up lead series for new share class
-        _shareClass.shareSeries[LEAD_SERIES_ID].highWaterMark = PRICE_DENOMINATOR;
+        _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark = SeriesAccounting.PRICE_DENOMINATOR;
         emit ShareClassCreated(_classId, _shareClassParams);
         return _classId;
     }
