@@ -123,6 +123,14 @@ contract ExposedVault is AlephVault {
         _getStorage().totalAmountToWithdraw += _redeemableAmount;
     }
 
+    function setTotalAmountToDeposit(uint256 _totalAmountToDeposit) external {
+        _getStorage().totalAmountToDeposit = _totalAmountToDeposit;
+    }
+
+    function setTotalAmountToWithdraw(uint256 _totalAmountToWithdraw) external {
+        _getStorage().totalAmountToWithdraw = _totalAmountToWithdraw;
+    }
+
     function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {
         _getStorage().shareClasses[1].shareSeries[_seriesId].totalAssets = _totalAssets;
     }

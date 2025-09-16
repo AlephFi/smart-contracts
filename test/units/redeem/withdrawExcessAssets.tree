@@ -1,0 +1,8 @@
+WithdrawExcessAssets_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given vault does not have sufficient balance
+    │   └── it should revert with InsufficientVaultBalance
+    └── given vault has sufficient balance
+        └── it should withdraw excess assets and emit ExcessAssetsWithdrawn
