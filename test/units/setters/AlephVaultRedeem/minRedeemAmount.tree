@@ -2,13 +2,19 @@ QueueMinRedeemAmount
 ├── when caller is not MANAGER
 │   └── it should revert with AccessControlUnauthorizedAccount
 └── when caller is MANAGER
-    └── it should set a timelock for min redeem amount and emit NewMinRedeemAmountQueued
+    ├── given min redeem amount is 0
+    │   └── it should revert with InvalidMinRedeemAmount
+    └── given min redeem amount is greater than 0
+        └── it should set a timelock for min redeem amount and emit NewMinRedeemAmountQueued
 
 SetMinRedeemAmount
 ├── when caller is not MANAGER
 │   └── it should revert with AccessControlUnauthorizedAccount
 └── when caller is MANAGER
-    ├── given unlock timestamp is greater than current timestamp
-    │   └── it should revert with TimelockNotExpired
-    └── given unlock timestamp is not greater than current timestamp
-        └── it should set the min redeem amount and emit NewMinRedeemAmountSet
+    ├── given min redeem amount is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given min redeem amount is queued
+        ├── given unlock timestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlock timestamp is not greater than current timestamp
+            └── it should set the min redeem amount and emit NewMinRedeemAmountSet

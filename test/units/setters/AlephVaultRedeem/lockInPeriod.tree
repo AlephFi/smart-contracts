@@ -8,7 +8,10 @@ SetLockInPeriod
 ├── when caller is not MANAGER
 │   └── it should revert with AccessControlUnauthorizedAccount
 └── when caller is MANAGER
-    ├── given unlock timestamp is greater than current timestamp
-    │   └── it should revert with TimelockNotExpired
-    └── given unlock timestamp is not greater than current timestamp
-        └── it should set the lock in period and emit NewLockInPeriodSet
+    ├── given lock in period is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given lock in period is queued
+        ├── given unlock timestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlock timestamp is not greater than current timestamp
+            └── it should set the lock in period and emit NewLockInPeriodSet

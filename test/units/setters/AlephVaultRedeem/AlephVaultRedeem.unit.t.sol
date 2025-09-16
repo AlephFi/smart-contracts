@@ -237,6 +237,13 @@ contract AlephVaultRedeem_Unit_Test is BaseTest {
         vault.queueMinRedeemAmount(1, 100);
     }
 
+    function test_queueMinRedeemAmount_revertsWhenMinRedeemAmountIsZero() public {
+        // queue min redeem amount
+        vm.prank(manager);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.InvalidMinRedeemAmount.selector));
+        vault.queueMinRedeemAmount(1, 0);
+    }
+
     function test_queueMinRedeemAmount_whenCallerIsManager_shouldSucceed() public {
         // queue min redeem amount
         vm.prank(manager);

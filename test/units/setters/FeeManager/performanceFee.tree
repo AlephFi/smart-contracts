@@ -14,7 +14,10 @@ SetPerformanceFee_Unit_Test
 ├── when caller is not MANAGER
 │   └── it should revert with AccessControlUnauthorizedAccount
 └── when caller is MANAGER
-    ├── given unlockTimestamp is greater than current timestamp
-    │   └── it should revert with TimelockNotExpired
-    └── given unlockTimestamp is not greater than current timestamp
-        └── it should set performance fee and emit PerformanceFeeSet
+    ├── given performance fee is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given performance fee is queued
+        ├── given unlockTimestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlockTimestamp is not greater than current timestamp
+            └── it should set performance fee and emit PerformanceFeeSet

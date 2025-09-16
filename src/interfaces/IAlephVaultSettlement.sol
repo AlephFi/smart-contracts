@@ -167,8 +167,9 @@ interface IAlephVaultSettlement {
      * @notice Emitted when a redeem is forced by the manager.
      * @param batchId The batch ID in which redeem is forced.
      * @param user The user that made the redeem request.
+     * @param totalAssetsToSettle The total assets to settle.
      */
-    event ForceRedeem(uint48 indexed batchId, address indexed user);
+    event ForceRedeem(uint48 indexed batchId, address indexed user, uint256 totalAssetsToSettle);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

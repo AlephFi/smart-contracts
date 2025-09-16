@@ -20,6 +20,8 @@ SettleDeposit_Unit_Test
                         ├── when lastFeePaidId is less than toBatchId
                         │   └── it should call _accumulateFees
                         ├── given lead series reached a new highwater mark
+                        │   ├── given outstanding series exists
+                        │   │   └── it should consolidate them into lead series
                         │   └── settlement series id is equal to lead series id
                         ├── given lead series did not reach a new highwater mark
                         │   └── it should create a new settlement series and emit NewSeriesCreated
@@ -29,6 +31,4 @@ SettleDeposit_Unit_Test
                             ├── given vault has insufficient balance
                             │   └── it should revert with ERC20InsufficientBalance
                             └── given vault has sufficient balance
-                                ├── given highWaterMark is 0
-                                │   └── it should set highWaterMark and emit NewHighWaterMarkSet
                                 └── it should mint shares to users, emit SettleDepositBatch per batch, update depositSettleId, totalShares and totalAssets, transfer amountToSettle to custodian and emit SettleDeposit

@@ -45,6 +45,13 @@ contract AlephVaultDeposit_Unit_Test is BaseTest {
         vault.queueMinDepositAmount(1, 100);
     }
 
+    function test_queueMinDepositAmount_revertsWhenMinDepositAmountIsZero() public {
+        // queue min deposit amount
+        vm.prank(manager);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultDeposit.InvalidMinDepositAmount.selector));
+        vault.queueMinDepositAmount(1, 0);
+    }
+
     function test_queueMinDepositAmount_whenCallerIsManager_shouldSucceed() public {
         // queue min deposit amount
         vm.prank(manager);

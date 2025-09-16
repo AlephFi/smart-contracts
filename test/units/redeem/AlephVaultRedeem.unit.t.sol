@@ -15,10 +15,13 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
+import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
 /**
@@ -32,6 +35,9 @@ contract AlephVaultRedeemTest is BaseTest {
         _unpauseVaultFlows();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            REQUEST REDEEM TESTS
+    //////////////////////////////////////////////////////////////*/
     function test_requestRedeem_revertsWhenClassIdIsInvalid() public {
         // request redeem
         vm.expectRevert(IAlephVault.InvalidShareClass.selector);
@@ -49,6 +55,31 @@ contract AlephVaultRedeemTest is BaseTest {
         IAlephVaultRedeem.RedeemRequestParams memory params =
             IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100});
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.requestRedeem(params);
+    }
+
+    function test_requestRedeem_revertsGivenAmountToRedeemIsZero() public {
+        // request redeem
+        vm.prank(mockUser_1);
+        vm.expectRevert(IAlephVaultRedeem.InsufficientAssetsToRedeem.selector);
+        vault.requestRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 0}));
+    }
+
+    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        vault.setBatchRedeem(0, mockUser_1, vault.TOTAL_SHARE_UNITS());
+
+        vm.prank(mockUser_1);
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
+        vm.expectRevert(IAlephVaultRedeem.InsufficientAssetsToRedeem.selector);
         vault.requestRedeem(params);
     }
 
@@ -86,24 +117,6 @@ contract AlephVaultRedeemTest is BaseTest {
         IAlephVaultRedeem.RedeemRequestParams memory params =
             IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
         vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.UserInLockInPeriodNotElapsed.selector, 10));
-        vault.requestRedeem(params);
-    }
-
-    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
-        // roll the block forward to make batch available
-        vm.warp(block.timestamp + 1 days + 1);
-
-        // set user assets to 100 ether
-        vault.setTotalAssets(0, 100 ether);
-        vault.setTotalShares(0, 100 ether);
-        vault.setSharesOf(0, mockUser_1, 100 ether);
-
-        vault.setBatchRedeem(0, mockUser_1, vault.TOTAL_SHARE_UNITS());
-
-        vm.prank(mockUser_1);
-        IAlephVaultRedeem.RedeemRequestParams memory params =
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
-        vm.expectRevert(IAlephVaultRedeem.InsufficientAssetsToRedeem.selector);
         vault.requestRedeem(params);
     }
 
@@ -212,5 +225,96 @@ contract AlephVaultRedeemTest is BaseTest {
         assertEq(vault.usersToRedeemAt(1, _batchId_user1).length, 2);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1)[0], mockUser_1);
         assertEq(vault.usersToRedeemAt(1, _batchId_user1)[1], mockUser_2);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        WITHDRAW REDEEMABLE AMOUNT TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_withdrawRedeemableAmount_revertsWhenFlowIsPaused() public {
+        // pause withdraw flow
+        vm.prank(guardian);
+        vault.pause(PausableFlows.WITHDRAW_FLOW);
+
+        // withdraw redeemable amount
+        vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
+        vault.withdrawRedeemableAmount();
+    }
+
+    function test_withdrawRedeemableAmount_revertsWhenVaultDoesNotHaveSufficientBalance() public {
+        // set redeemable amount to 100 ether
+        vault.setRedeemableAmount(mockUser_1, 100 ether);
+
+        // withdraw redeemable amount
+        vm.prank(mockUser_1);
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 100 ether)
+        );
+        vault.withdrawRedeemableAmount();
+    }
+
+    function test_withdrawRedeemableAmount_whenVaultHasSufficientBalance_shouldSucceed() public {
+        // set redeemable amount to 100 ether
+        vault.setRedeemableAmount(mockUser_1, 100 ether);
+
+        // mint balance for vault
+        underlyingToken.mint(address(vault), 100 ether);
+
+        // withdraw redeemable amount
+        vm.prank(mockUser_1);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultRedeem.RedeemableAmountWithdrawn(mockUser_1, 100 ether);
+        vault.withdrawRedeemableAmount();
+
+        // assert redeemable amount is 0
+        assertEq(vault.redeemableAmount(mockUser_1), 0);
+        assertEq(underlyingToken.balanceOf(mockUser_1), 100 ether);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        WITHDRAW EXCESS ASSETS TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_withdrawExcessAssets_revertsWhenCallerIsNotManager() public {
+        // setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+
+        // withdraw excess assets
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
+            )
+        );
+        vault.withdrawExcessAssets();
+    }
+
+    function test_withdrawExcessAssets_revertsWhenVaultDoesNotHaveSufficientBalance() public {
+        // set total amount to deposit to 100 ether
+        vault.setTotalAmountToDeposit(100 ether);
+        // set total amount to withdraw to 100 ether
+        vault.setTotalAmountToWithdraw(100 ether);
+
+        // mint balance for vault
+        underlyingToken.mint(address(vault), 100 ether);
+
+        // withdraw excess assets
+        vm.prank(manager);
+        vm.expectRevert(IAlephVaultRedeem.InsufficientVaultBalance.selector);
+        vault.withdrawExcessAssets();
+    }
+
+    function test_withdrawExcessAssets_whenVaultHasSufficientBalance_shouldSucceed() public {
+        // set total amount to deposit to 100 ether
+        vault.setTotalAmountToDeposit(100 ether);
+        // set total amount to withdraw to 100 ether
+        vault.setTotalAmountToWithdraw(100 ether);
+
+        // mint balance for vault
+        underlyingToken.mint(address(vault), 300 ether);
+
+        // withdraw excess assets
+        vm.prank(manager);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultRedeem.ExcessAssetsWithdrawn(100 ether);
+        vault.withdrawExcessAssets();
     }
 }

@@ -71,6 +71,10 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
     /*//////////////////////////////////////////////////////////////
                             INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
+    /**
+     * @dev Internal function to pause a flow
+     * @param _pausableFlow The flow identifier
+     */
     function _pause(bytes4 _pausableFlow) internal {
         AlephPausableStorageData storage _sd = _getPausableStorage();
         if (_sd.flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyPaused();
@@ -79,6 +83,10 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         emit FlowPaused(_pausableFlow, msg.sender);
     }
 
+    /**
+     * @dev Internal function to unpause a flow
+     * @param _pausableFlow The flow identifier
+     */
     function _unpause(bytes4 _pausableFlow) internal {
         AlephPausableStorageData storage _sd = _getPausableStorage();
         if (!_sd.flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyUnpaused();
@@ -87,14 +95,28 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         emit FlowUnpaused(_pausableFlow, msg.sender);
     }
 
+    /**
+     * @dev Internal function to revert if a flow is paused
+     * @param _pausableFlow The flow identifier
+     */
     function _revertIfFlowPaused(bytes4 _pausableFlow) internal view {
         if (_getPausableStorage().flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyPaused();
     }
 
+    /**
+     * @dev Internal function to revert if a flow is unpaused
+     * @param _pausableFlow The flow identifier
+     */
     function _revertIfFlowUnpaused(bytes4 _pausableFlow) internal view {
         if (!_getPausableStorage().flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyUnpaused();
     }
 
+    /**
+     * @dev Internal function to initialize the deposit flow
+     * @param _manager The manager address
+     * @param _guardian The guardian address
+     * @param _operationsMultisig The operations multisig address
+     */
     function __AlephVaultDeposit_init(address _manager, address _guardian, address _operationsMultisig)
         internal
         onlyInitializing
@@ -109,6 +131,12 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _operationsMultisig);
     }
 
+    /**
+     * @dev Internal function to initialize the redeem flow
+     * @param _manager The manager address
+     * @param _guardian The guardian address
+     * @param _operationsMultisig The operations multisig address
+     */
     function __AlephVaultRedeem_init(address _manager, address _guardian, address _operationsMultisig)
         internal
         onlyInitializing
@@ -124,7 +152,11 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         _grantRole(PausableFlows.WITHDRAW_FLOW, _guardian);
     }
 
+    /**
+     * @dev Internal function to get the pausable storage
+     * @return _sd The pausable storage
+     */
     function _getPausableStorage() internal pure returns (AlephPausableStorageData storage _sd) {
-        return AlephPausableStorage.load();
+        _sd = AlephPausableStorage.load();
     }
 }

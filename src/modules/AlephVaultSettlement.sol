@@ -308,6 +308,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     function _forceRedeem(AlephVaultStorageData storage _sd, address _user) internal {
         uint8 _shareClasses = _sd.shareClassesId;
         uint48 _currentBatchId = _currentBatch(_sd);
+        uint256 _totalUserAssets;
         uint256 _totalDepositRequests;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
@@ -334,20 +335,19 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     delete _redeemRequest.redeemRequest[_user];
                 }
             }
-            uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
-            uint256 _totalAssetsToSettle = _totalUserAssets + _totalDepositRequests;
-            _sd.totalAmountToDeposit -= _totalDepositRequests;
-            _sd.totalAmountToWithdraw += _totalAssetsToSettle;
-            _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _totalUserAssets);
-            _sd.redeemableAmount[_user] += _totalAssetsToSettle;
-            if (
-                IERC20(_sd.underlyingToken).balanceOf(address(this))
-                    < _sd.totalAmountToWithdraw + _sd.totalAmountToDeposit
-            ) {
-                revert InsufficientAssetsToSettle();
-            }
+            uint256 _userAssets = _assetsPerClassOf(_classId, _user, _shareClass);
+            _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _userAssets);
+            _totalUserAssets += _userAssets;
         }
-        emit ForceRedeem(_currentBatchId, _user);
+        uint256 _totalAssetsToSettle = _totalUserAssets + _totalDepositRequests;
+        _sd.totalAmountToWithdraw += _totalAssetsToSettle;
+        _sd.totalAmountToDeposit -= _totalDepositRequests;
+        _sd.redeemableAmount[_user] += _totalAssetsToSettle;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _sd.totalAmountToWithdraw + _sd.totalAmountToDeposit)
+        {
+            revert InsufficientAssetsToSettle();
+        }
+        emit ForceRedeem(_currentBatchId, _user, _totalAssetsToSettle);
     }
 
     /**

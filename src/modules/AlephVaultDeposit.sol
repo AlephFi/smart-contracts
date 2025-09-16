@@ -220,8 +220,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         }
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_requestDepositParams.classId];
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
-        if (_shareClassParams.minDepositAmount > 0 && _requestDepositParams.amount < _shareClassParams.minDepositAmount)
-        {
+        if (_requestDepositParams.amount < _shareClassParams.minDepositAmount) {
             revert DepositLessThanMinDepositAmount(_shareClassParams.minDepositAmount);
         }
         if (
@@ -246,12 +245,12 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
             );
         }
         uint48 _currentBatchId = _currentBatch(_sd);
-        if (_shareClassParams.lockInPeriod > 0 && _shareClass.userLockInPeriod[msg.sender] == 0) {
-            _shareClass.userLockInPeriod[msg.sender] = _currentBatchId + _shareClassParams.lockInPeriod;
-        }
         IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];
         if (_depositRequests.depositRequest[msg.sender] > 0) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
+        }
+        if (_shareClassParams.lockInPeriod > 0 && _shareClass.userLockInPeriod[msg.sender] == 0) {
+            _shareClass.userLockInPeriod[msg.sender] = _currentBatchId + _shareClassParams.lockInPeriod;
         }
 
         // register deposit request

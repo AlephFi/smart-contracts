@@ -104,6 +104,10 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].shareClassParams.noticePeriod = _noticePeriod;
     }
 
+    function setLockInPeriod(uint8 _classId, uint48 _lockInPeriod) external {
+        _getStorage().shareClasses[_classId].shareClassParams.lockInPeriod = _lockInPeriod;
+    }
+
     function setUserLockInPeriod(uint8 _classId, uint48 _userLockInPeriod, address _user) external {
         AlephVaultStorageData storage _sd = _getStorage();
         _sd.shareClasses[_classId].shareClassParams.lockInPeriod = 1;
@@ -112,6 +116,19 @@ contract ExposedVault is AlephVault {
 
     function setMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount) external {
         _getStorage().shareClasses[_classId].shareClassParams.minRedeemAmount = _minRedeemAmount;
+    }
+
+    function setRedeemableAmount(address _user, uint256 _redeemableAmount) external {
+        _getStorage().redeemableAmount[_user] += _redeemableAmount;
+        _getStorage().totalAmountToWithdraw += _redeemableAmount;
+    }
+
+    function setTotalAmountToDeposit(uint256 _totalAmountToDeposit) external {
+        _getStorage().totalAmountToDeposit = _totalAmountToDeposit;
+    }
+
+    function setTotalAmountToWithdraw(uint256 _totalAmountToWithdraw) external {
+        _getStorage().totalAmountToWithdraw = _totalAmountToWithdraw;
     }
 
     function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {

@@ -5,19 +5,19 @@ CollectFees_FeeManager_Unit_Test
     └── it should burn shares of MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT, update total shares and total assets, transfer fees to accountant, emit FeesCollected
 
 CollectFees_Accountant_Unit_Test
-├── when caller is not OPERATIONS_MULTISIG
-│   └── it should revert with AccessControlUnauthorizedAccount
-└── when caller is OPERATIONS_MULTISIG
-    ├── when vault passed is not valid
-    │   └── it should revert with InvalidVault
-    └── when vault passed is valid
-        ├── given vault treasury is not set
-        │    └── it should revert with VaultTreasuryNotSet
-        └── given vault treasury is set
-            ├── given accountant has insufficient allowance
-            │   └── it should revert with ERC20InsufficientAllowance
-            └── given accountant has sufficient allowance
-                ├── given vault has insufficient balance
-                │   └── it should revert with ERC20InsufficientBalance
-                └── given vault has sufficient balance
-                    └── it should transfer fees to accountant, calculate fee split, transfer vault fee and aleph fee and emit FeesCollected
+├── when vault passed is not valid
+│   └── it should revert with InvalidVault
+└── when vault passed is valid
+    ├── when caller is not manager of passed vault
+    │   └── it should revert with InvalidManager
+    └── when caller is manager of passed vault
+        ├── when vault treasury is not set
+        │   └── it should revert with VaultTreasuryNotSet
+        └── when vault treasury is set
+            ├── when call to vault to collect fee fails
+            │   └── it should revert with revert message
+            └── when call to vault to collect fee succeeds
+                ├── when vault doesn't transfer correct fees
+                │   └── it should revert with FeesNotCollected
+                └── when vault transfers correct fees
+                    └── it should split fees, transfer vault fee and aleph fee and emit FeesCollected

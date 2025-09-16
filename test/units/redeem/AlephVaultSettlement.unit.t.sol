@@ -15,13 +15,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
-import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
-import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
@@ -44,6 +40,9 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         _unpauseVaultFlows();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTLE REDEEM TESTS
+    //////////////////////////////////////////////////////////////*/
     function test_settleRedeem_revertsGivenCallerIsNotOracle() public {
         // Setup a non-authorized user
         address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
@@ -65,7 +64,21 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
-    function test_settleRedeem_whenCallerIsOracle_revertsGivenFlowIsPaused() public {
+    function test_settleRedeem_revertWhenClassIdIsInvalid() public {
+        // settle redeem
+        vm.prank(oracle);
+        vm.expectRevert(IAlephVault.InvalidShareClass.selector);
+        vault.settleRedeem(
+            IAlephVaultSettlement.SettlementParams({
+                classId: 0,
+                toBatchId: 0,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
+    }
+
+    function test_settleRedeem_revertsGivenFlowIsPaused() public {
         // pause settle redeem flow
         vm.prank(manager);
         vault.pause(PausableFlows.SETTLE_REDEEM_FLOW);
@@ -83,7 +96,21 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenNoticePeriodHasNotExpired() public {
+    function test_settleRedeem_revertsWhenToBatchIdIsGreaterThanCurrentBatchId() public {
+        // settle redeem
+        vm.prank(oracle);
+        vm.expectRevert(IAlephVaultSettlement.InvalidToBatchId.selector);
+        vault.settleRedeem(
+            IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: 1,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
+    }
+
+    function test_settleRedeem_revertsWhenNoticePeriodHasNotExpired() public {
         // set notice period
         vault.setNoticePeriod(1, 1);
 
@@ -103,9 +130,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsEqualToRedeemSettleId()
-        public
-    {
+    function test_settleRedeem_revertsWhenToBatchIdIsEqualToRedeemSettleId() public {
         // settle redeem
         vm.prank(oracle);
         vm.expectRevert(IAlephVaultSettlement.NoRedeemsToSettle.selector);
@@ -119,7 +144,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsGivenNewTotalAssetsIsInvalid() public {
+    function test_settleRedeem_revertsGivenNewTotalAssetsIsInvalid() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
         uint48 _currentBatchId = vault.currentBatch();
@@ -137,7 +162,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenAuthSignatureIsInvalid() public {
+    function test_settleRedeem_revertsWhenAuthSignatureIsInvalid() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
         uint48 _currentBatchId = vault.currentBatch();
@@ -159,8 +184,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees(
-    ) public {
+    function test_settleRedeem_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
         uint48 _currentBatchId = vault.currentBatch();
@@ -191,9 +215,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertEq(vault.lastFeePaidId(), _currentBatchId);
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsZero_shouldSettleRedeem()
-        public
-    {
+    function test_settleRedeem_whenSharesToSettleIsZero_shouldSettleRedeem() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 3 days + 1);
 
@@ -224,8 +246,36 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertEq(vault.redeemSettleId(), _currentBatchId);
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_shouldSucceed_singleBatch(
-    ) public {
+    function test_settleRedeem_whenSharesToSettleIsZero_revertsWhenVaultDoesNotHaveSufficientBalance() public {
+        // roll the block forward to make future batch available
+        vm.warp(block.timestamp + 3 days + 1);
+        uint48 _currentBatchId = vault.currentBatch();
+
+        // set deposit request
+        vault.setBatchDeposit(0, mockUser_1, 1000 ether);
+
+        // set new total assets
+        uint256[] memory _newTotalAssets = new uint256[](1);
+        _newTotalAssets[0] = 1000 ether;
+
+        // generate auth signature
+        AuthLibrary.AuthSignature memory _authSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_REDEEM, _currentBatchId, _newTotalAssets);
+
+        // settle redeem
+        vm.prank(oracle);
+        vm.expectRevert(IAlephVaultSettlement.InsufficientAssetsToSettle.selector);
+        vault.settleRedeem(
+            IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: _currentBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _authSignature
+            })
+        );
+    }
+
+    function test_settleRedeem_whenSharesToSettleIsGreaterThanZero_shouldSucceed_singleBatch() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 2 days + 1);
 
@@ -303,8 +353,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertEq(vault.redeemableAmount(mockUser_2), 250 ether);
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_shouldSucceed_multipleBatches(
-    ) public {
+    function test_settleRedeem_whenSharesToSettleIsGreaterThanZero_shouldSucceed_multipleBatches() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 3 days + 1);
 
@@ -387,5 +436,84 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // assert balance of users
         assertEq(vault.redeemableAmount(mockUser_1), 625 ether);
         assertEq(vault.redeemableAmount(mockUser_2), 500 ether);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            FORCE REDEEM TESTS
+    //////////////////////////////////////////////////////////////*/
+    function test_forceRedeem_revertsGivenCallerIsNotManager() public {
+        // setup a non-authorized user
+        address nonAuthorizedUser = makeAddr("nonAuthorizedUser");
+
+        // force redeem
+        vm.prank(nonAuthorizedUser);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, nonAuthorizedUser, RolesLibrary.MANAGER
+            )
+        );
+        vault.forceRedeem(mockUser_1);
+    }
+
+    function test_forceRedeem_revertsWhenVaultDoesNotHaveSufficientBalanceToSettlePendingDepositsAndWithdrawls()
+        public
+    {
+        // set deposit request
+        vault.setBatchDeposit(0, mockUser_1, 100 ether);
+
+        // force redeem
+        vm.prank(manager);
+        vm.expectRevert(IAlephVaultSettlement.InsufficientAssetsToSettle.selector);
+        vault.forceRedeem(mockUser_1);
+    }
+
+    function test_forceRedeem_whenVaultHasSufficientBalanceToSettlePendingDepositsAndWithdrawls_shouldSucceed()
+        public
+    {
+        // roll the block forward to make future batch available
+        vm.warp(block.timestamp + 3 days + 1);
+
+        // set deposit request
+        vault.setBatchDeposit(0, mockUser_1, 100 ether);
+        vault.setBatchDeposit(1, mockUser_1, 200 ether);
+        vault.setBatchRedeem(2, mockUser_1, 100 ether);
+        vault.setBatchRedeem(3, mockUser_1, 300 ether);
+
+        // set total assets and total shares
+        vault.createNewSeries();
+        vault.setTotalAssets(0, 200 ether);
+        vault.setTotalShares(0, 200 ether);
+        vault.setTotalAssets(1, 200 ether);
+        vault.setTotalShares(1, 200 ether);
+        vault.setSharesOf(0, mockUser_1, 200 ether);
+        vault.setSharesOf(1, mockUser_1, 200 ether);
+
+        // mint balance for vault
+        underlyingToken.mint(address(vault), 700 ether);
+
+        // force redeem
+        vm.prank(manager);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultSettlement.ForceRedeem(3, mockUser_1, 700 ether);
+        vault.forceRedeem(mockUser_1);
+
+        // assert total assets and total shares
+        assertEq(vault.totalAssetsPerSeries(1, 0), 0);
+        assertEq(vault.totalAssetsPerSeries(1, 1), 0);
+        assertEq(vault.totalSharesPerSeries(1, 0), 0);
+        assertEq(vault.totalSharesPerSeries(1, 1), 0);
+
+        // assert user shares
+        assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
+        assertEq(vault.sharesOf(1, 1, mockUser_1), 0);
+
+        // assert balance of users
+        assertEq(vault.redeemableAmount(mockUser_1), 700 ether);
+
+        // assert user deposit requests are deleted
+        assertEq(vault.depositRequestOf(1, mockUser_1), 0);
+
+        // assert user redeem requests are deleted
+        assertEq(vault.redeemRequestOf(1, mockUser_1), 0);
     }
 }
