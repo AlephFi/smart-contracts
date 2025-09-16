@@ -2,25 +2,31 @@ SettleRedeem_Unit_Test
 ├── when caller is not ORACLE
 │   └── it should revert with AccessControlUnauthorizedAccount
 └── when caller is ORACLE
-    ├── given settle redeem flow is paused
-    │   └── it should revert with FlowIsCurrentlyPaused
-    └── given settle redeem flow is unpaused
-        ├── when toBatchId is greater than currentBatchId or less than notice period
-        │   └── it should revert with InvalidToBatchId
-        └── when toBatchId is less than or equal to currentBatchId and greater than or equal to notice period
-            ├── when redeemSettleId is greater than or equal to toBatchId - notice period
-            │   └── it should revert with NoRedeemsToSettle
-            └── when redeemSettleId is less than toBatchId - notice period
-                ├── when newTotalAssets are invalid
-                │   └── it should revert with InvalidNewTotalAssets
-                └── when newTotalAssets are valid
-                    ├── when auth is enabled and signature is invalid
-                    │   └── it should revert with InvalidAuthSignature
-                    └── when auth is enabled and signature is valid OR auth is disabled
-                        ├── when lastFeePaidId is less than toBatchId
-                        │   └── it should call _accumulateFees
-                        ├── given amount in series is less than remaining amount
-                        │   └── it should burn all shares in series, update remaining amount, emit RedeemRequestSliceSettled
-                        ├── given amount in series is greater than or equal to remaining amount
-                        │   └── it should burn required shares, emit RedeemRequestSliceSettled and complete redemption request
-                        └── it should transfer assets to users, emit SettleRedeemBatch per batch, update redeemSettleId, totalAssets and totalShares and emit SettleRedeem
+    ├── when classId is invalid
+    │   └── it should revert with InvalidShareClass
+    └── when classId is valid
+        ├── given settle redeem flow is paused
+        │   └── it should revert with FlowIsCurrentlyPaused
+        └── given settle redeem flow is unpaused
+            ├── when toBatchId is greater than currentBatchId or less than notice period
+            │   └── it should revert with InvalidToBatchId
+            └── when toBatchId is less than or equal to currentBatchId and greater than or equal to notice period
+                ├── when redeemSettleId is greater than or equal to toBatchId - notice period
+                │   └── it should revert with NoRedeemsToSettle
+                └── when redeemSettleId is less than toBatchId - notice period
+                    ├── when newTotalAssets are invalid
+                    │   └── it should revert with InvalidNewTotalAssets
+                    └── when newTotalAssets are valid
+                        ├── when auth is enabled and signature is invalid
+                        │   └── it should revert with InvalidAuthSignature
+                        └── when auth is enabled and signature is valid OR auth is disabled
+                            ├── when lastFeePaidId is less than toBatchId
+                            │   └── it should call _accumulateFees
+                            ├── given amount in series is less than remaining amount
+                            │   └── it should burn all shares in series, update remaining amount, emit RedeemRequestSliceSettled
+                            ├── given amount in series is greater than or equal to remaining amount
+                            │   └── it should burn required shares, emit RedeemRequestSliceSettled and complete redemption request
+                            ├── given vault does not have sufficient balance to settle redeem and pending deposits
+                            │   └── it should revert with InsufficientAssetsToSettle
+                            └── given vault has sufficient balance to settle redeem and pending deposits
+                                └── it should transfer assets to users, emit SettleRedeemBatch per batch, update redeemSettleId, totalAssets and totalShares and emit SettleRedeem

@@ -1,0 +1,8 @@
+ForceRedeem_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given vault does not have sufficient balance to settle pending deposits and withdrawls
+    │   └── it should revert with InsufficientAssetsToSettle
+    └── given vault has sufficient balance to settle pending deposits and withdrawls
+        └── it should delete all pending deposit and redeem requests of user, redeem all user shares and emit ForceRedeem
