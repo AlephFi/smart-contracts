@@ -71,6 +71,22 @@ contract AccountantTest is BaseTest {
         accountant.collectFees(address(vault));
     }
 
+    function test_collectFees_revertsWhenCallToVaultToCollectFeeFails() public {
+        // Setup vault treasury
+        address _vault = address(vault);
+        address _vaultTreasury = makeAddr("testVaultTreasury");
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+        vm.prank(_vault);
+        accountant.setVaultTreasury(_vaultTreasury);
+
+        // collect fees
+        mocks.mockIsValidVault(vaultFactory, address(vault), true);
+        mocks.mockCollectFees(address(vault), 100 ether, 100 ether, true);
+        vm.prank(manager);
+        vm.expectRevert("revert message");
+        accountant.collectFees(address(vault));
+    }
+
     function test_collectFees_revertsWhenVaultDoesNotTransferCorrectFees() public {
         // Setup vault treasury
         address _vault = address(vault);
@@ -81,7 +97,7 @@ contract AccountantTest is BaseTest {
 
         // collect fees
         mocks.mockIsValidVault(vaultFactory, _vault, true);
-        mocks.mockCollectFees(_vault, 100 ether, 100 ether);
+        mocks.mockCollectFees(_vault, 100 ether, 100 ether, false);
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(IAccountant.FeesNotCollected.selector));
         accountant.collectFees(_vault);

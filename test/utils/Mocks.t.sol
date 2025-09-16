@@ -36,14 +36,21 @@ contract Mocks is Test {
     /*//////////////////////////////////////////////////////////////
                         FEE MANAGER MOCKS
     //////////////////////////////////////////////////////////////*/
-    function mockCollectFees(address _vault, uint256 _managementFeesToCollect, uint256 _performanceFeesToCollect)
-        public
-    {
-        vm.mockCall(
-            _vault,
-            abi.encodeCall(IFeeManager.collectFees, ()),
-            abi.encode(_managementFeesToCollect, _performanceFeesToCollect)
-        );
+    function mockCollectFees(
+        address _vault,
+        uint256 _managementFeesToCollect,
+        uint256 _performanceFeesToCollect,
+        bool _revert
+    ) public {
+        if (_revert) {
+            vm.mockCallRevert(_vault, abi.encodeCall(IFeeManager.collectFees, ()), abi.encode("revert message"));
+        } else {
+            vm.mockCall(
+                _vault,
+                abi.encodeCall(IFeeManager.collectFees, ()),
+                abi.encode(_managementFeesToCollect, _performanceFeesToCollect)
+            );
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
