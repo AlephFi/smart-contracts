@@ -1,6 +1,4 @@
 Initialize_Unit_Test
-├── when manager passed is address(0)
-│   └── it should revert with InvalidInitializationParams
 ├── when operationsMultisig passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when vaultFactory passed is address(0)
@@ -11,11 +9,21 @@ Initialize_Unit_Test
 │   └── it should revert with InvalidInitializationParams
 ├── when authSigner passed is address(0)
 │   └── it should revert with InvalidInitializationParams
+├── when accountant passed is address(0)
+│   └── it should revert with InvalidInitializationParams
+├── when manager passed is address(0)
+│   └── it should revert with InvalidInitializationParams
 ├── when underlyingToken passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when custodian passed is address(0)
 │   └── it should revert with InvalidInitializationParams
-├── when accountant passed is address(0)
+├── when managementFee is greater than maxManagementFee
+│   └── it should revert with InvalidInitializationParams
+├── when performanceFee is greater than maxPerformanceFee
+│   └── it should revert with InvalidInitializationParams
+├── when minDepositAmount is 0
+│   └── it should revert with InvalidInitializationParams
+├── when minRedeemAmount is 0
 │   └── it should revert with InvalidInitializationParams
 ├── when alephVaultDepositImplementation passed is address(0)
 │   └── it should revert with InvalidInitializationParams
@@ -26,10 +34,6 @@ Initialize_Unit_Test
 ├── when feeManagerImplementation passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when migrationManagerImplementation passed is address(0)
-│   └── it should revert with InvalidInitializationParams
-├── when managementFee is greater than maxManagementFee
-│   └── it should revert with InvalidInitializationParams
-├── when performanceFee is greater than maxPerformanceFee
 │   └── it should revert with InvalidInitializationParams
 └── when all params are valid
     └── it should set the initialization params, grant roles and set pausable flows
