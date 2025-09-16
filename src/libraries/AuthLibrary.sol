@@ -26,17 +26,52 @@ library AuthLibrary {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
+    /**
+     * @notice The flow for the settle deposit.
+     */
+    bytes4 internal constant SETTLE_DEPOSIT = bytes4(keccak256("SETTLE_DEPOSIT"));
+    /**
+     * @notice The flow for the settle redeem.
+     */
+    bytes4 internal constant SETTLE_REDEEM = bytes4(keccak256("SETTLE_REDEEM"));
+
+    /*//////////////////////////////////////////////////////////////
+                            ERRORS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice The error thrown when the auth signature is expired.
+     */
+    error AuthSignatureExpired();
+    /**
+     * @notice The error thrown when the auth signature is invalid.
+     */
+    error InvalidAuthSignature();
+
+    /*//////////////////////////////////////////////////////////////
+                            STRUCTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice The auth signature.
+     * @param authSignature The auth signature.
+     * @param expiryBlock The expiry block.
+     */
     struct AuthSignature {
         bytes authSignature;
         uint256 expiryBlock;
     }
 
-    error AuthSignatureExpired();
-    error InvalidAuthSignature();
-
-    bytes4 internal constant SETTLE_DEPOSIT = bytes4(keccak256("SETTLE_DEPOSIT"));
-    bytes4 internal constant SETTLE_REDEEM = bytes4(keccak256("SETTLE_REDEEM"));
-
+    /*//////////////////////////////////////////////////////////////
+                        INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Verifies the vault deployment auth signature.
+     * @param _manager The manager of the vault.
+     * @param _vaultFactory The vault factory.
+     * @param _name The name of the vault.
+     * @param _configId The config ID of the vault.
+     * @param _authSigner The auth signer.
+     * @param _authSignature The auth signature.
+     */
     function verifyVaultDeploymentAuthSignature(
         address _manager,
         address _vaultFactory,
@@ -50,6 +85,12 @@ library AuthLibrary {
         _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 
+    /**
+     * @notice Verifies the deposit request auth signature.
+     * @param _classId The class ID of the deposit request.
+     * @param _authSigner The auth signer.
+     * @param _authSignature The auth signature.
+     */
     function verifyDepositRequestAuthSignature(uint8 _classId, address _authSigner, AuthSignature memory _authSignature)
         internal
         view
@@ -59,6 +100,16 @@ library AuthLibrary {
         _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 
+    /**
+     * @notice Verifies the settlement auth signature.
+     * @param _flow The flow of the settlement.
+     * @param _classId The class ID of the settlement.
+     * @param _toBatchId The batch ID of the settlement.
+     * @param _manager The manager of the settlement.
+     * @param _newTotalAssets The new total assets of the settlement.
+     * @param _authSigner The auth signer.
+     * @param _authSignature The auth signature.
+     */
     function verifySettlementAuthSignature(
         bytes4 _flow,
         uint8 _classId,
@@ -83,6 +134,12 @@ library AuthLibrary {
         _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 
+    /**
+     * @notice Verifies the auth signature.
+     * @param _hash The hash of the auth signature.
+     * @param _authSigner The auth signer.
+     * @param _authSignature The auth signature.
+     */
     function _verifyAuthSignature(bytes32 _hash, address _authSigner, AuthSignature memory _authSignature)
         internal
         view

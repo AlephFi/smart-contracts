@@ -172,27 +172,27 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         uint256 _len = _depositRequests.usersToDeposit.length();
         // iterate through all requests in batch (one user can only make one request per batch)
         for (uint256 _i; _i < _len; _i++) {
-            DepositRequestParams memory _depositRequestParams;
-            _depositRequestParams.user = _depositRequests.usersToDeposit.at(_i);
-            _depositRequestParams.amount = _depositRequests.depositRequest[_depositRequestParams.user];
-            _depositRequestParams.sharesToMint = ERC4626Math.previewDeposit(
-                _depositRequestParams.amount, _settleDepositDetails.totalShares, _settleDepositDetails.totalAssets
+            DepositRequestDetails memory _depositRequestDetails;
+            _depositRequestDetails.user = _depositRequests.usersToDeposit.at(_i);
+            _depositRequestDetails.amount = _depositRequests.depositRequest[_depositRequestDetails.user];
+            _depositRequestDetails.sharesToMint = ERC4626Math.previewDeposit(
+                _depositRequestDetails.amount, _settleDepositDetails.totalShares, _settleDepositDetails.totalAssets
             );
-            _totalSharesToMint += _depositRequestParams.sharesToMint;
-            _shareClass.shareSeries[_settleDepositDetails.seriesId].sharesOf[_depositRequestParams.user] +=
-                _depositRequestParams.sharesToMint;
+            _totalSharesToMint += _depositRequestDetails.sharesToMint;
+            _shareClass.shareSeries[_settleDepositDetails.seriesId].sharesOf[_depositRequestDetails.user] +=
+                _depositRequestDetails.sharesToMint;
             // add user into settlement series if they don't already exist there
-            if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestParams.user)) {
-                _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestParams.user);
+            if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestDetails.user)) {
+                _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestDetails.user);
             }
             // delete user deposit request
-            delete _depositRequests.depositRequest[_depositRequestParams.user];
+            delete _depositRequests.depositRequest[_depositRequestDetails.user];
             emit IAlephVaultSettlement.DepositRequestSettled(
-                _depositRequestParams.user,
+                _depositRequestDetails.user,
                 _settleDepositDetails.classId,
                 _settleDepositDetails.seriesId,
-                _depositRequestParams.amount,
-                _depositRequestParams.sharesToMint,
+                _depositRequestDetails.amount,
+                _depositRequestDetails.sharesToMint,
                 _settleDepositDetails.batchId
             );
         }

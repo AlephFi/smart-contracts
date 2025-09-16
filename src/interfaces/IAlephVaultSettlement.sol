@@ -16,6 +16,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 */
 
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
@@ -93,7 +94,7 @@ interface IAlephVaultSettlement {
      * @notice Emitted when a user's shares are consolidated.
      * @param userConsolidationDetails The details of the user's shares consolidation.
      */
-    event UserSharesConsolidated(UserConsolidationDetails userConsolidationDetails);
+    event UserSharesConsolidated(SeriesAccounting.UserConsolidationDetails userConsolidationDetails);
 
     /**
      * @notice Emitted when a deposit request is settled.
@@ -236,44 +237,12 @@ interface IAlephVaultSettlement {
     }
 
     /**
-     * @notice Parameters for the settlement of a redeem batch.
-     * @param batchId The batch ID for which the settlement is to be done.
-     * @param classId The ID of the share class for which the settlement should be done.
-     * @param underlyingToken The underlying token of the share class.
-     */
-    struct SettleRedeemBatchParams {
-        uint48 batchId;
-        uint8 classId;
-        address underlyingToken;
-    }
-
-    /**
-     * @notice Details for the consolidation of a user's shares.
-     * @param user The user that is to be consolidated.
-     * @param classId The ID of the share class for which the consolidation should be done.
-     * @param seriesId The ID of the share series which is to be consolidated.
-     * @param toBatchId The batch ID in which consolidation should be logged as done.
-     * @param shares The shares of the user which is to be consolidated.
-     * @param amountToTransfer The amount of the user's shares to be transferred to the lead series.
-     * @param sharesToTransfer The shares of the user's shares to be transferred to the lead series.
-     */
-    struct UserConsolidationDetails {
-        address user;
-        uint8 classId;
-        uint8 seriesId;
-        uint48 toBatchId;
-        uint256 shares;
-        uint256 amountToTransfer;
-        uint256 sharesToTransfer;
-    }
-
-    /**
      * @notice Details for the settlement of a deposit request.
      * @param user The user that made the deposit request which is to be settled.
      * @param amount The amount of the deposit request which is to be settled.
      * @param sharesToMint The shares to mint for the deposit request which is to be settled.
      */
-    struct DepositRequestParams {
+    struct DepositRequestDetails {
         address user;
         uint256 amount;
         uint256 sharesToMint;
