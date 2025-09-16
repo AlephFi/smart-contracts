@@ -52,6 +52,31 @@ contract AlephVaultRedeemTest is BaseTest {
         vault.requestRedeem(params);
     }
 
+    function test_requestRedeem_revertsGivenAmountToRedeemIsZero() public {
+        // request redeem
+        vm.prank(mockUser_1);
+        vm.expectRevert(IAlephVaultRedeem.InsufficientAssetsToRedeem.selector);
+        vault.requestRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 0}));
+    }
+
+    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        vault.setBatchRedeem(0, mockUser_1, vault.TOTAL_SHARE_UNITS());
+
+        vm.prank(mockUser_1);
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
+        vm.expectRevert(IAlephVaultRedeem.InsufficientAssetsToRedeem.selector);
+        vault.requestRedeem(params);
+    }
+
     function test_requestRedeem_revertsGivenAmountToRedeemIsLessThanMinRedeemAmount() public {
         // set min redeem amount to 100 ether
         vault.setMinRedeemAmount(1, 100 ether);
@@ -86,24 +111,6 @@ contract AlephVaultRedeemTest is BaseTest {
         IAlephVaultRedeem.RedeemRequestParams memory params =
             IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
         vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.UserInLockInPeriodNotElapsed.selector, 10));
-        vault.requestRedeem(params);
-    }
-
-    function test_requestRedeem_whenFlowIsUnpaused_revertsWhenUserHasInsufficientAssetsToRedeem() public {
-        // roll the block forward to make batch available
-        vm.warp(block.timestamp + 1 days + 1);
-
-        // set user assets to 100 ether
-        vault.setTotalAssets(0, 100 ether);
-        vault.setTotalShares(0, 100 ether);
-        vault.setSharesOf(0, mockUser_1, 100 ether);
-
-        vault.setBatchRedeem(0, mockUser_1, vault.TOTAL_SHARE_UNITS());
-
-        vm.prank(mockUser_1);
-        IAlephVaultRedeem.RedeemRequestParams memory params =
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
-        vm.expectRevert(IAlephVaultRedeem.InsufficientAssetsToRedeem.selector);
         vault.requestRedeem(params);
     }
 

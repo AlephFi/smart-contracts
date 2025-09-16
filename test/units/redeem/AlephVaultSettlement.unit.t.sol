@@ -83,6 +83,22 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
     }
 
+    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenToBatchIdIsGreaterThanCurrentBatchId()
+        public
+    {
+        // settle redeem
+        vm.prank(oracle);
+        vm.expectRevert(IAlephVaultSettlement.InvalidToBatchId.selector);
+        vault.settleRedeem(
+            IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: 1,
+                newTotalAssets: new uint256[](1),
+                authSignature: authSignature_1
+            })
+        );
+    }
+
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_revertsWhenNoticePeriodHasNotExpired() public {
         // set notice period
         vault.setNoticePeriod(1, 1);
