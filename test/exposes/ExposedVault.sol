@@ -104,6 +104,10 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].shareClassParams.noticePeriod = _noticePeriod;
     }
 
+    function setLockInPeriod(uint8 _classId, uint48 _lockInPeriod) external {
+        _getStorage().shareClasses[_classId].shareClassParams.lockInPeriod = _lockInPeriod;
+    }
+
     function setUserLockInPeriod(uint8 _classId, uint48 _userLockInPeriod, address _user) external {
         AlephVaultStorageData storage _sd = _getStorage();
         _sd.shareClasses[_classId].shareClassParams.lockInPeriod = 1;

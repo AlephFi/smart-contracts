@@ -212,6 +212,10 @@ contract AlephVaultDepositTest is BaseTest {
     {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
+        uint48 _batchId = vault.currentBatch();
+
+        // set user lock in period to 10
+        vault.setLockInPeriod(1, 10);
 
         // set user balance to 100
         vm.startPrank(mockUser_1);
@@ -222,8 +226,8 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultDeposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
-        uint48 _batchId = vault.requestDeposit(
+        emit IAlephVaultDeposit.DepositRequest(mockUser_1, 1, 100 ether, _batchId);
+        vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
         vm.stopPrank();
@@ -233,6 +237,7 @@ contract AlephVaultDepositTest is BaseTest {
         assertEq(vault.depositRequestOfAt(1, mockUser_1, _batchId), 100 ether);
         assertEq(vault.usersToDepositAt(1, _batchId).length, 1);
         assertEq(vault.usersToDepositAt(1, _batchId)[0], mockUser_1);
+        assertEq(vault.userLockInPeriod(1, mockUser_1), _batchId + 10);
         assertEq(underlyingToken.balanceOf(address(vault)), 100 ether);
         assertEq(underlyingToken.balanceOf(address(mockUser_1)), 0);
     }

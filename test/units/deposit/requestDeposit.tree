@@ -8,23 +8,25 @@ RequestDeposit_Unit_Test
         ├── when amount requested to deposit is 0
         │   └── it should revert with InsufficientDeposit
         └── when amount requested to deposit is greater than 0
-            ├── when min deposit amount is set and amount requested to deposit is less than min deposit amount
+            ├── when amount requested to deposit is less than min deposit amount
             │   └── it should revert with DepositLessThanMinDepositAmount
-            └── when min deposit amount is set and amount requested to deposit is greater than or equal to min deposit amount OR min deposit amount is not set
+            └── when amount requested to deposit is greater than or equal to min deposit amount
                 ├── when min user balance is set and amount requested to deposit doesnt maintain min user balance
                 │   └── it should revert with DepositLessThanMinUserBalance
                 └── when min user balance is set and amount requested to deposit maintains min user balance OR min user balance is not set
                     ├── when max deposit cap is set and amount requested to deposit makes total assets greater than max deposit cap
                     │   └── it should revert with DepositExceedsMaxDepositCap
                     └── when max deposit cap is set and amount requested to deposit does not make total assets greater than max deposit cap OR max deposit cap is not set
-                        ├── when auth signature is expired
+                        ├── when auth is enabled and signature is expired
                         │   └── it should revert with AuthSignatureExpired
-                        ├── when auth signature is invalid
+                        ├── when auth is enabled and signature is invalid
                         │   └── it should revert with InvalidAuthSignature
-                        └── when auth signature is not expired and is valid
+                        └── when auth is enabled and signature is not expired and is valid OR auth is disabled
                             ├── given user has already made a deposit request for this batch
                             │   └── it should revert with OnlyOneRequestPerBatchAllowedForDeposit
                             └── given user has not made a deposit request for this batch
+                                ├── given share class has lock in period and user lock in period is not set
+                                │   └── it should set user lock in period
                                 ├── given vault has insufficient allowance to transfer
                                 │   └── it should revert with ERC20InsufficientAllowance
                                 └── given vault has sufficient allowance to transfer
