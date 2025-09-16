@@ -55,12 +55,12 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function settleRedeem(SettlementParams calldata _settlementParams) external {
+    function settleRedeem(SettlementParams calldata _settlementParams) external nonReentrant {
         _settleRedeem(_getStorage(), _settlementParams);
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function forceRedeem(address _user) external {
+    function forceRedeem(address _user) external nonReentrant {
         _forceRedeem(_getStorage(), _user);
     }
 

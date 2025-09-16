@@ -118,7 +118,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     }
 
     /// @inheritdoc IAlephVaultRedeem
-    function withdrawExcessAssets() external {
+    function withdrawExcessAssets() external nonReentrant {
         _withdrawExcessAssets(_getStorage());
     }
 
