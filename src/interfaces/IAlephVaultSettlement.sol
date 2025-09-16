@@ -22,6 +22,9 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IAlephVaultSettlement {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when a deposit cycle is settled.
      * @param fromBatchId The batch ID from which the deposits are settled.
@@ -166,6 +169,9 @@ interface IAlephVaultSettlement {
      */
     event ForceRedeem(uint48 indexed batchId, address indexed user);
 
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the new total assets are invalid.
      */
@@ -192,6 +198,9 @@ interface IAlephVaultSettlement {
      */
     error DelegateCallFailed(bytes _data);
 
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Parameters for the settlement.
      * @param classId The ID of the share class.
@@ -270,6 +279,9 @@ interface IAlephVaultSettlement {
         uint256 sharesToMint;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTLEMENT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Settles all pending deposits up to the current batch.
      * @param _settlementParams The parameters for the settlement.

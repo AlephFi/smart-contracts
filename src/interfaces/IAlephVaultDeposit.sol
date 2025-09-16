@@ -22,6 +22,9 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IAlephVaultDeposit {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when a new minimum deposit amount is queued.
      * @param classId The ID of the share class.
@@ -73,6 +76,9 @@ interface IAlephVaultDeposit {
      */
     event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
 
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the minimum deposit amount is invalid.
      */
@@ -108,6 +114,9 @@ interface IAlephVaultDeposit {
      */
     error DepositRequestFailed();
 
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor params.
      * @param minDepositAmountTimelock The timelock period for the minimum deposit amount.
@@ -132,6 +141,9 @@ interface IAlephVaultDeposit {
         AuthLibrary.AuthSignature authSignature;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            TIMELOCK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Queues a new minimum deposit amount.
      * @param _classId The ID of the share class to set the minimum deposit amount for.
@@ -171,6 +183,9 @@ interface IAlephVaultDeposit {
      */
     function setMaxDepositCap(uint8 _classId) external;
 
+    /*//////////////////////////////////////////////////////////////
+                            DEPOSIT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.
      * @param _requestDepositParams The parameters for the deposit request.

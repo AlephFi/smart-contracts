@@ -20,6 +20,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVaultRedeem {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when a new notice period is queued.
      * @param classId The ID of the share class.
@@ -71,6 +74,9 @@ interface IAlephVaultRedeem {
      */
     event RedeemableAmountWithdrawn(address indexed user, uint256 redeemableAmount);
 
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the minimum redeem amount is invalid.
      */
@@ -115,6 +121,9 @@ interface IAlephVaultRedeem {
      */
     error OnlyOneRequestPerBatchAllowedForRedeem();
 
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor params.
      * @param noticePeriodTimelock The timelock period for the notice period.
@@ -147,6 +156,9 @@ interface IAlephVaultRedeem {
         uint256 shares;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            TIMELOCK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Queues a new notice period.
      * @param _classId The ID of the share class to set the notice period for.
@@ -186,6 +198,9 @@ interface IAlephVaultRedeem {
      */
     function setMinRedeemAmount(uint8 _classId) external;
 
+    /*//////////////////////////////////////////////////////////////
+                            REDEEM FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Requests to redeem shares from the vault for the current batch.
      * @param _redeemRequestParams The parameters for the redeem request.

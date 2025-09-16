@@ -35,8 +35,14 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    /**
+     * @notice The denominator for the fee rates (basis points).
+     */
     uint256 public constant BPS_DENOMINATOR = 10_000;
 
+    /*//////////////////////////////////////////////////////////////
+                            INITIALIZER
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Initializes the vault with the given parameters.
      * @param _initializationParams Struct containing all initialization parameters.
@@ -57,6 +63,9 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAccountant
     function vaultTreasury() external view returns (address) {
         AccountantStorageData storage _sd = _getStorage();
@@ -64,6 +73,9 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         return _sd.vaultTreasury[msg.sender];
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     function initializeVaultTreasury(address _vault, address _vaultTreasury)
         external
         onlyRole(RolesLibrary.VAULT_FACTORY)
@@ -137,6 +149,9 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         emit PerformanceFeeCutSet(_vault, _performanceFeeCut);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            FEE FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAccountant
     function collectFees(address _vault) external {
         AccountantStorageData storage _sd = _getStorage();
@@ -159,6 +174,9 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         emit FeesCollected(_vault, _managementFeesToCollect, _performanceFeesToCollect, _vaultFee, _alephFee);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Splits the fees for the vault and the aleph treasury.
      * @param _sd The storage struct.

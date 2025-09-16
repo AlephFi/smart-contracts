@@ -22,6 +22,9 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVaultFactory {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when a vault is deployed.
      * @param vault The address of the deployed vault.
@@ -80,6 +83,9 @@ interface IAlephVaultFactory {
      */
     event ModuleImplementationSet(bytes4 indexed module, address indexed implementation);
 
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the initialization params are invalid.
      */
@@ -95,6 +101,9 @@ interface IAlephVaultFactory {
      */
     error UnsupportedChain();
 
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Initialization params.
      * @param beacon The beacon address of the vault.
@@ -123,6 +132,9 @@ interface IAlephVaultFactory {
         address migrationManagerImplementation;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Checks if an address is a valid vault deployed by this factory
      * @param _vault The address to check
@@ -130,6 +142,9 @@ interface IAlephVaultFactory {
      */
     function isValidVault(address _vault) external view returns (bool);
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Sets whether authentication is enabled for vault deployment
      * @param _isAuthEnabled True to enable authentication, false to disable
@@ -143,15 +158,6 @@ interface IAlephVaultFactory {
      * @dev Only callable by OPERATIONS_MULTISIG role. Updates all deployed vaults.
      */
     function setOperationsMultisig(address _operationsMultisig) external;
-
-    /**
-     * @notice Deploys a new vault.
-     * @param _userInitializationParams Struct containing all user initialization parameters.
-     * @return The address of the new vault.
-     */
-    function deployVault(IAlephVault.UserInitializationParams calldata _userInitializationParams)
-        external
-        returns (address);
 
     /**
      * @notice Updates the oracle address for all deployed vaults
@@ -181,4 +187,16 @@ interface IAlephVaultFactory {
      * @dev Only callable by OPERATIONS_MULTISIG role. Updates all deployed vaults.
      */
     function setModuleImplementation(bytes4 _module, address _implementation) external;
+
+    /*//////////////////////////////////////////////////////////////
+                            DEPLOY FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Deploys a new vault.
+     * @param _userInitializationParams Struct containing all user initialization parameters.
+     * @return The address of the new vault.
+     */
+    function deployVault(IAlephVault.UserInitializationParams calldata _userInitializationParams)
+        external
+        returns (address);
 }

@@ -36,12 +36,27 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     using Math for uint256;
     using TimelockRegistry for bytes4;
 
+    /**
+     * @notice The timelock period for the management fee.
+     */
     uint48 public immutable MANAGEMENT_FEE_TIMELOCK;
+    /**
+     * @notice The timelock period for the performance fee.
+     */
     uint48 public immutable PERFORMANCE_FEE_TIMELOCK;
 
+    /**
+     * @notice The number of batches in a year.
+     */
     uint48 public constant ONE_YEAR = 365 days;
+    /**
+     * @notice The denominator for the fee rates (basis points).
+     */
     uint48 public constant BPS_DENOMINATOR = 10_000;
 
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for FeeManager module
      * @param _constructorParams The initialization parameters for fee configuration
@@ -55,46 +70,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         PERFORMANCE_FEE_TIMELOCK = _constructorParams.performanceFeeTimelock;
     }
 
-    /// @inheritdoc IFeeManager
-    function queueManagementFee(uint8 _classId, uint32 _managementFee) external {
-        _queueManagementFee(_getStorage(), _classId, _managementFee);
-    }
-
-    /// @inheritdoc IFeeManager
-    function queuePerformanceFee(uint8 _classId, uint32 _performanceFee) external {
-        _queuePerformanceFee(_getStorage(), _classId, _performanceFee);
-    }
-
-    /// @inheritdoc IFeeManager
-    function setManagementFee(uint8 _classId) external {
-        _setManagementFee(_getStorage(), _classId);
-    }
-
-    /// @inheritdoc IFeeManager
-    function setPerformanceFee(uint8 _classId) external {
-        _setPerformanceFee(_getStorage(), _classId);
-    }
-
-    ///@inheritdoc IFeeManager
-    function accumulateFees(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
-        uint48 _currentBatchId,
-        uint48 _lastFeePaidId,
-        uint8 _classId,
-        uint8 _seriesId
-    ) external returns (uint256) {
-        return _accumulateFees(
-            _getStorage().shareClasses[_classId],
-            _newTotalAssets,
-            _totalShares,
-            _currentBatchId,
-            _lastFeePaidId,
-            _classId,
-            _seriesId
-        );
-    }
-
+    /*//////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     ///@inheritdoc IFeeManager
     function getManagementFeeShares(
         uint256 _newTotalAssets,
@@ -123,6 +101,52 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         );
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            TIMELOCK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    /// @inheritdoc IFeeManager
+    function queueManagementFee(uint8 _classId, uint32 _managementFee) external {
+        _queueManagementFee(_getStorage(), _classId, _managementFee);
+    }
+
+    /// @inheritdoc IFeeManager
+    function queuePerformanceFee(uint8 _classId, uint32 _performanceFee) external {
+        _queuePerformanceFee(_getStorage(), _classId, _performanceFee);
+    }
+
+    /// @inheritdoc IFeeManager
+    function setManagementFee(uint8 _classId) external {
+        _setManagementFee(_getStorage(), _classId);
+    }
+
+    /// @inheritdoc IFeeManager
+    function setPerformanceFee(uint8 _classId) external {
+        _setPerformanceFee(_getStorage(), _classId);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            FEE FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    ///@inheritdoc IFeeManager
+    function accumulateFees(
+        uint256 _newTotalAssets,
+        uint256 _totalShares,
+        uint48 _currentBatchId,
+        uint48 _lastFeePaidId,
+        uint8 _classId,
+        uint8 _seriesId
+    ) external returns (uint256) {
+        return _accumulateFees(
+            _getStorage().shareClasses[_classId],
+            _newTotalAssets,
+            _totalShares,
+            _currentBatchId,
+            _lastFeePaidId,
+            _classId,
+            _seriesId
+        );
+    }
+
     ///@inheritdoc IFeeManager
     function collectFees()
         external
@@ -132,6 +156,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         return _collectFees(_getStorage());
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Internal function to queue a new management fee.
      * @param _sd The storage struct.

@@ -37,12 +37,18 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SeriesAccounting for IAlephVault.ShareClass;
 
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for AlephVaultSettlement module
      * @param _batchDuration The duration of each batch cycle in seconds
      */
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTLEMENT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultSettlement
     function settleDeposit(SettlementParams calldata _settlementParams) external nonReentrant {
         _settleDeposit(_getStorage(), _settlementParams);
@@ -58,6 +64,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _forceRedeem(_getStorage(), _user);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Internal function to settle all deposits for batches up to the current batch.
      * @param _sd The storage struct.

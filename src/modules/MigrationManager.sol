@@ -28,12 +28,18 @@ import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 contract MigrationManager is IMigrationManager, AlephVaultBase, AccessControlUpgradeable {
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for MigrationManager module
      * @param _batchDuration The duration of each batch cycle in seconds
      */
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
+    /*//////////////////////////////////////////////////////////////
+                            MIGRATION FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IMigrationManager
     function migrateOperationsMultisig(address _newOperationsMultisig) external {
         if (_newOperationsMultisig == address(0)) {

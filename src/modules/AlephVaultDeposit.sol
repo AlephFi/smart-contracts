@@ -35,10 +35,22 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     using TimelockRegistry for bytes4;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    /**
+     * @notice The timelock period for the minimum deposit amount.
+     */
     uint48 public immutable MIN_DEPOSIT_AMOUNT_TIMELOCK;
+    /**
+     * @notice The timelock period for the minimum user balance.
+     */
     uint48 public immutable MIN_USER_BALANCE_TIMELOCK;
+    /**
+     * @notice The timelock period for the maximum deposit cap.
+     */
     uint48 public immutable MAX_DEPOSIT_CAP_TIMELOCK;
 
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for AlephVaultDeposit module
      * @param _constructorParams The initialization parameters for deposit configuration
@@ -58,6 +70,9 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         MAX_DEPOSIT_CAP_TIMELOCK = _constructorParams.maxDepositCapTimelock;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            TIMELOCK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultDeposit
     function queueMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external {
         _queueMinDepositAmount(_getStorage(), _classId, _minDepositAmount);
@@ -88,6 +103,9 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         _setMaxDepositCap(_getStorage(), _classId);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            DEPOSIT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultDeposit
     function requestDeposit(RequestDepositParams calldata _requestDepositParams)
         external
@@ -97,6 +115,9 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         return _requestDeposit(_getStorage(), _requestDepositParams);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Internal function to queue a new min deposit amount.
      * @param _sd The storage struct.

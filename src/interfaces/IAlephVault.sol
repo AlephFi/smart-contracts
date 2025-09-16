@@ -23,6 +23,9 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVault {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the deposit authentication is enabled.
      */
@@ -43,6 +46,9 @@ interface IAlephVault {
      */
     event ShareClassCreated(uint8 classId, ShareClassParams shareClassParams);
 
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the initialization params are invalid.
      */
@@ -68,6 +74,9 @@ interface IAlephVault {
      */
     error InvalidShareClassParams();
 
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Initialization params.
      * @param _operationsMultisig The operations multisig address.
@@ -135,9 +144,9 @@ interface IAlephVault {
      * @param _noticePeriod The notice period in batches.
      * @param _lockInPeriod The lock in period in batches.
      * @param _minDepositAmount The minimum deposit amount.
+     * @param _minUserBalance The minimum user balance.
      * @param _maxDepositCap The maximum deposit cap.
      * @param _minRedeemAmount The minimum redeem amount.
-     * @param _minUserBalance The minimum user balance.
      * @dev all amounts are denominated in underlying token decimals.
      */
     struct ShareClassParams {
@@ -146,9 +155,9 @@ interface IAlephVault {
         uint48 noticePeriod;
         uint48 lockInPeriod;
         uint256 minDepositAmount;
+        uint256 minUserBalance;
         uint256 maxDepositCap;
         uint256 minRedeemAmount;
-        uint256 minUserBalance;
     }
 
     /**
@@ -222,6 +231,21 @@ interface IAlephVault {
         mapping(address => uint256) redeemRequest;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Returns the current batch ID based on the elapsed time since start.
+     * @return The current batch ID.
+     */
+    function currentBatch() external view returns (uint48);
+
+    /**
+     * @notice Returns the number of share classes in the vault.
+     * @return The number of share classes.
+     */
+    function shareClasses() external view returns (uint8);
+
     /**
      * @notice Returns the name of the vault.
      * @return The name.
@@ -233,30 +257,6 @@ interface IAlephVault {
      * @return The manager.
      */
     function manager() external view returns (address);
-
-    /**
-     * @notice Returns the oracle of the vault.
-     * @return The oracle.
-     */
-    function oracle() external view returns (address);
-
-    /**
-     * @notice Returns the operations multisig of the vault.
-     * @return The operations multisig.
-     */
-    function operationsMultisig() external view returns (address);
-
-    /**
-     * @notice Returns the guardian of the vault.
-     * @return The guardian.
-     */
-    function guardian() external view returns (address);
-
-    /**
-     * @notice Returns the KYC authentication signer of the vault.
-     * @return The KYC authentication signer.
-     */
-    function authSigner() external view returns (address);
 
     /**
      * @notice Returns the underlying token of the vault.
@@ -275,6 +275,30 @@ interface IAlephVault {
      * @return The vault treasury.
      */
     function vaultTreasury() external view returns (address);
+
+    /**
+     * @notice Returns the operations multisig of the vault.
+     * @return The operations multisig.
+     */
+    function operationsMultisig() external view returns (address);
+
+    /**
+     * @notice Returns the oracle of the vault.
+     * @return The oracle.
+     */
+    function oracle() external view returns (address);
+
+    /**
+     * @notice Returns the guardian of the vault.
+     * @return The guardian.
+     */
+    function guardian() external view returns (address);
+
+    /**
+     * @notice Returns the KYC authentication signer of the vault.
+     * @return The KYC authentication signer.
+     */
+    function authSigner() external view returns (address);
 
     /**
      * @notice Returns the accountant of the vault.
@@ -297,16 +321,73 @@ interface IAlephVault {
     function performanceFee(uint8 _classId) external view returns (uint32);
 
     /**
-     * @notice Returns the current batch ID based on the elapsed time since start.
-     * @return The current batch ID.
+     * @notice Returns the notice period of the vault.
+     * @param _classId The ID of the share class.
+     * @return The notice period.
      */
-    function currentBatch() external view returns (uint48);
+    function noticePeriod(uint8 _classId) external view returns (uint48);
 
     /**
-     * @notice Returns the number of share classes in the vault.
-     * @return The number of share classes.
+     * @notice Returns the lock in period of the vault.
+     * @param _classId The ID of the share class.
+     * @return The lock in period.
      */
-    function shareClasses() external view returns (uint8);
+    function lockInPeriod(uint8 _classId) external view returns (uint48);
+
+    /**
+     * @notice Returns the minimum deposit amount.
+     * @param _classId The ID of the share class.
+     * @return The minimum deposit amount of the share class.
+     */
+    function minDepositAmount(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the minimum user balance.
+     * @param _classId The ID of the share class.
+     * @return The minimum user balance of the share class.
+     */
+    function minUserBalance(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the maximum deposit cap.
+     * @param _classId The ID of the share class.
+     * @return The maximum deposit cap of the share class.
+     */
+    function maxDepositCap(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the minimum redeem amount.
+     * @param _classId The ID of the share class.
+     * @return The minimum redeem amount of the share class.
+     */
+    function minRedeemAmount(uint8 _classId) external view returns (uint256);
+
+    /**
+     * @notice Returns the user lock in period.
+     * @param _classId The ID of the share class.
+     * @param _user The address of the user.
+     * @return The user lock in period.
+     */
+    function userLockInPeriod(uint8 _classId, address _user) external view returns (uint48);
+
+    /**
+     * @notice Returns the amount of assets claimable by a user.
+     * @param _user The address of the user.
+     * @return The amount of assets claimable by the user.
+     */
+    function redeemableAmount(address _user) external view returns (uint256);
+
+    /**
+     * @notice Returns whether authentication is enabled for deposits.
+     * @return The status of the authentication for deposits.
+     */
+    function isDepositAuthEnabled() external view returns (bool);
+
+    /**
+     * @notice Returns whether authentication is enabled for settlements.
+     * @return The status of the authentication for settlements.
+     */
+    function isSettlementAuthEnabled() external view returns (bool);
 
     /**
      * @notice Returns the total assets currently held by the vault.
@@ -363,13 +444,6 @@ interface IAlephVault {
     function sharesOf(uint8 _classId, uint8 _seriesId, address _user) external view returns (uint256);
 
     /**
-     * @notice Returns the amount of assets claimable by a user.
-     * @param _user The address of the user.
-     * @return The amount of assets claimable by the user.
-     */
-    function redeemableAmount(address _user) external view returns (uint256);
-
-    /**
      * @notice Returns the current price per share of the vault.
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
@@ -384,56 +458,6 @@ interface IAlephVault {
      * @return The current high water mark.
      */
     function highWaterMark(uint8 _classId, uint8 _seriesId) external view returns (uint256);
-
-    /**
-     * @notice Returns the notice period of the vault.
-     * @param _classId The ID of the share class.
-     * @return The notice period.
-     */
-    function noticePeriod(uint8 _classId) external view returns (uint48);
-
-    /**
-     * @notice Returns the lock in period of the vault.
-     * @param _classId The ID of the share class.
-     * @return The lock in period.
-     */
-    function lockInPeriod(uint8 _classId) external view returns (uint48);
-
-    /**
-     * @notice Returns the minimum deposit amount.
-     * @param _classId The ID of the share class.
-     * @return The minimum deposit amount of the share class.
-     */
-    function minDepositAmount(uint8 _classId) external view returns (uint256);
-
-    /**
-     * @notice Returns the minimum user balance.
-     * @param _classId The ID of the share class.
-     * @return The minimum user balance of the share class.
-     */
-    function minUserBalance(uint8 _classId) external view returns (uint256);
-
-    /**
-     * @notice Returns the maximum deposit cap.
-     * @param _classId The ID of the share class.
-     * @return The maximum deposit cap of the share class.
-     */
-    function maxDepositCap(uint8 _classId) external view returns (uint256);
-
-    /**
-     * @notice Returns the minimum redeem amount.
-     * @param _classId The ID of the share class.
-     * @return The minimum redeem amount of the share class.
-     */
-    function minRedeemAmount(uint8 _classId) external view returns (uint256);
-
-    /**
-     * @notice Returns the user lock in period.
-     * @param _classId The ID of the share class.
-     * @param _user The address of the user.
-     * @return The user lock in period.
-     */
-    function userLockInPeriod(uint8 _classId, address _user) external view returns (uint48);
 
     /**
      * @notice Returns the total amount of unsettled deposit requests for a given class.
@@ -510,18 +534,9 @@ interface IAlephVault {
      */
     function totalFeeAmountToCollect() external view returns (uint256);
 
-    /**
-     * @notice Returns whether authentication is enabled for deposits.
-     * @return The status of the authentication for deposits.
-     */
-    function isDepositAuthEnabled() external view returns (bool);
-
-    /**
-     * @notice Returns whether authentication is enabled for settlements.
-     * @return The status of the authentication for settlements.
-     */
-    function isSettlementAuthEnabled() external view returns (bool);
-
+    /*//////////////////////////////////////////////////////////////
+                            SETTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Sets whether authentication is enabled for deposits.
      * @param _isDepositAuthEnabled The new status of the authentication for deposits.

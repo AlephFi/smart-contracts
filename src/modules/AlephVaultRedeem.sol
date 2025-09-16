@@ -36,10 +36,22 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     using TimelockRegistry for bytes4;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    /**
+     * @notice The timelock period for the notice period.
+     */
     uint48 public immutable NOTICE_PERIOD_TIMELOCK;
+    /**
+     * @notice The timelock period for the lock in period.
+     */
     uint48 public immutable LOCK_IN_PERIOD_TIMELOCK;
+    /**
+     * @notice The timelock period for the minimum redeem amount.
+     */
     uint48 public immutable MIN_REDEEM_AMOUNT_TIMELOCK;
 
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for AlephVaultRedeem module
      * @param _constructorParams The initialization parameters for redeem configuration
@@ -59,6 +71,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         MIN_REDEEM_AMOUNT_TIMELOCK = _constructorParams.minRedeemAmountTimelock;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            TIMELOCK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultRedeem
     function queueNoticePeriod(uint8 _classId, uint48 _noticePeriod) external {
         _queueNoticePeriod(_getStorage(), _classId, _noticePeriod);
@@ -89,6 +104,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         _setMinRedeemAmount(_getStorage(), _classId);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            REDEEM FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultRedeem
     function requestRedeem(RedeemRequestParams calldata _redeemRequestParams) external returns (uint48 _batchId) {
         return _requestRedeem(_getStorage(), _redeemRequestParams);
@@ -99,6 +117,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         _withdrawRedeemableAmount(_getStorage());
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Internal function to queue a new notice period.
      * @param _sd The storage struct.

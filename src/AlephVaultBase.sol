@@ -31,13 +31,31 @@ import {AlephVaultStorage, AlephVaultStorageData} from "@aleph-vault/AlephVaultS
 contract AlephVaultBase is ReentrancyGuardUpgradeable {
     using Math for uint256;
 
+    /**
+     * @notice The maximum management fee rate in basis points.
+     */
     uint32 public constant MAXIMUM_MANAGEMENT_FEE = 1000; // 10%
+    /**
+     * @notice The maximum performance fee rate in basis points.
+     */
     uint32 public constant MAXIMUM_PERFORMANCE_FEE = 5000; // 50%
 
+    /**
+     * @notice The duration of each batch cycle in seconds.
+     */
     uint48 public immutable BATCH_DURATION;
 
+    /*//////////////////////////////////////////////////////////////
+                            ERRORS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Invalid constructor parameters.
+     */
     error InvalidConstructorParams();
 
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for AlephVaultBase
      * @param _batchDuration The duration of each batch cycle in seconds
@@ -50,6 +68,9 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         BATCH_DURATION = _batchDuration;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Returns the total assets in the vault.
      * @param _sd The storage struct.

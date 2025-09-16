@@ -42,6 +42,9 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     uint32 public constant MAX_MANAGEMENT_FEE = 1000; // 10%
     uint32 public constant MAX_PERFORMANCE_FEE = 5000; // 50%
 
+    /*//////////////////////////////////////////////////////////////
+                            INITIALIZER
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Initializes the factory.
      */
@@ -89,67 +92,17 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
-    /**
-     * @notice Deploys a new vault.
-     * @param _userInitializationParams Struct containing all user initialization parameters.
-     * @return The address of the new vault.
-     */
-    function deployVault(IAlephVault.UserInitializationParams calldata _userInitializationParams)
-        external
-        returns (address)
-    {
-        bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
-        AlephVaultFactoryStorageData storage _sd = _getStorage();
-        if (_sd.isAuthEnabled) {
-            AuthLibrary.verifyVaultDeploymentAuthSignature(
-                _userInitializationParams.manager,
-                address(this),
-                _userInitializationParams.name,
-                _userInitializationParams.configId,
-                _sd.authSigner,
-                _userInitializationParams.authSignature
-            );
-        }
-        IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
-            .ModuleInitializationParams({
-            alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
-            alephVaultRedeemImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM],
-            alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
-            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER],
-            migrationManagerImplementation: _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER]
-        });
-        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
-            operationsMultisig: _sd.operationsMultisig,
-            vaultFactory: address(this),
-            oracle: _sd.oracle,
-            guardian: _sd.guardian,
-            authSigner: _sd.authSigner,
-            accountant: _sd.accountant,
-            userInitializationParams: _userInitializationParams,
-            moduleInitializationParams: _moduleInitializationParams
-        });
-        bytes memory _bytecode = abi.encodePacked(
-            type(BeaconProxy).creationCode,
-            abi.encode(_sd.beacon, abi.encodeCall(AlephVault.initialize, (_initializationParams)))
-        );
-
-        address _vault = Create2.deploy(0, _salt, _bytecode);
-        _sd.vaults.add(_vault);
-        IAccountant(_sd.accountant).initializeVaultTreasury(_vault, _userInitializationParams.vaultTreasury);
-        emit VaultDeployed(
-            _vault,
-            _userInitializationParams.manager,
-            _userInitializationParams.name,
-            _userInitializationParams.configId
-        );
-        return _vault;
-    }
-
+    /*//////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultFactory
     function isValidVault(address _vault) external view returns (bool) {
         return _getStorage().vaults.contains(_vault);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultFactory
     function setIsAuthEnabled(bool _isAuthEnabled) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         _getStorage().isAuthEnabled = _isAuthEnabled;
@@ -236,6 +189,68 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         emit ModuleImplementationSet(_module, _implementation);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            DEPLOY FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Deploys a new vault.
+     * @param _userInitializationParams Struct containing all user initialization parameters.
+     * @return The address of the new vault.
+     */
+    function deployVault(IAlephVault.UserInitializationParams calldata _userInitializationParams)
+        external
+        returns (address)
+    {
+        bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
+        AlephVaultFactoryStorageData storage _sd = _getStorage();
+        if (_sd.isAuthEnabled) {
+            AuthLibrary.verifyVaultDeploymentAuthSignature(
+                _userInitializationParams.manager,
+                address(this),
+                _userInitializationParams.name,
+                _userInitializationParams.configId,
+                _sd.authSigner,
+                _userInitializationParams.authSignature
+            );
+        }
+        IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
+            .ModuleInitializationParams({
+            alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
+            alephVaultRedeemImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM],
+            alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
+            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER],
+            migrationManagerImplementation: _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER]
+        });
+        IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
+            operationsMultisig: _sd.operationsMultisig,
+            vaultFactory: address(this),
+            oracle: _sd.oracle,
+            guardian: _sd.guardian,
+            authSigner: _sd.authSigner,
+            accountant: _sd.accountant,
+            userInitializationParams: _userInitializationParams,
+            moduleInitializationParams: _moduleInitializationParams
+        });
+        bytes memory _bytecode = abi.encodePacked(
+            type(BeaconProxy).creationCode,
+            abi.encode(_sd.beacon, abi.encodeCall(AlephVault.initialize, (_initializationParams)))
+        );
+
+        address _vault = Create2.deploy(0, _salt, _bytecode);
+        _sd.vaults.add(_vault);
+        IAccountant(_sd.accountant).initializeVaultTreasury(_vault, _userInitializationParams.vaultTreasury);
+        emit VaultDeployed(
+            _vault,
+            _userInitializationParams.manager,
+            _userInitializationParams.name,
+            _userInitializationParams.configId
+        );
+        return _vault;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     // Internal function to get the storage of the factory.
     function _getStorage() internal pure returns (AlephVaultFactoryStorageData storage sd) {
         return AlephVaultFactoryStorage.load();

@@ -20,6 +20,9 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IMigrationManager {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the operations multisig is migrated.
      * @param operationsMultisig The new operations multisig.
@@ -51,6 +54,9 @@ interface IMigrationManager {
      */
     event ModulesMigrated(bytes4 indexed module, address indexed implementation);
 
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when the operations multisig address is invalid.
      */
@@ -76,6 +82,9 @@ interface IMigrationManager {
      */
     error InvalidModuleAddress();
 
+    /*//////////////////////////////////////////////////////////////
+                            MIGRATION FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Migrates the operations multisig.
      * @param _newOperationsMultisig The new operations multisig.
