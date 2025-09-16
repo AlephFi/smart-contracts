@@ -136,6 +136,9 @@ library SeriesAccounting {
      * @param _batchId The id of the batch.
      * @param _user The user to settle the redeem for.
      * @param _amount The amount to settle.
+     * @dev redemptions are settled based on first-in first out basis. This means amount is attempeted to be
+     * redeemed from lead series, and then outstanding series in order until the total requested amount is
+     * completely redeemed. The redemption of shares from each constituent series is called a redemption slice
      */
     function settleRedeemForUser(
         IAlephVault.ShareClass storage _shareClass,
@@ -176,6 +179,8 @@ library SeriesAccounting {
      * @param _toBatchId The batch id to settle deposits up to.
      * @return _totalAmountToTransfer The total amount to transfer.
      * @return _totalSharesToTransfer The total shares to transfer.
+     * @dev user shares are consolidated by preview minting the series shares and getting user assets
+     * in that series. These assets are then minted shares in lead series based on the lead series PPS.
      */
     function _consolidateUserShares(
         IAlephVault.ShareSeries storage _leadSeries,

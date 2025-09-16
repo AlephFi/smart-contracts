@@ -43,6 +43,12 @@ interface IAlephVaultRedeem {
      * @param minRedeemAmount The new minimum redeem amount.
      */
     event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);
+
+    /**
+     * @notice Emitted when a new notice period is set.
+     * @param classId The ID of the share class.
+     * @param noticePeriod The new notice period in batches.
+     */
     event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);
 
     /**
