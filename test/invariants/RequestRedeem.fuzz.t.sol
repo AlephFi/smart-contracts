@@ -57,11 +57,8 @@ contract RequestRedeemTest is BaseTest {
         vm.warp(block.timestamp + 1 days + 1);
 
         // request redeem
-        IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
-            classId: 1,
-            shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
-        });
-        params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: _redeemAmount});
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount});
         vm.prank(_user);
         vault.requestRedeem(params);
 
@@ -105,11 +102,8 @@ contract RequestRedeemTest is BaseTest {
             if (_redeemAmount < vault.minRedeemAmount(1) || _remainingAmount < vault.minUserBalance(1)) {
                 continue;
             }
-            IAlephVaultRedeem.RedeemRequestParams memory params = IAlephVaultRedeem.RedeemRequestParams({
-                classId: 1,
-                shareRequests: new IAlephVaultRedeem.ShareRedeemRequest[](1)
-            });
-            params.shareRequests[0] = IAlephVaultRedeem.ShareRedeemRequest({seriesId: 0, shares: _redeemAmount});
+            IAlephVaultRedeem.RedeemRequestParams memory params =
+                IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount});
             vm.prank(_user);
             vault.requestRedeem(params);
 
