@@ -117,6 +117,11 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         _withdrawRedeemableAmount(_getStorage());
     }
 
+    /// @inheritdoc IAlephVaultRedeem
+    function withdrawExcessAssets() external nonReentrant {
+        _withdrawExcessAssets(_getStorage());
+    }
+
     /*//////////////////////////////////////////////////////////////
                             INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -320,7 +325,22 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     function _withdrawRedeemableAmount(AlephVaultStorageData storage _sd) internal {
         uint256 _redeemableAmount = _sd.redeemableAmount[msg.sender];
         delete _sd.redeemableAmount[msg.sender];
+        _sd.totalAmountToWithdraw -= _redeemableAmount;
         IERC20(_sd.underlyingToken).safeTransfer(msg.sender, _redeemableAmount);
         emit RedeemableAmountWithdrawn(msg.sender, _redeemableAmount);
+    }
+
+    /**
+     * @dev Internal function to withdraw excess assets.
+     * @param _sd The storage struct.
+     */
+    function _withdrawExcessAssets(AlephVaultStorageData storage _sd) internal {
+        uint256 _requiredVaultBalance = _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
+        uint256 _vaultBalance = IERC20(_sd.underlyingToken).balanceOf(address(this));
+        if (_vaultBalance <= _requiredVaultBalance) {
+            revert InsufficientVaultBalance();
+        }
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _vaultBalance - _requiredVaultBalance);
+        emit ExcessAssetsWithdrawn(_vaultBalance - _requiredVaultBalance);
     }
 }

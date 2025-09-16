@@ -255,6 +255,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         }
 
         // register deposit request
+        _sd.totalAmountToDeposit += _requestDepositParams.amount;
         _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
         _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
         _depositRequests.usersToDeposit.add(msg.sender);
