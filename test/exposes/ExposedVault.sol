@@ -118,6 +118,11 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].shareClassParams.minRedeemAmount = _minRedeemAmount;
     }
 
+    function setRedeemableAmount(address _user, uint256 _redeemableAmount) external {
+        _getStorage().redeemableAmount[_user] += _redeemableAmount;
+        _getStorage().totalAmountToWithdraw += _redeemableAmount;
+    }
+
     function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {
         _getStorage().shareClasses[1].shareSeries[_seriesId].totalAssets = _totalAssets;
     }
