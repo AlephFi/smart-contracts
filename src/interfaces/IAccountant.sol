@@ -20,12 +20,53 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAccountant {
+    /**
+     * @notice Emitted when the operations multisig is set.
+     * @param _operationsMultisig The new operations multisig.
+     */
     event OperationsMultisigSet(address _operationsMultisig);
+
+    /**
+     * @notice Emitted when the vault factory is set.
+     * @param _vaultFactory The new vault factory.
+     */
     event VaultFactorySet(address _vaultFactory);
+
+    /**
+     * @notice Emitted when the aleph treasury is set.
+     * @param _alephTreasury The new aleph treasury.
+     */
     event AlephTreasurySet(address _alephTreasury);
+
+    /**
+     * @notice Emitted when the vault treasury is set.
+     * @param _vault The vault.
+     * @param _vaultTreasury The new vault treasury.
+     */
     event VaultTreasurySet(address _vault, address _vaultTreasury);
+
+    /**
+     * @notice Emitted when the management fee cut is set.
+     * @param _vault The vault.
+     * @param _managementFeeCut The new management fee cut.
+     */
     event ManagementFeeCutSet(address _vault, uint32 _managementFeeCut);
+
+    /**
+     * @notice Emitted when the performance fee cut is set.
+     * @param _vault The vault.
+     * @param _performanceFeeCut The new performance fee cut.
+     */
     event PerformanceFeeCutSet(address _vault, uint32 _performanceFeeCut);
+
+    /**
+     * @notice Emitted when fees are collected.
+     * @param _vault The vault.
+     * @param _managementFeesToCollect The management fees to collect.
+     * @param _performanceFeesToCollect The performance fees to collect.
+     * @param _vaultFee The vault fee split
+     * @param _alephFee The aleph fee split
+     */
     event FeesCollected(
         address _vault,
         uint256 _managementFeesToCollect,
@@ -34,13 +75,41 @@ interface IAccountant {
         uint256 _alephFee
     );
 
+    /**
+     * @notice Emitted when the initialization params are invalid.
+     */
     error InvalidInitializationParams();
+
+    /**
+     * @notice Emitted when the vault is invalid.
+     */
     error InvalidVault();
+
+    /**
+     * @notice Emitted when the manager is invalid.
+     */
     error InvalidManager();
+
+    /**
+     * @notice Emitted when the vault treasury is invalid.
+     */
     error InvalidVaultTreasury();
+
+    /**
+     * @notice Emitted when the vault treasury is not set.
+     */
     error VaultTreasuryNotSet();
+
+    /**
+     * @notice Emitted when fees are not collected.
+     */
     error FeesNotCollected();
 
+    /**
+     * @notice Initialization params.
+     * @param _operationsMultisig The operations multisig.
+     * @param _alephTreasury The aleph treasury.
+     */
     struct InitializationParams {
         address operationsMultisig;
         address alephTreasury;

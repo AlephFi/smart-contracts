@@ -18,6 +18,26 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 
+/**
+ * @notice Data layout for the aleph vault storage.
+ * @param name The name of the vault.
+ * @param isDepositAuthEnabled Whether the deposit authentication is enabled.
+ * @param isSettlementAuthEnabled Whether the settlement authentication is enabled.
+ * @param shareClassesId The number of share classes.
+ * @param startTimeStamp The start timestamp of the vault.
+ * @param operationsMultisig The operations multisig address.
+ * @param manager The manager address.
+ * @param oracle The oracle address.
+ * @param guardian The guardian address.
+ * @param authSigner The auth signer address.
+ * @param underlyingToken The underlying token address.
+ * @param custodian The custodian address.
+ * @param accountant The accountant address.
+ * @param shareClasses The share classes.
+ * @param timelocks The timelocks.
+ * @param moduleImplementations The module implementations.
+ * @param redeemableAmount The redeemable amount for each user.
+ */
 struct AlephVaultStorageData {
     string name;
     bool isDepositAuthEnabled;

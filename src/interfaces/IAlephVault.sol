@@ -23,17 +23,62 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVault {
-    error InvalidInitializationParams();
-    error InvalidAuthSigner();
-    error InvalidShareClass();
-    error InvalidShareSeries();
-    error InvalidShareClassParams();
-
+    /**
+     * @notice Emitted when the deposit authentication is enabled.
+     */
     event IsDepositAuthEnabledSet(bool isDepositAuthEnabled);
+
+    /**
+     * @notice Emitted when the settlement authentication is enabled.
+     */
     event IsSettlementAuthEnabledSet(bool isSettlementAuthEnabled);
+
+    /**
+     * @notice Emitted when the vault treasury is set.
+     */
     event VaultTreasurySet(address vaultTreasury);
+
+    /**
+     * @notice Emitted when the share class is created.
+     */
     event ShareClassCreated(uint8 classId, ShareClassParams shareClassParams);
 
+    /**
+     * @notice Emitted when the initialization params are invalid.
+     */
+    error InvalidInitializationParams();
+
+    /**
+     * @notice Emitted when the auth signer is invalid.
+     */
+    error InvalidAuthSigner();
+
+    /**
+     * @notice Emitted when the share class is invalid.
+     */
+    error InvalidShareClass();
+
+    /**
+     * @notice Emitted when the share series is invalid.
+     */
+    error InvalidShareSeries();
+
+    /**
+     * @notice Emitted when the share class params are invalid.
+     */
+    error InvalidShareClassParams();
+
+    /**
+     * @notice Initialization params.
+     * @param _operationsMultisig The operations multisig address.
+     * @param _vaultFactory The vault factory address.
+     * @param _oracle The oracle address.
+     * @param _guardian The guardian address.
+     * @param _authSigner The auth signer address.
+     * @param _accountant The accountant proxy address.
+     * @param _userInitializationParams The user initialization params.
+     * @param _moduleInitializationParams The module initialization params.
+     */
     struct InitializationParams {
         address operationsMultisig;
         address vaultFactory;
@@ -45,6 +90,17 @@ interface IAlephVault {
         ModuleInitializationParams moduleInitializationParams;
     }
 
+    /**
+     * @notice Initialization params provided by the user.
+     * @param _name The name of the vault.
+     * @param _configId The config ID of the vault.
+     * @param _manager The manager address.
+     * @param _underlyingToken The underlying token address.
+     * @param _custodian The custodian address in which vault funds are stored.
+     * @param _vaultTreasury The vault treasury address in which fees are collected.
+     * @param _shareClassParams The share class params for default share class.
+     * @param _authSignature The auth signature to deploy the vault.
+     */
     struct UserInitializationParams {
         string name;
         string configId;
@@ -56,6 +112,14 @@ interface IAlephVault {
         AuthLibrary.AuthSignature authSignature;
     }
 
+    /**
+     * @notice Initialization params for the modules.
+     * @param _alephVaultDepositImplementation The aleph vault deposit implementation address.
+     * @param _alephVaultRedeemImplementation The aleph vault redeem implementation address.
+     * @param _alephVaultSettlementImplementation The aleph vault settlement implementation address.
+     * @param _feeManagerImplementation The fee manager implementation address.
+     * @param _migrationManagerImplementation The migration manager implementation address.
+     */
     struct ModuleInitializationParams {
         address alephVaultDepositImplementation;
         address alephVaultRedeemImplementation;
@@ -64,6 +128,18 @@ interface IAlephVault {
         address migrationManagerImplementation;
     }
 
+    /**
+     * @notice Parameters for a share class.
+     * @param _managementFee The management fee rate in basis points.
+     * @param _performanceFee The performance fee rate in basis points.
+     * @param _noticePeriod The notice period in batches.
+     * @param _lockInPeriod The lock in period in batches.
+     * @param _minDepositAmount The minimum deposit amount.
+     * @param _maxDepositCap The maximum deposit cap.
+     * @param _minRedeemAmount The minimum redeem amount.
+     * @param _minUserBalance The minimum user balance.
+     * @dev all amounts are denominated in underlying token decimals.
+     */
     struct ShareClassParams {
         uint32 managementFee;
         uint32 performanceFee;
@@ -75,6 +151,19 @@ interface IAlephVault {
         uint256 minUserBalance;
     }
 
+    /**
+     * @notice Structure for a share class.
+     * @param _shareSeriesId The number of share series created for the share class.
+     * @param _lastConsolidatedSeriesId The ID of the last consolidated share series.
+     * @param _lastFeePaidId The last Batch ID in which fees were paid.
+     * @param _depositSettleId The last Batch ID in which deposits were settled.
+     * @param _redeemSettleId The last Batch ID in which redemptions were settled.
+     * @param _shareClassParams The parameters for the share class.
+     * @param _shareSeries All share series for the share class.
+     * @param _depositRequests The deposit requests made for the share class.
+     * @param _redeemRequests The redemption requests made for the share class.
+     * @param _userLockInPeriod The lock in period for each user in the share class.
+     */
     struct ShareClass {
         uint8 shareSeriesId;
         uint8 lastConsolidatedSeriesId;
@@ -88,6 +177,16 @@ interface IAlephVault {
         mapping(address user => uint48) userLockInPeriod;
     }
 
+    /**
+     * @notice Structure for a share series.
+     * @param _totalAssets The total assets in the share series.
+     * @param _totalShares The total shares in the share series.
+     * @param _highWaterMark The high water mark of the share series.
+     * @param _users The users in the share series.
+     * @param _sharesOf The shares of each user in the share series.
+     * @dev assets and shares are denominated in underlying token decimals.
+     * @dev if a share series is consolidated, the values inside this mapping are cleared out.
+     */
     struct ShareSeries {
         uint256 totalAssets;
         uint256 totalShares;
@@ -96,18 +195,32 @@ interface IAlephVault {
         mapping(address => uint256) sharesOf;
     }
 
+    /**
+     * @notice Structure for the deposit requests for a share class.
+     * @param _totalAmountToDeposit The total amount to deposit for the share class.
+     * @param _usersToDeposit The users to deposit for the share class.
+     * @param _depositRequest The deposit request for each user in the share class.
+     * @dev deposit requests are amounts denominated in underlying token decimals.
+     * @dev deposit request values are cleared out after settlement.
+     */
     struct DepositRequests {
         uint256 totalAmountToDeposit;
         EnumerableSet.AddressSet usersToDeposit;
         mapping(address => uint256) depositRequest;
     }
 
+    /**
+     * @notice Structure for the redemption requests for a share class.
+     * @param _usersToRedeem The users to redeem for the share class.
+     * @param _redeemRequest The redemption request for each user in the share class.
+     * @dev redemption requests are in share units (percentage of remaining total user assets in share class)
+     * denominated in TOTAL_SHARE_UNITS (1e18).
+     * @dev redemption request values are cleared out after settlement.
+     */
     struct RedeemRequests {
         EnumerableSet.AddressSet usersToRedeem;
         mapping(address => uint256) redeemRequest;
     }
-
-    // View functions
 
     /**
      * @notice Returns the name of the vault.

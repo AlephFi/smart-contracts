@@ -20,17 +20,29 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephPausable {
-    // EVENTS
-
+    /**
+     * @notice Emitted when a flow is paused
+     * @param _pausableFlow The flow identifier
+     * @param _pauser The address that paused the flow
+     */
     event FlowPaused(bytes4 _pausableFlow, address _pauser);
-    event FlowUnpaused(bytes4 _pausableFlowFlag, address _unpauser);
 
-    // ERRORS
+    /**
+     * @notice Emitted when a flow is unpaused
+     * @param _pausableFlow The flow identifier
+     * @param _unpauser The address that unpaused the flow
+     */
+    event FlowUnpaused(bytes4 _pausableFlow, address _unpauser);
 
+    /**
+     * @notice Emitted when a flow is currently paused
+     */
     error FlowIsCurrentlyPaused();
-    error FlowIsCurrentlyUnpaused();
 
-    // EXTERNAL FUNCTIONS
+    /**
+     * @notice Emitted when a flow is currently unpaused
+     */
+    error FlowIsCurrentlyUnpaused();
 
     /**
      * @notice Pauses a specific flow to prevent its execution

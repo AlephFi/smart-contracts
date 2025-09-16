@@ -20,40 +20,122 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IFeeManager {
-    struct FeeConstructorParams {
-        uint48 managementFeeTimelock;
-        uint48 performanceFeeTimelock;
-    }
-
-    struct FeesAccumulatedParams {
-        uint256 managementFeeAmount;
-        uint256 managementFeeSharesToMint;
-        uint256 performanceFeeAmount;
-        uint256 performanceFeeSharesToMint;
-    }
-
+    /**
+     * @notice Emitted when a new management fee is queued.
+     * @param classId The ID of the share class.
+     * @param managementFee The new management fee.
+     */
     event NewManagementFeeQueued(uint8 classId, uint32 managementFee);
+
+    /**
+     * @notice Emitted when a new performance fee is queued.
+     * @param classId The ID of the share class.
+     * @param performanceFee The new performance fee.
+     */
     event NewPerformanceFeeQueued(uint8 classId, uint32 performanceFee);
+
+    /**
+     * @notice Emitted when a new management fee is set.
+     * @param classId The ID of the share class.
+     * @param managementFee The new management fee.
+     */
     event NewManagementFeeSet(uint8 classId, uint32 managementFee);
+
+    /**
+     * @notice Emitted when a new performance fee is set.
+     * @param classId The ID of the share class.
+     * @param performanceFee The new performance fee.
+     */
     event NewPerformanceFeeSet(uint8 classId, uint32 performanceFee);
+
+    /**
+     * @notice Emitted when fees are accumulated.
+     * @param lastFeePaidId The batch ID in which fees were last accumulated.
+     * @param toBatchId The batch ID up to which fees were accumulated.
+     * @param classId The ID of the share class for which fees were accumulated.
+     * @param seriesId The ID of the share series in which fees were accumulated.
+     * @param newTotalAssets The new total assets upon which fees were accumulated.
+     * @param newTotalShares The new total shares after fees were accumulated.
+     * @param feesAccumulatedParams The parameters for the accumulated fees.
+     */
     event FeesAccumulated(
         uint48 lastFeePaidId,
-        uint48 currentBatchId,
+        uint48 toBatchId,
         uint8 classId,
         uint8 seriesId,
         uint256 newTotalAssets,
         uint256 newTotalShares,
         FeesAccumulatedParams feesAccumulatedParams
     );
-    event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark, uint48 currentBatchId);
+
+    /**
+     * @notice Emitted when a new high water mark is set.
+     * @param classId The ID of the share class for which the high water mark was set.
+     * @param seriesId The ID of the share series in which the high water mark was set.
+     * @param highWaterMark The new high water mark set.
+     * @param toBatchId The batch ID in which the high water mark was set.
+     * @dev the high water mark is set in the batch ID up to which the fees were accumulated,
+     * which may not be the current batch ID.
+     */
+    event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark, uint48 toBatchId);
+
+    /**
+     * @notice Emitted when fees are collected.
+     * @param classId The ID of the share class for which fees were collected.
+     * @param seriesId The ID of the share series in which fees were collected.
+     * @param managementFeesCollected The management fees collected for the series.
+     * @param performanceFeesCollected The performance fees collected for the series.
+     */
     event SeriesFeeCollected(
         uint8 classId, uint8 seriesId, uint256 managementFeesCollected, uint256 performanceFeesCollected
     );
+
+    /**
+     * @notice Emitted when fees are collected.
+     * @param currentBatchId The batch ID in which fees were collected.
+     * @param managementFeesCollected The total management fees collected.
+     * @param performanceFeesCollected The total performance fees collected.
+     */
     event FeesCollected(uint48 currentBatchId, uint256 managementFeesCollected, uint256 performanceFeesCollected);
 
+    /**
+     * @notice Emitted when the management fee is invalid.
+     */
     error InvalidManagementFee();
+
+    /**
+     * @notice Emitted when the performance fee is invalid.
+     */
     error InvalidPerformanceFee();
+
+    /**
+     * @notice Emitted when the share class conversion is invalid.
+     */
     error InvalidShareClassConversion();
+
+    /**
+     * @notice Constructor params.
+     * @param managementFeeTimelock The timelock period for the management fee.
+     * @param performanceFeeTimelock The timelock period for the performance fee.
+     */
+    struct FeeConstructorParams {
+        uint48 managementFeeTimelock;
+        uint48 performanceFeeTimelock;
+    }
+
+    /**
+     * @notice Parameters for the accumulated fees.
+     * @param managementFeeAmount The management fee amount to be accumulated.
+     * @param managementFeeSharesToMint The management fee shares to be minted.
+     * @param performanceFeeAmount The performance fee amount to be accumulated.
+     * @param performanceFeeSharesToMint The performance fee shares to be minted.
+     */
+    struct FeesAccumulatedParams {
+        uint256 managementFeeAmount;
+        uint256 managementFeeSharesToMint;
+        uint256 performanceFeeAmount;
+        uint256 performanceFeeSharesToMint;
+    }
 
     /**
      * @notice Queues a new management fee to be set after the timelock period.
