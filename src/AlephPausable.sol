@@ -26,25 +26,38 @@ import {AlephPausableStorage, AlephPausableStorageData} from "@aleph-vault/Aleph
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
-    // MODIFIERS
-
+    /*//////////////////////////////////////////////////////////////
+                            MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Modifier to check if a flow is not paused
+     * @param _pausableFlow The flow identifier
+     */
     modifier whenFlowNotPaused(bytes4 _pausableFlow) {
         _revertIfFlowPaused(_pausableFlow);
         _;
     }
 
+    /**
+     * @notice Modifier to check if a flow is paused
+     * @param _pausableFlow The flow identifier
+     */
     modifier whenFlowPaused(bytes4 _pausableFlow) {
         _revertIfFlowUnpaused(_pausableFlow);
         _;
     }
 
-    // EXTERNAL FUNCTIONS
-
+    /*//////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephPausable
     function isFlowPaused(bytes4 _pausableFlow) external view returns (bool _isPaused) {
         return _getPausableStorage().flowsPauseStates[_pausableFlow];
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            PAUSING FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephPausable
     function pause(bytes4 _pausableFlow) external onlyRole(_pausableFlow) {
         _pause(_pausableFlow);
@@ -55,8 +68,9 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         _unpause(_pausableFlow);
     }
 
-    // INTERNAL FUNCTIONS
-
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     function _pause(bytes4 _pausableFlow) internal {
         AlephPausableStorageData storage _sd = _getPausableStorage();
         if (_sd.flowsPauseStates[_pausableFlow]) revert FlowIsCurrentlyPaused();
@@ -107,6 +121,7 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _manager);
         _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _guardian);
         _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _operationsMultisig);
+        _grantRole(PausableFlows.WITHDRAW_FLOW, _guardian);
     }
 
     function _getPausableStorage() internal pure returns (AlephPausableStorageData storage _sd) {

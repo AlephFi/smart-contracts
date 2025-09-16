@@ -158,9 +158,9 @@ contract BaseTest is Test {
                     noticePeriod: 0,
                     lockInPeriod: 0,
                     minDepositAmount: 10 ether,
+                    minUserBalance: 100 ether,
                     maxDepositCap: 1_000_000 ether,
-                    minRedeemAmount: 10 ether,
-                    minUserBalance: 100 ether
+                    minRedeemAmount: 10 ether
                 }),
                 authSignature: authSignature_deploy
             }),

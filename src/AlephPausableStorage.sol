@@ -15,6 +15,10 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+/**
+ * @notice Data layout for the aleph pausable storage.
+ * @param flowsPauseStates The pause states for each pausable flow.
+ */
 struct AlephPausableStorageData {
     mapping(bytes4 _pausableFlow => bool isPaused) flowsPauseStates;
 }

@@ -20,38 +20,145 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAlephVaultRedeem {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Emitted when a new notice period is queued.
+     * @param classId The ID of the share class.
+     * @param noticePeriod The new notice period in batches.
+     */
+    event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
+
+    /**
+     * @notice Emitted when a new lock in period is queued.
+     * @param classId The ID of the share class.
+     * @param lockInPeriod The new lock in period in batches.
+     */
+    event NewLockInPeriodQueued(uint8 classId, uint48 lockInPeriod);
+
+    /**
+     * @notice Emitted when a new minimum redeem amount is queued.
+     * @param classId The ID of the share class.
+     * @param minRedeemAmount The new minimum redeem amount.
+     */
+    event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);
+    event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);
+
+    /**
+     * @notice Emitted when a new lock in period is set.
+     * @param classId The ID of the share class.
+     * @param lockInPeriod The new lock in period in batches.
+     */
+    event NewLockInPeriodSet(uint8 classId, uint48 lockInPeriod);
+
+    /**
+     * @notice Emitted when a new minimum redeem amount is set.
+     * @param classId The ID of the share class.
+     * @param minRedeemAmount The new minimum redeem amount.
+     */
+    event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
+
+    /**
+     * @notice Emitted when a redeem request is made.
+     * @param user The user making the redeem request.
+     * @param batchId The batch ID of the redeem request.
+     * @param redeemRequestParams The parameters for the redeem request.
+     */
+    event RedeemRequest(address indexed user, uint48 batchId, RedeemRequestParams redeemRequestParams);
+
+    /**
+     * @notice Emitted when the redeemable amount is withdrawn.
+     * @param user The user withdrawing the redeemable amount.
+     * @param redeemableAmount The redeemable amount.
+     */
+    event RedeemableAmountWithdrawn(address indexed user, uint256 redeemableAmount);
+
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Emitted when the minimum redeem amount is invalid.
+     */
+    error InvalidMinRedeemAmount();
+
+    /**
+     * @notice Emitted when the series ID is invalid.
+     * @param seriesId The invalid series ID.
+     */
+    error InvalidSeriesId(uint8 seriesId);
+
+    /**
+     * @notice Emitted when the redeem is insufficient.
+     */
+    error InsufficientRedeem();
+
+    /**
+     * @notice Emitted when the redeem is less than the minimum redeem amount.
+     * @param minRedeemAmount The minimum redeem amount.
+     */
+    error RedeemLessThanMinRedeemAmount(uint256 minRedeemAmount);
+
+    /**
+     * @notice Emitted when the user is in the lock in period.
+     * @param userLockInPeriod The user lock in period.
+     */
+    error UserInLockInPeriodNotElapsed(uint48 userLockInPeriod);
+
+    /**
+     * @notice Emitted when the assets to redeem are insufficient.
+     */
+    error InsufficientAssetsToRedeem();
+
+    /**
+     * @notice Emitted when the redeem falls below the minimum user balance.
+     * @param minUserBalance The minimum user balance.
+     */
+    error RedeemFallBelowMinUserBalance(uint256 minUserBalance);
+
+    /**
+     * @notice Emitted when only one request per batch is allowed for redeem.
+     */
+    error OnlyOneRequestPerBatchAllowedForRedeem();
+
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Constructor params.
+     * @param noticePeriodTimelock The timelock period for the notice period.
+     * @param lockInPeriodTimelock The timelock period for the lock in period.
+     * @param minRedeemAmountTimelock The timelock period for the minimum redeem amount.
+     */
     struct RedeemConstructorParams {
         uint48 noticePeriodTimelock;
         uint48 lockInPeriodTimelock;
         uint48 minRedeemAmountTimelock;
     }
 
+    /**
+     * @notice Parameters for a redeem request.
+     * @param classId The ID of the share class.
+     * @param shareRequests The share requests for the redeem request.
+     */
     struct RedeemRequestParams {
         uint8 classId;
         ShareRedeemRequest[] shareRequests;
     }
 
+    /**
+     * @notice Parameters for a share redeem request.
+     * @param seriesId The ID of the share series.
+     * @param shares The shares to redeem.
+     */
     struct ShareRedeemRequest {
         uint8 seriesId;
         uint256 shares;
     }
 
-    event NewNoticePeriodQueued(uint8 classId, uint48 noticePeriod);
-    event NewLockInPeriodQueued(uint8 classId, uint48 lockInPeriod);
-    event NewMinRedeemAmountQueued(uint8 classId, uint256 minRedeemAmount);
-    event NewNoticePeriodSet(uint8 classId, uint48 noticePeriod);
-    event NewLockInPeriodSet(uint8 classId, uint48 lockInPeriod);
-    event NewMinRedeemAmountSet(uint8 classId, uint256 minRedeemAmount);
-    event RedeemRequest(address indexed user, uint48 batchId, RedeemRequestParams redeemRequestParams);
-
-    error InvalidSeriesId(uint8 seriesId);
-    error InsufficientRedeem();
-    error RedeemLessThanMinRedeemAmount(uint256 minRedeemAmount);
-    error UserInLockInPeriodNotElapsed(uint48 userLockInPeriod);
-    error InsufficientAssetsToRedeem();
-    error RedeemFallBelowMinUserBalance(uint256 minUserBalance);
-    error OnlyOneRequestPerBatchAllowedForRedeem();
-
+    /*//////////////////////////////////////////////////////////////
+                            TIMELOCK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Queues a new notice period.
      * @param _classId The ID of the share class to set the notice period for.
@@ -91,10 +198,18 @@ interface IAlephVaultRedeem {
      */
     function setMinRedeemAmount(uint8 _classId) external;
 
+    /*//////////////////////////////////////////////////////////////
+                            REDEEM FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Requests to redeem shares from the vault for the current batch.
      * @param _redeemRequestParams The parameters for the redeem request.
      * @return _batchId The batch ID for the redeem request.
      */
     function requestRedeem(RedeemRequestParams calldata _redeemRequestParams) external returns (uint48 _batchId);
+
+    /**
+     * @notice Withdraws the redeemable amount for the user.
+     */
+    function withdrawRedeemableAmount() external;
 }

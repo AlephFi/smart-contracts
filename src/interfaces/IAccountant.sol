@@ -20,38 +20,122 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 interface IAccountant {
-    event OperationsMultisigSet(address _operationsMultisig);
-    event VaultFactorySet(address _vaultFactory);
-    event AlephTreasurySet(address _alephTreasury);
-    event VaultTreasurySet(address _vault, address _vaultTreasury);
-    event ManagementFeeCutSet(address _vault, uint32 _managementFeeCut);
-    event PerformanceFeeCutSet(address _vault, uint32 _performanceFeeCut);
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Emitted when the operations multisig is set.
+     * @param operationsMultisig The new operations multisig.
+     */
+    event OperationsMultisigSet(address operationsMultisig);
+
+    /**
+     * @notice Emitted when the vault factory is set.
+     * @param vaultFactory The new vault factory.
+     */
+    event VaultFactorySet(address vaultFactory);
+
+    /**
+     * @notice Emitted when the aleph treasury is set.
+     * @param alephTreasury The new aleph treasury.
+     */
+    event AlephTreasurySet(address alephTreasury);
+
+    /**
+     * @notice Emitted when the vault treasury is set.
+     * @param vault The vault.
+     * @param vaultTreasury The new vault treasury.
+     */
+    event VaultTreasurySet(address vault, address vaultTreasury);
+
+    /**
+     * @notice Emitted when the management fee cut is set.
+     * @param vault The vault.
+     * @param managementFeeCut The new management fee cut.
+     */
+    event ManagementFeeCutSet(address vault, uint32 managementFeeCut);
+
+    /**
+     * @notice Emitted when the performance fee cut is set.
+     * @param vault The vault.
+     * @param performanceFeeCut The new performance fee cut.
+     */
+    event PerformanceFeeCutSet(address vault, uint32 performanceFeeCut);
+
+    /**
+     * @notice Emitted when fees are collected.
+     * @param vault The vault.
+     * @param managementFeesToCollect The management fees to collect.
+     * @param performanceFeesToCollect The performance fees to collect.
+     * @param vaultFee The vault fee split
+     * @param alephFee The aleph fee split
+     */
     event FeesCollected(
-        address _vault,
-        uint256 _managementFeesToCollect,
-        uint256 _performanceFeesToCollect,
-        uint256 _vaultFee,
-        uint256 _alephFee
+        address vault,
+        uint256 managementFeesToCollect,
+        uint256 performanceFeesToCollect,
+        uint256 vaultFee,
+        uint256 alephFee
     );
 
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Emitted when the initialization params are invalid.
+     */
     error InvalidInitializationParams();
+
+    /**
+     * @notice Emitted when the vault is invalid.
+     */
     error InvalidVault();
+
+    /**
+     * @notice Emitted when the manager is invalid.
+     */
     error InvalidManager();
+
+    /**
+     * @notice Emitted when the vault treasury is invalid.
+     */
     error InvalidVaultTreasury();
+
+    /**
+     * @notice Emitted when the vault treasury is not set.
+     */
     error VaultTreasuryNotSet();
+
+    /**
+     * @notice Emitted when fees are not collected.
+     */
     error FeesNotCollected();
 
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Initialization params.
+     * @param operationsMultisig The operations multisig.
+     * @param alephTreasury The aleph treasury.
+     */
     struct InitializationParams {
         address operationsMultisig;
         address alephTreasury;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Returns the vault treasury of the caller.
      * @return The vault treasury.
      */
     function vaultTreasury() external view returns (address);
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Initializes the vault treasury.
      * @param _vault The vault to initialize the treasury for.
@@ -97,6 +181,9 @@ interface IAccountant {
      */
     function setPerformanceFeeCut(address _vault, uint32 _performanceFeeCut) external;
 
+    /*//////////////////////////////////////////////////////////////
+                            FEE FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Collects all pending fees from a given vault.
      * @param _vault The vault to collect fees from.

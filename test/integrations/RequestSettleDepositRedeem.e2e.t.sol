@@ -155,8 +155,10 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         assertEq(vault.totalSharesPerSeries(1, 0), _totalShares - 300 ether);
 
         // assert user assets are received
-        assertEq(underlyingToken.balanceOf(mockUser_1), 900 ether + _expectedAssetsToWithdraw_user1);
-        assertEq(underlyingToken.balanceOf(mockUser_2), 800 ether + _expectedAssetsToWithdraw_user2);
+        assertEq(underlyingToken.balanceOf(mockUser_1), 900 ether);
+        assertEq(underlyingToken.balanceOf(mockUser_2), 800 ether);
+        assertEq(vault.redeemableAmount(mockUser_1), _expectedAssetsToWithdraw_user1);
+        assertEq(vault.redeemableAmount(mockUser_2), _expectedAssetsToWithdraw_user2);
 
         // assert fees are accumulated
         assertEq(vault.sharesOf(1, 0, vault.managementFeeRecipient()), _expectedManagementShares);
@@ -338,8 +340,10 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         assertApproxEqRel(vault.totalAssetsPerSeries(1, 0), _newTotalAssets[0] - _expectedAssetsToWithdraw, 1e16);
 
         // assert user assets are received
-        assertApproxEqRel(underlyingToken.balanceOf(mockUser_1), 400 ether + _expectedAssetsToWithdraw_user1, 1e14);
-        assertApproxEqRel(underlyingToken.balanceOf(mockUser_2), 100 ether + _expectedAssetsToWithdraw_user2, 1e14);
+        assertEq(underlyingToken.balanceOf(mockUser_1), 400 ether);
+        assertEq(underlyingToken.balanceOf(mockUser_2), 100 ether);
+        assertApproxEqRel(vault.redeemableAmount(mockUser_1), _expectedAssetsToWithdraw_user1, 1e14);
+        assertApproxEqRel(vault.redeemableAmount(mockUser_2), _expectedAssetsToWithdraw_user2, 1e14);
 
         // assert fees are accumulated
         assertEq(

@@ -37,27 +37,36 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SeriesAccounting for IAlephVault.ShareClass;
 
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for AlephVaultSettlement module
      * @param _batchDuration The duration of each batch cycle in seconds
      */
     constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
 
+    /*//////////////////////////////////////////////////////////////
+                            SETTLEMENT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVaultSettlement
     function settleDeposit(SettlementParams calldata _settlementParams) external nonReentrant {
         _settleDeposit(_getStorage(), _settlementParams);
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function settleRedeem(SettlementParams calldata _settlementParams) external nonReentrant {
+    function settleRedeem(SettlementParams calldata _settlementParams) external {
         _settleRedeem(_getStorage(), _settlementParams);
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function forceRedeem(address _user) external nonReentrant {
+    function forceRedeem(address _user) external {
         _forceRedeem(_getStorage(), _user);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Internal function to settle all deposits for batches up to the current batch.
      * @param _sd The storage struct.
@@ -163,28 +172,33 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         uint256 _len = _depositRequests.usersToDeposit.length();
         // iterate through all requests in batch (one user can only make one request per batch)
         for (uint256 _i; _i < _len; _i++) {
-            DepositRequestParams memory _depositRequestParams;
-            _depositRequestParams.user = _depositRequests.usersToDeposit.at(_i);
-            _depositRequestParams.amount = _depositRequests.depositRequest[_depositRequestParams.user];
-            _depositRequestParams.sharesToMint = ERC4626Math.previewDeposit(
-                _depositRequestParams.amount, _settleDepositDetails.totalShares, _settleDepositDetails.totalAssets
+            DepositRequestDetails memory _depositRequestDetails;
+            _depositRequestDetails.user = _depositRequests.usersToDeposit.at(_i);
+            _depositRequestDetails.amount = _depositRequests.depositRequest[_depositRequestDetails.user];
+            _depositRequestDetails.sharesToMint = ERC4626Math.previewDeposit(
+                _depositRequestDetails.amount, _settleDepositDetails.totalShares, _settleDepositDetails.totalAssets
             );
-            _totalSharesToMint += _depositRequestParams.sharesToMint;
-            _shareClass.shareSeries[_settleDepositDetails.seriesId].sharesOf[_depositRequestParams.user] +=
-                _depositRequestParams.sharesToMint;
+            _totalSharesToMint += _depositRequestDetails.sharesToMint;
+            _shareClass.shareSeries[_settleDepositDetails.seriesId].sharesOf[_depositRequestDetails.user] +=
+                _depositRequestDetails.sharesToMint;
             // add user into settlement series if they don't already exist there
-            if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestParams.user)) {
-                _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestParams.user);
+            if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestDetails.user)) {
+                _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestDetails.user);
             }
+            // delete user deposit request
+            delete _depositRequests.depositRequest[_depositRequestDetails.user];
             emit IAlephVaultSettlement.DepositRequestSettled(
-                _depositRequestParams.user,
+                _depositRequestDetails.user,
                 _settleDepositDetails.classId,
                 _settleDepositDetails.seriesId,
-                _depositRequestParams.amount,
-                _depositRequestParams.sharesToMint,
+                _depositRequestDetails.amount,
+                _depositRequestDetails.sharesToMint,
                 _settleDepositDetails.batchId
             );
         }
+        // delete deposit requests
+        _depositRequests.usersToDeposit.clear();
+        delete _shareClass.depositRequests[_settleDepositDetails.batchId];
         emit SettleDepositBatch(
             _settleDepositDetails.batchId,
             _settleDepositDetails.classId,
@@ -205,11 +219,12 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_settlementParams.classId];
         uint48 _currentBatchId = _currentBatch(_sd);
         uint48 _noticePeriod = _shareClass.shareClassParams.noticePeriod;
-        if (_currentBatchId < _noticePeriod || _settlementParams.toBatchId > _currentBatchId - _noticePeriod) {
+        if (_settlementParams.toBatchId > _currentBatchId || _settlementParams.toBatchId < _noticePeriod) {
             revert InvalidToBatchId();
         }
         uint48 _redeemSettleId = _shareClass.redeemSettleId;
-        if (_settlementParams.toBatchId <= _redeemSettleId) {
+        uint48 _settleUptoBatchId = _settlementParams.toBatchId - _noticePeriod;
+        if (_settleUptoBatchId <= _redeemSettleId) {
             revert NoRedeemsToSettle();
         }
         uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
@@ -234,25 +249,27 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.newTotalAssets
         );
         address _underlyingToken = _sd.underlyingToken;
-        for (uint48 _batchId = _redeemSettleId; _batchId < _settlementParams.toBatchId; _batchId++) {
-            _settleRedeemForBatch(_batchId, _settlementParams.classId, _underlyingToken, _shareClass);
+        for (uint48 _batchId = _redeemSettleId; _batchId < _settleUptoBatchId; _batchId++) {
+            _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId, _underlyingToken);
         }
-        _shareClass.redeemSettleId = _settlementParams.toBatchId;
+        _shareClass.redeemSettleId = _settleUptoBatchId;
         emit SettleRedeem(_redeemSettleId, _settlementParams.toBatchId, _settlementParams.classId);
     }
 
     /**
      * @dev Internal function to settle redeems for a specific batch.
-     * @param _batchId The id of the batch.
-     * @param _classId The id of the class.
-     * @param _underlyingToken The underlying token.
+     * @param _sd The storage struct.
      * @param _shareClass The share class storage reference.
+     * @param _classId The id of the class.
+     * @param _batchId The id of the batch.
+     * @param _underlyingToken The underlying token.
      */
     function _settleRedeemForBatch(
-        uint48 _batchId,
+        AlephVaultStorageData storage _sd,
+        IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
-        address _underlyingToken,
-        IAlephVault.ShareClass storage _shareClass
+        uint48 _batchId,
+        address _underlyingToken
     ) internal {
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_batchId];
         uint256 _totalAmountToRedeem;
@@ -269,9 +286,14 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             );
             _shareClass.settleRedeemForUser(_classId, _batchId, _user, _amount);
             _totalAmountToRedeem += _amount;
-            IERC20(_underlyingToken).safeTransfer(_user, _amount);
+            _sd.redeemableAmount[_user] += _amount;
+            // delete redeem request
+            delete _redeemRequests.redeemRequest[_user];
             emit RedeemRequestSettled(_batchId, _user, _classId, _amount);
         }
+        // delete redeem requests
+        _redeemRequests.usersToRedeem.clear();
+        delete _shareClass.redeemRequests[_batchId];
         emit SettleRedeemBatch(_batchId, _classId, _totalAmountToRedeem);
     }
 
@@ -309,7 +331,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             }
             uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
             _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _totalUserAssets);
-            IERC20(_sd.underlyingToken).safeTransfer(_user, _totalUserAssets + _newDepositsToRedeem);
+            _sd.redeemableAmount[_user] += _totalUserAssets + _newDepositsToRedeem;
         }
         emit ForceRedeem(_currentBatchId, _user);
     }
@@ -384,7 +406,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     : SeriesAccounting.LEAD_SERIES_ID;
                 // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
-                _shareClass.shareSeries[_seriesId].totalShares += _getAccumulatedFeeShares(
+                _shareClass.shareSeries[_seriesId].totalShares += _accumulateFeeShares(
                     _newTotalAssets[_i],
                     _shareClass.shareSeries[_seriesId].totalShares,
                     _toBatchId,
@@ -407,7 +429,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @param _seriesId The id of the series.
      * @return The accumulated fee shares to mint.
      */
-    function _getAccumulatedFeeShares(
+    function _accumulateFeeShares(
         uint256 _newTotalAssets,
         uint256 _totalShares,
         uint48 _toBatchId,

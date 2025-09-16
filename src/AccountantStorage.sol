@@ -15,6 +15,15 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
+/**
+ * @notice Data layout for the accountant storage.
+ * @param operationsMultisig The operations multisig address.
+ * @param vaultFactory The vault factory address.
+ * @param alephTreasury The aleph treasury address.
+ * @param managementFeeCut The management fee cut for each vault.
+ * @param performanceFeeCut The performance fee cut for each vault.
+ * @param vaultTreasury The vault treasury for each vault.
+ */
 struct AccountantStorageData {
     address operationsMultisig;
     address vaultFactory;

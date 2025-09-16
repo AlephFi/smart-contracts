@@ -27,11 +27,49 @@ import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 library SeriesAccounting {
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    /**
+     * @notice The ID of the lead series.
+     */
     uint8 internal constant LEAD_SERIES_ID = 0;
+    /**
+     * @notice The denominator for the price per share.
+     */
     uint256 internal constant PRICE_DENOMINATOR = 1e6;
+    /**
+     * @notice The address of the virtual management fee recipient.
+     */
     address internal constant MANAGEMENT_FEE_RECIPIENT = address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
+    /**
+     * @notice The address of the virtual performance fee recipient.
+     */
     address internal constant PERFORMANCE_FEE_RECIPIENT = address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
 
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Details for the consolidation of a user's shares.
+     * @param user The user that is to be consolidated.
+     * @param classId The ID of the share class for which the consolidation should be done.
+     * @param seriesId The ID of the share series which is to be consolidated.
+     * @param toBatchId The batch ID in which consolidation should be logged as done.
+     * @param shares The shares of the user which is to be consolidated.
+     * @param amountToTransfer The amount of the user's shares to be transferred to the lead series.
+     * @param sharesToTransfer The shares of the user's shares to be transferred to the lead series.
+     */
+    struct UserConsolidationDetails {
+        address user;
+        uint8 classId;
+        uint8 seriesId;
+        uint48 toBatchId;
+        uint256 shares;
+        uint256 amountToTransfer;
+        uint256 sharesToTransfer;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Internal function to create a new series.
      * @param _shareClass The share class storage reference.
@@ -146,8 +184,7 @@ library SeriesAccounting {
         uint8 _seriesId,
         uint48 _toBatchId
     ) private returns (uint256 _totalAmountToTransfer, uint256 _totalSharesToTransfer) {
-        IAlephVaultSettlement.UserConsolidationDetails memory _userConsolidationDetails = IAlephVaultSettlement
-            .UserConsolidationDetails({
+        UserConsolidationDetails memory _userConsolidationDetails = UserConsolidationDetails({
             user: address(0),
             classId: _classId,
             seriesId: _seriesId,

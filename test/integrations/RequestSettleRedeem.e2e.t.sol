@@ -38,6 +38,8 @@ contract RequestSettleRedeemTest is BaseTest {
         super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
         IAlephVault.ShareClassParams memory _shareClassParams;
+        _shareClassParams.minDepositAmount = 10 ether;
+        _shareClassParams.minRedeemAmount = 10 ether;
         _initializationParams.userInitializationParams.shareClassParams = _shareClassParams;
         _setUpNewAlephVault(defaultConfigParams, _initializationParams);
         _unpauseVaultFlows();
@@ -101,7 +103,7 @@ contract RequestSettleRedeemTest is BaseTest {
         assertEq(vault.totalSharesPerSeries(1, 0), 900 ether);
 
         // assert user assets are received
-        assertEq(underlyingToken.balanceOf(mockUser_1), 100 ether);
+        assertEq(vault.redeemableAmount(mockUser_1), 100 ether);
     }
 
     function test_requestSettleRedeem_whenNewTotalAssetsIncreases() public {
@@ -165,7 +167,7 @@ contract RequestSettleRedeemTest is BaseTest {
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
 
         // assert user assets are received
-        assertApproxEqAbs(underlyingToken.balanceOf(mockUser_1), 120 ether, 2);
+        assertApproxEqAbs(vault.redeemableAmount(mockUser_1), 120 ether, 2);
     }
 
     function test_requestSettleRedeem_whenNewTotalAssetsDecreases() public {
@@ -235,6 +237,6 @@ contract RequestSettleRedeemTest is BaseTest {
         assertEq(vault.sharesOf(1, 1, mockUser_1), 150 ether);
 
         // assert user assets are received
-        assertApproxEqAbs(underlyingToken.balanceOf(mockUser_1), 200 ether, 1);
+        assertApproxEqAbs(vault.redeemableAmount(mockUser_1), 200 ether, 1);
     }
 }

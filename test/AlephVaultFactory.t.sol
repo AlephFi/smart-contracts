@@ -90,6 +90,8 @@ contract AlephVaultFactoryTest is Test {
             AuthLibrary.AuthSignature({authSignature: _authSignature, expiryBlock: type(uint256).max});
 
         IAlephVault.ShareClassParams memory shareClassParams;
+        shareClassParams.minDepositAmount = 1000;
+        shareClassParams.minRedeemAmount = 1000;
         IAlephVault.UserInitializationParams memory params = IAlephVault.UserInitializationParams({
             name: name,
             configId: "test",

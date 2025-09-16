@@ -9,6 +9,9 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 library ERC4626Math {
     using Math for uint256;
 
+    /**
+     * @notice The total number of share units alloted to any user in a given class.
+     */
     uint256 public constant TOTAL_SHARE_UNITS = 1e18;
 
     function previewDeposit(uint256 assets, uint256 totalShares, uint256 totalAssets) internal pure returns (uint256) {
@@ -31,10 +34,22 @@ library ERC4626Math {
         return convertToAssets(shares, totalAssets, totalShares, Math.Rounding.Floor);
     }
 
+    /**
+     * @notice Preview the amount of assets to redeem based on the number of share units.
+     * @param shareUnits The number of share units to redeem.
+     * @param totalAssets The total amount of assets.
+     * @return The amount of assets to redeem.
+     */
     function previewMintUnits(uint256 shareUnits, uint256 totalAssets) internal pure returns (uint256) {
         return convertToAssets(shareUnits, totalAssets);
     }
 
+    /**
+     * @notice Preview the number of share units to redeem based on the amount of assets.
+     * @param assets The amount of assets to withdraw.
+     * @param totalAssets The total amount of assets.
+     * @return The number of share units to redeem.
+     */
     function previewWithdrawUnits(uint256 assets, uint256 totalAssets) internal pure returns (uint256) {
         return convertToShareUnits(assets, totalAssets);
     }

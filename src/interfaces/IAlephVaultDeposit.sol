@@ -22,33 +22,128 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
  */
 
 interface IAlephVaultDeposit {
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Emitted when a new minimum deposit amount is queued.
+     * @param classId The ID of the share class.
+     * @param minDepositAmount The new minimum deposit amount.
+     */
+    event NewMinDepositAmountQueued(uint8 classId, uint256 minDepositAmount);
+
+    /**
+     * @notice Emitted when a new minimum user balance is queued.
+     * @param classId The ID of the share class.
+     * @param minUserBalance The new minimum user balance.
+     */
+    event NewMinUserBalanceQueued(uint8 classId, uint256 minUserBalance);
+
+    /**
+     * @notice Emitted when a new maximum deposit cap is queued.
+     * @param classId The ID of the share class.
+     * @param maxDepositCap The new maximum deposit cap.
+     */
+    event NewMaxDepositCapQueued(uint8 classId, uint256 maxDepositCap);
+
+    /**
+     * @notice Emitted when a new minimum deposit amount is set.
+     * @param classId The ID of the share class.
+     * @param minDepositAmount The new minimum deposit amount.
+     */
+    event NewMinDepositAmountSet(uint8 classId, uint256 minDepositAmount);
+
+    /**
+     * @notice Emitted when a new minimum user balance is set.
+     * @param classId The ID of the share class.
+     * @param minUserBalance The new minimum user balance.
+     */
+    event NewMinUserBalanceSet(uint8 classId, uint256 minUserBalance);
+
+    /**
+     * @notice Emitted when a new maximum deposit cap is set.
+     * @param classId The ID of the share class.
+     * @param maxDepositCap The new maximum deposit cap.
+     */
+    event NewMaxDepositCapSet(uint8 classId, uint256 maxDepositCap);
+
+    /**
+     * @notice Emitted when a deposit request is made.
+     * @param user The user making the deposit request.
+     * @param classId The ID of the share class.
+     * @param amount The amount of the deposit request.
+     * @param batchId The batch ID of the deposit request.
+     */
+    event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
+
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Emitted when the minimum deposit amount is invalid.
+     */
+    error InvalidMinDepositAmount();
+
+    /**
+     * @notice Emitted when the deposit is insufficient.
+     */
+    error InsufficientDeposit();
+
+    /**
+     * @notice Emitted when the deposit is less than the minimum deposit amount.
+     */
+    error DepositLessThanMinDepositAmount(uint256 minDepositAmount);
+
+    /**
+     * @notice Emitted when the deposit is less than the minimum user balance.
+     */
+    error DepositLessThanMinUserBalance(uint256 minUserBalance);
+
+    /**
+     * @notice Emitted when the deposit exceeds the maximum deposit cap.
+     */
+    error DepositExceedsMaxDepositCap(uint256 maxDepositCap);
+
+    /**
+     * @notice Emitted when only one request per batch is allowed for deposit.
+     */
+    error OnlyOneRequestPerBatchAllowedForDeposit();
+
+    /**
+     * @notice Emitted when the deposit request fails.
+     */
+    error DepositRequestFailed();
+
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Constructor params.
+     * @param minDepositAmountTimelock The timelock period for the minimum deposit amount.
+     * @param minUserBalanceTimelock The timelock period for the minimum user balance.
+     * @param maxDepositCapTimelock The timelock period for the maximum deposit cap.
+     */
     struct DepositConstructorParams {
         uint48 minDepositAmountTimelock;
         uint48 minUserBalanceTimelock;
         uint48 maxDepositCapTimelock;
     }
 
+    /**
+     * @notice Parameters for a deposit request.
+     * @param classId The ID of the share class.
+     * @param amount The amount of the deposit request.
+     * @param _authSignature The auth signature for the deposit request.
+     */
     struct RequestDepositParams {
         uint8 classId;
         uint256 amount;
         AuthLibrary.AuthSignature authSignature;
     }
 
-    event NewMinDepositAmountQueued(uint8 classId, uint256 minDepositAmount);
-    event NewMinUserBalanceQueued(uint8 classId, uint256 minUserBalance);
-    event NewMaxDepositCapQueued(uint8 classId, uint256 maxDepositCap);
-    event NewMinDepositAmountSet(uint8 classId, uint256 minDepositAmount);
-    event NewMinUserBalanceSet(uint8 classId, uint256 minUserBalance);
-    event NewMaxDepositCapSet(uint8 classId, uint256 maxDepositCap);
-    event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
-
-    error InsufficientDeposit();
-    error DepositLessThanMinDepositAmount(uint256 minDepositAmount);
-    error DepositLessThanMinUserBalance(uint256 minUserBalance);
-    error DepositExceedsMaxDepositCap(uint256 maxDepositCap);
-    error OnlyOneRequestPerBatchAllowedForDeposit();
-    error DepositRequestFailed();
-
+    /*//////////////////////////////////////////////////////////////
+                            TIMELOCK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Queues a new minimum deposit amount.
      * @param _classId The ID of the share class to set the minimum deposit amount for.
@@ -88,6 +183,9 @@ interface IAlephVaultDeposit {
      */
     function setMaxDepositCap(uint8 _classId) external;
 
+    /*//////////////////////////////////////////////////////////////
+                            DEPOSIT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     /**
      * @notice Requests a deposit of assets into the vault for the current batch.
      * @param _requestDepositParams The parameters for the deposit request.

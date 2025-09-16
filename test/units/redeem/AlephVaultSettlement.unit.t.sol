@@ -37,6 +37,8 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         super.setUp();
         IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
         IAlephVault.ShareClassParams memory _shareClassParams;
+        _shareClassParams.minDepositAmount = 10 ether;
+        _shareClassParams.minRedeemAmount = 10 ether;
         _initializationParams.userInitializationParams.shareClassParams = _shareClassParams;
         _setUpNewAlephVault(defaultConfigParams, _initializationParams);
         _unpauseVaultFlows();
@@ -90,7 +92,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(IAlephVaultSettlement.InvalidToBatchId.selector);
+        vm.expectRevert(IAlephVaultSettlement.NoRedeemsToSettle.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
@@ -222,41 +224,6 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertEq(vault.redeemSettleId(), _currentBatchId);
     }
 
-    function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_revertsGivenVaultHasInsufficientBalance(
-    ) public {
-        // roll the block forward to make future batch available
-        vm.warp(block.timestamp + 3 days + 1);
-
-        // set total assets and total shares
-        uint256[] memory _newTotalAssets = new uint256[](1);
-        _newTotalAssets[0] = 1000 ether;
-        vault.setTotalAssets(0, 1000 ether);
-        vault.setTotalShares(0, 1000 ether);
-        vault.setSharesOf(0, mockUser_1, 1000 ether);
-
-        // set batch redeem requests
-        uint48 _currentBatchId = vault.currentBatch();
-        vault.setBatchRedeem(_currentBatchId - 1, mockUser_1, vault.TOTAL_SHARE_UNITS() / 2);
-
-        // generate auth signature
-        AuthLibrary.AuthSignature memory _authSignature =
-            _getSettlementAuthSignature(AuthLibrary.SETTLE_REDEEM, _currentBatchId, _newTotalAssets);
-
-        // settle redeem
-        vm.prank(oracle);
-        vm.expectRevert(
-            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 500 ether)
-        );
-        vault.settleRedeem(
-            IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
-                authSignature: _authSignature
-            })
-        );
-    }
-
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_shouldSucceed_singleBatch(
     ) public {
         // roll the block forward to make future batch available
@@ -325,9 +292,6 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // assert redeem settle id is equal to current batch id
         assertEq(vault.redeemSettleId(), _currentBatchId);
 
-        // assert balance of vault is 1000
-        assertEq(underlyingToken.balanceOf(address(vault)), 1000 ether);
-
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
         assertEq(vault.sharesOf(1, 1, mockUser_1), 250 ether);
@@ -335,8 +299,8 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertEq(vault.sharesOf(1, 1, mockUser_2), 500 ether);
 
         // assert balance of users
-        assertEq(underlyingToken.balanceOf(mockUser_1), 750 ether);
-        assertEq(underlyingToken.balanceOf(mockUser_2), 250 ether);
+        assertEq(vault.redeemableAmount(mockUser_1), 750 ether);
+        assertEq(vault.redeemableAmount(mockUser_2), 250 ether);
     }
 
     function test_settleRedeem_whenCallerIsOracle_whenFlowIsUnpaused_whenSharesToSettleIsGreaterThanZero_shouldSucceed_multipleBatches(
@@ -414,9 +378,6 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // assert redeem settle id is equal to current batch id
         assertEq(vault.redeemSettleId(), _currentBatchId);
 
-        // assert balance of vault is 200
-        assertEq(underlyingToken.balanceOf(address(vault)), 875 ether);
-
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
         assertEq(vault.sharesOf(1, 1, mockUser_1), 375 ether);
@@ -424,7 +385,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         assertEq(vault.sharesOf(1, 1, mockUser_2), 500 ether);
 
         // assert balance of users
-        assertEq(underlyingToken.balanceOf(mockUser_1), 625 ether);
-        assertEq(underlyingToken.balanceOf(mockUser_2), 500 ether);
+        assertEq(vault.redeemableAmount(mockUser_1), 625 ether);
+        assertEq(vault.redeemableAmount(mockUser_2), 500 ether);
     }
 }
