@@ -74,6 +74,12 @@ interface IAlephVaultRedeem {
      */
     event RedeemableAmountWithdrawn(address indexed user, uint256 redeemableAmount);
 
+    /**
+     * @notice Emitted when the excess assets are withdrawn.
+     * @param excessAssets The excess assets.
+     */
+    event ExcessAssetsWithdrawn(uint256 excessAssets);
+
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -120,6 +126,11 @@ interface IAlephVaultRedeem {
      * @notice Emitted when only one request per batch is allowed for redeem.
      */
     error OnlyOneRequestPerBatchAllowedForRedeem();
+
+    /**
+     * @notice Emitted when the vault balance is insufficient.
+     */
+    error InsufficientVaultBalance();
 
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
@@ -212,4 +223,9 @@ interface IAlephVaultRedeem {
      * @notice Withdraws the redeemable amount for the user.
      */
     function withdrawRedeemableAmount() external;
+
+    /**
+     * @notice Withdraws excess assets from the vault and sends back to custodian.
+     */
+    function withdrawExcessAssets() external;
 }

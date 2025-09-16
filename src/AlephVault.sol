@@ -772,6 +772,14 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
 
+    /**
+     * @notice Withdraws excess assets from the vault and sends back to custodian.
+     * @dev Only callable by the MANAGER role.
+     */
+    function withdrawExcessAssets() external onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
+    }
+
     /*//////////////////////////////////////////////////////////////
                             SETTLEMENT FUNCTIONS
     //////////////////////////////////////////////////////////////*/
