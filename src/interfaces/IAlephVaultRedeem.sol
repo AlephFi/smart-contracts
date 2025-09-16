@@ -63,9 +63,9 @@ interface IAlephVaultRedeem {
      * @notice Emitted when a redeem request is made.
      * @param user The user making the redeem request.
      * @param batchId The batch ID of the redeem request.
-     * @param redeemRequestParams The parameters for the redeem request.
+     * @param estAmountToRedeem The estimated amount to redeem.
      */
-    event RedeemRequest(address indexed user, uint48 batchId, RedeemRequestParams redeemRequestParams);
+    event RedeemRequest(address indexed user, uint48 batchId, uint256 estAmountToRedeem);
 
     /**
      * @notice Emitted when the redeemable amount is withdrawn.
@@ -87,17 +87,6 @@ interface IAlephVaultRedeem {
      * @notice Emitted when the minimum redeem amount is invalid.
      */
     error InvalidMinRedeemAmount();
-
-    /**
-     * @notice Emitted when the series ID is invalid.
-     * @param seriesId The invalid series ID.
-     */
-    error InvalidSeriesId(uint8 seriesId);
-
-    /**
-     * @notice Emitted when the redeem is insufficient.
-     */
-    error InsufficientRedeem();
 
     /**
      * @notice Emitted when the redeem is less than the minimum redeem amount.
@@ -150,21 +139,14 @@ interface IAlephVaultRedeem {
     /**
      * @notice Parameters for a redeem request.
      * @param classId The ID of the share class.
-     * @param shareRequests The share requests for the redeem request.
+     * @param estAmountToRedeem The estimated amount to redeem.
+     * @dev pleas note that the amount mentioned here is used to calculate the share units based on the
+     * PPS at the moment of request. The actual amount the users can withdraw after settlement may be
+     * different from the amount specified here due to change in PPS based on the pnl of the vault and fees.
      */
     struct RedeemRequestParams {
         uint8 classId;
-        ShareRedeemRequest[] shareRequests;
-    }
-
-    /**
-     * @notice Parameters for a share redeem request.
-     * @param seriesId The ID of the share series.
-     * @param shares The shares to redeem.
-     */
-    struct ShareRedeemRequest {
-        uint8 seriesId;
-        uint256 shares;
+        uint256 estAmountToRedeem;
     }
 
     /*//////////////////////////////////////////////////////////////
