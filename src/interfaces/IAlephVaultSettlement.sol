@@ -194,6 +194,11 @@ interface IAlephVaultSettlement {
     error NoRedeemsToSettle();
 
     /**
+     * @notice Emitted when there are insufficient assets to settle redeem.
+     */
+    error InsufficientAssetsToSettle();
+
+    /**
      * @notice Emitted when the delegate call fails.
      * @param _data The data of the delegate call.
      */

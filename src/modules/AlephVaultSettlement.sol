@@ -131,6 +131,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _shareClass.depositSettleId = _settlementParams.toBatchId;
         _shareSeries.totalAssets = _settleDepositDetails.totalAssets;
         _shareSeries.totalShares = _settleDepositDetails.totalShares;
+        _sd.totalAmountToDeposit -= _amountToSettle;
         if (_amountToSettle > 0) {
             IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         }
@@ -248,11 +249,15 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.toBatchId,
             _settlementParams.newTotalAssets
         );
-        address _underlyingToken = _sd.underlyingToken;
+        uint256 _totalAmountToRedeem;
         for (uint48 _batchId = _redeemSettleId; _batchId < _settleUptoBatchId; _batchId++) {
-            _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId, _underlyingToken);
+            _totalAmountToRedeem += _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId);
+        }
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _totalAmountToRedeem + _sd.totalAmountToDeposit) {
+            revert InsufficientAssetsToSettle();
         }
         _shareClass.redeemSettleId = _settleUptoBatchId;
+        _sd.totalAmountToWithdraw += _totalAmountToRedeem;
         emit SettleRedeem(_redeemSettleId, _settlementParams.toBatchId, _settlementParams.classId);
     }
 
@@ -262,15 +267,14 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @param _shareClass The share class storage reference.
      * @param _classId The id of the class.
      * @param _batchId The id of the batch.
-     * @param _underlyingToken The underlying token.
+     * @return _totalAmountToRedeem The total amount to redeem in this batch.
      */
     function _settleRedeemForBatch(
         AlephVaultStorageData storage _sd,
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
-        uint48 _batchId,
-        address _underlyingToken
-    ) internal {
+        uint48 _batchId
+    ) internal returns (uint256 _totalAmountToRedeem) {
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_batchId];
         uint256 _totalAmountToRedeem;
         uint256 _len = _redeemRequests.usersToRedeem.length();
@@ -305,6 +309,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     function _forceRedeem(AlephVaultStorageData storage _sd, address _user) internal {
         uint8 _shareClasses = _sd.shareClassesId;
         uint48 _currentBatchId = _currentBatch(_sd);
+        uint256 _totalDepositRequests;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
             uint48 _depositSettleId = _shareClass.depositSettleId;
@@ -319,6 +324,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     IAlephVault.DepositRequests storage _depositRequest = _shareClass.depositRequests[_batchId];
                     uint256 _amount = _depositRequest.depositRequest[_user];
                     _newDepositsToRedeem += _amount;
+                    _totalDepositRequests += _depositRequest.totalAmountToDeposit;
                     _depositRequest.totalAmountToDeposit -= _amount;
                     _depositRequest.usersToDeposit.remove(_user);
                     delete _depositRequest.depositRequest[_user];
@@ -330,8 +336,14 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 }
             }
             uint256 _totalUserAssets = _assetsPerClassOf(_classId, _user, _shareClass);
+            uint256 _totalAssetsToSettle = _totalUserAssets + _totalDepositRequests;
+            if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _totalAssetsToSettle) {
+                revert InsufficientAssetsToSettle();
+            }
             _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _totalUserAssets);
-            _sd.redeemableAmount[_user] += _totalUserAssets + _newDepositsToRedeem;
+            _sd.totalAmountToDeposit -= _totalDepositRequests;
+            _sd.totalAmountToWithdraw += _totalAssetsToSettle;
+            _sd.redeemableAmount[_user] += _totalAssetsToSettle;
         }
         emit ForceRedeem(_currentBatchId, _user);
     }

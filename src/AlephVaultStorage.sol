@@ -33,6 +33,8 @@ import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
  * @param underlyingToken The underlying token address.
  * @param custodian The custodian address.
  * @param accountant The accountant address.
+ * @param totalAmountToDeposit The total amount to deposit.
+ * @param totalAmountToWithdraw The total amount to withdraw.
  * @param shareClasses The share classes.
  * @param timelocks The timelocks.
  * @param moduleImplementations The module implementations.
@@ -52,6 +54,8 @@ struct AlephVaultStorageData {
     address underlyingToken;
     address custodian;
     address accountant;
+    uint256 totalAmountToDeposit;
+    uint256 totalAmountToWithdraw;
     mapping(uint8 classId => IAlephVault.ShareClass) shareClasses;
     mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
     mapping(bytes4 => address) moduleImplementations;

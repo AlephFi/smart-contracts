@@ -320,6 +320,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     function _withdrawRedeemableAmount(AlephVaultStorageData storage _sd) internal {
         uint256 _redeemableAmount = _sd.redeemableAmount[msg.sender];
         delete _sd.redeemableAmount[msg.sender];
+        _sd.totalAmountToWithdraw -= _redeemableAmount;
         IERC20(_sd.underlyingToken).safeTransfer(msg.sender, _redeemableAmount);
         emit RedeemableAmountWithdrawn(msg.sender, _redeemableAmount);
     }
