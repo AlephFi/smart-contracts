@@ -1,0 +1,17 @@
+CreateShareClass_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── when management fee is greater than MAXIMUM_MANAGEMENT_FEE
+    │   └── it should revert with InvalidShareClassParams
+    └── when management fee is less than or equal to MAXIMUM_MANAGEMENT_FEE
+        ├── when performance fee is greater than MAXIMUM_PERFORMANCE_FEE
+        │   └── it should revert with InvalidShareClassParams
+        └── when performance fee is less than or equal to MAXIMUM_PERFORMANCE_FEE
+            ├── when min deposit amount is 0
+            │   └── it should revert with InvalidShareClassParams
+            └── when min deposit amount is greater than 0
+                ├── when min redeem amount is 0
+                │   └── it should revert with InvalidShareClassParams
+                └── when min redeem amount is greater than 0
+                    └── it should create a new share class and emit ShareClassCreated
