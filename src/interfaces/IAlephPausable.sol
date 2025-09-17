@@ -37,6 +37,11 @@ interface IAlephPausable {
      */
     event FlowUnpaused(bytes4 _pausableFlow, address _unpauser);
 
+    /**
+     * @notice Emitted when all flows are paused
+     */
+    event AllFlowsPaused();
+
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -76,4 +81,10 @@ interface IAlephPausable {
      * @dev Only callable by users with the flow-specific role. Reverts if flow is not paused.
      */
     function unpause(bytes4 _pausableFlow) external;
+
+    /**
+     * @notice Pauses all flows to prevent their execution
+     * @dev Only callable by users with the guardian role. Reverts if all flows are already paused.
+     */
+    function pauseAll() external;
 }
