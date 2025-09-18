@@ -19,6 +19,7 @@ import {AccessControlUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {IAlephPausable} from "@aleph-vault/interfaces/IAlephPausable.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
+import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephPausableStorage, AlephPausableStorageData} from "@aleph-vault/AlephPausableStorage.sol";
 
 /**
@@ -68,6 +69,11 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
         _unpause(_pausableFlow);
     }
 
+    /// @inheritdoc IAlephPausable
+    function pauseAll() external onlyRole(RolesLibrary.GUARDIAN) {
+        _pauseAll();
+    }
+
     /*//////////////////////////////////////////////////////////////
                             INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -93,6 +99,19 @@ abstract contract AlephPausable is IAlephPausable, AccessControlUpgradeable {
 
         _sd.flowsPauseStates[_pausableFlow] = false;
         emit FlowUnpaused(_pausableFlow, msg.sender);
+    }
+
+    /**
+     * @dev Internal function to pause all flows at once
+     */
+    function _pauseAll() internal {
+        AlephPausableStorageData storage _sd = _getPausableStorage();
+        _sd.flowsPauseStates[PausableFlows.DEPOSIT_REQUEST_FLOW] = true;
+        _sd.flowsPauseStates[PausableFlows.REDEEM_REQUEST_FLOW] = true;
+        _sd.flowsPauseStates[PausableFlows.SETTLE_DEPOSIT_FLOW] = true;
+        _sd.flowsPauseStates[PausableFlows.SETTLE_REDEEM_FLOW] = true;
+        _sd.flowsPauseStates[PausableFlows.WITHDRAW_FLOW] = true;
+        emit AllFlowsPaused();
     }
 
     /**
