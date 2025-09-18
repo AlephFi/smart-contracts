@@ -266,7 +266,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // settle deposit
         vm.prank(oracle);
-        vm.expectRevert(IAlephVaultSettlement.InsufficientAssetsToSettle.selector);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultSettlement.InsufficientAssetsToSettle.selector, 100));
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,

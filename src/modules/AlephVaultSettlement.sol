@@ -132,11 +132,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _shareSeries.totalAssets = _settleDepositDetails.totalAssets;
         _shareSeries.totalShares = _settleDepositDetails.totalShares;
         _sd.totalAmountToDeposit -= _amountToSettle;
-        if (
-            IERC20(_sd.underlyingToken).balanceOf(address(this))
-                < _amountToSettle + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw
-        ) {
-            revert InsufficientAssetsToSettle();
+        uint256 _requiredVaultBalance = _amountToSettle + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToSettle(_requiredVaultBalance);
         }
         if (_amountToSettle > 0) {
             IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
@@ -263,11 +261,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _totalAmountToRedeem += _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId);
         }
         // revert if manager didnt fund the vault before settling redeems
-        if (
-            IERC20(_sd.underlyingToken).balanceOf(address(this))
-                < _totalAmountToRedeem + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw
-        ) {
-            revert InsufficientAssetsToSettle();
+        uint256 _requiredVaultBalance = _totalAmountToRedeem + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToSettle(_requiredVaultBalance);
         }
         _shareClass.redeemSettleId = _settleUptoBatchId;
         _sd.totalAmountToWithdraw += _totalAmountToRedeem;
@@ -356,9 +352,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _sd.totalAmountToWithdraw += _totalAssetsToSettle;
         _sd.totalAmountToDeposit -= _totalDepositRequests;
         _sd.redeemableAmount[_user] += _totalAssetsToSettle;
-        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _sd.totalAmountToWithdraw + _sd.totalAmountToDeposit)
-        {
-            revert InsufficientAssetsToSettle();
+        uint256 _requiredVaultBalance = _sd.totalAmountToWithdraw + _sd.totalAmountToDeposit;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToSettle(_requiredVaultBalance);
         }
         emit ForceRedeem(_currentBatchId, _user, _totalAssetsToSettle);
     }
