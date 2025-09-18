@@ -252,7 +252,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         uint48 _currentBatchId = vault.currentBatch();
 
         // set deposit request
-        vault.setBatchDeposit(0, mockUser_1, 1000 ether);
+        vault.setBatchDeposit(0, mockUser_1, 100 ether);
 
         // set new total assets
         uint256[] memory _newTotalAssets = new uint256[](1);
@@ -264,7 +264,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // settle redeem
         vm.prank(oracle);
-        vm.expectRevert(IAlephVaultSettlement.InsufficientAssetsToSettle.selector);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultSettlement.InsufficientAssetsToSettle.selector, 100 ether));
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
@@ -463,7 +463,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
 
         // force redeem
         vm.prank(manager);
-        vm.expectRevert(IAlephVaultSettlement.InsufficientAssetsToSettle.selector);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultSettlement.InsufficientAssetsToSettle.selector, 100 ether));
         vault.forceRedeem(mockUser_1);
     }
 

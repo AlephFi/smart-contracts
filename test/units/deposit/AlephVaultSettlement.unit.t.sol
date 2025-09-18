@@ -15,8 +15,6 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$/                 
 */
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IERC20Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
@@ -268,7 +266,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // settle deposit
         vm.prank(oracle);
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(vault), 0, 100));
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultSettlement.InsufficientAssetsToSettle.selector, 100));
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,

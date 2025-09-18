@@ -104,7 +104,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.newTotalAssets
         );
         uint8 _settlementSeriesId =
-            _getSettlementSeriesId(_shareClass, _settlementParams.classId, _settlementParams.toBatchId);
+            _handleSeriesAccounting(_shareClass, _settlementParams.classId, _settlementParams.toBatchId);
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_settlementSeriesId];
         SettleDepositDetails memory _settleDepositDetails = SettleDepositDetails({
             // check if a new series needs to be created
@@ -132,6 +132,10 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _shareSeries.totalAssets = _settleDepositDetails.totalAssets;
         _shareSeries.totalShares = _settleDepositDetails.totalShares;
         _sd.totalAmountToDeposit -= _amountToSettle;
+        uint256 _requiredVaultBalance = _amountToSettle + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToSettle(_requiredVaultBalance);
+        }
         if (_amountToSettle > 0) {
             IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _amountToSettle);
         }
@@ -249,12 +253,17 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.toBatchId,
             _settlementParams.newTotalAssets
         );
+        // consolidate series if required
+        _handleSeriesAccounting(_shareClass, _settlementParams.classId, _settlementParams.toBatchId);
+        // settle redeems for each batch
         uint256 _totalAmountToRedeem;
         for (uint48 _batchId = _redeemSettleId; _batchId < _settleUptoBatchId; _batchId++) {
             _totalAmountToRedeem += _settleRedeemForBatch(_sd, _shareClass, _settlementParams.classId, _batchId);
         }
-        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _totalAmountToRedeem + _sd.totalAmountToDeposit) {
-            revert InsufficientAssetsToSettle();
+        // revert if manager didnt fund the vault before settling redeems
+        uint256 _requiredVaultBalance = _totalAmountToRedeem + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToSettle(_requiredVaultBalance);
         }
         _shareClass.redeemSettleId = _settleUptoBatchId;
         _sd.totalAmountToWithdraw += _totalAmountToRedeem;
@@ -343,21 +352,25 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _sd.totalAmountToWithdraw += _totalAssetsToSettle;
         _sd.totalAmountToDeposit -= _totalDepositRequests;
         _sd.redeemableAmount[_user] += _totalAssetsToSettle;
-        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _sd.totalAmountToWithdraw + _sd.totalAmountToDeposit)
-        {
-            revert InsufficientAssetsToSettle();
+        uint256 _requiredVaultBalance = _sd.totalAmountToWithdraw + _sd.totalAmountToDeposit;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToSettle(_requiredVaultBalance);
         }
         emit ForceRedeem(_currentBatchId, _user, _totalAssetsToSettle);
     }
 
     /**
-     * @dev Internal function to get the settlement series id.
+     * @dev Internal function to handle the series accounting.
      * @param _shareClass The share class.
      * @param _classId The id of the class.
-     * @param _toBatchId The batch id to settle deposits up to.
-     * @return _seriesId The series id.
+     * @param _toBatchId The batch id in which to consolidate/create new series.
+     * @return _seriesId The series id in which to settle pending deposits.
+     * @dev this function is called before settling deposits/redeems to handle the series accounting.
+     * it consolidates outstanding series into the lead series if required. The retrn param is only
+     * used in settle deposits to get the series id in which to settle pending deposits.
+     * for redeems, this function is called to handle consolidation if required.
      */
-    function _getSettlementSeriesId(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _toBatchId)
+    function _handleSeriesAccounting(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _toBatchId)
         internal
         returns (uint8 _seriesId)
     {
@@ -365,7 +378,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         if (_shareClass.shareClassParams.performanceFee > 0) {
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
             uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-            // if new lead series highwatermark is not reached, settlements must take place in a new series
+            // if new lead series highwatermark is not reached, deposit settlements must take place in a new series
             // if a new highwater mark is reached in this cycle, it will be updated in _accumalateFees function
             // hence, after fee accumalation process, the lead highwater mark is either greater than or equal to the lead price per share
             if (

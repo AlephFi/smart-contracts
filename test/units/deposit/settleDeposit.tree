@@ -28,7 +28,7 @@ SettleDeposit_Unit_Test
                         ├── when _amountToSettle is 0
                         │   └── it should update lastDepositBatchId, total assets and total shares and not emit SettleDepositBatch
                         └── when _amountToSettle is greater than 0
-                            ├── given vault has insufficient balance
-                            │   └── it should revert with ERC20InsufficientBalance
-                            └── given vault has sufficient balance
+                            ├── given vault has insufficient balance to settle deposits and withdrawals
+                            │   └── it should revert with InsufficientAssetsToSettle
+                            └── given vault has sufficient balance to settle deposits and withdrawals
                                 └── it should mint shares to users, emit SettleDepositBatch per batch, update depositSettleId, totalShares and totalAssets, transfer amountToSettle to custodian and emit SettleDeposit
