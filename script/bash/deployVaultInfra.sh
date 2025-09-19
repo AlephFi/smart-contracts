@@ -53,36 +53,54 @@ VAULT_BEACON_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "vault
 echo -e "\n${GREEN}✓${NC} Vault Beacon deployed successfully"
 echo -e "  ${BLUE}Address:${NC} $VAULT_BEACON_ADDRESS\n"
 
-# Deploy Accountant
-echo -e "${CYAN}╭─ Step 3: Deploying Accountant${NC}"
+# Deploy Accountant Implementation
+echo -e "${CYAN}╭─ Step 3: Deploying Accountant Implementation${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
-verify_forge_script "DeployAccountant" "true" "Failed to deploy accountant contract"
+verify_forge_script "DeployAccountantImplementation" "false" "Failed to deploy accountant implementation contract"
 
-# Verify accountant addresses in deploymentConfig
+# Verify accountant implementation address in deploymentConfig
 ACCOUNTANT_IMPL_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "accountantImplementationAddress")
+
+echo -e "\n${GREEN}✓${NC} Accountant implementation deployed successfully"
+echo -e "  ${BLUE}Implementation:${NC} $ACCOUNTANT_IMPL_ADDRESS"
+
+# Deploy Accountant Proxy
+echo -e "${CYAN}╭─ Step 4: Deploying Accountant Proxy${NC}"
+echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
+verify_forge_script "DeployAccountantProxy" "false" "Failed to deploy accountant proxy contract"
+
+# Verify accountant proxy address in deploymentConfig
 ACCOUNTANT_PROXY_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "accountantProxyAddress")
 
-echo -e "\n${GREEN}✓${NC} Accountant contracts deployed successfully"
-echo -e "  ${BLUE}Implementation:${NC} $ACCOUNTANT_IMPL_ADDRESS"
-echo -e "  ${BLUE}Proxy:${NC} $ACCOUNTANT_PROXY_ADDRESS\n"
+echo -e "\n${GREEN}✓${NC} Accountant proxy deployed successfully"
+echo -e "  ${BLUE}Proxy:${NC} $ACCOUNTANT_PROXY_ADDRESS"
 
-# Deploy Factory
-echo -e "${CYAN}╭─ Step 4: Deploying Vault Factory${NC}"
+# Deploy Factory Implementation
+echo -e "${CYAN}╭─ Step 5: Deploying Vault Factory Implementation${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
-verify_forge_script "DeployAlephVaultFactory" "true" "Failed to deploy factory contract"
+verify_forge_script "DeployAlephVaultFactoryImplementation" "true" "Failed to deploy factory implementation contract"
 
-# Verify factory addresses in deploymentConfig
+# Verify factory implementation address in deploymentConfig
 FACTORY_IMPL_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "factoryImplementationAddress")
+
+echo -e "\n${GREEN}✓${NC} Factory implementation deployed successfully"
+echo -e "  ${BLUE}Implementation:${NC} $FACTORY_IMPL_ADDRESS"
+
+# Deploy Factory Proxy
+echo -e "${CYAN}╭─ Step 6: Deploying Vault Factory Proxy${NC}"
+echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
+verify_forge_script "DeployAlephVaultFactoryProxy" "true" "Failed to deploy factory proxy contract"
+
+# Verify factory proxy address in deploymentConfig
 FACTORY_PROXY_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "factoryProxyAddress")
 
-echo -e "\n${GREEN}✓${NC} Factory contracts deployed successfully"
-echo -e "  ${BLUE}Implementation:${NC} $FACTORY_IMPL_ADDRESS"
-echo -e "  ${BLUE}Proxy:${NC} $FACTORY_PROXY_ADDRESS\n"
+echo -e "\n${GREEN}✓${NC} Factory proxy deployed successfully"
+echo -e "  ${BLUE}Proxy:${NC} $FACTORY_PROXY_ADDRESS"
 
 # Set Factory in Accountant
-echo -e "${CYAN}╭─ Step 5: Setting Factory in Accountant${NC}"
+echo -e "${CYAN}╭─ Step 7: Setting Factory in Accountant${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
-verify_forge_script "SetVaultFactory" "true" "Failed to set factory in accountant contract"
+verify_forge_script "SetVaultFactory" "false" "Failed to set factory in accountant contract"
 
 echo -e "\n${GREEN}✓${NC} Factory set in accountant successfully"
 
@@ -92,21 +110,24 @@ echo -e "${GREEN}✨ All contracts deployed successfully!${NC}\n"
 echo -e "${BOLD}Deployed Contracts${NC}"
 echo -e "  ${BLUE}Vault Implementation:${NC}    $VAULT_IMPL_ADDRESS"
 echo -e "  ${BLUE}Vault Beacon:${NC}            $VAULT_BEACON_ADDRESS"
+echo -e "  ${BLUE}Accountant Implementation:${NC} $ACCOUNTANT_IMPL_ADDRESS"
+echo -e "  ${BLUE}Accountant Proxy:${NC}         $ACCOUNTANT_PROXY_ADDRESS"
 echo -e "  ${BLUE}Factory Implementation:${NC}  $FACTORY_IMPL_ADDRESS"
 echo -e "  ${BLUE}Factory Proxy:${NC}           $FACTORY_PROXY_ADDRESS\n"
 echo -e "${BOLD}Vault Configs${NC}"
 echo -e "  ${BLUE}MinDepositAmountTimelock:${NC}  $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minDepositAmountTimelock")"
+echo -e "  ${BLUE}MinUserBalanceTimelock:${NC}  $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minUserBalanceTimelock")"
 echo -e "  ${BLUE}MaxDepositCapTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "maxDepositCapTimelock")"
+echo -e "  ${BLUE}NoticePeriodTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "noticePeriodTimelock")"
+echo -e "  ${BLUE}LockInPeriodTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "lockInPeriodTimelock")"
+echo -e "  ${BLUE}MinRedeemAmountTimelock:${NC}  $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minRedeemAmountTimelock")"
 echo -e "  ${BLUE}ManagementFeeTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFeeTimelock")"
 echo -e "  ${BLUE}PerformanceFeeTimelock:${NC}    $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFeeTimelock")"
-echo -e "  ${BLUE}AccountantTimelock:${NC}      $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "accountantTimelock")"
 echo -e "  ${BLUE}BatchDuration:${NC}             $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "batchDuration")\n"
 echo -e "${BOLD}Factory Configs${NC}"
 echo -e "  ${BLUE}OperationsMultisig:${NC}  $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "operationsMultisig")"
 echo -e "  ${BLUE}Oracle:${NC}              $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "oracle")"
 echo -e "  ${BLUE}Guardian:${NC}            $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "guardian")"
-echo -e "  ${BLUE}Accountant:${NC}        $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "accountant")"
-echo -e "  ${BLUE}ManagementFee:${NC}       $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFee")"
-echo -e "  ${BLUE}PerformanceFee:${NC}      $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFee")\n"
+echo -e "  ${BLUE}AuthSigner:${NC}          $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "authSigner")\n"
 echo -e "${BOLD}Accountant Configs${NC}"
 echo -e "  ${BLUE}AlephTreasury:${NC}       $(get_accountant_config_value "$CHAIN_ID" "$ENVIRONMENT" "alephTreasury")\n"

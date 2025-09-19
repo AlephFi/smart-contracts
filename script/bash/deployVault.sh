@@ -50,6 +50,30 @@ validate_address "$VAULT_CUSTODIAN" "Vault custodian address"
 read -p "Enter vault treasury address: " VAULT_TREASURY
 validate_address "$VAULT_TREASURY" "Vault treasury address"
 
+# Vault management fee
+read -p "Enter vault management fee: " VAULT_MANAGEMENT_FEE
+
+# Vault performance fee
+read -p "Enter vault performance fee: " VAULT_PERFORMANCE_FEE
+
+# Vault notice period
+read -p "Enter vault notice period: " VAULT_NOTICE_PERIOD
+
+# Vault lock in period
+read -p "Enter vault lock in period: " VAULT_LOCK_IN_PERIOD
+
+# Vault min deposit amount
+read -p "Enter vault min deposit amount: " VAULT_MIN_DEPOSIT_AMOUNT
+
+# Vault min user balance
+read -p "Enter vault min user balance: " VAULT_MIN_USER_BALANCE
+
+# Vault max deposit cap
+read -p "Enter vault max deposit cap: " VAULT_MAX_DEPOSIT_CAP
+
+# Vault min redeem amount
+read -p "Enter vault min redeem amount: " VAULT_MIN_REDEEM_AMOUNT
+
 # Export environment variables
 export_common_vars "$CHAIN_ID" "$ENVIRONMENT" "$PRIVATE_KEY"
 
@@ -60,6 +84,14 @@ export VAULT_UNDERLYING_TOKEN="$VAULT_UNDERLYING_TOKEN"
 export VAULT_MANAGER="$VAULT_MANAGER"
 export VAULT_CUSTODIAN="$VAULT_CUSTODIAN"
 export VAULT_TREASURY="$VAULT_TREASURY"
+export VAULT_MIN_DEPOSIT_AMOUNT="$VAULT_MIN_DEPOSIT_AMOUNT"
+export VAULT_MIN_USER_BALANCE="$VAULT_MIN_USER_BALANCE"
+export VAULT_MAX_DEPOSIT_CAP="$VAULT_MAX_DEPOSIT_CAP"
+export VAULT_NOTICE_PERIOD="$VAULT_NOTICE_PERIOD"
+export VAULT_LOCK_IN_PERIOD="$VAULT_LOCK_IN_PERIOD"
+export VAULT_MIN_REDEEM_AMOUNT="$VAULT_MIN_REDEEM_AMOUNT"
+export VAULT_MANAGEMENT_FEE="$VAULT_MANAGEMENT_FEE"
+export VAULT_PERFORMANCE_FEE="$VAULT_PERFORMANCE_FEE"
 
 echo -e "\n${BOLD}${GREEN}🚀 Starting vault deployment...${NC}\n"
 
