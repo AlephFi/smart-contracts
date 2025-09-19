@@ -3,7 +3,7 @@ import {
     loadDeploymentConfig,
     runForgeScript,
     createAndProposeSafeTransaction,
-    BEACON_ABI
+    PROXY_ADMIN_ABI
 } from './safeUtils';
 
 async function main() {
@@ -11,19 +11,19 @@ async function main() {
     const config = validateEnvironmentVariables();
 
     // Run forge script to deploy new implementation
-    runForgeScript('DeployAlephVaultImplementation');
+    runForgeScript('UpgradeAlephVaultFactory');
 
     // Load deployment configuration
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);
 
     // Create and propose Safe transaction
     await createAndProposeSafeTransaction(config, {
-        targetAddress: chainConfig.vaultBeaconAddress,
-        newImplementationAddress: chainConfig.vaultImplementationAddress,
-        safeOwnerAddress: chainConfig.vaultBeaconOwner,
-        abi: BEACON_ABI,
-        functionName: 'upgradeTo',
-        functionArgs: [chainConfig.vaultImplementationAddress]
+        targetAddress: chainConfig.factoryProxyAddress,
+        newImplementationAddress: chainConfig.factoryImplementationAddress,
+        safeOwnerAddress: chainConfig.factoryProxyOwner,
+        abi: PROXY_ADMIN_ABI,
+        functionName: 'upgradeAndCall',
+        functionArgs: [chainConfig.factoryProxyAddress, chainConfig.factoryImplementationAddress, '0x']
     });
 }
 
@@ -31,4 +31,4 @@ async function main() {
 main().catch((error) => {
     console.error(error);
     process.exit(1);
-}); 
+});
