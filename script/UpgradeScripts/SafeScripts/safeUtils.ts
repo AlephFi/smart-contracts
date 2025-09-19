@@ -65,7 +65,7 @@ export function validateEnvironmentVariables(): SafeTransactionConfig {
 }
 
 export function loadDeploymentConfig(chainId: string, environment: string): DeploymentConfig[string][string] {
-    const configPath = path.join(__dirname, '../../deploymentConfig.json');
+    const configPath = path.join(__dirname, '../../../deploymentConfig.json');
     const configData = fs.readFileSync(configPath, 'utf8');
     const config: DeploymentConfig = JSON.parse(configData);
     const chainConfig = config[chainId][environment];

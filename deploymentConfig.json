@@ -94,7 +94,7 @@
       "vaultSettlementImplementationAddress": "0xF2B52727E7430797a05c9D53E592a4c146647A96",
       "feeManagerImplementationAddress": "0x22b22bA5CDEf80597732c3f7980e880AC5410F6c",
       "migrationManagerImplementationAddress": "0xd36B1D99879EE1513F0261e339edA04cc5aAfad2",
-      "accountantImplementationAddress": "0xB1a1b16052C20A5E9D6C94eaF0e6CD2C5B6E6f97",
+      "accountantImplementationAddress": "0x9e47587b948a457500bf828d5abF6580e5F828BC",
       "factoryImplementationAddress": "0x1d1F2F4A9b0dEd159354C16C55Ae552D2108AC3C",
       "vaultBeaconAddress": "0xC886D22dD6F7d97b86DfF02a2e4D65F4c8ECCc99",
       "accountantProxyAddress": "0xFF5BBfA9FCa17c88Fed759a2Fc298Ac117A237E8",
