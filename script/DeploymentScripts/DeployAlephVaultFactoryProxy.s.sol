@@ -55,20 +55,17 @@ contract DeployAlephVaultFactory is BaseScript {
 
         bytes memory _initializeArgs =
             abi.encodeWithSelector(AlephVaultFactory.initialize.selector, _initializationParams);
+        address _factoryImpl = _getFactoryImplementation(_chainId, _environment);
 
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
-        AlephVaultFactory _factoryImpl = new AlephVaultFactory();
 
         ITransparentUpgradeableProxy _proxy = ITransparentUpgradeableProxy(
             address(new TransparentUpgradeableProxy(address(_factoryImpl), _proxyOwner, _initializeArgs))
         );
 
-        console.log("Factory deployed at:", address(_proxy));
+        console.log("Factory Proxy deployed at:", address(_proxy));
 
-        _writeDeploymentConfig(
-            _chainId, _environment, ".factoryImplementationAddress", vm.toString(address(_factoryImpl))
-        );
         _writeDeploymentConfig(_chainId, _environment, ".factoryProxyAddress", vm.toString(address(_proxy)));
 
         vm.stopBroadcast();

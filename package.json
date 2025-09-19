@@ -5,7 +5,9 @@
     "main": "index.js",
     "scripts": {
         "build": "tsc",
-        "upgrade-vault": "ts-node script/UpgradeScripts/upgradeVaultSafe.ts"
+        "upgrade-vault": "ts-node script/UpgradeScripts/upgradeVaultSafe.ts",
+        "upgrade-accountant": "ts-node script/UpgradeScripts/upgradeAccountantSafe.ts",
+        "upgrade-factory": "ts-node script/UpgradeScripts/upgradeFactorySafe.ts"
     },
     "dependencies": {
         "@safe-global/api-kit": "^4.0.0",

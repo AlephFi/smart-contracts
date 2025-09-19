@@ -29,9 +29,9 @@ import {Accountant} from "@aleph-vault/Accountant.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-// Use to Deploy only an Accountant.
-// forge script DeployAccountant --sig="run()" --broadcast -vvvv
-contract DeployAccountant is BaseScript {
+// Use to Deploy only an Accountant Proxy.
+// forge script DeployAccountantProxy --sig="run()" --broadcast -vvvv
+contract DeployAccountantProxy is BaseScript {
     function setUp() public {}
 
     function run() public {
@@ -51,20 +51,17 @@ contract DeployAccountant is BaseScript {
         console.log("alephTreasury", _initializationParams.alephTreasury);
 
         bytes memory _initializeArgs = abi.encodeWithSelector(Accountant.initialize.selector, _initializationParams);
+        address _accountantImpl = _getAccountantImplementation(_chainId, _environment);
 
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
-        Accountant _accountantImpl = new Accountant();
 
         ITransparentUpgradeableProxy _proxy = ITransparentUpgradeableProxy(
             address(new TransparentUpgradeableProxy(address(_accountantImpl), _proxyOwner, _initializeArgs))
         );
 
-        console.log("Accountant deployed at:", address(_proxy));
+        console.log("Accountant Proxy deployed at:", address(_proxy));
 
-        _writeDeploymentConfig(
-            _chainId, _environment, ".accountantImplementationAddress", vm.toString(address(_accountantImpl))
-        );
         _writeDeploymentConfig(_chainId, _environment, ".accountantProxyAddress", vm.toString(address(_proxy)));
 
         vm.stopBroadcast();

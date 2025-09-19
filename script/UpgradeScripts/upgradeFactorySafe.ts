@@ -11,7 +11,7 @@ async function main() {
     const config = validateEnvironmentVariables();
 
     // Run forge script to deploy new implementation
-    runForgeScript('UpgradeAlephVaultFactory');
+    runForgeScript('DeployAlephVaultFactoryImplementation');
 
     // Load deployment configuration
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);

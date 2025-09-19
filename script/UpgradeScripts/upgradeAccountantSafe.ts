@@ -11,7 +11,7 @@ async function main() {
     const config = validateEnvironmentVariables();
 
     // Run forge script to deploy new implementation
-    runForgeScript('UpgradeAccountant', false);
+    runForgeScript('DeployAccountantImplementation', false);
 
     // Load deployment configuration
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);
