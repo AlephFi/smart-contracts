@@ -44,16 +44,13 @@ contract UpgradeAlephVaultFactory is BaseScript {
         string memory _environment = _getEnvironment();
 
         address _proxy = _getFactoryProxy(_chainId, _environment);
-        AlephVaultFactory _factoryImpl = new AlephVaultFactory();
+        address _factoryImpl = _getFactoryImplementation(_chainId, _environment);
 
         address _proxyAdmin = address(uint160(uint256(vm.load(_proxy, ADMIN_SLOT))));
 
-        ProxyAdmin(_proxyAdmin).upgradeAndCall(ITransparentUpgradeableProxy(payable(_proxy)), address(_factoryImpl), "");
-        console.log("AlephVaultFactory upgraded to", address(_factoryImpl));
+        ProxyAdmin(_proxyAdmin).upgradeAndCall(ITransparentUpgradeableProxy(payable(_proxy)), _factoryImpl, "");
+        console.log("AlephVaultFactory upgraded to", _factoryImpl);
 
-        _writeDeploymentConfig(
-            _chainId, _environment, ".factoryImplementationAddress", vm.toString(address(_factoryImpl))
-        );
         vm.stopBroadcast();
     }
 }
