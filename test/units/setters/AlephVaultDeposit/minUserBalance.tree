@@ -1,0 +1,17 @@
+QueueMinUserBalance
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    └── it should set a timelock for min user balance and emit NewMinUserBalanceQueued
+
+SetMinUserBalance
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given min user balance is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given min user balance is queued
+        ├── given unlock timestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlock timestamp is not greater than current timestamp
+            └── it should set the min user balance and emit NewMinUserBalanceSet

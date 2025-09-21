@@ -1,0 +1,36 @@
+RequestDeposit_Unit_Test
+├── when class id is invalid
+│   └── it should revert with InvalidShareClass
+└── when class id is valid
+    ├── given deposit request flow is paused
+    │   └── it should revert with FlowIsCurrentlyPaused
+    └── given deposit request flow is unpaused
+        ├── when amount requested to deposit is 0
+        │   └── it should revert with InsufficientDeposit
+        └── when amount requested to deposit is greater than 0
+            ├── when amount requested to deposit is less than min deposit amount
+            │   └── it should revert with DepositLessThanMinDepositAmount
+            └── when amount requested to deposit is greater than or equal to min deposit amount
+                ├── when min user balance is set and amount requested to deposit doesnt maintain min user balance
+                │   └── it should revert with DepositLessThanMinUserBalance
+                └── when min user balance is set and amount requested to deposit maintains min user balance OR min user balance is not set
+                    ├── when max deposit cap is set and amount requested to deposit makes total assets greater than max deposit cap
+                    │   └── it should revert with DepositExceedsMaxDepositCap
+                    └── when max deposit cap is set and amount requested to deposit does not make total assets greater than max deposit cap OR max deposit cap is not set
+                        ├── when auth is enabled and signature is expired
+                        │   └── it should revert with AuthSignatureExpired
+                        ├── when auth is enabled and signature is invalid
+                        │   └── it should revert with InvalidAuthSignature
+                        └── when auth is enabled and signature is not expired and is valid OR auth is disabled
+                            ├── given user has already made a deposit request for this batch
+                            │   └── it should revert with OnlyOneRequestPerBatchAllowedForDeposit
+                            └── given user has not made a deposit request for this batch
+                                ├── given share class has lock in period and user lock in period is not set
+                                │   └── it should set user lock in period
+                                ├── given vault has insufficient allowance to transfer
+                                │   └── it should revert with ERC20InsufficientAllowance
+                                └── given vault has sufficient allowance to transfer
+                                    ├── given user has insufficient balance to transfer
+                                    │   └── it should revert with ERC20InsufficientBalance
+                                    └── given user has sufficient balance to transfer
+                                        └── it should update batches and emit DepositRequest

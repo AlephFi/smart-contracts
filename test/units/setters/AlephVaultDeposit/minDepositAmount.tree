@@ -1,0 +1,20 @@
+QueueMinDepositAmount
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given min deposit amount is 0
+    │   └── it should revert with InvalidMinDepositAmount
+    └── given min deposit amount is greater than 0
+        └── it should set a timelock for min deposit amount and emit NewMinDepositAmountQueued
+
+SetMinDepositAmount
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given min deposit amount is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given min deposit amount is queued
+        ├── given unlock timestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlock timestamp is not greater than current timestamp
+            └── it should set the min deposit amount and emit NewMinDepositAmountSet

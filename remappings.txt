@@ -1,0 +1,3 @@
+@aleph-script/=script/
+@aleph-vault/=src/
+@aleph-test/=test/

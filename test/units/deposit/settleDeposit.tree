@@ -1,0 +1,34 @@
+SettleDeposit_Unit_Test
+├── when caller is not ORACLE
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is ORACLE
+    ├── when classId is invalid
+    │   └── it should revert with InvalidShareClass
+    └── when classId is valid
+        ├── given settle deposit flow is paused
+        │   └── it should revert with FlowIsCurrentlyPaused
+        └── given settle deposit flow is unpaused
+            ├── when toBatchId is greater than currentBatchId
+            │   └── it should revert with InvalidToBatchId
+            └── when toBatchId is less than or equal to currentBatchId
+                ├── when depositSettleId is equal to toBatchId
+                │   └── it should revert with NoDepositsToSettle
+                └── when depositSettleId is less than toBatchId
+                    ├── when newTotalAssets are invalid
+                    │   └── it should revert with InvalidNewTotalAssets
+                    └── when newTotalAssets are valid
+                        ├── when lastFeePaidId is less than toBatchId
+                        │   └── it should call _accumulateFees
+                        ├── given lead series reached a new highwater mark
+                        │   ├── given outstanding series exists
+                        │   │   └── it should consolidate them into lead series
+                        │   └── settlement series id is equal to lead series id
+                        ├── given lead series did not reach a new highwater mark
+                        │   └── it should create a new settlement series and emit NewSeriesCreated
+                        ├── when _amountToSettle is 0
+                        │   └── it should update lastDepositBatchId, total assets and total shares and not emit SettleDepositBatch
+                        └── when _amountToSettle is greater than 0
+                            ├── given vault has insufficient balance to settle deposits and withdrawals
+                            │   └── it should revert with InsufficientAssetsToSettle
+                            └── given vault has sufficient balance to settle deposits and withdrawals
+                                └── it should mint shares to users, emit SettleDepositBatch per batch, update depositSettleId, totalShares and totalAssets, transfer amountToSettle to custodian and emit SettleDeposit

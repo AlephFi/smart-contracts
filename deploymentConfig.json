@@ -1,0 +1,20 @@
+{
+  "1": {
+    "prod": {
+      "vaultBeaconOwner": "",
+      "accountantProxyOwner": "",
+      "factoryProxyOwner": "",
+      "vaultImplementationAddress": "",
+      "vaultDepositImplementationAddress": "",
+      "vaultRedeemImplementationAddress": "",
+      "vaultSettlementImplementationAddress": "",
+      "feeManagerImplementationAddress": "",
+      "migrationManagerImplementationAddress": "",
+      "accountantImplementationAddress": "",
+      "factoryImplementationAddress": "",
+      "vaultBeaconAddress": "",
+      "accountantProxyAddress": "",
+      "factoryProxyAddress": ""
+    }
+  }
+}

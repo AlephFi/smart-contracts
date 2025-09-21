@@ -1,0 +1,8 @@
+WithdrawRedeemableAmount_Unit_Test
+├── when flow is paused
+│   └── it should revert with FlowIsCurrentlyPaused
+└── when flows is unpaused
+    ├── given vault does not have sufficient balance
+    │   └── it should revert with IERC20InsufficientBalance
+    └── given vault has sufficient balance
+        └── it should clear out redeemable amount, tranfer amount to user and emit RedeemableAmountWithdrawn

@@ -1,0 +1,20 @@
+QueueManagementFee_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── when management fee is greater than MAXIMUM_MANAGEMENT_FEE
+    │   └── it should revert with InvalidManagementFee
+    └── when management fee is less than MAXIMUM_MANAGEMENT_FEE
+        └── it should set timelock for management fee and emit NewManagementFeeQueued
+
+SetManagementFee_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given management fee is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given management fee is queued
+        ├── given unlockTimestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlockTimestamp is not greater than current timestamp
+            └── it should set management fee and emit ManagementFeeSet

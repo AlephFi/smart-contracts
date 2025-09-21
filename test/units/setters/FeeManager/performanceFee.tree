@@ -1,0 +1,23 @@
+QueuePerformanceFee_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── when performance fee is greater than MAXIMUM_PERFORMANCE_FEE
+    │   └── it should revert with InvalidPerformanceFee
+    └── when performance fee is less than MAXIMUM_PERFORMANCE_FEE
+        ├── given old performance fee is 0 or when new performance fee is 0
+        │   └── it should revert with InvalidShareClassConversion
+        └── given old performance fee is not 0 and when new performance fee is not 0
+            └── it should set timelock for performance fee and emit NewPerformanceFeeQueued
+
+SetPerformanceFee_Unit_Test
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given performance fee is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given performance fee is queued
+        ├── given unlockTimestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlockTimestamp is not greater than current timestamp
+            └── it should set performance fee and emit PerformanceFeeSet

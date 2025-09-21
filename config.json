@@ -1,0 +1,15 @@
+{
+    "1": {
+        "prod": {
+            "minDepositAmountTimelock": 604800,
+            "minUserBalanceTimelock": 604800,
+            "maxDepositCapTimelock": 604800,
+            "noticePeriodTimelock": 604800,
+            "lockInPeriodTimelock": 604800,
+            "minRedeemAmountTimelock": 604800,
+            "managementFeeTimelock": 2764800,
+            "performanceFeeTimelock": 2764800,
+            "batchDuration": 86400
+        }
+    }
+}

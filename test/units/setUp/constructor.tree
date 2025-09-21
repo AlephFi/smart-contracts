@@ -1,0 +1,19 @@
+Constructor_Unit_Test
+├── when batchDuration passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when minDepositAmountTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when minUserBalanceTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when maxDepositCapTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when noticePeriodTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when lockInPeriodTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when minRedeemAmountTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+├── when managementFeeTimelock passed is 0
+│   └── it should revert with InvalidConstructorParams
+└── when performanceFeeTimelock passed is 0
+    └── it should revert with InvalidConstructorParams

@@ -1,0 +1,17 @@
+QueueNoticePeriod
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    └── it should set a timelock for notice period and emit NewNoticePeriodQueued
+
+SetNoticePeriod
+├── when caller is not MANAGER
+│   └── it should revert with AccessControlUnauthorizedAccount
+└── when caller is MANAGER
+    ├── given notice period is not queued
+    │   └── it should revert with TimelockNotQueued
+    └── given notice period is queued
+        ├── given unlock timestamp is greater than current timestamp
+        │   └── it should revert with TimelockNotExpired
+        └── given unlock timestamp is not greater than current timestamp
+            └── it should set the notice period and emit NewNoticePeriodSet
