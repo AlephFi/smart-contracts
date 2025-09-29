@@ -178,7 +178,7 @@ contract AlephVaultRedeemTest is BaseTest {
             IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultRedeem.RedeemRequest(mockUser_1, _expectedBatchId, params.estAmountToRedeem);
+        emit IAlephVaultRedeem.RedeemRequest(1, _expectedBatchId, mockUser_1, params.estAmountToRedeem, _shareUnits);
         uint48 _batchId = vault.requestRedeem(params);
 
         // check the redeem request
@@ -208,14 +208,18 @@ contract AlephVaultRedeemTest is BaseTest {
             IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultRedeem.RedeemRequest(mockUser_1, _expectedBatchId, params_user1.estAmountToRedeem);
+        emit IAlephVaultRedeem.RedeemRequest(
+            1, _expectedBatchId, mockUser_1, params_user1.estAmountToRedeem, _shareUnits
+        );
         uint48 _batchId_user1 = vault.requestRedeem(params_user1);
 
         IAlephVaultRedeem.RedeemRequestParams memory params_user2 =
             IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 150 ether});
         vm.prank(mockUser_2);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultRedeem.RedeemRequest(mockUser_2, _expectedBatchId, params_user2.estAmountToRedeem);
+        emit IAlephVaultRedeem.RedeemRequest(
+            1, _expectedBatchId, mockUser_2, params_user2.estAmountToRedeem, _shareUnits / 2
+        );
         uint48 _batchId_user2 = vault.requestRedeem(params_user2);
 
         // check the redeem requests

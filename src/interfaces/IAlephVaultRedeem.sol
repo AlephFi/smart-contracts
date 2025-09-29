@@ -67,11 +67,15 @@ interface IAlephVaultRedeem {
 
     /**
      * @notice Emitted when a redeem request is made.
-     * @param user The user making the redeem request.
+     * @param classId The ID of the share class.
      * @param batchId The batch ID of the redeem request.
+     * @param user The user making the redeem request.
      * @param estAmountToRedeem The estimated amount to redeem.
+     * @param shareUnitsToRedeem The share units to redeem.
      */
-    event RedeemRequest(address indexed user, uint48 batchId, uint256 estAmountToRedeem);
+    event RedeemRequest(
+        uint8 classId, uint48 batchId, address indexed user, uint256 estAmountToRedeem, uint256 shareUnitsToRedeem
+    );
 
     /**
      * @notice Emitted when the redeemable amount is withdrawn.
