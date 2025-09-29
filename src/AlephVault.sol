@@ -56,7 +56,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _classId The share class id
      * @param _seriesId The share series id
      */
-    modifier onlyValidShareClassAndSeries(uint8 _classId, uint8 _seriesId) {
+    modifier onlyValidShareClassAndSeries(uint8 _classId, uint32 _seriesId) {
         AlephVaultStorageData storage _sd = _getStorage();
         // check if share class id is valid or not
         if (_classId > _sd.shareClassesId || _classId == 0) {
@@ -314,12 +314,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         returns (uint256[] memory)
     {
         IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
-        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint8 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
+        uint32 _shareSeriesId = _shareClass.shareSeriesId;
+        uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint32 _len = _shareSeriesId - _lastConsolidatedSeriesId + 1;
         uint256[] memory _totalAssets = new uint256[](_len);
-        for (uint8 _i; _i < _len; _i++) {
-            uint8 _seriesId =
+        for (uint32 _i; _i < _len; _i++) {
+            uint32 _seriesId =
                 _i > SeriesAccounting.LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : SeriesAccounting.LEAD_SERIES_ID;
             _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
         }
@@ -332,7 +332,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalAssetsPerSeries(uint8 _classId, uint8 _seriesId)
+    function totalAssetsPerSeries(uint8 _classId, uint32 _seriesId)
         external
         view
         onlyValidShareClassAndSeries(_classId, _seriesId)
@@ -342,7 +342,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalSharesPerSeries(uint8 _classId, uint8 _seriesId)
+    function totalSharesPerSeries(uint8 _classId, uint32 _seriesId)
         external
         view
         onlyValidShareClassAndSeries(_classId, _seriesId)
@@ -352,7 +352,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function assetsOf(uint8 _classId, uint8 _seriesId, address _user)
+    function assetsOf(uint8 _classId, uint32 _seriesId, address _user)
         external
         view
         onlyValidShareClassAndSeries(_classId, _seriesId)
@@ -362,7 +362,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function sharesOf(uint8 _classId, uint8 _seriesId, address _user)
+    function sharesOf(uint8 _classId, uint32 _seriesId, address _user)
         external
         view
         onlyValidShareClassAndSeries(_classId, _seriesId)
@@ -372,7 +372,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function pricePerShare(uint8 _classId, uint8 _seriesId)
+    function pricePerShare(uint8 _classId, uint32 _seriesId)
         external
         view
         onlyValidShareClassAndSeries(_classId, _seriesId)
@@ -386,7 +386,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function highWaterMark(uint8 _classId, uint8 _seriesId)
+    function highWaterMark(uint8 _classId, uint32 _seriesId)
         external
         view
         onlyValidShareClassAndSeries(_classId, _seriesId)
