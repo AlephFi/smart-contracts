@@ -224,7 +224,7 @@ library SeriesAccounting {
                 !_leadSeries.users.contains(_userConsolidationDetails.user)
                     && (
                         _userConsolidationDetails.user != MANAGEMENT_FEE_RECIPIENT
-                            || _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT
+                            && _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT
                     )
             ) {
                 _leadSeries.users.add(_userConsolidationDetails.user);
