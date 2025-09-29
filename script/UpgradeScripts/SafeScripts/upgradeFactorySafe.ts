@@ -19,7 +19,6 @@ async function main() {
     // Create and propose Safe transaction
     await createAndProposeSafeTransaction(config, {
         targetAddress: chainConfig.factoryProxyAddress,
-        newImplementationAddress: chainConfig.factoryImplementationAddress,
         safeOwnerAddress: chainConfig.factoryProxyOwner,
         abi: PROXY_ADMIN_ABI,
         functionName: 'upgradeAndCall',

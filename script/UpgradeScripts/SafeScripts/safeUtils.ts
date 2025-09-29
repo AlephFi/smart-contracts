@@ -33,6 +33,17 @@ export interface DeploymentConfig {
     };
 }
 
+export interface FactoryConfig {
+    [chainId: string]: {
+        [environment: string]: {
+            operationsMultisig: string;
+            oracle: string;
+            guardian: string;
+            authSigner: string;
+        };
+    };
+}
+
 export interface SafeTransactionConfig {
     chainId: string;
     environment: string;
@@ -43,7 +54,6 @@ export interface SafeTransactionConfig {
 
 export interface ContractUpgradeParams {
     targetAddress: string;
-    newImplementationAddress: string;
     safeOwnerAddress: string;
     abi: string[];
     functionName: string;
@@ -77,6 +87,20 @@ export function loadDeploymentConfig(chainId: string, environment: string): Depl
     return chainConfig;
 }
 
+export function loadFactoryConfig(chainId: string, environment: string): FactoryConfig[string][string] {
+    const configPath = path.join(__dirname, '../../../factoryConfig.json');
+    const configData = fs.readFileSync(configPath, 'utf8');
+    const config: FactoryConfig = JSON.parse(configData);
+    const chainConfig = config[chainId][environment];
+
+    if (!chainConfig) {
+        throw new Error(`No configuration found for chain ${chainId} and environment ${environment}`);
+    }
+
+    return chainConfig;
+}
+
+
 export function runForgeScript(scriptName: string, verify: boolean = true): void {
     console.log(`Running forge script: ${scriptName}`);
     const verifyFlag = verify ? '--verify' : '';
@@ -96,16 +120,10 @@ export async function createAndProposeSafeTransaction(
     upgradeParams: ContractUpgradeParams
 ): Promise<string> {
     const { chainId, rpcUrl, privateKey, safeApiKey } = config;
-    const { targetAddress, newImplementationAddress, safeOwnerAddress, abi, functionName, functionArgs } = upgradeParams;
+    const { targetAddress, safeOwnerAddress, abi, functionName, functionArgs } = upgradeParams;
 
     // Encode transaction data
     const txData = encodeTransactionData(abi, functionName, functionArgs);
-
-    console.log("================================================");
-    console.log("NEW IMPLEMENTATION ADDRESS");
-    console.log("================================================");
-    console.log(newImplementationAddress);
-    console.log("================================================");
 
     console.log("================================================");
     console.log("TX DATA");
@@ -169,4 +187,8 @@ export const BEACON_ABI = [
 export const PROXY_ADMIN_ABI = [
     "function upgrade(address proxy, address implementation) external",
     "function upgradeAndCall(address proxy, address implementation, bytes memory data) external"
+];
+
+export const ACCOUNTANT_ABI = [
+    "function setVaultFactory(address newVaultFactory) external"
 ];

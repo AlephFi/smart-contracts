@@ -1,28 +1,26 @@
 import {
     validateEnvironmentVariables,
     loadDeploymentConfig,
-    runForgeScript,
+    loadFactoryConfig,
     createAndProposeSafeTransaction,
-    PROXY_ADMIN_ABI
+    ACCOUNTANT_ABI
 } from './safeUtils';
 
 async function main() {
     // Validate environment variables
     const config = validateEnvironmentVariables();
 
-    // Run forge script to deploy new implementation
-    runForgeScript('DeployAccountantImplementation', false);
-
     // Load deployment configuration
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);
+    const factoryConfig = loadFactoryConfig(config.chainId, config.environment);
 
     // Create and propose Safe transaction
     await createAndProposeSafeTransaction(config, {
         targetAddress: chainConfig.accountantProxyAddress,
-        safeOwnerAddress: chainConfig.accountantProxyOwner,
-        abi: PROXY_ADMIN_ABI,
-        functionName: 'upgradeAndCall',
-        functionArgs: [chainConfig.accountantProxyAddress, chainConfig.accountantImplementationAddress, '0x']
+        safeOwnerAddress: factoryConfig.operationsMultisig,
+        abi: ACCOUNTANT_ABI,
+        functionName: 'setVaultFactory',
+        functionArgs: [chainConfig.factoryProxyAddress]
     });
 }
 

@@ -19,7 +19,6 @@ async function main() {
     // Create and propose Safe transaction
     await createAndProposeSafeTransaction(config, {
         targetAddress: chainConfig.vaultBeaconAddress,
-        newImplementationAddress: chainConfig.vaultImplementationAddress,
         safeOwnerAddress: chainConfig.vaultBeaconOwner,
         abi: BEACON_ABI,
         functionName: 'upgradeTo',

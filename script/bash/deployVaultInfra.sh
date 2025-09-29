@@ -97,13 +97,6 @@ FACTORY_PROXY_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "fact
 echo -e "\n${GREEN}✓${NC} Factory proxy deployed successfully"
 echo -e "  ${BLUE}Proxy:${NC} $FACTORY_PROXY_ADDRESS"
 
-# Set Factory in Accountant
-echo -e "${CYAN}╭─ Step 7: Setting Factory in Accountant${NC}"
-echo -e "${CYAN}╰─>${NC} Initializing deployment...\n"
-verify_forge_script "SetVaultFactory" "false" "Failed to set factory in accountant contract"
-
-echo -e "\n${GREEN}✓${NC} Factory set in accountant successfully"
-
 # Final success message
 print_header "Deployment Summary"
 echo -e "${GREEN}✨ All contracts deployed successfully!${NC}\n"

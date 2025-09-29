@@ -27,7 +27,7 @@
             "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
         },
         "nightly": {
-            "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "operationsMultisig": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
             "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
             "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
             "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
