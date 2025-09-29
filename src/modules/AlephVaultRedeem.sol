@@ -272,15 +272,15 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         ) {
             revert InsufficientAssetsToRedeem();
         }
-        if (_redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
+        uint256 _previewRemainingAmount =
+            _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
+        if (_previewRemainingAmount > 0 && _redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
             revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
         if (_shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }
-        uint256 _previewRemainingAmount =
-            _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
         if (
             _shareClassParams.minUserBalance > 0 && _previewRemainingAmount > 0
                 && _previewRemainingAmount < _shareClassParams.minUserBalance

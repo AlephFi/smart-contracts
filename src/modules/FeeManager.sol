@@ -134,7 +134,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint48 _currentBatchId,
         uint48 _lastFeePaidId,
         uint8 _classId,
-        uint8 _seriesId
+        uint32 _seriesId
     ) external returns (uint256) {
         return _accumulateFees(
             _getStorage().shareClasses[_classId],
@@ -238,7 +238,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint48 _currentBatchId,
         uint48 _lastFeePaidId,
         uint8 _classId,
-        uint8 _seriesId
+        uint32 _seriesId
     ) internal returns (uint256) {
         FeesAccumulatedParams memory _feesAccumulatedParams;
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
@@ -344,9 +344,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint8 _shareClasses = _sd.shareClassesId;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-            uint8 _shareSeriesId = _shareClass.shareSeriesId;
-            uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-            for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            uint32 _shareSeriesId = _shareClass.shareSeriesId;
+            uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+            for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
                 if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
                     _seriesId += _lastConsolidatedSeriesId;
                 }

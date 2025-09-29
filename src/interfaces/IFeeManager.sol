@@ -65,7 +65,7 @@ interface IFeeManager {
         uint48 lastFeePaidId,
         uint48 toBatchId,
         uint8 classId,
-        uint8 seriesId,
+        uint32 seriesId,
         uint256 newTotalAssets,
         uint256 newTotalShares,
         FeesAccumulatedParams feesAccumulatedParams
@@ -80,7 +80,7 @@ interface IFeeManager {
      * @dev the high water mark is set in the batch ID up to which the fees were accumulated,
      * which may not be the current batch ID.
      */
-    event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark, uint48 toBatchId);
+    event NewHighWaterMarkSet(uint8 classId, uint32 seriesId, uint256 highWaterMark, uint48 toBatchId);
 
     /**
      * @notice Emitted when fees are collected.
@@ -90,7 +90,7 @@ interface IFeeManager {
      * @param performanceFeesCollected The performance fees collected for the series.
      */
     event SeriesFeeCollected(
-        uint8 classId, uint8 seriesId, uint256 managementFeesCollected, uint256 performanceFeesCollected
+        uint8 classId, uint32 seriesId, uint256 managementFeesCollected, uint256 performanceFeesCollected
     );
 
     /**
@@ -224,7 +224,7 @@ interface IFeeManager {
         uint48 _currentBatchId,
         uint48 _lastFeePaidId,
         uint8 _classId,
-        uint8 _seriesId
+        uint32 _seriesId
     ) external returns (uint256);
 
     /**
