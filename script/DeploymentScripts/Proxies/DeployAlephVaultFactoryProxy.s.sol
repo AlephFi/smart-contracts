@@ -29,9 +29,9 @@ import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-// Use to Deploy only an AlephVaultFactory.
-// forge script DeployAlephVaultFactory --sig="run()" --broadcast -vvvv --verify
-contract DeployAlephVaultFactory is BaseScript {
+// Use to Deploy only an AlephVaultFactory Proxy.
+// forge script DeployAlephVaultFactoryProxy --sig="run()" --broadcast -vvvv --verify
+contract DeployAlephVaultFactoryProxy is BaseScript {
     function setUp() public {}
 
     function run() public {

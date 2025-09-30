@@ -5,7 +5,7 @@ import {
     OperationType
 } from '@safe-global/types-kit'
 import { execSync } from 'child_process'
-import { Interface, Wallet } from 'ethers'
+import { Interface, Wallet, JsonRpcProvider } from 'ethers'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
@@ -98,6 +98,18 @@ export function loadFactoryConfig(chainId: string, environment: string): Factory
     }
 
     return chainConfig;
+}
+
+export async function getProxyAdminAddress(proxyAddress: string, rpcUrl: string): Promise<string> {
+    const ADMIN_SLOT = '0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103';
+
+    const provider = new JsonRpcProvider(rpcUrl);
+    const adminSlotValue = await provider.getStorage(proxyAddress, ADMIN_SLOT);
+
+    // Convert the storage value to an address (remove leading zeros and add 0x prefix)
+    const proxyAdminAddress = '0x' + adminSlotValue.slice(-40);
+
+    return proxyAdminAddress;
 }
 
 
