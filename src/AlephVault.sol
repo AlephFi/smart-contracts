@@ -177,6 +177,11 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVault
+    function startTimestamp() external view returns (uint48) {
+        return _getStorage().startTimeStamp;
+    }
+
+    /// @inheritdoc IAlephVault
     function currentBatch() external view returns (uint48) {
         return _currentBatch(_getStorage());
     }
@@ -184,6 +189,16 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function shareClasses() external view returns (uint8) {
         return _getStorage().shareClassesId;
+    }
+
+    /// @inheritdoc IAlephVault
+    function shareSeriesId(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint32) {
+        return _getStorage().shareClasses[_classId].shareSeriesId;
+    }
+
+    /// @inheritdoc IAlephVault
+    function lastConsolidatedSeriesId(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint32) {
+        return _getStorage().shareClasses[_classId].lastConsolidatedSeriesId;
     }
 
     /// @inheritdoc IAlephVault
@@ -352,6 +367,16 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
+    function assetsPerClassOf(uint8 _classId, address _user)
+        external
+        view
+        onlyValidShareClass(_classId)
+        returns (uint256)
+    {
+        return _assetsPerClassOf(_getStorage().shareClasses[_classId], _classId, _user);
+    }
+
+    /// @inheritdoc IAlephVault
     function assetsOf(uint8 _classId, uint32 _seriesId, address _user)
         external
         view
@@ -428,7 +453,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     function redeemRequestOf(uint8 _classId, address _user) external view returns (uint256 _totalAmountToRedeem) {
         AlephVaultStorageData storage _sd = _getStorage();
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-        return _pendingAssetsOf(_shareClass, _currentBatch(_sd), _user, _assetsPerClassOf(_classId, _user, _shareClass));
+        return _pendingAssetsOf(_shareClass, _currentBatch(_sd), _user, _assetsPerClassOf(_shareClass, _classId, _user));
     }
 
     /// @inheritdoc IAlephVault
@@ -469,9 +494,9 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
             _totalFeeAmountToCollect +=
-                _assetsPerClassOf(_classId, SeriesAccounting.MANAGEMENT_FEE_RECIPIENT, _shareClass);
+                _assetsPerClassOf(_shareClass, _classId, SeriesAccounting.MANAGEMENT_FEE_RECIPIENT);
             _totalFeeAmountToCollect +=
-                _assetsPerClassOf(_classId, SeriesAccounting.PERFORMANCE_FEE_RECIPIENT, _shareClass);
+                _assetsPerClassOf(_shareClass, _classId, SeriesAccounting.PERFORMANCE_FEE_RECIPIENT);
         }
     }
 
