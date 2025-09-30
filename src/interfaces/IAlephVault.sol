@@ -234,6 +234,13 @@ interface IAlephVault {
     /*//////////////////////////////////////////////////////////////
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the timestamp when the vault started operating.
+     * @return The start timestamp.
+     */
+    function startTimestamp() external view returns (uint48);
+
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.
      * @return The current batch ID.
@@ -245,6 +252,20 @@ interface IAlephVault {
      * @return The number of share classes.
      */
     function shareClasses() external view returns (uint8);
+
+    /**
+     * @notice Returns the series id of that share class.
+     * @param _classId The ID of the share class.
+     * @return The series id of that share class.
+     */
+    function shareSeriesId(uint8 _classId) external view returns (uint32);
+
+    /**
+     * @notice Returns the last consolidated series id of that share class.
+     * @param _classId The ID of the share class.
+     * @return The last consolidated series id of that share class.
+     */
+    function lastConsolidatedSeriesId(uint8 _classId) external view returns (uint32);
 
     /**
      * @notice Returns the name of the vault.
@@ -424,6 +445,14 @@ interface IAlephVault {
      * @return The total shares in the vault for the given series.
      */
     function totalSharesPerSeries(uint8 _classId, uint32 _seriesId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total assets of a user in a given class.
+     * @param _classId The ID of the share class.
+     * @param _user The address of the user.
+     * @return The total assets of a user in a given class.
+     */
+    function assetsPerClassOf(uint8 _classId, address _user) external view returns (uint256);
 
     /**
      * @notice Returns the amount of assets claimable by a user based on their shares.
