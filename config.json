@@ -33,7 +33,7 @@
             "minRedeemAmountTimelock": 600,
             "managementFeeTimelock": 600,
             "performanceFeeTimelock": 600,
-            "batchDuration": 600
+            "batchDuration": 120
         },
         "feature": {
             "minDepositAmountTimelock": 1,

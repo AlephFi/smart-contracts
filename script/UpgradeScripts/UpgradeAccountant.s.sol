@@ -48,9 +48,7 @@ contract UpgradeAccountant is BaseScript {
 
         address _proxyAdmin = address(uint160(uint256(vm.load(_proxy, ADMIN_SLOT))));
 
-        ProxyAdmin(_proxyAdmin).upgradeAndCall(
-            ITransparentUpgradeableProxy(payable(_proxy)), _accountantImpl, ""
-        );
+        ProxyAdmin(_proxyAdmin).upgradeAndCall(ITransparentUpgradeableProxy(payable(_proxy)), _accountantImpl, "");
         console.log("Accountant upgraded to", _accountantImpl);
 
         vm.stopBroadcast();
