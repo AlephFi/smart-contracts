@@ -40,7 +40,7 @@ interface IAlephVaultSettlement {
         uint48 indexed fromBatchId,
         uint48 indexed toBatchId,
         uint8 classId,
-        uint8 seriesId,
+        uint32 seriesId,
         uint256 amountToSettle,
         uint256 totalAssets,
         uint256 totalShares
@@ -54,7 +54,7 @@ interface IAlephVaultSettlement {
      * @dev the new series is marked as created in the batch ID up to which the deposits are settled,
      * which may not be the current batch ID.
      */
-    event NewSeriesCreated(uint8 classId, uint8 seriesId, uint48 toBatchId);
+    event NewSeriesCreated(uint8 classId, uint32 seriesId, uint48 toBatchId);
 
     /**
      * @notice Emitted when a series is consolidated.
@@ -67,7 +67,7 @@ interface IAlephVaultSettlement {
      * which may not be the current batch ID.
      */
     event SeriesConsolidated(
-        uint8 classId, uint8 seriesId, uint48 toBatchId, uint256 amountToTransfer, uint256 sharesToTransfer
+        uint8 classId, uint32 seriesId, uint48 toBatchId, uint256 amountToTransfer, uint256 sharesToTransfer
     );
 
     /**
@@ -83,8 +83,8 @@ interface IAlephVaultSettlement {
      */
     event AllSeriesConsolidated(
         uint8 classId,
-        uint8 fromSeriesId,
-        uint8 toSeriesId,
+        uint32 fromSeriesId,
+        uint32 toSeriesId,
         uint48 toBatchId,
         uint256 totalAmountToTransfer,
         uint256 totalSharesToTransfer
@@ -106,7 +106,7 @@ interface IAlephVaultSettlement {
      * @param toBatchId The batch ID up to which the deposit request is settled.
      */
     event DepositRequestSettled(
-        address indexed user, uint8 classId, uint8 seriesId, uint256 amount, uint256 sharesToMint, uint48 toBatchId
+        address indexed user, uint8 classId, uint32 seriesId, uint256 amount, uint256 sharesToMint, uint48 toBatchId
     );
 
     /**
@@ -118,7 +118,7 @@ interface IAlephVaultSettlement {
      * @param totalSharesToMint The total shares to mint for the deposit requests in the batch.
      */
     event SettleDepositBatch(
-        uint48 indexed batchId, uint8 classId, uint8 seriesId, uint256 totalAmountToDeposit, uint256 totalSharesToMint
+        uint48 indexed batchId, uint8 classId, uint32 seriesId, uint256 totalAmountToDeposit, uint256 totalSharesToMint
     );
 
     /**
@@ -150,7 +150,7 @@ interface IAlephVaultSettlement {
         uint48 indexed batchId,
         address indexed user,
         uint8 classId,
-        uint8 seriesId,
+        uint32 seriesId,
         uint256 amountToRedeem,
         uint256 sharesToBurn
     );
@@ -236,7 +236,7 @@ interface IAlephVaultSettlement {
     struct SettleDepositDetails {
         bool createSeries;
         uint8 classId;
-        uint8 seriesId;
+        uint32 seriesId;
         uint48 batchId;
         uint48 toBatchId;
         uint256 totalAssets;

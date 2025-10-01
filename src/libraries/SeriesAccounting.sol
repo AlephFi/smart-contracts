@@ -60,7 +60,7 @@ library SeriesAccounting {
     struct UserConsolidationDetails {
         address user;
         uint8 classId;
-        uint8 seriesId;
+        uint32 seriesId;
         uint48 toBatchId;
         uint256 shares;
         uint256 amountToTransfer;
@@ -77,7 +77,7 @@ library SeriesAccounting {
      * @param _toBatchId The batch id to settle deposits up to.
      */
     function createNewSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _toBatchId) internal {
-        uint8 _newSeriesId = ++_shareClass.shareSeriesId;
+        uint32 _newSeriesId = ++_shareClass.shareSeriesId;
         _shareClass.shareSeries[_newSeriesId].highWaterMark = PRICE_DENOMINATOR;
         emit IAlephVaultSettlement.NewSeriesCreated(_classId, _newSeriesId, _toBatchId);
     }
@@ -93,15 +93,15 @@ library SeriesAccounting {
     function consolidateSeries(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
-        uint8 _shareSeriesId,
-        uint8 _lastConsolidatedSeriesId,
+        uint32 _shareSeriesId,
+        uint32 _lastConsolidatedSeriesId,
         uint48 _toBatchId
     ) internal {
         uint256 _totalAmountToTransfer;
         uint256 _totalSharesToTransfer;
         // iterate through all outstanding series
         IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[LEAD_SERIES_ID];
-        for (uint8 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
+        for (uint32 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
             IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
             (uint256 _amountToTransfer, uint256 _sharesToTransfer) =
                 _consolidateUserShares(_leadSeries, _shareSeries, _classId, _seriesId, _toBatchId);
@@ -152,11 +152,11 @@ library SeriesAccounting {
         // remaining amount is assets that were not settled in the lead series (this happens if user does not have
         // enough assets in the lead series to complete the redemption)
         uint256 _remainingAmount = _amount;
-        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint32 _shareSeriesId = _shareClass.shareSeriesId;
 
         // we now iterate through all series to settle the remaining user amount
-        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // if the user request amount is settled completely, we break out of the loop
             if (_remainingAmount == 0) {
                 break;
@@ -186,7 +186,7 @@ library SeriesAccounting {
         IAlephVault.ShareSeries storage _leadSeries,
         IAlephVault.ShareSeries storage _shareSeries,
         uint8 _classId,
-        uint8 _seriesId,
+        uint32 _seriesId,
         uint48 _toBatchId
     ) private returns (uint256 _totalAmountToTransfer, uint256 _totalSharesToTransfer) {
         UserConsolidationDetails memory _userConsolidationDetails = UserConsolidationDetails({
@@ -248,7 +248,7 @@ library SeriesAccounting {
     function _settleRedeemSlice(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
-        uint8 _seriesId,
+        uint32 _seriesId,
         uint48 _batchId,
         address _user,
         uint256 _amount

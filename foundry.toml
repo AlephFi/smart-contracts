@@ -15,9 +15,8 @@ sepolia = "https://gateway.tenderly.co/public/sepolia"
 hoodi = "https://ethereum-hoodi-rpc.publicnode.com"
 
 [etherscan]
-sepolia = { key = "I1JQ1PXJUVAR9EUNSCTW963UBA3RAMG8ZR", url = "https://api-sepolia.etherscan.io/api", chain = 11155111 }
-hoodi = { key = "I1JQ1PXJUVAR9EUNSCTW963UBA3RAMG8ZR", url = "https://api-hoodi.etherscan.io/api", chain = 560048 }
-
+sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api-sepolia.etherscan.io/api", chain = 11155111 }
+hoodi = { key = "${ETHERSCAN_API_KEY}", url = "https://api-hoodi.etherscan.io/api", chain = 560048 }
 
 [fmt]
 bracket_spacing = false

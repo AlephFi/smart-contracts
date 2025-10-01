@@ -225,7 +225,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         }
         if (
             _shareClassParams.minUserBalance > 0
-                && _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass)
+                && _assetsPerClassOf(_shareClass, _requestDepositParams.classId, msg.sender)
                     + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
                     < _shareClassParams.minUserBalance
         ) {
