@@ -168,6 +168,9 @@ interface IFeeManager {
      * @param _performanceFee The performance fee.
      * @param _highWaterMark The high water mark.
      * @return _performanceFeeShares The performance fee shares.
+     * @dev the total shares used to calculate the performance fee shares is the total shares
+     * plus the management fee shares to mint. Make sure to account for that in any calculation
+     * for which this view function is used.
      */
     function getPerformanceFeeShares(
         uint256 _newTotalAssets,
