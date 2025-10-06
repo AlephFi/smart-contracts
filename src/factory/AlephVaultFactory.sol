@@ -191,10 +191,9 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         external
         returns (address)
     {
-        bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
+        bytes32 _salt = keccak256(abi.encodePacked(msg.sender, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
         AuthLibrary.verifyVaultDeploymentAuthSignature(
-            _userInitializationParams.manager,
             address(this),
             _userInitializationParams.name,
             _userInitializationParams.configId,
@@ -212,6 +211,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: _sd.operationsMultisig,
             vaultFactory: address(this),
+            manager: msg.sender,
             oracle: _sd.oracle,
             guardian: _sd.guardian,
             authSigner: _sd.authSigner,
@@ -227,12 +227,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         address _vault = Create2.deploy(0, _salt, _bytecode);
         _sd.vaults.add(_vault);
         IAccountant(_sd.accountant).initializeVaultTreasury(_vault, _userInitializationParams.vaultTreasury);
-        emit VaultDeployed(
-            _vault,
-            _userInitializationParams.manager,
-            _userInitializationParams.name,
-            _userInitializationParams.configId
-        );
+        emit VaultDeployed(_vault, msg.sender, _userInitializationParams.name, _userInitializationParams.configId);
         return _vault;
     }
 
