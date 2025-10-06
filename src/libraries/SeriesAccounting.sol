@@ -161,12 +161,12 @@ library SeriesAccounting {
             if (_remainingAmount == 0) {
                 break;
             }
-            if (_seriesId > LEAD_SERIES_ID) {
-                _seriesId += _lastConsolidatedSeriesId;
-            }
             // we attempt to settle the remaining amount from this series
             // this continues to happen for all outstanding series until the complete amount is settled
             _remainingAmount = _settleRedeemSlice(_shareClass, _classId, _seriesId, _batchId, _user, _remainingAmount);
+            if (_seriesId == LEAD_SERIES_ID) {
+                _seriesId = _lastConsolidatedSeriesId;
+            }
         }
     }
 
