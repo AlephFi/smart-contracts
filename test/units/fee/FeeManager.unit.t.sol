@@ -125,7 +125,7 @@ contract FeeManagerTest is BaseTest {
             1046,
             IFeeManager.FeesAccumulatedParams({
                 managementFeeAmount: 7,
-                performanceFeeAmount: 50,
+                performanceFeeAmount: 49,
                 managementFeeSharesToMint: 5,
                 performanceFeeSharesToMint: 41
             })
