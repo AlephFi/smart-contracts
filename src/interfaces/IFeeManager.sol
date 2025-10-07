@@ -120,6 +120,15 @@ interface IFeeManager {
     error InvalidShareClassConversion();
 
     /**
+     * @notice Emitted when there are insufficient assets to collect fees.
+     * @param requiredVaultBalance The required vault balance.
+     */
+    error InsufficientAssetsToCollectFees(uint256 requiredVaultBalance);
+
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+    /**
      * @notice Constructor params.
      * @param managementFeeTimelock The timelock period for the management fee.
      * @param performanceFeeTimelock The timelock period for the performance fee.
