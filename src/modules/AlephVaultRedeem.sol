@@ -246,7 +246,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
         _redeemRequests.redeemRequest[msg.sender] = _shareUnits;
         _redeemRequests.usersToRedeem.add(msg.sender);
-        emit RedeemRequest(msg.sender, _currentBatchId, _redeemRequestParams.estAmountToRedeem);
+        emit RedeemRequest(
+            _redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem
+        );
         return _currentBatchId;
     }
 
