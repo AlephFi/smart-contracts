@@ -289,6 +289,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     ) internal returns (uint256 _totalAmountToRedeem) {
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_batchId];
         uint256 _len = _redeemRequests.usersToRedeem.length();
+        if (_len == 0) {
+            return 0;
+        }
         // iterate through all requests in batch (one user can only make one request per batch)
         for (uint256 _i; _i < _len; _i++) {
             address _user = _redeemRequests.usersToRedeem.at(_i);
