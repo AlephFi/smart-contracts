@@ -176,11 +176,12 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
 
     /**
      * @dev Returns the assets of a user per class.
+     * @param _shareClass The share class.
      * @param _classId The ID of the share class.
      * @param _user The user to get the assets of.
      * @return The assets of the user per class.
      */
-    function _assetsPerClassOf(uint8 _classId, address _user, IAlephVault.ShareClass storage _shareClass)
+    function _assetsPerClassOf(IAlephVault.ShareClass storage _shareClass, uint8 _classId, address _user)
         internal
         view
         returns (uint256)

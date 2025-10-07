@@ -297,7 +297,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             // this amount can now be different from the original amount requested as the price per share
             // in this cycle may have changed since the request was made due to pnl of the vault and fees
             uint256 _amount = ERC4626Math.previewMintUnits(
-                _redeemRequests.redeemRequest[_user], _assetsPerClassOf(_classId, _user, _shareClass)
+                _redeemRequests.redeemRequest[_user], _assetsPerClassOf(_shareClass, _classId, _user)
             );
             _shareClass.settleRedeemForUser(_classId, _batchId, _user, _amount);
             _totalAmountToRedeem += _amount;
@@ -347,7 +347,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     delete _redeemRequest.redeemRequest[_user];
                 }
             }
-            uint256 _userAssets = _assetsPerClassOf(_classId, _user, _shareClass);
+            uint256 _userAssets = _assetsPerClassOf(_shareClass, _classId, _user);
             _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _userAssets);
             _totalUserAssets += _userAssets;
         }
