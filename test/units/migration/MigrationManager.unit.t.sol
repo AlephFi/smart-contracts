@@ -183,6 +183,7 @@ contract MigrationManagerTest is BaseTest {
         assertFalse(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, oldGuardian));
         assertFalse(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, oldGuardian));
         assertFalse(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, oldGuardian));
+        assertFalse(vault.hasRole(PausableFlows.WITHDRAW_FLOW, oldGuardian));
 
         // check roles are granted
         assertTrue(vault.hasRole(RolesLibrary.GUARDIAN, newGuardian));
@@ -190,6 +191,7 @@ contract MigrationManagerTest is BaseTest {
         assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, newGuardian));
         assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, newGuardian));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, newGuardian));
+        assertTrue(vault.hasRole(PausableFlows.WITHDRAW_FLOW, newGuardian));
     }
 
     /*//////////////////////////////////////////////////////////////
