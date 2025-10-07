@@ -192,15 +192,6 @@ contract VaultSetUpTest is BaseTest {
         vault.initialize(_initializationParams);
     }
 
-    function test_initialize_when_manager_passed_is_address_0() public {
-        IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
-        _initializationParams.userInitializationParams.manager = address(0);
-
-        vault = new ExposedVault(defaultConfigParams.batchDuration);
-        vm.expectRevert(IAlephVault.InvalidInitializationParams.selector);
-        vault.initialize(_initializationParams);
-    }
-
     function test_initialize_when_underlyingToken_passed_is_address_0() public {
         IAlephVault.InitializationParams memory _initializationParams = defaultInitializationParams;
         _initializationParams.userInitializationParams.underlyingToken = address(0);
@@ -308,7 +299,7 @@ contract VaultSetUpTest is BaseTest {
         vault.initialize(defaultInitializationParams);
 
         assertEq(vault.name(), defaultInitializationParams.userInitializationParams.name);
-        assertEq(vault.manager(), defaultInitializationParams.userInitializationParams.manager);
+        assertEq(vault.manager(), defaultInitializationParams.manager);
         assertEq(vault.oracle(), defaultInitializationParams.oracle);
         assertEq(vault.guardian(), defaultInitializationParams.guardian);
         assertEq(vault.authSigner(), defaultInitializationParams.authSigner);
@@ -346,37 +337,21 @@ contract VaultSetUpTest is BaseTest {
 
         assertTrue(vault.hasRole(RolesLibrary.OPERATIONS_MULTISIG, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(RolesLibrary.VAULT_FACTORY, defaultInitializationParams.vaultFactory));
-        assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.userInitializationParams.manager));
+        assertTrue(vault.hasRole(RolesLibrary.MANAGER, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(RolesLibrary.ORACLE, defaultInitializationParams.oracle));
         assertTrue(vault.hasRole(RolesLibrary.GUARDIAN, defaultInitializationParams.guardian));
         assertTrue(vault.hasRole(RolesLibrary.ACCOUNTANT, defaultInitializationParams.accountant));
 
-        assertTrue(
-            vault.hasRole(
-                PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.userInitializationParams.manager
-            )
-        );
+        assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.guardian));
         assertTrue(vault.hasRole(PausableFlows.DEPOSIT_REQUEST_FLOW, defaultInitializationParams.operationsMultisig));
-        assertTrue(
-            vault.hasRole(
-                PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.userInitializationParams.manager
-            )
-        );
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.guardian));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_DEPOSIT_FLOW, defaultInitializationParams.operationsMultisig));
-        assertTrue(
-            vault.hasRole(
-                PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.userInitializationParams.manager
-            )
-        );
+        assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.guardian));
         assertTrue(vault.hasRole(PausableFlows.REDEEM_REQUEST_FLOW, defaultInitializationParams.operationsMultisig));
-        assertTrue(
-            vault.hasRole(
-                PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.userInitializationParams.manager
-            )
-        );
+        assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.manager));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.guardian));
         assertTrue(vault.hasRole(PausableFlows.SETTLE_REDEEM_FLOW, defaultInitializationParams.operationsMultisig));
         assertTrue(vault.hasRole(PausableFlows.WITHDRAW_FLOW, defaultInitializationParams.guardian));

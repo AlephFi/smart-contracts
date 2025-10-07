@@ -65,7 +65,6 @@ library AuthLibrary {
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Verifies the vault deployment auth signature.
-     * @param _manager The manager of the vault.
      * @param _vaultFactory The vault factory.
      * @param _name The name of the vault.
      * @param _configId The config ID of the vault.
@@ -73,15 +72,15 @@ library AuthLibrary {
      * @param _authSignature The auth signature.
      */
     function verifyVaultDeploymentAuthSignature(
-        address _manager,
         address _vaultFactory,
         string memory _name,
         string memory _configId,
         address _authSigner,
         AuthSignature memory _authSignature
     ) internal view {
-        bytes32 _hash =
-            keccak256(abi.encode(_manager, _vaultFactory, _name, _configId, block.chainid, _authSignature.expiryBlock));
+        bytes32 _hash = keccak256(
+            abi.encode(msg.sender, _vaultFactory, _name, _configId, block.chainid, _authSignature.expiryBlock)
+        );
         _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 
