@@ -324,12 +324,11 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         uint8 _shareClasses = _sd.shareClassesId;
         uint48 _currentBatchId = _currentBatch(_sd);
         uint256 _totalUserAssets;
-        uint256 _totalDepositRequests;
+        uint256 _newDepositsToRedeem;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
             uint48 _depositSettleId = _shareClass.depositSettleId;
             uint48 _redeemSettleId = _shareClass.redeemSettleId;
-            uint256 _newDepositsToRedeem;
             for (
                 uint48 _batchId = _depositSettleId > _redeemSettleId ? _redeemSettleId : _depositSettleId;
                 _batchId <= _currentBatchId;
@@ -339,7 +338,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     IAlephVault.DepositRequests storage _depositRequest = _shareClass.depositRequests[_batchId];
                     uint256 _amount = _depositRequest.depositRequest[_user];
                     _newDepositsToRedeem += _amount;
-                    _totalDepositRequests += _depositRequest.totalAmountToDeposit;
                     _depositRequest.totalAmountToDeposit -= _amount;
                     _depositRequest.usersToDeposit.remove(_user);
                     delete _depositRequest.depositRequest[_user];
@@ -354,9 +352,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _userAssets);
             _totalUserAssets += _userAssets;
         }
-        uint256 _totalAssetsToSettle = _totalUserAssets + _totalDepositRequests;
+        uint256 _totalAssetsToSettle = _totalUserAssets + _newDepositsToRedeem;
         _sd.totalAmountToWithdraw += _totalAssetsToSettle;
-        _sd.totalAmountToDeposit -= _totalDepositRequests;
+        _sd.totalAmountToDeposit -= _newDepositsToRedeem;
         _sd.redeemableAmount[_user] += _totalAssetsToSettle;
         uint256 _requiredVaultBalance = _sd.totalAmountToWithdraw + _sd.totalAmountToDeposit;
         if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
