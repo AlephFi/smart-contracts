@@ -309,20 +309,20 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-            _currentBatchId - 1, mockUser_1, 1, 0, 500 ether, 500 ether
+            1, 0, _currentBatchId - 1, mockUser_1, 500 ether, 500 ether
         );
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-            _currentBatchId - 1, mockUser_1, 1, 1, 250 ether, 250 ether
+            1, 1, _currentBatchId - 1, mockUser_1, 250 ether, 250 ether
         );
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-            _currentBatchId - 1, mockUser_2, 1, 0, 250 ether, 250 ether
+            1, 0, _currentBatchId - 1, mockUser_2, 250 ether, 250 ether
         );
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleRedeemBatch(_currentBatchId - 1, 1, 1000 ether);
+        emit IAlephVaultSettlement.SettleRedeemBatch(1, _currentBatchId - 1, 1000 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleRedeem(0, _currentBatchId, 1);
+        emit IAlephVaultSettlement.SettleRedeem(1, 0, _currentBatchId);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
@@ -388,26 +388,26 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-            _currentBatchId - 2, mockUser_1, 1, 0, 250 ether, 250 ether
+            1, 0, _currentBatchId - 2, mockUser_1, 250 ether, 250 ether
         );
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-            _currentBatchId - 2, mockUser_2, 1, 0, 500 ether, 500 ether
+            1, 0, _currentBatchId - 2, mockUser_2, 500 ether, 500 ether
         );
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleRedeemBatch(_currentBatchId - 2, 1, 750 ether);
+        emit IAlephVaultSettlement.SettleRedeemBatch(1, _currentBatchId - 2, 750 ether);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-            _currentBatchId - 1, mockUser_1, 1, 0, 250 ether, 250 ether
+            1, 0, _currentBatchId - 1, mockUser_1, 250 ether, 250 ether
         );
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-            _currentBatchId - 1, mockUser_1, 1, 1, 125 ether, 125 ether
+            1, 1, _currentBatchId - 1, mockUser_1, 125 ether, 125 ether
         );
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleRedeemBatch(_currentBatchId - 1, 1, 375 ether);
+        emit IAlephVaultSettlement.SettleRedeemBatch(1, _currentBatchId - 1, 375 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleRedeem(0, _currentBatchId, 1);
+        emit IAlephVaultSettlement.SettleRedeem(1, 0, _currentBatchId);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,

@@ -114,7 +114,7 @@ contract FeeManagerTest is BaseTest {
 
         // accumalate fees
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewHighWaterMarkSet(1, 0, _newHighWaterMark, 100);
+        emit IFeeManager.NewHighWaterMarkSet(1, 0, 100, _newHighWaterMark);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(
             0,

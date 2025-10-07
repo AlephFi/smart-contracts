@@ -381,8 +381,8 @@ contract RequestSettleDepositTest is BaseTest {
             uint256 _newTotalAssets = uint256(keccak256(abi.encode(_newTotalAssetsSeed, i))) % type(uint96).max;
             bool _settleBatch = _newTotalAssets % 2 == 0;
             if (_settleBatch) {
-                uint8 _lastConsolidatedSeriesId = vault.lastConsolidatedSeriesId();
-                uint8 _activeSeries = vault.shareSeriesId() - _lastConsolidatedSeriesId + 1;
+                uint32 _lastConsolidatedSeriesId = vault.lastConsolidatedSeriesId();
+                uint32 _activeSeries = vault.shareSeriesId() - _lastConsolidatedSeriesId + 1;
                 uint256 _leadSeriesAssetsBefore = vault.totalAssetsPerSeries(1, 0);
                 uint256 _vaultBalanceBefore = underlyingToken.balanceOf(address(vault));
 
@@ -392,7 +392,7 @@ contract RequestSettleDepositTest is BaseTest {
                 uint256[] memory _vaultSharesBefore = new uint256[](_activeSeries + 1);
                 _newTotalAssetsArr[0] = _newTotalAssets;
                 _vaultSharesBefore[0] = vault.totalSharesPerSeries(1, 0);
-                for (uint8 k = 1; k < _activeSeries; k++) {
+                for (uint32 k = 1; k < _activeSeries; k++) {
                     _newTotalAssetsArr[k] = vault.totalAssetsPerSeries(1, k + _lastConsolidatedSeriesId).mulDiv(
                         _scalingFactor, _priceDenominator
                     );
@@ -410,7 +410,7 @@ contract RequestSettleDepositTest is BaseTest {
                 assertLe(_vaultSharesBefore[0], vault.totalSharesPerSeries(1, 0));
                 assertGe(_vaultBalanceBefore, underlyingToken.balanceOf(address(vault)));
                 if (_scalingFactor <= _priceDenominator && _totalDeposits > 0) {
-                    for (uint8 k = 1; k <= _activeSeries; k++) {
+                    for (uint32 k = 1; k <= _activeSeries; k++) {
                         assertLt(_vaultSharesBefore[k], vault.totalSharesPerSeries(1, k + _lastConsolidatedSeriesId));
                     }
                 }
