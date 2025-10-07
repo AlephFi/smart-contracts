@@ -330,7 +330,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
             uint256 _profit =
                 _profitPerShare.mulDiv(_totalShares, SeriesAccounting.PRICE_DENOMINATOR, Math.Rounding.Ceil);
             _performanceFeeAmount =
-                _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR - _performanceFee), Math.Rounding.Ceil);
+                _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
         }
     }
 
