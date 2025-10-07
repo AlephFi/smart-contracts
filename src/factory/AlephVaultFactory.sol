@@ -39,9 +39,6 @@ import {
 contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint32 public constant MAX_MANAGEMENT_FEE = 1000; // 10%
-    uint32 public constant MAX_PERFORMANCE_FEE = 5000; // 50%
-
     /*//////////////////////////////////////////////////////////////
                             INITIALIZER
     //////////////////////////////////////////////////////////////*/
