@@ -65,13 +65,15 @@ contract FeeManagerTest is BaseTest {
         // accumalate fees
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(
-            0,
-            100,
-            1,
-            0,
-            _newTotalAssets,
-            1005,
-            IFeeManager.FeesAccumulatedParams({
+            IFeeManager.AccumulateFeesParams({
+                newTotalAssets: _newTotalAssets,
+                totalShares: 1005,
+                currentBatchId: currentBatchId,
+                lastFeePaidId: lastFeePaidId,
+                classId: 1,
+                seriesId: 0
+            }),
+            IFeeManager.FeesAccumulatedDetails({
                 managementFeeAmount: 7,
                 performanceFeeAmount: 0,
                 managementFeeSharesToMint: 5,
@@ -108,7 +110,7 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        uint256 _newHighWaterMark = 1_147_228;
+        uint256 _newHighWaterMark = 1_194_030;
         vault.setTotalAssets(0, 1000);
         vault.setTotalShares(0, 1000);
 
@@ -117,13 +119,15 @@ contract FeeManagerTest is BaseTest {
         emit IFeeManager.NewHighWaterMarkSet(1, 0, _newHighWaterMark, 100);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(
-            0,
-            100,
-            1,
-            0,
-            _newTotalAssets,
-            1046,
-            IFeeManager.FeesAccumulatedParams({
+            IFeeManager.AccumulateFeesParams({
+                newTotalAssets: _newTotalAssets,
+                totalShares: 1046,
+                currentBatchId: currentBatchId,
+                lastFeePaidId: lastFeePaidId,
+                classId: 1,
+                seriesId: 0
+            }),
+            IFeeManager.FeesAccumulatedDetails({
                 managementFeeAmount: 7,
                 performanceFeeAmount: 50,
                 managementFeeSharesToMint: 5,
