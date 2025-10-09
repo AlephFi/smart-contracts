@@ -187,6 +187,37 @@ contract AlephVaultRedeemTest is BaseTest {
         assertEq(vault.usersToRedeemAt(1, _batchId)[0], mockUser_1);
     }
 
+    function test_requestRedeem_whenFlowIsUnpaused_whenUserHasSufficientSharesToRedeem_shouldSucceed_whenUserBalanceIsLessThanMinRedeemAmount(
+    ) public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // set min amount to redeem to 200 ether
+        vault.setMinRedeemAmount(1, 200 ether);
+
+        // set shares of user to 100
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Capture batch ID before emit expectation
+        uint48 _expectedBatchId = vault.currentBatch();
+
+        // request redeem
+        uint256 _shareUnits = vault.TOTAL_SHARE_UNITS();
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
+        vm.prank(mockUser_1);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultRedeem.RedeemRequest(1, _expectedBatchId, mockUser_1, params.estAmountToRedeem);
+        uint48 _batchId = vault.requestRedeem(params);
+
+        // check the redeem request
+        assertEq(vault.redeemRequestOfAt(1, mockUser_1, _batchId), _shareUnits);
+        assertEq(vault.usersToRedeemAt(1, _batchId).length, 1);
+        assertEq(vault.usersToRedeemAt(1, _batchId)[0], mockUser_1);
+    }
+
     function test_requestRedeem_whenFlowIsUnpaused_whenUserHasSufficientSharesToRedeem_shouldSucceed_multipleUsers()
         public
     {

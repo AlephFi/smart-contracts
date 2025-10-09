@@ -473,23 +473,34 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 3 days + 1);
 
-        // set deposit request
+        // set deposit and redeem requests
         vault.setBatchDeposit(0, mockUser_1, 100 ether);
         vault.setBatchDeposit(1, mockUser_1, 200 ether);
         vault.setBatchRedeem(2, mockUser_1, 100 ether);
         vault.setBatchRedeem(3, mockUser_1, 300 ether);
 
+        // set deposit and redeem requests for different user
+        vault.setBatchDeposit(0, mockUser_2, 500 ether);
+        vault.setBatchDeposit(1, mockUser_2, 300 ether);
+        vault.setBatchRedeem(2, mockUser_2, 900 ether);
+        vault.setBatchRedeem(3, mockUser_2, 400 ether);
+
         // set total assets and total shares
         vault.createNewSeries();
-        vault.setTotalAssets(0, 200 ether);
-        vault.setTotalShares(0, 200 ether);
-        vault.setTotalAssets(1, 200 ether);
-        vault.setTotalShares(1, 200 ether);
+        vault.setTotalAssets(0, 2000 ether);
+        vault.setTotalShares(0, 2000 ether);
+        vault.setTotalAssets(1, 1000 ether);
+        vault.setTotalShares(1, 1000 ether);
         vault.setSharesOf(0, mockUser_1, 200 ether);
         vault.setSharesOf(1, mockUser_1, 200 ether);
 
+        // set total amount to withdraw
+        vault.setTotalAmountToWithdraw(1000 ether);
+
         // mint balance for vault
-        underlyingToken.mint(address(vault), 700 ether);
+        // required balance = 800(total amount to deposit apart from user) + 1000(total amount to withdraw)
+        // + 300(deposit user made) + 400(user assets) = 2500
+        underlyingToken.mint(address(vault), 2500 ether);
 
         // force redeem
         vm.prank(manager);
@@ -498,10 +509,10 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vault.forceRedeem(mockUser_1);
 
         // assert total assets and total shares
-        assertEq(vault.totalAssetsPerSeries(1, 0), 0);
-        assertEq(vault.totalAssetsPerSeries(1, 1), 0);
-        assertEq(vault.totalSharesPerSeries(1, 0), 0);
-        assertEq(vault.totalSharesPerSeries(1, 1), 0);
+        assertEq(vault.totalAssetsPerSeries(1, 0), 1800 ether);
+        assertEq(vault.totalAssetsPerSeries(1, 1), 800 ether);
+        assertEq(vault.totalSharesPerSeries(1, 0), 1800 ether);
+        assertEq(vault.totalSharesPerSeries(1, 1), 800 ether);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);

@@ -750,6 +750,7 @@ contract RequestSettleDepositTest is BaseTest {
 
         // set last consolidated series id to 3
         vault.setLastConsolidatedSeriesId(3);
+        vault.setHighWaterMark(11 * vault.PRICE_DENOMINATOR() / 10);
 
         // set total assets and total shares
         vault.setTotalAssets(0, 1000 ether);
