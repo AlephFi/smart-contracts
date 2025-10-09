@@ -2,7 +2,10 @@ CollectFees_FeeManager_Unit_Test
 ├── when caller is not ACCOUNTANT
 │   └── it should revert with AccessControlUnauthorizedAccount
 └── when caller is ACCOUNTANT
-    └── it should burn shares of MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT, update total shares and total assets, transfer fees to accountant, emit FeesCollected
+    ├── when there are insufficient assets to collect fees
+    │   └── it should revert with InsufficientAssetsToCollectFees
+    └── when there are sufficient assets to collect fees
+        └── it should burn shares of MANAGEMENT_FEE_RECIPIENT and PERFORMANCE_FEE_RECIPIENT, update total shares and total assets, transfer fees to accountant, emit FeesCollected
 
 CollectFees_Accountant_Unit_Test
 ├── when vault passed is not valid

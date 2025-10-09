@@ -164,22 +164,48 @@ contract FeeManagerTest is BaseTest {
         vault.collectFees();
     }
 
-    function test_collectFees_whenCallerIsAccountant_shouldSucceed() public {
+    function test_collectFees_revertsWhenThereAreInsufficientAssetsToCollectFees() public {
         // accumalate fees to recipients
-        uint256 _managementShares = 120;
-        uint256 _performanceShares = 120;
+        uint256 _managementShares = 120 ether;
+        uint256 _performanceShares = 120 ether;
         vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
         vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
 
         // set total assets and shares
-        uint256 _totalAssets = 1000;
-        uint256 _totalShares = 1200;
+        uint256 _totalAssets = 1000 ether;
+        uint256 _totalShares = 1200 ether;
+        vault.setTotalAssets(0, _totalAssets);
+        vault.setTotalShares(0, _totalShares);
+
+        // set total amount to deposit and withdraw
+        vault.setTotalAmountToDeposit(100 ether);
+        vault.setTotalAmountToWithdraw(100 ether);
+
+        // mint balance for vault
+        underlyingToken.mint(address(vault), 200 ether);
+
+        // collect fees
+        vm.prank(address(accountant));
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.InsufficientAssetsToCollectFees.selector, 400 ether));
+        vault.collectFees();
+    }
+
+    function test_collectFees_whenCallerIsAccountant_shouldSucceed() public {
+        // accumalate fees to recipients
+        uint256 _managementShares = 120 ether;
+        uint256 _performanceShares = 120 ether;
+        vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
+        vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
+
+        // set total assets and shares
+        uint256 _totalAssets = 1000 ether;
+        uint256 _totalShares = 1200 ether;
         vault.setTotalAssets(0, _totalAssets);
         vault.setTotalShares(0, _totalShares);
 
         // expected fees to collect
-        uint256 _expectedManagementFeesToCollect = 100;
-        uint256 _expectedPerformanceFeesToCollect = 100;
+        uint256 _expectedManagementFeesToCollect = 100 ether;
+        uint256 _expectedPerformanceFeesToCollect = 100 ether;
         uint256 _expectedTotalFeesToCollect = _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect;
 
         // set vault balance
