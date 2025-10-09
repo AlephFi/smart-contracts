@@ -56,7 +56,7 @@ interface IFeeManager {
      * @param accumulateFeesParams The parameters for the accumulated fees.
      * @param feesAccumulatedDetails The details for the accumulated fees.
      */
-    event FeesAccumulated(AccumulateFeesParams feesAccumulatedParams, FeesAccumulatedDetails feesAccumulatedDetails);
+    event FeesAccumulated(AccumulateFeesParams accumulateFeesParams, FeesAccumulatedDetails feesAccumulatedDetails);
 
     /**
      * @notice Emitted when a new high water mark is set.
@@ -127,20 +127,20 @@ interface IFeeManager {
 
     /**
      * @notice Parameters for the accumulated fees.
-     * @param newTotalAssets The new total assets in the vault.
-     * @param totalShares The total shares in the vault.
-     * @param currentBatchId The current batch id.
-     * @param lastFeePaidId The last fee paid id.
      * @param classId The id of the class.
      * @param seriesId The id of the series.
+     * @param currentBatchId The current batch id.
+     * @param lastFeePaidId The last fee paid id.
+     * @param newTotalAssets The new total assets in the vault.
+     * @param totalShares The total shares in the vault.
      */
     struct AccumulateFeesParams {
-        uint256 newTotalAssets;
-        uint256 totalShares;
+        uint8 classId;
+        uint32 seriesId;
         uint48 currentBatchId;
         uint48 lastFeePaidId;
-        uint8 classId;
-        uint8 seriesId;
+        uint256 newTotalAssets;
+        uint256 totalShares;
     }
 
     /**
@@ -227,22 +227,22 @@ interface IFeeManager {
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Accumulates fees for a given batch.
-     * @param _newTotalAssets The new total assets in the vault.
-     * @param _totalShares The total shares in the vault.
-     * @param _currentBatchId The current batch ID.
-     * @param _lastFeePaidId The last fee paid ID.
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
+     * @param _currentBatchId The current batch ID.
+     * @param _lastFeePaidId The last fee paid ID.
+     * @param _newTotalAssets The new total assets in the vault.
+     * @param _totalShares The total shares in the vault.
      * @return The accumulated fees.
      * @return  Whether a new high watermark is set or not.
      */
     function accumulateFees(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
+        uint8 _classId,
+        uint32 _seriesId,
         uint48 _currentBatchId,
         uint48 _lastFeePaidId,
-        uint8 _classId,
-        uint32 _seriesId
+        uint256 _newTotalAssets,
+        uint256 _totalShares
     ) external returns (uint256, bool);
 
     /**

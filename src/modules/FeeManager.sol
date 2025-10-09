@@ -124,22 +124,22 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     //////////////////////////////////////////////////////////////*/
     ///@inheritdoc IFeeManager
     function accumulateFees(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
+        uint8 _classId,
+        uint32 _seriesId,
         uint48 _currentBatchId,
         uint48 _lastFeePaidId,
-        uint8 _classId,
-        uint32 _seriesId
+        uint256 _newTotalAssets,
+        uint256 _totalShares
     ) external returns (uint256, bool) {
         return _accumulateFees(
             _getStorage().shareClasses[_classId],
             AccumulateFeesParams({
-                newTotalAssets: _newTotalAssets,
-                totalShares: _totalShares,
+                classId: _classId,
+                seriesId: _seriesId,
                 currentBatchId: _currentBatchId,
                 lastFeePaidId: _lastFeePaidId,
-                classId: _classId,
-                seriesId: _seriesId
+                newTotalAssets: _newTotalAssets,
+                totalShares: _totalShares
             })
         );
     }
@@ -226,14 +226,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
      */
     function _accumulateFees(
         IAlephVault.ShareClass storage _shareClass,
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
-        uint48 _currentBatchId,
-        uint48 _lastFeePaidId,
-        uint8 _classId,
-        uint32 _seriesId
+        AccumulateFeesParams memory _accumulateFeesParams
     ) internal returns (uint256, bool) {
-        FeesAccumulatedParams memory _feesAccumulatedParams;
+        FeesAccumulatedDetails memory _feesAccumulatedDetails;
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
         // calculate management fee amount
         _feesAccumulatedDetails.managementFeeAmount = _calculateManagementFeeAmount(
@@ -285,6 +280,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
                 _highWaterMark
             );
         }
+        _accumulateFeesParams.totalShares += _totalFeeSharesToMint;
         emit FeesAccumulated(_accumulateFeesParams, _feesAccumulatedDetails);
         return (_totalFeeSharesToMint, _newHighWaterMarkSet);
     }

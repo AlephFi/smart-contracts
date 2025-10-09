@@ -103,8 +103,13 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.toBatchId,
             _settlementParams.newTotalAssets
         );
-        uint32 _settlementSeriesId =
-            _handleSeriesAccounting(_shareClass, _createNewSeries, _lastConsolidatedSeriesId, _settlementParams.classId, _settlementParams.toBatchId);
+        uint32 _settlementSeriesId = _handleSeriesAccounting(
+            _shareClass,
+            _createNewSeries,
+            _settlementParams.classId,
+            _lastConsolidatedSeriesId,
+            _settlementParams.toBatchId
+        );
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_settlementSeriesId];
         SettleDepositDetails memory _settleDepositDetails = SettleDepositDetails({
             // check if a new series needs to be created
@@ -254,7 +259,13 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.newTotalAssets
         );
         // consolidate series if required
-        _handleSeriesAccounting(_shareClass, _createNewSeries, _settlementParams.classId, _lastConsolidatedSeriesId, _settlementParams.toBatchId);
+        _handleSeriesAccounting(
+            _shareClass,
+            _createNewSeries,
+            _settlementParams.classId,
+            _lastConsolidatedSeriesId,
+            _settlementParams.toBatchId
+        );
         // settle redeems for each batch
         uint256 _totalAmountToRedeem;
         for (uint48 _batchId = _redeemSettleId; _batchId < _settleUptoBatchId; _batchId++) {
@@ -373,10 +384,13 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * used in settle deposits to get the series id in which to settle pending deposits.
      * for redeems, this function is called only to handle consolidation if required.
      */
-    function _handleSeriesAccounting(IAlephVault.ShareClass storage _shareClass, bool _createNewSeries, uint8 _classId, uint32 _lastConsolidatedSeriesId, uint48 _toBatchId)
-        internal
-        returns (uint32 _seriesId)
-    {
+    function _handleSeriesAccounting(
+        IAlephVault.ShareClass storage _shareClass,
+        bool _createNewSeries,
+        uint8 _classId,
+        uint32 _lastConsolidatedSeriesId,
+        uint48 _toBatchId
+    ) internal returns (uint32 _seriesId) {
         // for non-incentive classes, all settlements take place in the lead series
         if (_shareClass.shareClassParams.performanceFee > 0) {
             uint32 _shareSeriesId = _shareClass.shareSeriesId;
@@ -474,7 +488,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             .delegatecall(
             abi.encodeCall(
                 IFeeManager.accumulateFees,
-                (_newTotalAssets, _totalShares, _toBatchId, _lastFeePaidId, _classId, _seriesId)
+                (_classId, _seriesId, _toBatchId, _lastFeePaidId, _newTotalAssets, _totalShares)
             )
         );
         if (!_success) {
