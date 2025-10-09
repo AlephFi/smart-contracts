@@ -221,7 +221,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_redeemRequestParams.classId];
         uint48 _currentBatchId = _currentBatch(_sd);
         // get total user assets in the share class
-        uint256 _totalUserAssets = _assetsPerClassOf(_redeemRequestParams.classId, msg.sender, _shareClass);
+        uint256 _totalUserAssets = _assetsPerClassOf(_shareClass, _redeemRequestParams.classId, msg.sender);
         // get pending assets of the user that will be settled in upcoming cycle
         uint256 _pendingUserAssets = _pendingAssetsOf(_shareClass, _currentBatchId, msg.sender, _totalUserAssets);
 
@@ -246,7 +246,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         IAlephVault.RedeemRequests storage _redeemRequests = _shareClass.redeemRequests[_currentBatchId];
         _redeemRequests.redeemRequest[msg.sender] = _shareUnits;
         _redeemRequests.usersToRedeem.add(msg.sender);
-        emit RedeemRequest(msg.sender, _currentBatchId, _redeemRequestParams.estAmountToRedeem);
+        emit RedeemRequest(
+            _redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem
+        );
         return _currentBatchId;
     }
 
@@ -272,15 +274,15 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         ) {
             revert InsufficientAssetsToRedeem();
         }
-        if (_redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
+        uint256 _previewRemainingAmount =
+            _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
+        if (_previewRemainingAmount > 0 && _redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
             revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
         if (_shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }
-        uint256 _previewRemainingAmount =
-            _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
         if (
             _shareClassParams.minUserBalance > 0 && _previewRemainingAmount > 0
                 && _previewRemainingAmount < _shareClassParams.minUserBalance

@@ -69,12 +69,12 @@ interface IAlephVaultDeposit {
 
     /**
      * @notice Emitted when a deposit request is made.
-     * @param user The user making the deposit request.
      * @param classId The ID of the share class.
-     * @param amount The amount of the deposit request.
      * @param batchId The batch ID of the deposit request.
+     * @param user The user making the deposit request.
+     * @param amount The amount of the deposit request.
      */
-    event DepositRequest(address indexed user, uint8 classId, uint256 amount, uint48 batchId);
+    event DepositRequest(uint8 classId, uint48 batchId, address indexed user, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

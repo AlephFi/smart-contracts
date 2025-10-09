@@ -73,10 +73,10 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 0, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -137,10 +137,10 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 0, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -201,10 +201,10 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 0, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -264,10 +264,10 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 0, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -320,10 +320,10 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 0, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -392,10 +392,10 @@ contract RequestSettleDepositTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 1, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 1, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 1, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -460,20 +460,18 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(false, _newTotalAssets[0], _totalShares, _depositAmount, 10);
-        uint256 _newPricePerShare = Math.ceilDiv(
-            _newTotalAssets[0] * vault.PRICE_DENOMINATOR(),
-            _totalShares + _params.managementFeeShares + _params.performanceFeeShares
-        );
+        uint256 _newPricePerShare =
+            Math.ceilDiv(_newTotalAssets[0] * vault.PRICE_DENOMINATOR(), _totalShares + _params.managementFeeShares);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewHighWaterMarkSet(1, 0, _newPricePerShare, _settleBatchId);
+        emit IFeeManager.NewHighWaterMarkSet(1, 0, _settleBatchId, _newPricePerShare);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 0, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 0, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 0, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -544,10 +542,10 @@ contract RequestSettleDepositTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.NewSeriesCreated(1, 1, _settleBatchId);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_requestBatchId, 1, 1, _depositAmount, _params.newSharesToMint);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 1, _requestBatchId, _depositAmount, _params.newSharesToMint);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleDeposit(
-            0, _settleBatchId, 1, 1, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
+            1, 1, 0, _settleBatchId, _depositAmount, _params.expectedTotalAssets, _params.expectedTotalShares
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
@@ -736,6 +734,176 @@ contract RequestSettleDepositTest is BaseTest {
         // assert total assets and total shares
         assertApproxEqAbs(vault.totalAssetsPerSeries(1, 0), _newTotalAssets_2[0] + _newTotalAssets_2[1], 5);
         assertGt(vault.totalSharesPerSeries(1, 0), _totalShares);
+
+        // assert users shares
+        assertGt(vault.sharesOf(1, 0, mockUser_1), _expectedSharesToMint_user1);
+        assertGt(vault.sharesOf(1, 0, mockUser_2), _expectedSharesToMint_user2);
+    }
+
+    function test_requestDeposit_settleDeposit_multipleBatches_newSeriesAfterConsolidation() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // set fees
+        vault.setManagementFee(1, 200); // 2%
+        vault.setPerformanceFee(1, 2000); // 20%
+
+        // set last consolidated series id to 3
+        vault.setLastConsolidatedSeriesId(3);
+        vault.setHighWaterMark(11 * vault.PRICE_DENOMINATOR() / 10);
+
+        // set total assets and total shares
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
+
+        // set up users with tokens
+        underlyingToken.mint(address(mockUser_1), 1000 ether);
+        underlyingToken.mint(address(mockUser_2), 1000 ether);
+
+        // set vault allowance to 2000
+        vm.prank(mockUser_1);
+        underlyingToken.approve(address(vault), 1000 ether);
+        vm.prank(mockUser_2);
+        underlyingToken.approve(address(vault), 1000 ether);
+
+        // request deposit with users
+        vm.prank(mockUser_1);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
+        );
+        vm.prank(mockUser_2);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_2})
+        );
+        uint256 _totalDepositAmount_1 = 300 ether;
+
+        // roll the block forward to next batch
+        vm.warp(block.timestamp + 1 days);
+
+        // request deposit with users
+        vm.prank(mockUser_1);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_1})
+        );
+        vm.prank(mockUser_2);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_2})
+        );
+        uint256 _totalDepositAmount_2 = 500 ether;
+
+        // roll the block forward to next batch
+        vm.warp(block.timestamp + 1 days);
+
+        // first batch settle
+        uint256[] memory _newTotalAssets = new uint256[](1);
+        _newTotalAssets[0] = 1000 ether;
+
+        // expected shares to mint per user
+        uint256 _expectedSharesToMint_user1 = ERC4626Math.previewDeposit(300 ether, 0, 0);
+        uint256 _expectedSharesToMint_user2 = ERC4626Math.previewDeposit(500 ether, 0, 0);
+
+        // get settlement auth signature
+        uint48 _settleBatchId = vault.currentBatch();
+        AuthLibrary.AuthSignature memory _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets);
+
+        // settle deposit
+        vm.startPrank(oracle);
+        vault.settleDeposit(
+            IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets,
+                authSignature: _settlementAuthSignature
+            })
+        );
+        vm.stopPrank();
+
+        // assert total assets and total shares
+        assertEq(vault.totalAssetsPerSeries(1, 4), _totalDepositAmount_1 + _totalDepositAmount_2);
+        assertEq(vault.totalSharesPerSeries(1, 4), _expectedSharesToMint_user1 + _expectedSharesToMint_user2);
+
+        // assert users shares
+        assertEq(vault.sharesOf(1, 4, mockUser_1), _expectedSharesToMint_user1);
+        assertEq(vault.sharesOf(1, 4, mockUser_2), _expectedSharesToMint_user2);
+
+        // roll the block forward to next batch
+        vm.warp(block.timestamp + 1 days);
+
+        // request deposit with users
+        vm.prank(mockUser_1);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_1})
+        );
+        vm.prank(mockUser_2);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 200 ether, authSignature: authSignature_2})
+        );
+        uint256 _totalDepositAmount_3 = 500 ether;
+
+        // roll the block forward some batches later
+        vm.warp(block.timestamp + 10 days);
+
+        // vault manager did not make a profit
+        uint256[] memory _newTotalAssets_2 = new uint256[](2);
+        _newTotalAssets_2[0] = 800 ether;
+        _newTotalAssets_2[1] = 700 ether;
+
+        // expected shares to mint
+        uint256 _expectedSharesToMint_3_user1 = ERC4626Math.previewDeposit(300 ether, 0, 0);
+        uint256 _expectedSharesToMint_3_user2 = ERC4626Math.previewDeposit(200 ether, 0, 0);
+
+        // settle deposit
+        _settleBatchId = vault.currentBatch();
+        _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets_2);
+        vm.startPrank(oracle);
+        vault.settleDeposit(
+            IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets_2,
+                authSignature: _settlementAuthSignature
+            })
+        );
+        vm.stopPrank();
+
+        // assert total assets and total shares
+        assertEq(vault.totalAssetsPerSeries(1, 5), _totalDepositAmount_3);
+        assertEq(vault.totalSharesPerSeries(1, 5), _expectedSharesToMint_3_user1 + _expectedSharesToMint_3_user2);
+
+        // assert users shares
+        assertEq(vault.sharesOf(1, 5, mockUser_1), _expectedSharesToMint_3_user1);
+        assertEq(vault.sharesOf(1, 5, mockUser_2), _expectedSharesToMint_3_user2);
+
+        // roll the block forward some batches later
+        vm.warp(block.timestamp + 10 days);
+
+        // vault manager made a profit
+        uint256[] memory _newTotalAssets_3 = new uint256[](3);
+        _newTotalAssets_3[0] = 1500 ether; // 50% profit
+        _newTotalAssets_3[1] = 1050 ether; // 50% profit
+        _newTotalAssets_3[2] = 750 ether; // 50% profit
+
+        // settle deposit
+        _settleBatchId = vault.currentBatch();
+        _settlementAuthSignature =
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _settleBatchId, _newTotalAssets_3);
+        vm.startPrank(oracle);
+        vault.settleDeposit(
+            IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: _settleBatchId,
+                newTotalAssets: _newTotalAssets_3,
+                authSignature: _settlementAuthSignature
+            })
+        );
+        vm.stopPrank();
+
+        // assert total assets
+        assertApproxEqAbs(
+            vault.totalAssetsPerSeries(1, 0), _newTotalAssets_3[0] + _newTotalAssets_3[1] + _newTotalAssets_3[2], 5
+        );
 
         // assert users shares
         assertGt(vault.sharesOf(1, 0, mockUser_1), _expectedSharesToMint_user1);

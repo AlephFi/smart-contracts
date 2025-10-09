@@ -95,7 +95,6 @@ contract AlephVaultFactoryTest is Test {
         IAlephVault.UserInitializationParams memory params = IAlephVault.UserInitializationParams({
             name: name,
             configId: "test",
-            manager: manager,
             underlyingToken: underlyingToken,
             custodian: custodian,
             vaultTreasury: vaultTreasury,
@@ -103,6 +102,7 @@ contract AlephVaultFactoryTest is Test {
             authSignature: authSignature
         });
         mocks.mockSetVaultTreasury(accountant, vaultTreasury);
+        vm.prank(manager);
         address vault = factory.deployVault(params);
         assertTrue(factory.isValidVault(vault));
     }

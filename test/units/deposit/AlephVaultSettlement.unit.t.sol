@@ -288,11 +288,10 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vault.setBatchDeposit(_currentBatchId - 1, mockUser_2, 200 ether);
 
         // assert total assets and total shares
-        assertEq(vault.totalAssets(), 0);
-        assertEq(vault.totalSharesPerSeries(1, 0), 0);
-
-        // set higher water mark for lead series
-        vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
+        uint256[] memory _newTotalAssets = new uint256[](1);
+        _newTotalAssets[0] = 1000 ether;
+        vault.setTotalAssets(0, 1000 ether);
+        vault.setTotalShares(0, 1000 ether);
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
@@ -303,21 +302,21 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // generate auth signature
         AuthLibrary.AuthSignature memory _authSignature =
-            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, _newTotalAssets);
 
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.NewSeriesCreated(1, 1, _currentBatchId);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_currentBatchId - 1, 1, 1, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 1, _currentBatchId - 1, 300 ether, 300 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDeposit(0, _currentBatchId, 1, 1, 300 ether, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDeposit(1, 1, 0, _currentBatchId, 300 ether, 300 ether, 300 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
+                newTotalAssets: _newTotalAssets,
                 authSignature: _authSignature
             })
         );
@@ -366,9 +365,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_currentBatchId - 1, 1, 0, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _currentBatchId - 1, 300 ether, 300 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDeposit(0, _currentBatchId, 1, 0, 300 ether, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDeposit(1, 0, 0, _currentBatchId, 300 ether, 300 ether, 300 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
@@ -426,11 +425,11 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(1, 1, 0, 100 ether, 100 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, 1, 100 ether, 100 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(2, 1, 0, 500 ether, 500 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, 2, 500 ether, 500 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDeposit(0, _currentBatchId, 1, 0, 600 ether, 600 ether, 600 ether);
+        emit IAlephVaultSettlement.SettleDeposit(1, 0, 0, _currentBatchId, 600 ether, 600 ether, 600 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,

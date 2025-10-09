@@ -226,7 +226,7 @@ contract AlephVaultDepositTest is BaseTest {
 
         // request deposit
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultDeposit.DepositRequest(mockUser_1, 1, 100 ether, _batchId);
+        emit IAlephVaultDeposit.DepositRequest(1, _batchId, mockUser_1, 100 ether);
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
@@ -254,7 +254,7 @@ contract AlephVaultDepositTest is BaseTest {
         underlyingToken.approve(address(vault), 100 ether);
 
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultDeposit.DepositRequest(mockUser_1, 1, 100 ether, vault.currentBatch());
+        emit IAlephVaultDeposit.DepositRequest(1, vault.currentBatch(), mockUser_1, 100 ether);
         uint48 _batchId_user1 = vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
@@ -266,7 +266,7 @@ contract AlephVaultDepositTest is BaseTest {
         underlyingToken.approve(address(vault), 300 ether);
 
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultDeposit.DepositRequest(mockUser_2, 1, 300 ether, vault.currentBatch());
+        emit IAlephVaultDeposit.DepositRequest(1, vault.currentBatch(), mockUser_2, 300 ether);
         uint48 _batchId_user2 = vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 300 ether, authSignature: authSignature_2})
         );

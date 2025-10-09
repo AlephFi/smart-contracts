@@ -30,7 +30,7 @@ library SeriesAccounting {
     /**
      * @notice The ID of the lead series.
      */
-    uint8 internal constant LEAD_SERIES_ID = 0;
+    uint32 internal constant LEAD_SERIES_ID = 0;
     /**
      * @notice The denominator for the price per share.
      */
@@ -60,7 +60,7 @@ library SeriesAccounting {
     struct UserConsolidationDetails {
         address user;
         uint8 classId;
-        uint8 seriesId;
+        uint32 seriesId;
         uint48 toBatchId;
         uint256 shares;
         uint256 amountToTransfer;
@@ -77,7 +77,7 @@ library SeriesAccounting {
      * @param _toBatchId The batch id to settle deposits up to.
      */
     function createNewSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint48 _toBatchId) internal {
-        uint8 _newSeriesId = ++_shareClass.shareSeriesId;
+        uint32 _newSeriesId = ++_shareClass.shareSeriesId;
         _shareClass.shareSeries[_newSeriesId].highWaterMark = PRICE_DENOMINATOR;
         emit IAlephVaultSettlement.NewSeriesCreated(_classId, _newSeriesId, _toBatchId);
     }
@@ -93,15 +93,15 @@ library SeriesAccounting {
     function consolidateSeries(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
-        uint8 _shareSeriesId,
-        uint8 _lastConsolidatedSeriesId,
+        uint32 _shareSeriesId,
+        uint32 _lastConsolidatedSeriesId,
         uint48 _toBatchId
     ) internal {
         uint256 _totalAmountToTransfer;
         uint256 _totalSharesToTransfer;
         // iterate through all outstanding series
         IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[LEAD_SERIES_ID];
-        for (uint8 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
+        for (uint32 _seriesId = _lastConsolidatedSeriesId + 1; _seriesId <= _shareSeriesId; _seriesId++) {
             IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
             (uint256 _amountToTransfer, uint256 _sharesToTransfer) =
                 _consolidateUserShares(_leadSeries, _shareSeries, _classId, _seriesId, _toBatchId);
@@ -152,21 +152,21 @@ library SeriesAccounting {
         // remaining amount is assets that were not settled in the lead series (this happens if user does not have
         // enough assets in the lead series to complete the redemption)
         uint256 _remainingAmount = _amount;
-        uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
+        uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint32 _shareSeriesId = _shareClass.shareSeriesId;
 
         // we now iterate through all series to settle the remaining user amount
-        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // if the user request amount is settled completely, we break out of the loop
             if (_remainingAmount == 0) {
                 break;
             }
-            if (_seriesId > LEAD_SERIES_ID) {
-                _seriesId += _lastConsolidatedSeriesId;
-            }
             // we attempt to settle the remaining amount from this series
             // this continues to happen for all outstanding series until the complete amount is settled
             _remainingAmount = _settleRedeemSlice(_shareClass, _classId, _seriesId, _batchId, _user, _remainingAmount);
+            if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
+                _seriesId = _shareClass.lastConsolidatedSeriesId;
+            }
         }
     }
 
@@ -186,7 +186,7 @@ library SeriesAccounting {
         IAlephVault.ShareSeries storage _leadSeries,
         IAlephVault.ShareSeries storage _shareSeries,
         uint8 _classId,
-        uint8 _seriesId,
+        uint32 _seriesId,
         uint48 _toBatchId
     ) private returns (uint256 _totalAmountToTransfer, uint256 _totalSharesToTransfer) {
         UserConsolidationDetails memory _userConsolidationDetails = UserConsolidationDetails({
@@ -207,11 +207,11 @@ library SeriesAccounting {
             _userConsolidationDetails.user = _shareSeries.users.at(_i);
             _userConsolidationDetails.shares = _shareSeries.sharesOf[_userConsolidationDetails.user];
             // calculate amount to transfer from outstanding series to lead series
-            _userConsolidationDetails.amountToTransfer = ERC4626Math.previewMint(
+            _userConsolidationDetails.amountToTransfer = ERC4626Math.previewRedeem(
                 _userConsolidationDetails.shares, _shareSeries.totalAssets, _shareSeries.totalShares
             );
             // calculate corresponding shares to deposit in lead series
-            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewWithdraw(
+            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewDeposit(
                 _userConsolidationDetails.amountToTransfer, _leadSeries.totalShares, _leadSeries.totalAssets
             );
             // sum up the total amount and shares to transfer into the lead series
@@ -224,7 +224,7 @@ library SeriesAccounting {
                 !_leadSeries.users.contains(_userConsolidationDetails.user)
                     && (
                         _userConsolidationDetails.user != MANAGEMENT_FEE_RECIPIENT
-                            || _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT
+                            && _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT
                     )
             ) {
                 _leadSeries.users.add(_userConsolidationDetails.user);
@@ -248,7 +248,7 @@ library SeriesAccounting {
     function _settleRedeemSlice(
         IAlephVault.ShareClass storage _shareClass,
         uint8 _classId,
-        uint8 _seriesId,
+        uint32 _seriesId,
         uint48 _batchId,
         address _user,
         uint256 _amount
@@ -269,7 +269,7 @@ library SeriesAccounting {
             _shareSeries.users.remove(_user);
             delete _shareSeries.sharesOf[_user];
             emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-                _batchId, _user, _classId, _seriesId, _amountInSeries, _sharesInSeries
+                _classId, _seriesId, _batchId, _user, _amountInSeries, _sharesInSeries
             );
         } else {
             // if the amount available in the series is greater than or equal to the remaining amount,
@@ -280,7 +280,7 @@ library SeriesAccounting {
             _shareSeries.totalShares -= _userSharesToBurn;
             _shareSeries.sharesOf[_user] -= _userSharesToBurn;
             emit IAlephVaultSettlement.RedeemRequestSliceSettled(
-                _batchId, _user, _classId, _seriesId, _remainingAmount, _userSharesToBurn
+                _classId, _seriesId, _batchId, _user, _remainingAmount, _userSharesToBurn
             );
             // set the remaining amount to 0 as the entire amount has been settled and we break out of the loop
             _remainingAmount = 0;
