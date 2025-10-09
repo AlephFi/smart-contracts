@@ -35,12 +35,6 @@ interface IAlephVaultFactory {
     event VaultDeployed(address indexed vault, address indexed manager, string name, string configId);
 
     /**
-     * @notice Emitted when the authentication is enabled.
-     * @param isAuthEnabled The new authentication status.
-     */
-    event IsAuthEnabledSet(bool indexed isAuthEnabled);
-
-    /**
      * @notice Emitted when the operations multisig is set.
      * @param operationsMultisig The new operations multisig.
      */
@@ -145,13 +139,6 @@ interface IAlephVaultFactory {
     /*//////////////////////////////////////////////////////////////
                             SETTER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-    /**
-     * @notice Sets whether authentication is enabled for vault deployment
-     * @param _isAuthEnabled True to enable authentication, false to disable
-     * @dev Only callable by OPERATIONS_MULTISIG role
-     */
-    function setIsAuthEnabled(bool _isAuthEnabled) external;
-
     /**
      * @notice Updates the operations multisig address for the factory and all deployed vaults
      * @param _operationsMultisig The new operations multisig address

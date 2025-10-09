@@ -19,7 +19,6 @@ import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/Enum
 
 /**
  * @notice Data layout for the aleph vault factory storage.
- * @param isAuthEnabled Whether the authentication for deployment is enabled.
  * @param beacon The beacon address for the vaults.
  * @param operationsMultisig The operations multisig address.
  * @param oracle The oracle address for the vaults.
@@ -30,7 +29,6 @@ import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/Enum
  * @param moduleImplementations The module implementations.
  */
 struct AlephVaultFactoryStorageData {
-    bool isAuthEnabled;
     address beacon;
     address operationsMultisig;
     address oracle;
