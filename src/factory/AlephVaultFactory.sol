@@ -193,7 +193,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     {
         bytes32 _salt = keccak256(abi.encodePacked(msg.sender, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
-            AuthLibrary.verifyVaultDeploymentAuthSignature(
+        AuthLibrary.verifyVaultDeploymentAuthSignature(
             address(this),
             _userInitializationParams.name,
             _userInitializationParams.configId,
