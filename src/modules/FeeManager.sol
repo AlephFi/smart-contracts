@@ -345,11 +345,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
             uint8 _shareSeriesId = _shareClass.shareSeriesId;
-            uint8 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
             for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-                if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
-                    _seriesId += _lastConsolidatedSeriesId;
-                }
                 IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
                 uint256 _managementFeeShares = _shareSeries.sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT];
                 uint256 _performanceFeeShares = _shareSeries.sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT];
@@ -366,9 +362,17 @@ contract FeeManager is IFeeManager, AlephVaultBase {
                 _managementFeesToCollect += _managementFeeAmount;
                 _performanceFeesToCollect += _performanceFeeAmount;
                 emit SeriesFeeCollected(_classId, _seriesId, _managementFeeAmount, _performanceFeeAmount);
+                if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
+                    _seriesId = _shareClass.lastConsolidatedSeriesId;
+                }
             }
         }
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.accountant, _managementFeesToCollect + _performanceFeesToCollect);
+        uint256 _totalFeesToCollect = _managementFeesToCollect + _performanceFeesToCollect;
+        uint256 _requiredVaultBalance = _totalFeesToCollect + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToCollectFees(_requiredVaultBalance);
+        }
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.accountant, _totalFeesToCollect);
         emit FeesCollected(_currentBatch(_sd), _managementFeesToCollect, _performanceFeesToCollect);
     }
 }

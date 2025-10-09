@@ -81,6 +81,7 @@ interface IAlephVault {
      * @notice Initialization params.
      * @param _operationsMultisig The operations multisig address.
      * @param _vaultFactory The vault factory address.
+     * @param _manager The manager address.
      * @param _oracle The oracle address.
      * @param _guardian The guardian address.
      * @param _authSigner The auth signer address.
@@ -91,6 +92,7 @@ interface IAlephVault {
     struct InitializationParams {
         address operationsMultisig;
         address vaultFactory;
+        address manager;
         address oracle;
         address guardian;
         address authSigner;
@@ -103,7 +105,6 @@ interface IAlephVault {
      * @notice Initialization params provided by the user.
      * @param _name The name of the vault.
      * @param _configId The config ID of the vault.
-     * @param _manager The manager address.
      * @param _underlyingToken The underlying token address.
      * @param _custodian The custodian address in which vault funds are stored.
      * @param _vaultTreasury The vault treasury address in which fees are collected.
@@ -113,7 +114,6 @@ interface IAlephVault {
     struct UserInitializationParams {
         string name;
         string configId;
-        address manager;
         address underlyingToken;
         address custodian;
         address vaultTreasury;
