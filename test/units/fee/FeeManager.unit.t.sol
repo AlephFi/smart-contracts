@@ -108,7 +108,7 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        uint256 _newHighWaterMark = 1_147_228;
+        uint256 _newHighWaterMark = 1_156_070;
         vault.setTotalAssets(0, 1000);
         vault.setTotalShares(0, 1000);
 
@@ -122,18 +122,18 @@ contract FeeManagerTest is BaseTest {
             1,
             0,
             _newTotalAssets,
-            1046,
+            1038,
             IFeeManager.FeesAccumulatedParams({
                 managementFeeAmount: 7,
-                performanceFeeAmount: 50,
+                performanceFeeAmount: 40,
                 managementFeeSharesToMint: 5,
-                performanceFeeSharesToMint: 41
+                performanceFeeSharesToMint: 33
             })
         );
         uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, 1000, currentBatchId, lastFeePaidId, 1, 0);
 
         // assert total shares minted
-        assertEq(_totalSharesMinted, 46);
+        assertEq(_totalSharesMinted, 38);
 
         // check high water mark is updated
         assertEq(vault.highWaterMark(1, 0), _newHighWaterMark);
@@ -144,7 +144,7 @@ contract FeeManagerTest is BaseTest {
 
         // check fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.performanceFeeRecipient();
-        assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 41);
+        assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 33);
     }
 
     /*//////////////////////////////////////////////////////////////
