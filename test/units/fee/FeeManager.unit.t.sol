@@ -108,7 +108,7 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        uint256 _newHighWaterMark = 1_147_228;
+        uint256 _newHighWaterMark = 1_154_957;
         vault.setTotalAssets(0, 1000);
         vault.setTotalShares(0, 1000);
 
@@ -122,18 +122,18 @@ contract FeeManagerTest is BaseTest {
             1,
             0,
             _newTotalAssets,
-            1046,
+            1039,
             IFeeManager.FeesAccumulatedParams({
                 managementFeeAmount: 7,
-                performanceFeeAmount: 49,
+                performanceFeeAmount: 40,
                 managementFeeSharesToMint: 5,
-                performanceFeeSharesToMint: 41
+                performanceFeeSharesToMint: 34
             })
         );
         uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, 1000, currentBatchId, lastFeePaidId, 1, 0);
 
         // assert total shares minted
-        assertEq(_totalSharesMinted, 46);
+        assertEq(_totalSharesMinted, 39);
 
         // check high water mark is updated
         assertEq(vault.highWaterMark(1, 0), _newHighWaterMark);
@@ -144,7 +144,7 @@ contract FeeManagerTest is BaseTest {
 
         // check fees are accumalated to performance fee recipient
         address performanceFeeRecipient = vault.performanceFeeRecipient();
-        assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 41);
+        assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 34);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -164,22 +164,48 @@ contract FeeManagerTest is BaseTest {
         vault.collectFees();
     }
 
-    function test_collectFees_whenCallerIsAccountant_shouldSucceed() public {
+    function test_collectFees_revertsWhenThereAreInsufficientAssetsToCollectFees() public {
         // accumalate fees to recipients
-        uint256 _managementShares = 120;
-        uint256 _performanceShares = 120;
+        uint256 _managementShares = 120 ether;
+        uint256 _performanceShares = 120 ether;
         vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
         vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
 
         // set total assets and shares
-        uint256 _totalAssets = 1000;
-        uint256 _totalShares = 1200;
+        uint256 _totalAssets = 1000 ether;
+        uint256 _totalShares = 1200 ether;
+        vault.setTotalAssets(0, _totalAssets);
+        vault.setTotalShares(0, _totalShares);
+
+        // set total amount to deposit and withdraw
+        vault.setTotalAmountToDeposit(100 ether);
+        vault.setTotalAmountToWithdraw(100 ether);
+
+        // mint balance for vault
+        underlyingToken.mint(address(vault), 200 ether);
+
+        // collect fees
+        vm.prank(address(accountant));
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.InsufficientAssetsToCollectFees.selector, 400 ether));
+        vault.collectFees();
+    }
+
+    function test_collectFees_whenCallerIsAccountant_shouldSucceed() public {
+        // accumalate fees to recipients
+        uint256 _managementShares = 120 ether;
+        uint256 _performanceShares = 120 ether;
+        vault.setSharesOf(0, vault.managementFeeRecipient(), _managementShares);
+        vault.setSharesOf(0, vault.performanceFeeRecipient(), _performanceShares);
+
+        // set total assets and shares
+        uint256 _totalAssets = 1000 ether;
+        uint256 _totalShares = 1200 ether;
         vault.setTotalAssets(0, _totalAssets);
         vault.setTotalShares(0, _totalShares);
 
         // expected fees to collect
-        uint256 _expectedManagementFeesToCollect = 100;
-        uint256 _expectedPerformanceFeesToCollect = 100;
+        uint256 _expectedManagementFeesToCollect = 100 ether;
+        uint256 _expectedPerformanceFeesToCollect = 100 ether;
         uint256 _expectedTotalFeesToCollect = _expectedManagementFeesToCollect + _expectedPerformanceFeesToCollect;
 
         // set vault balance
