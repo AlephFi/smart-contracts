@@ -242,8 +242,11 @@ contract FeeManager is IFeeManager, AlephVaultBase {
             _newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClassParams.managementFee
         );
         // calculate management fee shares to mint
-        _feesAccumulatedParams.managementFeeSharesToMint =
-            ERC4626Math.previewDeposit(_feesAccumulatedParams.managementFeeAmount, _totalShares, _newTotalAssets - _feesAccumulatedParams.managementFeeAmount);
+        _feesAccumulatedParams.managementFeeSharesToMint = ERC4626Math.previewDeposit(
+            _feesAccumulatedParams.managementFeeAmount,
+            _totalShares,
+            _newTotalAssets - _feesAccumulatedParams.managementFeeAmount
+        );
         // calculate performance fee amount
         _feesAccumulatedParams.performanceFeeAmount = _calculatePerformanceFeeAmount(
             _shareClassParams.performanceFee,
@@ -252,8 +255,11 @@ contract FeeManager is IFeeManager, AlephVaultBase {
             _shareClass.shareSeries[_seriesId].highWaterMark
         );
         // calculate performance fee shares to mint
-        _feesAccumulatedParams.performanceFeeSharesToMint =
-            ERC4626Math.previewDeposit(_feesAccumulatedParams.performanceFeeAmount, _totalShares + _feesAccumulatedParams.managementFeeSharesToMint, _newTotalAssets - _feesAccumulatedParams.performanceFeeAmount);
+        _feesAccumulatedParams.performanceFeeSharesToMint = ERC4626Math.previewDeposit(
+            _feesAccumulatedParams.performanceFeeAmount,
+            _totalShares + _feesAccumulatedParams.managementFeeSharesToMint,
+            _newTotalAssets - _feesAccumulatedParams.performanceFeeAmount
+        );
         // calculate total fee shares to mint
         uint256 _totalFeeSharesToMint =
             _feesAccumulatedParams.managementFeeSharesToMint + _feesAccumulatedParams.performanceFeeSharesToMint;
