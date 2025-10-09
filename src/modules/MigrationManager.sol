@@ -86,11 +86,13 @@ contract MigrationManager is IMigrationManager, AlephVaultBase, AccessControlUpg
         _revokeRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _guardian);
         _revokeRole(PausableFlows.REDEEM_REQUEST_FLOW, _guardian);
         _revokeRole(PausableFlows.SETTLE_REDEEM_FLOW, _guardian);
+        _revokeRole(PausableFlows.WITHDRAW_FLOW, _guardian);
         _grantRole(RolesLibrary.GUARDIAN, _newGuardian);
         _grantRole(PausableFlows.DEPOSIT_REQUEST_FLOW, _newGuardian);
         _grantRole(PausableFlows.SETTLE_DEPOSIT_FLOW, _newGuardian);
         _grantRole(PausableFlows.REDEEM_REQUEST_FLOW, _newGuardian);
         _grantRole(PausableFlows.SETTLE_REDEEM_FLOW, _newGuardian);
+        _grantRole(PausableFlows.WITHDRAW_FLOW, _newGuardian);
         emit GuardianMigrated(_newGuardian);
     }
 
