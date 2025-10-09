@@ -37,7 +37,7 @@ contract FeeManagerTest is BaseTest {
         uint48 lastFeePaidId = 0;
 
         // accumalate fees
-        vault.accumulateFees(0, 0, currentBatchId, lastFeePaidId, 1, 0);
+        vault.accumulateFees(1, 0, currentBatchId, lastFeePaidId, 0, 0);
 
         // check no fees are accumalated
         address managementFeeRecipient = vault.managementFeeRecipient();
@@ -66,12 +66,12 @@ contract FeeManagerTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(
             IFeeManager.AccumulateFeesParams({
-                newTotalAssets: _newTotalAssets,
-                totalShares: 1005,
+                classId: 1,
+                seriesId: 0,
                 currentBatchId: currentBatchId,
                 lastFeePaidId: lastFeePaidId,
-                classId: 1,
-                seriesId: 0
+                newTotalAssets: _newTotalAssets,
+                totalShares: 1005
             }),
             IFeeManager.FeesAccumulatedDetails({
                 managementFeeAmount: 7,
@@ -80,7 +80,7 @@ contract FeeManagerTest is BaseTest {
                 performanceFeeSharesToMint: 0
             })
         );
-        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, 1000, currentBatchId, lastFeePaidId, 1, 0);
+        uint256 _totalSharesMinted = vault.accumulateFees(1, 0, currentBatchId, lastFeePaidId, _newTotalAssets, 1000);
 
         // assert total shares minted
         assertEq(_totalSharesMinted, 5);
@@ -116,16 +116,16 @@ contract FeeManagerTest is BaseTest {
 
         // accumalate fees
         vm.expectEmit(true, true, true, true);
-        emit IFeeManager.NewHighWaterMarkSet(1, 0, _newHighWaterMark, 100);
+        emit IFeeManager.NewHighWaterMarkSet(1, 0, 100, _newHighWaterMark);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(
             IFeeManager.AccumulateFeesParams({
-                newTotalAssets: _newTotalAssets,
-                totalShares: 1039,
+                classId: 1,
+                seriesId: 0,
                 currentBatchId: currentBatchId,
                 lastFeePaidId: lastFeePaidId,
-                classId: 1,
-                seriesId: 0
+                newTotalAssets: _newTotalAssets,
+                totalShares: 1039
             }),
             IFeeManager.FeesAccumulatedDetails({
                 managementFeeAmount: 7,
@@ -134,7 +134,7 @@ contract FeeManagerTest is BaseTest {
                 performanceFeeSharesToMint: 34
             })
         );
-        uint256 _totalSharesMinted = vault.accumulateFees(_newTotalAssets, 1000, currentBatchId, lastFeePaidId, 1, 0);
+        uint256 _totalSharesMinted = vault.accumulateFees(1, 0, currentBatchId, lastFeePaidId, _newTotalAssets, 1000);
 
         // assert total shares minted
         assertEq(_totalSharesMinted, 39);

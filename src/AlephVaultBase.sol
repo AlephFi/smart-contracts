@@ -97,8 +97,9 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         view
         returns (uint256)
     {
+        uint32 _shareSeriesId = _shareClass.shareSeriesId;
         uint256 _totalAssetsSum;
-        for (uint8 _seriesId; _seriesId <= _shareClass.shareSeriesId; _seriesId++) {
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // loop through all share series and sum up the total assets
             _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
             if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
@@ -115,7 +116,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint8 _seriesId)
+    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint32 _seriesId)
         internal
         view
         returns (uint256)
@@ -130,7 +131,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint8 _seriesId)
+    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint32 _seriesId)
         internal
         view
         returns (uint256)
@@ -145,7 +146,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _user The user to get the shares of.
      * @return The shares of the user.
      */
-    function _sharesOf(IAlephVault.ShareClass storage _shareClass, uint8 _seriesId, address _user)
+    function _sharesOf(IAlephVault.ShareClass storage _shareClass, uint32 _seriesId, address _user)
         internal
         view
         returns (uint256)
@@ -161,7 +162,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _user The user to get the assets of.
      * @return The assets of the user.
      */
-    function _assetsOf(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint8 _seriesId, address _user)
+    function _assetsOf(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint32 _seriesId, address _user)
         internal
         view
         returns (uint256)
@@ -175,18 +176,19 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
 
     /**
      * @dev Returns the assets of a user per class.
+     * @param _shareClass The share class.
      * @param _classId The ID of the share class.
      * @param _user The user to get the assets of.
      * @return The assets of the user per class.
      */
-    function _assetsPerClassOf(uint8 _classId, address _user, IAlephVault.ShareClass storage _shareClass)
+    function _assetsPerClassOf(IAlephVault.ShareClass storage _shareClass, uint8 _classId, address _user)
         internal
         view
         returns (uint256)
     {
         uint256 _assets;
-        uint8 _shareSeriesId = _shareClass.shareSeriesId;
-        for (uint8 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+        uint32 _shareSeriesId = _shareClass.shareSeriesId;
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // loop through all share series and sum up the assets
             _assets += _assetsOf(_shareClass, _classId, _seriesId, _user);
             if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {

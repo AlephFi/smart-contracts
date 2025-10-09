@@ -174,13 +174,13 @@ interface IAlephVault {
      * @param _userLockInPeriod The lock in period for each user in the share class.
      */
     struct ShareClass {
-        uint8 shareSeriesId;
-        uint8 lastConsolidatedSeriesId;
+        uint32 shareSeriesId;
+        uint32 lastConsolidatedSeriesId;
         uint48 lastFeePaidId;
         uint48 depositSettleId;
         uint48 redeemSettleId;
         ShareClassParams shareClassParams;
-        mapping(uint8 => ShareSeries) shareSeries;
+        mapping(uint32 => ShareSeries) shareSeries;
         mapping(uint48 batchId => DepositRequests) depositRequests;
         mapping(uint48 batchId => RedeemRequests) redeemRequests;
         mapping(address user => uint48) userLockInPeriod;
@@ -235,6 +235,12 @@ interface IAlephVault {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     /**
+     * @notice Returns the start time of the vault.
+     * @return The start time.
+     */
+    function startTimeStamp() external view returns (uint48);
+
+    /**
      * @notice Returns the current batch ID based on the elapsed time since start.
      * @return The current batch ID.
      */
@@ -245,6 +251,20 @@ interface IAlephVault {
      * @return The number of share classes.
      */
     function shareClasses() external view returns (uint8);
+
+    /**
+     * @notice Returns the max series ID of the share class.
+     * @param _classId The ID of the share class.
+     * @return The max series ID of the share class.
+     */
+    function shareSeriesId(uint8 _classId) external view returns (uint32);
+
+    /**
+     * @notice Returns the ID of the last consolidated share series.
+     * @param _classId The ID of the share class.
+     * @return The ID of the last consolidated share series.
+     */
+    function lastConsolidatedSeriesId(uint8 _classId) external view returns (uint32);
 
     /**
      * @notice Returns the name of the vault.
@@ -415,7 +435,7 @@ interface IAlephVault {
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault for the given series.
      */
-    function totalAssetsPerSeries(uint8 _classId, uint8 _seriesId) external view returns (uint256);
+    function totalAssetsPerSeries(uint8 _classId, uint32 _seriesId) external view returns (uint256);
 
     /**
      * @notice Returns the total shares in the vault for a given series.
@@ -423,7 +443,15 @@ interface IAlephVault {
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault for the given series.
      */
-    function totalSharesPerSeries(uint8 _classId, uint8 _seriesId) external view returns (uint256);
+    function totalSharesPerSeries(uint8 _classId, uint32 _seriesId) external view returns (uint256);
+
+    /**
+     * @notice Returns the total assets of a user in a given class.
+     * @param _classId The ID of the share class.
+     * @param _user The address of the user.
+     * @return The total assets of a user in a given class.
+     */
+    function assetsPerClassOf(uint8 _classId, address _user) external view returns (uint256);
 
     /**
      * @notice Returns the amount of assets claimable by a user based on their shares.
@@ -432,7 +460,7 @@ interface IAlephVault {
      * @param _user The address of the user.
      * @return The amount of assets claimable by the user.
      */
-    function assetsOf(uint8 _classId, uint8 _seriesId, address _user) external view returns (uint256);
+    function assetsOf(uint8 _classId, uint32 _seriesId, address _user) external view returns (uint256);
 
     /**
      * @notice Returns the number of shares owned by a user.
@@ -441,7 +469,7 @@ interface IAlephVault {
      * @param _user The address of the user.
      * @return The number of shares owned by the user.
      */
-    function sharesOf(uint8 _classId, uint8 _seriesId, address _user) external view returns (uint256);
+    function sharesOf(uint8 _classId, uint32 _seriesId, address _user) external view returns (uint256);
 
     /**
      * @notice Returns the current price per share of the vault.
@@ -449,7 +477,7 @@ interface IAlephVault {
      * @param _seriesId The ID of the share series.
      * @return The current price per share.
      */
-    function pricePerShare(uint8 _classId, uint8 _seriesId) external view returns (uint256);
+    function pricePerShare(uint8 _classId, uint32 _seriesId) external view returns (uint256);
 
     /**
      * @notice Returns the current high water mark of the vault.
@@ -457,7 +485,7 @@ interface IAlephVault {
      * @param _seriesId The ID of the share series.
      * @return The current high water mark.
      */
-    function highWaterMark(uint8 _classId, uint8 _seriesId) external view returns (uint256);
+    function highWaterMark(uint8 _classId, uint32 _seriesId) external view returns (uint256);
 
     /**
      * @notice Returns the total amount of unsettled deposit requests for a given class.

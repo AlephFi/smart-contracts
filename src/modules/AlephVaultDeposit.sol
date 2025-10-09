@@ -225,7 +225,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         }
         if (
             _shareClassParams.minUserBalance > 0
-                && _assetsPerClassOf(_requestDepositParams.classId, msg.sender, _shareClass)
+                && _assetsPerClassOf(_shareClass, _requestDepositParams.classId, msg.sender)
                     + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
                     < _shareClassParams.minUserBalance
         ) {
@@ -258,7 +258,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         _depositRequests.depositRequest[msg.sender] = _requestDepositParams.amount;
         _depositRequests.totalAmountToDeposit += _requestDepositParams.amount;
         _depositRequests.usersToDeposit.add(msg.sender);
-        emit DepositRequest(msg.sender, _requestDepositParams.classId, _requestDepositParams.amount, _currentBatchId);
+        emit DepositRequest(_requestDepositParams.classId, _currentBatchId, msg.sender, _requestDepositParams.amount);
 
         // transfer underlying token from user to vault
         IERC20 _underlyingToken = IERC20(_sd.underlyingToken);

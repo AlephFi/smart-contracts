@@ -309,9 +309,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.NewSeriesCreated(1, 1, _currentBatchId);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_currentBatchId - 1, 1, 1, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 1, _currentBatchId - 1, 300 ether, 300 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDeposit(0, _currentBatchId, 1, 1, 300 ether, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDeposit(1, 1, 0, _currentBatchId, 300 ether, 300 ether, 300 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
@@ -365,9 +365,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(_currentBatchId - 1, 1, 0, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, _currentBatchId - 1, 300 ether, 300 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDeposit(0, _currentBatchId, 1, 0, 300 ether, 300 ether, 300 ether);
+        emit IAlephVaultSettlement.SettleDeposit(1, 0, 0, _currentBatchId, 300 ether, 300 ether, 300 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
@@ -425,11 +425,11 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // settle deposit
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(1, 1, 0, 100 ether, 100 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, 1, 100 ether, 100 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDepositBatch(2, 1, 0, 500 ether, 500 ether);
+        emit IAlephVaultSettlement.SettleDepositBatch(1, 0, 2, 500 ether, 500 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleDeposit(0, _currentBatchId, 1, 0, 600 ether, 600 ether, 600 ether);
+        emit IAlephVaultSettlement.SettleDeposit(1, 0, 0, _currentBatchId, 600 ether, 600 ether, 600 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,

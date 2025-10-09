@@ -62,12 +62,12 @@ interface IFeeManager {
      * @notice Emitted when a new high water mark is set.
      * @param classId The ID of the share class for which the high water mark was set.
      * @param seriesId The ID of the share series in which the high water mark was set.
-     * @param highWaterMark The new high water mark set.
      * @param toBatchId The batch ID in which the high water mark was set.
+     * @param highWaterMark The new high water mark set.
      * @dev the high water mark is set in the batch ID up to which the fees were accumulated,
      * which may not be the current batch ID.
      */
-    event NewHighWaterMarkSet(uint8 classId, uint8 seriesId, uint256 highWaterMark, uint48 toBatchId);
+    event NewHighWaterMarkSet(uint8 classId, uint32 seriesId, uint48 toBatchId, uint256 highWaterMark);
 
     /**
      * @notice Emitted when fees are collected.
@@ -77,7 +77,7 @@ interface IFeeManager {
      * @param performanceFeesCollected The performance fees collected for the series.
      */
     event SeriesFeeCollected(
-        uint8 classId, uint8 seriesId, uint256 managementFeesCollected, uint256 performanceFeesCollected
+        uint8 classId, uint32 seriesId, uint256 managementFeesCollected, uint256 performanceFeesCollected
     );
 
     /**
@@ -127,20 +127,20 @@ interface IFeeManager {
 
     /**
      * @notice Parameters for the accumulated fees.
-     * @param newTotalAssets The new total assets in the vault.
-     * @param totalShares The total shares in the vault.
-     * @param currentBatchId The current batch id.
-     * @param lastFeePaidId The last fee paid id.
      * @param classId The id of the class.
      * @param seriesId The id of the series.
+     * @param currentBatchId The current batch id.
+     * @param lastFeePaidId The last fee paid id.
+     * @param newTotalAssets The new total assets in the vault.
+     * @param totalShares The total shares in the vault.
      */
     struct AccumulateFeesParams {
-        uint256 newTotalAssets;
-        uint256 totalShares;
+        uint8 classId;
+        uint32 seriesId;
         uint48 currentBatchId;
         uint48 lastFeePaidId;
-        uint8 classId;
-        uint8 seriesId;
+        uint256 newTotalAssets;
+        uint256 totalShares;
     }
 
     /**
@@ -162,24 +162,24 @@ interface IFeeManager {
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Gets the management fee shares.
+     * @param _managementFee The management fee rate.
+     * @param _batchesElapsed The number of batches elapsed since the last fee was paid.
      * @param _newTotalAssets The new total assets in the vault.
      * @param _totalShares The total shares in the vault.
-     * @param _batchesElapsed The number of batches elapsed since the last fee was paid.
-     * @param _managementFee The management fee rate.
      * @return _managementFeeShares The management fee shares.
      */
     function getManagementFeeShares(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
+        uint32 _managementFee,
         uint48 _batchesElapsed,
-        uint32 _managementFee
+        uint256 _newTotalAssets,
+        uint256 _totalShares
     ) external view returns (uint256 _managementFeeShares);
 
     /**
      * @notice Gets the performance fee shares.
+     * @param _performanceFee The performance fee.
      * @param _newTotalAssets The new total assets in the vault.
      * @param _totalShares The total shares in the vault.
-     * @param _performanceFee The performance fee.
      * @param _highWaterMark The high water mark.
      * @return _performanceFeeShares The performance fee shares.
      * @dev the total shares used to calculate the performance fee shares is the total shares
@@ -187,9 +187,9 @@ interface IFeeManager {
      * for which this view function is used.
      */
     function getPerformanceFeeShares(
+        uint32 _performanceFee,
         uint256 _newTotalAssets,
         uint256 _totalShares,
-        uint32 _performanceFee,
         uint256 _highWaterMark
     ) external pure returns (uint256 _performanceFeeShares);
 
@@ -227,22 +227,22 @@ interface IFeeManager {
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Accumulates fees for a given batch.
-     * @param _newTotalAssets The new total assets in the vault.
-     * @param _totalShares The total shares in the vault.
-     * @param _currentBatchId The current batch ID.
-     * @param _lastFeePaidId The last fee paid ID.
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
+     * @param _currentBatchId The current batch ID.
+     * @param _lastFeePaidId The last fee paid ID.
+     * @param _newTotalAssets The new total assets in the vault.
+     * @param _totalShares The total shares in the vault.
      * @return The accumulated fees.
      * @return  Whether a new high watermark is set or not.
      */
     function accumulateFees(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
+        uint8 _classId,
+        uint32 _seriesId,
         uint48 _currentBatchId,
         uint48 _lastFeePaidId,
-        uint8 _classId,
-        uint8 _seriesId
+        uint256 _newTotalAssets,
+        uint256 _totalShares
     ) external returns (uint256, bool);
 
     /**
