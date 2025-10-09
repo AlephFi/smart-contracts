@@ -45,9 +45,8 @@ contract DeployAlephVault is BaseScript {
 
         string memory _vaultName = vm.envString("VAULT_NAME");
         string memory _vaultConfigId = vm.envString("VAULT_CONFIG_ID");
-        address _vaultManager = vm.envAddress("VAULT_MANAGER");
         AuthLibrary.AuthSignature memory _authSignature =
-            _getAuthSignature(_factory, _vaultManager, _vaultName, _vaultConfigId);
+            _getAuthSignature(_factory, msg.sender, _vaultName, _vaultConfigId);
 
         IAlephVault.ShareClassParams memory _shareClassParams = IAlephVault.ShareClassParams({
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
@@ -63,7 +62,6 @@ contract DeployAlephVault is BaseScript {
         IAlephVault.UserInitializationParams memory _userInitializationParams = IAlephVault.UserInitializationParams({
             name: _vaultName,
             configId: _vaultConfigId,
-            manager: _vaultManager,
             underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
             custodian: vm.envAddress("VAULT_CUSTODIAN"),
             vaultTreasury: vm.envAddress("VAULT_TREASURY"),

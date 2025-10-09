@@ -161,12 +161,12 @@ library SeriesAccounting {
             if (_remainingAmount == 0) {
                 break;
             }
-            if (_seriesId > LEAD_SERIES_ID) {
-                _seriesId += _lastConsolidatedSeriesId;
-            }
             // we attempt to settle the remaining amount from this series
             // this continues to happen for all outstanding series until the complete amount is settled
             _remainingAmount = _settleRedeemSlice(_shareClass, _classId, _seriesId, _batchId, _user, _remainingAmount);
+            if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
+                _seriesId = _shareClass.lastConsolidatedSeriesId;
+            }
         }
     }
 
@@ -207,11 +207,11 @@ library SeriesAccounting {
             _userConsolidationDetails.user = _shareSeries.users.at(_i);
             _userConsolidationDetails.shares = _shareSeries.sharesOf[_userConsolidationDetails.user];
             // calculate amount to transfer from outstanding series to lead series
-            _userConsolidationDetails.amountToTransfer = ERC4626Math.previewMint(
+            _userConsolidationDetails.amountToTransfer = ERC4626Math.previewRedeem(
                 _userConsolidationDetails.shares, _shareSeries.totalAssets, _shareSeries.totalShares
             );
             // calculate corresponding shares to deposit in lead series
-            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewWithdraw(
+            _userConsolidationDetails.sharesToTransfer = ERC4626Math.previewDeposit(
                 _userConsolidationDetails.amountToTransfer, _leadSeries.totalShares, _leadSeries.totalAssets
             );
             // sum up the total amount and shares to transfer into the lead series
