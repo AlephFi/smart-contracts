@@ -141,6 +141,7 @@ contract BaseTest is Test {
         defaultInitializationParams = IAlephVault.InitializationParams({
             operationsMultisig: makeAddr("operationsMultisig"),
             vaultFactory: makeAddr("vaultFactory"),
+            manager: makeAddr("manager"),
             oracle: makeAddr("oracle"),
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
@@ -148,7 +149,6 @@ contract BaseTest is Test {
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: "test",
                 configId: "test-123",
-                manager: makeAddr("manager"),
                 underlyingToken: address(underlyingToken),
                 custodian: makeAddr("custodian"),
                 vaultTreasury: makeAddr("vaultTreasury"),
@@ -254,7 +254,7 @@ contract BaseTest is Test {
         vault = new ExposedVault(batchDuration);
 
         // set up initialization params
-        manager = _initializationParams.userInitializationParams.manager;
+        manager = _initializationParams.manager;
         operationsMultisig = _initializationParams.operationsMultisig;
         vaultFactory = _initializationParams.vaultFactory;
         oracle = _initializationParams.oracle;
@@ -322,7 +322,8 @@ contract BaseTest is Test {
     ) internal view returns (SettleDepositExpectations memory) {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
-        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
+        uint256 _expectedPerformanceFeeShares =
+            vault.getPerformanceFeeShares(_newTotalAssets, _totalShares + _expectedManagementFeeShares);
         uint256 _newSharesToMint;
         uint256 _expectedTotalAssets = _depositAmount;
         uint256 _expectedTotalShares;
@@ -353,7 +354,8 @@ contract BaseTest is Test {
     ) internal view returns (SettleRedeemExpectations memory) {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
-        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
+        uint256 _expectedPerformanceFeeShares =
+            vault.getPerformanceFeeShares(_newTotalAssets, _totalShares + _expectedManagementFeeShares);
         _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
         uint256 _assetsToWithdraw = ERC4626Math.previewRedeem(_userShares, _newTotalAssets, _totalShares);
         uint256 _expectedTotalAssets = _newTotalAssets - _assetsToWithdraw;

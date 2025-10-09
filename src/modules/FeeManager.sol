@@ -80,11 +80,8 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint48 _batchesElapsed,
         uint32 _managementFee
     ) external view returns (uint256 _managementFeeShares) {
-        return ERC4626Math.previewDeposit(
-            _calculateManagementFeeAmount(_newTotalAssets, _batchesElapsed, _managementFee),
-            _totalShares,
-            _newTotalAssets
-        );
+        uint256 _managementFeeAmount = _calculateManagementFeeAmount(_newTotalAssets, _batchesElapsed, _managementFee);
+        return ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets - _managementFeeAmount);
     }
 
     ///@inheritdoc IFeeManager
@@ -94,11 +91,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint32 _performanceFee,
         uint256 _highWaterMark
     ) external pure returns (uint256 _performanceFeeShares) {
-        return ERC4626Math.previewDeposit(
-            _calculatePerformanceFeeAmount(_performanceFee, _newTotalAssets, _totalShares, _highWaterMark),
-            _totalShares,
-            _newTotalAssets
-        );
+        uint256 _performanceFeeAmount =
+            _calculatePerformanceFeeAmount(_performanceFee, _newTotalAssets, _totalShares, _highWaterMark);
+        return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets - _performanceFeeAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -135,15 +130,17 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint48 _lastFeePaidId,
         uint8 _classId,
         uint32 _seriesId
-    ) external returns (uint256) {
+    ) external returns (uint256, bool) {
         return _accumulateFees(
             _getStorage().shareClasses[_classId],
-            _newTotalAssets,
-            _totalShares,
-            _currentBatchId,
-            _lastFeePaidId,
-            _classId,
-            _seriesId
+            AccumulateFeesParams({
+                newTotalAssets: _newTotalAssets,
+                totalShares: _totalShares,
+                currentBatchId: _currentBatchId,
+                lastFeePaidId: _lastFeePaidId,
+                classId: _classId,
+                seriesId: _seriesId
+            })
         );
     }
 
@@ -223,13 +220,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     /**
      * @dev Internal function to accumulate fees.
      * @param _shareClass The share class.
-     * @param _newTotalAssets The new total assets after collection.
-     * @param _totalShares The total shares in the vault.
-     * @param _currentBatchId The current batch id.
-     * @param _lastFeePaidId The last fee paid id.
-     * @param _classId The id of the class.
-     * @param _seriesId The id of the series.
+     * @param _accumulateFeesParams The parameters for the accumulated fees.
      * @return _totalFeeSharesToMint The total fee shares to mint.
+     * @return _newHighWaterMakerSet Whether a new hwm is set or not.
      */
     function _accumulateFees(
         IAlephVault.ShareClass storage _shareClass,
@@ -239,51 +232,61 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint48 _lastFeePaidId,
         uint8 _classId,
         uint32 _seriesId
-    ) internal returns (uint256) {
+    ) internal returns (uint256, bool) {
         FeesAccumulatedParams memory _feesAccumulatedParams;
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
         // calculate management fee amount
-        _feesAccumulatedParams.managementFeeAmount = _calculateManagementFeeAmount(
-            _newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClassParams.managementFee
-        );
-        // calculate performance fee amount
-        _feesAccumulatedParams.performanceFeeAmount = _calculatePerformanceFeeAmount(
-            _shareClassParams.performanceFee,
-            _newTotalAssets,
-            _totalShares,
-            _shareClass.shareSeries[_seriesId].highWaterMark
+        _feesAccumulatedDetails.managementFeeAmount = _calculateManagementFeeAmount(
+            _accumulateFeesParams.newTotalAssets,
+            _accumulateFeesParams.currentBatchId - _accumulateFeesParams.lastFeePaidId,
+            _shareClassParams.managementFee
         );
         // calculate management fee shares to mint
-        _feesAccumulatedParams.managementFeeSharesToMint =
-            ERC4626Math.previewDeposit(_feesAccumulatedParams.managementFeeAmount, _totalShares, _newTotalAssets);
+        _feesAccumulatedDetails.managementFeeSharesToMint = ERC4626Math.previewDeposit(
+            _feesAccumulatedDetails.managementFeeAmount,
+            _accumulateFeesParams.totalShares,
+            _accumulateFeesParams.newTotalAssets - _feesAccumulatedDetails.managementFeeAmount
+        );
+        // calculate performance fee amount
+        _feesAccumulatedDetails.performanceFeeAmount = _calculatePerformanceFeeAmount(
+            _shareClassParams.performanceFee,
+            _accumulateFeesParams.newTotalAssets,
+            _accumulateFeesParams.totalShares + _feesAccumulatedDetails.managementFeeSharesToMint,
+            _shareClass.shareSeries[_accumulateFeesParams.seriesId].highWaterMark
+        );
         // calculate performance fee shares to mint
-        _feesAccumulatedParams.performanceFeeSharesToMint =
-            ERC4626Math.previewDeposit(_feesAccumulatedParams.performanceFeeAmount, _totalShares, _newTotalAssets);
+        _feesAccumulatedDetails.performanceFeeSharesToMint = ERC4626Math.previewDeposit(
+            _feesAccumulatedDetails.performanceFeeAmount,
+            _accumulateFeesParams.totalShares + _feesAccumulatedDetails.managementFeeSharesToMint,
+            _accumulateFeesParams.newTotalAssets - _feesAccumulatedDetails.performanceFeeAmount
+        );
         // calculate total fee shares to mint
         uint256 _totalFeeSharesToMint =
-            _feesAccumulatedParams.managementFeeSharesToMint + _feesAccumulatedParams.performanceFeeSharesToMint;
+            _feesAccumulatedDetails.managementFeeSharesToMint + _feesAccumulatedDetails.performanceFeeSharesToMint;
         // update management fee shares of the series
-        _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT] +=
-            _feesAccumulatedParams.managementFeeSharesToMint;
-        if (_feesAccumulatedParams.performanceFeeSharesToMint > 0) {
+        _shareClass.shareSeries[_accumulateFeesParams.seriesId].sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT] +=
+            _feesAccumulatedDetails.managementFeeSharesToMint;
+        bool _newHighWaterMarkSet;
+        if (_feesAccumulatedDetails.performanceFeeSharesToMint > 0) {
+            _newHighWaterMarkSet = true;
             // update performance fee shares of the series
-            _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT] +=
-                _feesAccumulatedParams.performanceFeeSharesToMint;
+            _shareClass.shareSeries[_accumulateFeesParams.seriesId].sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT]
+            += _feesAccumulatedDetails.performanceFeeSharesToMint;
             // update high water mark of the series
-            uint256 _highWaterMark = _getPricePerShare(_newTotalAssets, _totalShares + _totalFeeSharesToMint);
-            _shareClass.shareSeries[_seriesId].highWaterMark = _highWaterMark;
-            emit NewHighWaterMarkSet(_classId, _seriesId, _currentBatchId, _highWaterMark);
+            uint256 _highWaterMark = _getPricePerShare(
+                _accumulateFeesParams.newTotalAssets,
+                _accumulateFeesParams.totalShares + _feesAccumulatedDetails.managementFeeSharesToMint
+            );
+            _shareClass.shareSeries[_accumulateFeesParams.seriesId].highWaterMark = _highWaterMark;
+            emit NewHighWaterMarkSet(
+                _accumulateFeesParams.classId,
+                _accumulateFeesParams.seriesId,
+                _accumulateFeesParams.currentBatchId,
+                _highWaterMark
+            );
         }
-        emit FeesAccumulated(
-            _lastFeePaidId,
-            _currentBatchId,
-            _classId,
-            _seriesId,
-            _newTotalAssets,
-            _totalShares + _totalFeeSharesToMint,
-            _feesAccumulatedParams
-        );
-        return _totalFeeSharesToMint;
+        emit FeesAccumulated(_accumulateFeesParams, _feesAccumulatedDetails);
+        return (_totalFeeSharesToMint, _newHighWaterMarkSet);
     }
 
     /**
@@ -330,7 +333,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
             uint256 _profit =
                 _profitPerShare.mulDiv(_totalShares, SeriesAccounting.PRICE_DENOMINATOR, Math.Rounding.Ceil);
             _performanceFeeAmount =
-                _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR - _performanceFee), Math.Rounding.Ceil);
+                _profit.mulDiv(uint256(_performanceFee), uint256(BPS_DENOMINATOR), Math.Rounding.Ceil);
         }
     }
 
@@ -345,11 +348,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
             uint32 _shareSeriesId = _shareClass.shareSeriesId;
-            uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
             for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-                if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
-                    _seriesId += _lastConsolidatedSeriesId;
-                }
                 IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
                 uint256 _managementFeeShares = _shareSeries.sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT];
                 uint256 _performanceFeeShares = _shareSeries.sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT];
@@ -366,9 +365,17 @@ contract FeeManager is IFeeManager, AlephVaultBase {
                 _managementFeesToCollect += _managementFeeAmount;
                 _performanceFeesToCollect += _performanceFeeAmount;
                 emit SeriesFeeCollected(_classId, _seriesId, _managementFeeAmount, _performanceFeeAmount);
+                if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
+                    _seriesId = _shareClass.lastConsolidatedSeriesId;
+                }
             }
         }
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.accountant, _managementFeesToCollect + _performanceFeesToCollect);
+        uint256 _totalFeesToCollect = _managementFeesToCollect + _performanceFeesToCollect;
+        uint256 _requiredVaultBalance = _totalFeesToCollect + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
+        if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
+            revert InsufficientAssetsToCollectFees(_requiredVaultBalance);
+        }
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.accountant, _totalFeesToCollect);
         emit FeesCollected(_currentBatch(_sd), _managementFeesToCollect, _performanceFeesToCollect);
     }
 }

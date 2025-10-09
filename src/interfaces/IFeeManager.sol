@@ -53,23 +53,10 @@ interface IFeeManager {
 
     /**
      * @notice Emitted when fees are accumulated.
-     * @param lastFeePaidId The batch ID in which fees were last accumulated.
-     * @param toBatchId The batch ID up to which fees were accumulated.
-     * @param classId The ID of the share class for which fees were accumulated.
-     * @param seriesId The ID of the share series in which fees were accumulated.
-     * @param newTotalAssets The new total assets upon which fees were accumulated.
-     * @param newTotalShares The new total shares after fees were accumulated.
-     * @param feesAccumulatedParams The parameters for the accumulated fees.
+     * @param accumulateFeesParams The parameters for the accumulated fees.
+     * @param feesAccumulatedDetails The details for the accumulated fees.
      */
-    event FeesAccumulated(
-        uint48 lastFeePaidId,
-        uint48 toBatchId,
-        uint8 classId,
-        uint32 seriesId,
-        uint256 newTotalAssets,
-        uint256 newTotalShares,
-        FeesAccumulatedParams feesAccumulatedParams
-    );
+    event FeesAccumulated(AccumulateFeesParams feesAccumulatedParams, FeesAccumulatedDetails feesAccumulatedDetails);
 
     /**
      * @notice Emitted when a new high water mark is set.
@@ -120,6 +107,15 @@ interface IFeeManager {
     error InvalidShareClassConversion();
 
     /**
+     * @notice Emitted when there are insufficient assets to collect fees.
+     * @param requiredVaultBalance The required vault balance.
+     */
+    error InsufficientAssetsToCollectFees(uint256 requiredVaultBalance);
+
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+    /**
      * @notice Constructor params.
      * @param managementFeeTimelock The timelock period for the management fee.
      * @param performanceFeeTimelock The timelock period for the performance fee.
@@ -131,12 +127,30 @@ interface IFeeManager {
 
     /**
      * @notice Parameters for the accumulated fees.
+     * @param newTotalAssets The new total assets in the vault.
+     * @param totalShares The total shares in the vault.
+     * @param currentBatchId The current batch id.
+     * @param lastFeePaidId The last fee paid id.
+     * @param classId The id of the class.
+     * @param seriesId The id of the series.
+     */
+    struct AccumulateFeesParams {
+        uint256 newTotalAssets;
+        uint256 totalShares;
+        uint48 currentBatchId;
+        uint48 lastFeePaidId;
+        uint8 classId;
+        uint8 seriesId;
+    }
+
+    /**
+     * @notice Parameters for the accumulated fees.
      * @param managementFeeAmount The management fee amount to be accumulated.
      * @param managementFeeSharesToMint The management fee shares to be minted.
      * @param performanceFeeAmount The performance fee amount to be accumulated.
      * @param performanceFeeSharesToMint The performance fee shares to be minted.
      */
-    struct FeesAccumulatedParams {
+    struct FeesAccumulatedDetails {
         uint256 managementFeeAmount;
         uint256 managementFeeSharesToMint;
         uint256 performanceFeeAmount;
@@ -168,6 +182,9 @@ interface IFeeManager {
      * @param _performanceFee The performance fee.
      * @param _highWaterMark The high water mark.
      * @return _performanceFeeShares The performance fee shares.
+     * @dev the total shares used to calculate the performance fee shares is the total shares
+     * plus the management fee shares to mint. Make sure to account for that in any calculation
+     * for which this view function is used.
      */
     function getPerformanceFeeShares(
         uint256 _newTotalAssets,
@@ -217,6 +234,7 @@ interface IFeeManager {
      * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The accumulated fees.
+     * @return  Whether a new high watermark is set or not.
      */
     function accumulateFees(
         uint256 _newTotalAssets,
@@ -225,7 +243,7 @@ interface IFeeManager {
         uint48 _lastFeePaidId,
         uint8 _classId,
         uint32 _seriesId
-    ) external returns (uint256);
+    ) external returns (uint256, bool);
 
     /**
      * @notice Collects all pending fees.
