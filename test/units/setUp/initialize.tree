@@ -11,8 +11,6 @@ Initialize_Unit_Test
 │   └── it should revert with InvalidInitializationParams
 ├── when accountant passed is address(0)
 │   └── it should revert with InvalidInitializationParams
-├── when manager passed is address(0)
-│   └── it should revert with InvalidInitializationParams
 ├── when underlyingToken passed is address(0)
 │   └── it should revert with InvalidInitializationParams
 ├── when custodian passed is address(0)
