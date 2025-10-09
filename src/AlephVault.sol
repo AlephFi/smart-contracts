@@ -855,15 +855,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /**
-     * @notice Migrates the accountant.
-     * @param _newAccountant The new accountant address.
-     * @dev Only callable by the VAULT_FACTORY role.
-     */
-    function migrateAccountant(address _newAccountant) external onlyRole(RolesLibrary.VAULT_FACTORY) {
-        _delegate(ModulesLibrary.MIGRATION_MANAGER);
-    }
-
-    /**
      * @notice Migrates the module implementation.
      * @param _module The module selector to migrate.
      * @param _newImplementation The new implementation address for the module.
