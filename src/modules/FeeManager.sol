@@ -241,23 +241,23 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         _feesAccumulatedParams.managementFeeAmount = _calculateManagementFeeAmount(
             _newTotalAssets, _currentBatchId - _lastFeePaidId, _shareClassParams.managementFee
         );
-        // calculate performance fee amount
-        _feesAccumulatedParams.performanceFeeAmount = _calculatePerformanceFeeAmount(
-            _shareClassParams.performanceFee,
-            _newTotalAssets,
-            _totalShares,
-            _shareClass.shareSeries[_seriesId].highWaterMark
-        );
         // calculate management fee shares to mint
         _feesAccumulatedParams.managementFeeSharesToMint = ERC4626Math.previewDeposit(
             _feesAccumulatedParams.managementFeeAmount,
             _totalShares,
             _newTotalAssets - _feesAccumulatedParams.managementFeeAmount
         );
+        // calculate performance fee amount
+        _feesAccumulatedParams.performanceFeeAmount = _calculatePerformanceFeeAmount(
+            _shareClassParams.performanceFee,
+            _newTotalAssets,
+            _totalShares + _feesAccumulatedParams.managementFeeSharesToMint,
+            _shareClass.shareSeries[_seriesId].highWaterMark
+        );
         // calculate performance fee shares to mint
         _feesAccumulatedParams.performanceFeeSharesToMint = ERC4626Math.previewDeposit(
             _feesAccumulatedParams.performanceFeeAmount,
-            _totalShares,
+            _totalShares + _feesAccumulatedParams.managementFeeSharesToMint,
             _newTotalAssets - _feesAccumulatedParams.performanceFeeAmount
         );
         // calculate total fee shares to mint

@@ -322,7 +322,8 @@ contract BaseTest is Test {
     ) internal view returns (SettleDepositExpectations memory) {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
-        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
+        uint256 _expectedPerformanceFeeShares =
+            vault.getPerformanceFeeShares(_newTotalAssets, _totalShares + _expectedManagementFeeShares);
         uint256 _newSharesToMint;
         uint256 _expectedTotalAssets = _depositAmount;
         uint256 _expectedTotalShares;
@@ -353,7 +354,8 @@ contract BaseTest is Test {
     ) internal view returns (SettleRedeemExpectations memory) {
         uint256 _expectedManagementFeeShares =
             vault.getManagementFeeShares(_newTotalAssets, _totalShares, _batchesElapsed);
-        uint256 _expectedPerformanceFeeShares = vault.getPerformanceFeeShares(_newTotalAssets, _totalShares);
+        uint256 _expectedPerformanceFeeShares =
+            vault.getPerformanceFeeShares(_newTotalAssets, _totalShares + _expectedManagementFeeShares);
         _totalShares += _expectedManagementFeeShares + _expectedPerformanceFeeShares;
         uint256 _assetsToWithdraw = ERC4626Math.previewRedeem(_userShares, _newTotalAssets, _totalShares);
         uint256 _expectedTotalAssets = _newTotalAssets - _assetsToWithdraw;
