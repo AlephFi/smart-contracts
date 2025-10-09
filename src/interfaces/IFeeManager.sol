@@ -162,24 +162,24 @@ interface IFeeManager {
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Gets the management fee shares.
+     * @param _managementFee The management fee rate.
+     * @param _batchesElapsed The number of batches elapsed since the last fee was paid.
      * @param _newTotalAssets The new total assets in the vault.
      * @param _totalShares The total shares in the vault.
-     * @param _batchesElapsed The number of batches elapsed since the last fee was paid.
-     * @param _managementFee The management fee rate.
      * @return _managementFeeShares The management fee shares.
      */
     function getManagementFeeShares(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
+        uint32 _managementFee,
         uint48 _batchesElapsed,
-        uint32 _managementFee
+        uint256 _newTotalAssets,
+        uint256 _totalShares
     ) external view returns (uint256 _managementFeeShares);
 
     /**
      * @notice Gets the performance fee shares.
+     * @param _performanceFee The performance fee.
      * @param _newTotalAssets The new total assets in the vault.
      * @param _totalShares The total shares in the vault.
-     * @param _performanceFee The performance fee.
      * @param _highWaterMark The high water mark.
      * @return _performanceFeeShares The performance fee shares.
      * @dev the total shares used to calculate the performance fee shares is the total shares
@@ -187,9 +187,9 @@ interface IFeeManager {
      * for which this view function is used.
      */
     function getPerformanceFeeShares(
+        uint32 _performanceFee,
         uint256 _newTotalAssets,
         uint256 _totalShares,
-        uint32 _performanceFee,
         uint256 _highWaterMark
     ) external pure returns (uint256 _performanceFeeShares);
 

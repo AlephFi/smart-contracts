@@ -174,7 +174,7 @@ contract ExposedVault is AlephVault {
             return 0;
         }
         return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
-            _newTotalAssets, _totalShares, _batchesElapsed, _getStorage().shareClasses[1].shareClassParams.managementFee
+            _getStorage().shareClasses[1].shareClassParams.managementFee, _batchesElapsed, _newTotalAssets, _totalShares
         );
     }
 
@@ -185,7 +185,7 @@ contract ExposedVault is AlephVault {
             return 0;
         }
         return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
-            _newTotalAssets, _totalShares, _sd.shareClasses[1].shareClassParams.performanceFee, _highWaterMark
+            _sd.shareClasses[1].shareClassParams.performanceFee, _newTotalAssets, _totalShares, _highWaterMark
         );
     }
 

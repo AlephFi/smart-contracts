@@ -75,10 +75,10 @@ contract FeeManager is IFeeManager, AlephVaultBase {
     //////////////////////////////////////////////////////////////*/
     ///@inheritdoc IFeeManager
     function getManagementFeeShares(
-        uint256 _newTotalAssets,
-        uint256 _totalShares,
+        uint32 _managementFee,
         uint48 _batchesElapsed,
-        uint32 _managementFee
+        uint256 _newTotalAssets,
+        uint256 _totalShares
     ) external view returns (uint256 _managementFeeShares) {
         uint256 _managementFeeAmount = _calculateManagementFeeAmount(_newTotalAssets, _batchesElapsed, _managementFee);
         return ERC4626Math.previewDeposit(_managementFeeAmount, _totalShares, _newTotalAssets - _managementFeeAmount);
@@ -86,9 +86,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
 
     ///@inheritdoc IFeeManager
     function getPerformanceFeeShares(
+        uint32 _performanceFee,
         uint256 _newTotalAssets,
         uint256 _totalShares,
-        uint32 _performanceFee,
         uint256 _highWaterMark
     ) external pure returns (uint256 _performanceFeeShares) {
         uint256 _performanceFeeAmount =
