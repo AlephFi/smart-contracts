@@ -48,15 +48,30 @@ echo -e "\n${GREEN}✓${NC} New Accountant Implementation deployed successfully"
 echo -e "  ${BLUE}Address:${NC} $NEW_ACCOUNTANT_IMPL_ADDRESS\n"
 
 # Upgrade Accountant Proxy
-echo -e "${CYAN}╭─ Step 2: Upgrading Factory Implementation${NC}"
+echo -e "${CYAN}╭─ Step 2: Upgrading Accountant Implementation${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing upgrade...\n"
-verify_forge_script "UpgradeAccountant" "true" "Failed to upgrade accountant proxy"
 
-echo -e "\n${GREEN}✓${NC} Accountant Proxy upgraded successfully"
+if [ "$ENVIRONMENT" == "feature" ]; then
+    verify_forge_script "UpgradeAccountant" "true" "Failed to upgrade accountant proxy"
+    echo -e "\n${GREEN}✓${NC} Accountant Proxy upgraded successfully"
+else
+    echo -e "${YELLOW}Running Safe multisig upgrade ($ENVIRONMENT environment)...${NC}\n"
+    npm run upgrade-accountant
+    if [ $? -ne 0 ]; then
+        error_exit "Failed to create Safe transaction for accountant upgrade"
+    fi
+    echo -e "\n${GREEN}✓${NC} Safe transaction created and proposed successfully"
+    echo -e "${YELLOW}ℹ${NC}  Transaction needs to be signed by Safe signers to complete the upgrade\n"
+fi
 
 # Final success message
 print_header "Upgrade Summary"
-echo -e "${GREEN}✨ Accountant upgrade completed successfully!${NC}\n"
+if [ "$ENVIRONMENT" == "feature" ]; then
+    echo -e "${GREEN}✨ Accountant upgrade completed successfully!${NC}\n"
+else
+    echo -e "${GREEN}✨ Accountant upgrade transaction proposed to Safe!${NC}\n"
+    echo -e "${YELLOW}⚠${NC}  ${BOLD}Action Required:${NC} Safe signers must approve and execute the transaction\n"
+fi
 echo -e "${BOLD}Contract Addresses${NC}"
 echo -e "  ${BLUE}Accountant Proxy:${NC}           $ACCOUNTANT_PROXY_ADDRESS"
 echo -e "  ${BLUE}Previous Implementation:${NC} $CURRENT_ACCOUNTANT_IMPL_ADDRESS"

@@ -1,7 +1,6 @@
 import {
     validateEnvironmentVariables,
     loadDeploymentConfig,
-    runForgeScript,
     createSafeTransaction,
     proposeSafeTransaction,
     getProxyAdminAddress,
@@ -11,9 +10,6 @@ import {
 async function main() {
     // Validate environment variables
     const config = validateEnvironmentVariables();
-
-    // Run forge script to deploy new implementation
-    runForgeScript('DeployAccountantImplementation', false);
 
     // Load deployment configuration
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);

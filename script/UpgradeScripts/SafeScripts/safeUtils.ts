@@ -110,16 +110,6 @@ export async function getProxyAdminAddress(proxyAddress: string, rpcUrl: string)
     return proxyAdminAddress;
 }
 
-
-export function runForgeScript(scriptName: string, verify: boolean = true): void {
-    console.log(`Running forge script: ${scriptName}`);
-    const verifyFlag = verify ? '--verify' : '';
-    execSync(`forge script ${scriptName} --broadcast -vvvv ${verifyFlag}`, {
-        env: process.env,
-        stdio: 'inherit'
-    });
-}
-
 export function getModuleKey(module: string): string {
     const hash = keccak256(toUtf8Bytes(module));
     return hash.slice(0, 10);

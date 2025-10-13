@@ -50,13 +50,28 @@ echo -e "  ${BLUE}Address:${NC} $NEW_FACTORY_IMPL_ADDRESS\n"
 # Upgrade Factory Proxy
 echo -e "${CYAN}╭─ Step 2: Upgrading Factory Implementation${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing upgrade...\n"
-verify_forge_script "UpgradeAlephVaultFactory" "true" "Failed to upgrade factory proxy"
 
-echo -e "\n${GREEN}✓${NC} Factory Proxy upgraded successfully"
+if [ "$ENVIRONMENT" == "feature" ]; then
+    verify_forge_script "UpgradeAlephVaultFactory" "true" "Failed to upgrade factory proxy"
+    echo -e "\n${GREEN}✓${NC} Factory Proxy upgraded successfully"
+else
+    echo -e "${YELLOW}Running Safe multisig upgrade ($ENVIRONMENT environment)...${NC}\n"
+    npm run upgrade-factory
+    if [ $? -ne 0 ]; then
+        error_exit "Failed to create Safe transaction for factory upgrade"
+    fi
+    echo -e "\n${GREEN}✓${NC} Safe transaction created and proposed successfully"
+    echo -e "${YELLOW}ℹ${NC}  Transaction needs to be signed by Safe signers to complete the upgrade\n"
+fi
 
 # Final success message
 print_header "Upgrade Summary"
-echo -e "${GREEN}✨ Factory upgrade completed successfully!${NC}\n"
+if [ "$ENVIRONMENT" == "feature" ]; then
+    echo -e "${GREEN}✨ Factory upgrade completed successfully!${NC}\n"
+else
+    echo -e "${GREEN}✨ Factory upgrade transaction proposed to Safe!${NC}\n"
+    echo -e "${YELLOW}⚠${NC}  ${BOLD}Action Required:${NC} Safe signers must approve and execute the transaction\n"
+fi
 echo -e "${BOLD}Contract Addresses${NC}"
 echo -e "  ${BLUE}Factory Proxy:${NC}           $FACTORY_PROXY_ADDRESS"
 echo -e "  ${BLUE}Previous Implementation:${NC} $CURRENT_FACTORY_IMPL_ADDRESS"
