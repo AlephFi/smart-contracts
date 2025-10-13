@@ -65,18 +65,16 @@ contract FeeManagerTest is BaseTest {
         // accumalate fees
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(
-            IFeeManager.AccumulateFeesParams({
-                classId: 1,
-                seriesId: 0,
-                currentBatchId: currentBatchId,
-                lastFeePaidId: lastFeePaidId,
-                newTotalAssets: _newTotalAssets,
-                totalShares: 1005
-            }),
-            IFeeManager.FeesAccumulatedDetails({
+            1,
+            0,
+            currentBatchId,
+            lastFeePaidId,
+            _newTotalAssets,
+            1005,
+            IFeeManager.FeesAccumulatedParams({
                 managementFeeAmount: 7,
-                performanceFeeAmount: 0,
                 managementFeeSharesToMint: 5,
+                performanceFeeAmount: 0,
                 performanceFeeSharesToMint: 0
             })
         );
@@ -110,7 +108,7 @@ contract FeeManagerTest is BaseTest {
 
         // set total assets and shares
         uint256 _newTotalAssets = 1200;
-        uint256 _newHighWaterMark = 1_194_030;
+        uint256 _newHighWaterMark = 1_154_957;
         vault.setTotalAssets(0, 1000);
         vault.setTotalShares(0, 1000);
 
@@ -119,18 +117,16 @@ contract FeeManagerTest is BaseTest {
         emit IFeeManager.NewHighWaterMarkSet(1, 0, 100, _newHighWaterMark);
         vm.expectEmit(true, true, true, true);
         emit IFeeManager.FeesAccumulated(
-            IFeeManager.AccumulateFeesParams({
-                classId: 1,
-                seriesId: 0,
-                currentBatchId: currentBatchId,
-                lastFeePaidId: lastFeePaidId,
-                newTotalAssets: _newTotalAssets,
-                totalShares: 1039
-            }),
-            IFeeManager.FeesAccumulatedDetails({
+            1,
+            0,
+            currentBatchId,
+            lastFeePaidId,
+            _newTotalAssets,
+            1039,
+            IFeeManager.FeesAccumulatedParams({
                 managementFeeAmount: 7,
-                performanceFeeAmount: 40,
                 managementFeeSharesToMint: 5,
+                performanceFeeAmount: 40,
                 performanceFeeSharesToMint: 34
             })
         );

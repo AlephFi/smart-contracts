@@ -96,7 +96,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             );
         }
         // accumalate fees if applicable
-        bool _createNewSeries = _accumulateFees(
+        _accumulateFees(
             _shareClass,
             _settlementParams.classId,
             _lastConsolidatedSeriesId,
@@ -104,11 +104,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             _settlementParams.newTotalAssets
         );
         uint32 _settlementSeriesId = _handleSeriesAccounting(
-            _shareClass,
-            _createNewSeries,
-            _settlementParams.classId,
-            _lastConsolidatedSeriesId,
-            _settlementParams.toBatchId
+            _shareClass, _settlementParams.classId, _lastConsolidatedSeriesId, _settlementParams.toBatchId
         );
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_settlementSeriesId];
         SettleDepositDetails memory _settleDepositDetails = SettleDepositDetails({
@@ -251,7 +247,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             );
         }
         // accumalate fees if applicable
-        bool _createNewSeries = _accumulateFees(
+        _accumulateFees(
             _shareClass,
             _settlementParams.classId,
             _lastConsolidatedSeriesId,
@@ -260,11 +256,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         );
         // consolidate series if required
         _handleSeriesAccounting(
-            _shareClass,
-            _createNewSeries,
-            _settlementParams.classId,
-            _lastConsolidatedSeriesId,
-            _settlementParams.toBatchId
+            _shareClass, _settlementParams.classId, _lastConsolidatedSeriesId, _settlementParams.toBatchId
         );
         // settle redeems for each batch
         uint256 _totalAmountToRedeem;
@@ -374,7 +366,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     /**
      * @dev Internal function to handle the series accounting.
      * @param _shareClass The share class.
-     * @param _createNewSeries Whether to create a new series.
      * @param _classId The id of the class.
      * @param _lastConsolidatedSeriesId The id of the last consolidated series.
      * @param _toBatchId The batch id in which to consolidate/create new series.
@@ -386,7 +377,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      */
     function _handleSeriesAccounting(
         IAlephVault.ShareClass storage _shareClass,
-        bool _createNewSeries,
         uint8 _classId,
         uint32 _lastConsolidatedSeriesId,
         uint48 _toBatchId
@@ -395,7 +385,13 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         if (_shareClass.shareClassParams.performanceFee > 0) {
             uint32 _shareSeriesId = _shareClass.shareSeriesId;
             // if new lead series highwatermark is not reached, deposit settlements must take place in a new series
-            if (_createNewSeries) {
+            // if a new highwater mark is reached in this cycle, it will be updated in _accumalateFees function
+            // hence, after fee accumalation process, the lead highwater mark is either greater than or equal to
+            // the lead price per share
+            if (
+                _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark
+                    > _leadPricePerShare(_shareClass, _classId)
+            ) {
                 // we don't create a new series just yet because there might not be any deposit request to settle
                 // in this cycle
                 _seriesId = _shareSeriesId + 1;
@@ -437,7 +433,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         uint32 _lastConsolidatedSeriesId,
         uint48 _toBatchId,
         uint256[] calldata _newTotalAssets
-    ) internal returns (bool _createNewSeries) {
+    ) internal {
         uint48 _lastFeePaidId = _shareClass.lastFeePaidId;
         if (_toBatchId > _lastFeePaidId) {
             for (uint32 _i = 0; _i < _newTotalAssets.length; _i++) {
@@ -446,7 +442,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     : SeriesAccounting.LEAD_SERIES_ID;
                 // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
-                (uint256 _feeSharesToMint, bool _newHighWaterMarkSet) = _accumulateFeeShares(
+                _shareClass.shareSeries[_seriesId].totalShares += _accumulateFeeShares(
                     _newTotalAssets[_i],
                     _shareClass.shareSeries[_seriesId].totalShares,
                     _toBatchId,
@@ -454,10 +450,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     _classId,
                     _seriesId
                 );
-                _shareClass.shareSeries[_seriesId].totalShares += _feeSharesToMint;
-                if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
-                    _createNewSeries = !_newHighWaterMarkSet && _newTotalAssets[_i] > 0;
-                }
             }
             _shareClass.lastFeePaidId = _toBatchId;
         }
@@ -480,9 +472,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         uint48 _lastFeePaidId,
         uint8 _classId,
         uint32 _seriesId
-    ) internal returns (uint256, bool) {
+    ) internal returns (uint256) {
         if (_newTotalAssets == 0) {
-            return (0, false);
+            return 0;
         }
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
             .delegatecall(
@@ -494,6 +486,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         if (!_success) {
             revert DelegateCallFailed(_data);
         }
-        return abi.decode(_data, (uint256, bool));
+        return abi.decode(_data, (uint256));
     }
 }
