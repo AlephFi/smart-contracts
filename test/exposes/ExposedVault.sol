@@ -50,11 +50,11 @@ contract ExposedVault is AlephVault {
         return _getStorage().shareClasses[1].lastFeePaidId;
     }
 
-    function shareSeriesId() external view returns (uint8) {
+    function shareSeriesId() external view returns (uint32) {
         return _getStorage().shareClasses[1].shareSeriesId;
     }
 
-    function lastConsolidatedSeriesId() external view returns (uint8) {
+    function lastConsolidatedSeriesId() external view returns (uint32) {
         return _getStorage().shareClasses[1].lastConsolidatedSeriesId;
     }
 
@@ -72,6 +72,12 @@ contract ExposedVault is AlephVault {
 
     function setLastFeePaidId(uint48 _lastFeePaidId) external {
         _getStorage().shareClasses[1].lastFeePaidId = _lastFeePaidId;
+    }
+
+    function setLastConsolidatedSeriesId(uint32 _lastConsolidatedSeriesId) external {
+        AlephVaultStorageData storage _sd = _getStorage();
+        _sd.shareClasses[1].lastConsolidatedSeriesId = _lastConsolidatedSeriesId;
+        _sd.shareClasses[1].shareSeriesId = _lastConsolidatedSeriesId;
     }
 
     function setBatchDeposit(uint48 _batchId, address _user, uint256 _amount) external {
@@ -131,15 +137,15 @@ contract ExposedVault is AlephVault {
         _getStorage().totalAmountToWithdraw = _totalAmountToWithdraw;
     }
 
-    function setTotalAssets(uint8 _seriesId, uint256 _totalAssets) external {
+    function setTotalAssets(uint32 _seriesId, uint256 _totalAssets) external {
         _getStorage().shareClasses[1].shareSeries[_seriesId].totalAssets = _totalAssets;
     }
 
-    function setTotalShares(uint8 _seriesId, uint256 _totalShares) external {
+    function setTotalShares(uint32 _seriesId, uint256 _totalShares) external {
         _getStorage().shareClasses[1].shareSeries[_seriesId].totalShares = _totalShares;
     }
 
-    function setSharesOf(uint8 _seriesId, address _user, uint256 _shares) external {
+    function setSharesOf(uint32 _seriesId, address _user, uint256 _shares) external {
         _getStorage().shareClasses[1].shareSeries[_seriesId].sharesOf[_user] = _shares;
     }
 
@@ -155,7 +161,7 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].shareClassParams.performanceFee = _performanceFee;
     }
 
-    function accumulateFees(uint256, uint256, uint48, uint48, uint8, uint8) external returns (uint256) {
+    function accumulateFees(uint8, uint32, uint48, uint48, uint256, uint256) external returns (uint256) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
@@ -174,7 +180,7 @@ contract ExposedVault is AlephVault {
             return 0;
         }
         return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
-            _newTotalAssets, _totalShares, _batchesElapsed, _getStorage().shareClasses[1].shareClassParams.managementFee
+            _getStorage().shareClasses[1].shareClassParams.managementFee, _batchesElapsed, _newTotalAssets, _totalShares
         );
     }
 
@@ -185,7 +191,7 @@ contract ExposedVault is AlephVault {
             return 0;
         }
         return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
-            _newTotalAssets, _totalShares, _sd.shareClasses[1].shareClassParams.performanceFee, _highWaterMark
+            _sd.shareClasses[1].shareClassParams.performanceFee, _newTotalAssets, _totalShares, _highWaterMark
         );
     }
 

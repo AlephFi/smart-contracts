@@ -39,9 +39,6 @@ import {
 contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint32 public constant MAX_MANAGEMENT_FEE = 1000; // 10%
-    uint32 public constant MAX_PERFORMANCE_FEE = 5000; // 50%
-
     /*//////////////////////////////////////////////////////////////
                             INITIALIZER
     //////////////////////////////////////////////////////////////*/
@@ -73,7 +70,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         }
         __AccessControl_init();
         AlephVaultFactoryStorageData storage _sd = _getStorage();
-        _sd.isAuthEnabled = true;
         _sd.beacon = _initializationParams.beacon;
         _sd.operationsMultisig = _initializationParams.operationsMultisig;
         _sd.oracle = _initializationParams.oracle;
@@ -103,12 +99,6 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
     /*//////////////////////////////////////////////////////////////
                             SETTER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-    /// @inheritdoc IAlephVaultFactory
-    function setIsAuthEnabled(bool _isAuthEnabled) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        _getStorage().isAuthEnabled = _isAuthEnabled;
-        emit IsAuthEnabledSet(_isAuthEnabled);
-    }
-
     /// @inheritdoc IAlephVaultFactory
     function setOperationsMultisig(address _operationsMultisig) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
         if (_operationsMultisig == address(0)) {
@@ -201,18 +191,15 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         external
         returns (address)
     {
-        bytes32 _salt = keccak256(abi.encodePacked(_userInitializationParams.manager, _userInitializationParams.name));
+        bytes32 _salt = keccak256(abi.encodePacked(msg.sender, _userInitializationParams.name));
         AlephVaultFactoryStorageData storage _sd = _getStorage();
-        if (_sd.isAuthEnabled) {
-            AuthLibrary.verifyVaultDeploymentAuthSignature(
-                _userInitializationParams.manager,
-                address(this),
-                _userInitializationParams.name,
-                _userInitializationParams.configId,
-                _sd.authSigner,
-                _userInitializationParams.authSignature
-            );
-        }
+        AuthLibrary.verifyVaultDeploymentAuthSignature(
+            address(this),
+            _userInitializationParams.name,
+            _userInitializationParams.configId,
+            _sd.authSigner,
+            _userInitializationParams.authSignature
+        );
         IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
             .ModuleInitializationParams({
             alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
@@ -224,6 +211,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: _sd.operationsMultisig,
             vaultFactory: address(this),
+            manager: msg.sender,
             oracle: _sd.oracle,
             guardian: _sd.guardian,
             authSigner: _sd.authSigner,
@@ -239,12 +227,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         address _vault = Create2.deploy(0, _salt, _bytecode);
         _sd.vaults.add(_vault);
         IAccountant(_sd.accountant).initializeVaultTreasury(_vault, _userInitializationParams.vaultTreasury);
-        emit VaultDeployed(
-            _vault,
-            _userInitializationParams.manager,
-            _userInitializationParams.name,
-            _userInitializationParams.configId
-        );
+        emit VaultDeployed(_vault, msg.sender, _userInitializationParams.name, _userInitializationParams.configId);
         return _vault;
     }
 
