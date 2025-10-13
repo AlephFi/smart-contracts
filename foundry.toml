@@ -18,6 +18,7 @@ hoodi = "https://ethereum-hoodi-rpc.publicnode.com"
 sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api-sepolia.etherscan.io/api", chain = 11155111 }
 hoodi = { key = "${ETHERSCAN_API_KEY}", url = "https://api-hoodi.etherscan.io/api", chain = 560048 }
 
+
 [fmt]
 bracket_spacing = false
 int_types = "long"

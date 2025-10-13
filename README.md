@@ -9,7 +9,7 @@
 
 Aleph is a financial infrastructure for uncorrelated yield strategies, connecting digital asset allocators with institutional money managers.
 
-[Documentation](https://docs.aleph.finance) • [Website](https://aleph.finance) • [Twitter](https://x.com/Alephfi) • [GitHub](https://github.com/Othentic-Labs/Aleph)
+[Documentation](https://docs.aleph.finance) • [Website](https://aleph.finance) • [Twitter](https://x.com/Alephfi) • [GitHub](https://github.com/AlephFi/smart-contracts)
 
 </div>
 
@@ -76,7 +76,7 @@ graph TB
 
 ```bash
 # Clone the repository
-git clone https://github.com/Othentic-Labs/Aleph.git
+git clone https://github.com/AlephFi/smart-contracts.git
 cd Aleph
 
 # Install Foundry dependencies
@@ -279,7 +279,7 @@ npm run lint
 
 ### Reporting Security Issues
 
-Please report security vulnerabilities to [security@aleph.finance](mailto:security@aleph.finance)
+Please report security vulnerabilities to [dev@aleph.finance](mailto:dev@aleph.finance)
 
 ---
 
@@ -347,7 +347,7 @@ This project is licensed under the Business Source License 1.1 (BUSL-1.1). See t
 - **Documentation**: [docs.aleph.finance](https://docs.aleph.finance)
 - **Website**: [aleph.finance](https://aleph.finance)
 - **Twitter**: [@Alephfi](https://x.com/Alephfi)
-- **GitHub**: [Othentic-Labs/Aleph](https://github.com/Othentic-Labs/Aleph)
+- **GitHub**: [Othentic-Labs/Aleph](https://github.com/AlephFi/smart-contracts)
 - **Email**: [hi@aleph.finance](mailto:hi@aleph.finance)
 
 ---

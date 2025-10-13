@@ -1,10 +1,10 @@
 {
-    "560048": {
+    "1": {
         "staging": {
-            "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+            "operationsMultisig": "",
+            "oracle": "",
+            "guardian": "",
+            "authSigner": ""
         },
         "nightly": {
             "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
