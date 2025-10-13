@@ -12,12 +12,11 @@ async function main() {
 
     // Load deployment configuration
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);
-    const factoryConfig = loadFactoryConfig(config.chainId, config.environment);
 
     // Create and propose Safe transaction
     await createAndProposeSafeTransaction(config, {
         targetAddress: chainConfig.accountantProxyAddress,
-        safeOwnerAddress: factoryConfig.operationsMultisig,
+        safeOwnerAddress: chainConfig.operationsMultisig,
         abi: ACCOUNTANT_ABI,
         functionName: 'setVaultFactory',
         functionArgs: [chainConfig.factoryProxyAddress]

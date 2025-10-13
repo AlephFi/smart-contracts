@@ -97,30 +97,47 @@ FACTORY_PROXY_ADDRESS=$(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "fact
 echo -e "\n${GREEN}✓${NC} Factory proxy deployed successfully"
 echo -e "  ${BLUE}Proxy:${NC} $FACTORY_PROXY_ADDRESS"
 
+# Set Vault Factory in Accountant
+echo -e "${CYAN}╭─ Step 7: Setting Vault Factory in Accountant${NC}"
+echo -e "${CYAN}╰─>${NC} Initializing setup...\n"
+
+if [ "$ENVIRONMENT" = "feature" ]; then
+    verify_forge_script "SetVaultFactory" "false" "Failed to set vault factory"
+    echo -e "\n${GREEN}✓${NC} Vault Factory set successfully in Accountant"
+else
+    npx ts-node script/UpgradeScripts/SafeScripts/setVaultFactorySafe.ts
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}✗ Failed to create Safe transaction for setting vault factory${NC}"
+        exit 1
+    fi
+    echo -e "\n${GREEN}✓${NC} Safe transaction created successfully"
+    echo -e "  ${YELLOW}⚠ Transaction needs to be signed and executed by Safe owners${NC}"
+fi
+
 # Final success message
 print_header "Deployment Summary"
 echo -e "${GREEN}✨ All contracts deployed successfully!${NC}\n"
 echo -e "${BOLD}Deployed Contracts${NC}"
-echo -e "  ${BLUE}Vault Implementation:${NC}    $VAULT_IMPL_ADDRESS"
-echo -e "  ${BLUE}Vault Beacon:${NC}            $VAULT_BEACON_ADDRESS"
-echo -e "  ${BLUE}Accountant Implementation:${NC} $ACCOUNTANT_IMPL_ADDRESS"
-echo -e "  ${BLUE}Accountant Proxy:${NC}         $ACCOUNTANT_PROXY_ADDRESS"
-echo -e "  ${BLUE}Factory Implementation:${NC}  $FACTORY_IMPL_ADDRESS"
-echo -e "  ${BLUE}Factory Proxy:${NC}           $FACTORY_PROXY_ADDRESS\n"
+echo -e "  ${BLUE}Vault Implementation:${NC}       $VAULT_IMPL_ADDRESS"
+echo -e "  ${BLUE}Vault Beacon:${NC}               $VAULT_BEACON_ADDRESS"
+echo -e "  ${BLUE}Accountant Implementation:${NC}  $ACCOUNTANT_IMPL_ADDRESS"
+echo -e "  ${BLUE}Accountant Proxy:${NC}           $ACCOUNTANT_PROXY_ADDRESS"
+echo -e "  ${BLUE}Factory Implementation:${NC}     $FACTORY_IMPL_ADDRESS"
+echo -e "  ${BLUE}Factory Proxy:${NC}              $FACTORY_PROXY_ADDRESS\n"
 echo -e "${BOLD}Vault Configs${NC}"
-echo -e "  ${BLUE}MinDepositAmountTimelock:${NC}  $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minDepositAmountTimelock")"
-echo -e "  ${BLUE}MinUserBalanceTimelock:${NC}  $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minUserBalanceTimelock")"
-echo -e "  ${BLUE}MaxDepositCapTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "maxDepositCapTimelock")"
-echo -e "  ${BLUE}NoticePeriodTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "noticePeriodTimelock")"
-echo -e "  ${BLUE}LockInPeriodTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "lockInPeriodTimelock")"
-echo -e "  ${BLUE}MinRedeemAmountTimelock:${NC}  $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minRedeemAmountTimelock")"
-echo -e "  ${BLUE}ManagementFeeTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFeeTimelock")"
-echo -e "  ${BLUE}PerformanceFeeTimelock:${NC}    $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFeeTimelock")"
-echo -e "  ${BLUE}BatchDuration:${NC}             $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "batchDuration")\n"
+echo -e "  ${BLUE}OperationsMultisig:${NC}         $(check_deployment_config "$CHAIN_ID" "$ENVIRONMENT" "operationsMultisig")"
+echo -e "  ${BLUE}MinDepositAmountTimelock:${NC}   $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minDepositAmountTimelock")"
+echo -e "  ${BLUE}MinUserBalanceTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minUserBalanceTimelock")"
+echo -e "  ${BLUE}MaxDepositCapTimelock:${NC}      $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "maxDepositCapTimelock")"
+echo -e "  ${BLUE}NoticePeriodTimelock:${NC}       $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "noticePeriodTimelock")"
+echo -e "  ${BLUE}LockInPeriodTimelock:${NC}       $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "lockInPeriodTimelock")"
+echo -e "  ${BLUE}MinRedeemAmountTimelock:${NC}    $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "minRedeemAmountTimelock")"
+echo -e "  ${BLUE}ManagementFeeTimelock:${NC}      $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "managementFeeTimelock")"
+echo -e "  ${BLUE}PerformanceFeeTimelock:${NC}     $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "performanceFeeTimelock")"
+echo -e "  ${BLUE}BatchDuration:${NC}              $(get_config_value "$CHAIN_ID" "$ENVIRONMENT" "batchDuration")\n"
 echo -e "${BOLD}Factory Configs${NC}"
-echo -e "  ${BLUE}OperationsMultisig:${NC}  $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "operationsMultisig")"
-echo -e "  ${BLUE}Oracle:${NC}              $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "oracle")"
-echo -e "  ${BLUE}Guardian:${NC}            $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "guardian")"
-echo -e "  ${BLUE}AuthSigner:${NC}          $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "authSigner")\n"
+echo -e "  ${BLUE}Oracle:${NC}                     $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "oracle")"
+echo -e "  ${BLUE}Guardian:${NC}                   $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "guardian")"
+echo -e "  ${BLUE}AuthSigner:${NC}                 $(get_factory_config_value "$CHAIN_ID" "$ENVIRONMENT" "authSigner")\n"
 echo -e "${BOLD}Accountant Configs${NC}"
-echo -e "  ${BLUE}AlephTreasury:${NC}       $(get_accountant_config_value "$CHAIN_ID" "$ENVIRONMENT" "alephTreasury")\n"
+echo -e "  ${BLUE}AlephTreasury:${NC}              $(get_accountant_config_value "$CHAIN_ID" "$ENVIRONMENT" "alephTreasury")\n"

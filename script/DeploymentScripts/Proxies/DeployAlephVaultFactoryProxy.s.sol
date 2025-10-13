@@ -80,7 +80,7 @@ contract DeployAlephVaultFactoryProxy is BaseScript {
         return IAlephVaultFactory.InitializationParams({
             beacon: _getBeacon(_chainId, _environment),
             operationsMultisig: vm.parseJsonAddress(
-                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
             ),
             oracle: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".oracle")),
             guardian: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".guardian")),

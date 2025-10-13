@@ -1,6 +1,7 @@
 {
   "1": {
     "prod": {
+      "operationsMultisig": "",
       "vaultBeaconOwner": "",
       "accountantProxyOwner": "",
       "factoryProxyOwner": "",
@@ -19,6 +20,7 @@
   },
   "560048": {
     "staging": {
+      "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "accountantProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
@@ -35,6 +37,7 @@
       "factoryProxyAddress": "0xD5dc82F6569e93e55FfA71083E13ae9d7DB24b34"
     },
     "nightly": {
+      "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "accountantProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
@@ -51,6 +54,7 @@
       "factoryProxyAddress": "0xD8b1F1F4D9b6983cE490ca5EAC770C23c20D012c"
     },
     "feature": {
+      "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "accountantProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
@@ -69,6 +73,7 @@
   },
   "11155111": {
     "staging": {
+      "operationsMultisig": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "accountantProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
@@ -85,40 +90,43 @@
       "factoryProxyAddress": "0xD8b1F1F4D9b6983cE490ca5EAC770C23c20D012c"
     },
     "nightly": {
+      "operationsMultisig": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "accountantProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
-      "vaultImplementationAddress": "0x988ca49D05018DB3ab35a0F4B1bB59A655B7aCd2",
-      "vaultDepositImplementationAddress": "0x45186c6Cd8eb43B8689169a6e4a7B7cc79E54F2A",
-      "vaultRedeemImplementationAddress": "0xF1A568E5052F20936A6D2D5BB0d4429fD7b864c1",
-      "vaultSettlementImplementationAddress": "0x50C29B14FE1588cf2331912e31E8eE0B2eeB09A8",
-      "feeManagerImplementationAddress": "0x3A20b944660207faE2623fFD7536b624357bDdB9",
-      "migrationManagerImplementationAddress": "0xC3921BD7824Fc3E5926e5Bfecc865D7C62e3c7B6",
-      "accountantImplementationAddress": "0x8148bCB87A6e1C2d95C152276d930C2526a1E442",
-      "factoryImplementationAddress": "0x1d1F2F4A9b0dEd159354C16C55Ae552D2108AC3C",
-      "vaultBeaconAddress": "0xAaf1904E1848eA7bf8EDB3A7AE9959076E10F687",
-      "accountantProxyAddress": "0x6CA9AadC031bED6A5d68ba98bCA0E4B0e3c82792",
-      "factoryProxyAddress": "0x41f88aeB05132aF402bD770B8700c61ff1eF6e1A"
+      "vaultImplementationAddress": "0x360c5cd0ffA8Cf39De8AD5119695b200dEDC99a3",
+      "vaultDepositImplementationAddress": "0xd35d6085a870fa0992d43971c3e08549f13a1262",
+      "vaultRedeemImplementationAddress": "0x062b77e13fB224AC2C425F9bf81FB5165467EbB7",
+      "vaultSettlementImplementationAddress": "0x8Ae1bF37D7da54BCe9f250c570C64d047993dE35",
+      "feeManagerImplementationAddress": "0x2270568Effc88DEf1791489C7FAd379c3E3C83d2",
+      "migrationManagerImplementationAddress": "0x47B8715Ae2278CDCF2d8F6F126fe65e705576627",
+      "accountantImplementationAddress": "0x35325A700d8678C1881B5CF566C0245E10CcAefe",
+      "factoryImplementationAddress": "0x68055484CAfa228A12F12b71de56bc5E56768AE6",
+      "vaultBeaconAddress": "0x371E00a9913eCfC7534e8f199011f14b0e1e3E2C",
+      "accountantProxyAddress": "0xfcF4262c1C669b23be1bfbaba2EAd1E886e598A2",
+      "factoryProxyAddress": "0xd3C7fFbEFBbcceB34AE0343aBA516503FD73F8f7"
     },
     "feature": {
+      "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "accountantProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-      "vaultImplementationAddress": "0x74230E04B2203A38d3a7c1e36c2EBe44e723e9EB",
-      "vaultDepositImplementationAddress": "",
-      "vaultRedeemImplementationAddress": "",
-      "vaultSettlementImplementationAddress": "",
-      "feeManagerImplementationAddress": "",
-      "migrationManagerImplementationAddress": "",
-      "accountantImplementationAddress": "",
-      "factoryImplementationAddress": "0x6A92036A0C88bDFC3edC53Fd5933567Cf581e418",
-      "vaultBeaconAddress": "0xc3cAE1519D921d49663f3E6f46305a9a26b0aF90",
-      "accountantProxyAddress": "",
-      "factoryProxyAddress": "0xF9FEcd5160D2aae60101817c43cf73F6F7Ff813B"
+      "vaultImplementationAddress": "0x5E96FB31778649F19493f0f658D33bd0DC3DA245",
+      "vaultDepositImplementationAddress": "0xEaf1a77c38f0f68bBC6a96317b48E345e7894D85",
+      "vaultRedeemImplementationAddress": "0x244d09095EF4B78F7166E5c56ac7dB724fDcAB15",
+      "vaultSettlementImplementationAddress": "0x4A042b9031cC9f86770b0a721d8612F17de7a0F1",
+      "feeManagerImplementationAddress": "0xCA577f782F9308A8B4D293499B887836F7a891EC",
+      "migrationManagerImplementationAddress": "0xD63643B8a8BFFD7C91381a5b2ce2270B99B2b2AF",
+      "accountantImplementationAddress": "0xC44F7A75AA92210b87912763C52Bb2B1A5f1C841",
+      "factoryImplementationAddress": "0x94472ddA160299A47D4eE09a7298C9d6efee7eEC",
+      "vaultBeaconAddress": "0xD40D95577343E0B2c97B37900dde1B795f51B038",
+      "accountantProxyAddress": "0xA9Af6Fe627Ffca56fe227E03Bd656cAEfe32C420",
+      "factoryProxyAddress": "0x7109086AEb5aaB6a84009A7f8cb42Bf72E011E11"
     }
   },
   "84532": {
     "staging": {
+      "operationsMultisig": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "accountantProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
@@ -135,6 +143,7 @@
       "factoryProxyAddress": ""
     },
     "nightly": {
+      "operationsMultisig": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "vaultBeaconOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "accountantProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
       "factoryProxyOwner": "0xF441514a8540eB48BA90069e1C3728Db48F935F1",
@@ -151,6 +160,7 @@
       "factoryProxyAddress": ""
     },
     "feature": {
+      "operationsMultisig": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "vaultBeaconOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "accountantProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
       "factoryProxyOwner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",

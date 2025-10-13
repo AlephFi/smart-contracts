@@ -15,6 +15,7 @@ dotenv.config();
 export interface DeploymentConfig {
     [chainId: string]: {
         [environment: string]: {
+            operationsMultisig: string;
             vaultBeaconOwner: string;
             accountantProxyOwner: string;
             factoryProxyOwner: string;
@@ -36,7 +37,6 @@ export interface DeploymentConfig {
 export interface FactoryConfig {
     [chainId: string]: {
         [environment: string]: {
-            operationsMultisig: string;
             oracle: string;
             guardian: string;
             authSigner: string;

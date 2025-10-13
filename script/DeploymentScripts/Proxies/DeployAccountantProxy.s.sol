@@ -41,11 +41,11 @@ contract DeployAccountantProxy is BaseScript {
 
         address _proxyOwner = _getAccountantProxyOwner(_chainId, _environment);
 
-        string memory _factoryConfig = _getFactoryConfig();
+        string memory _deploymentConfig = _getDeploymentConfig();
         string memory _accountantConfig = _getAccountantConfig();
 
         IAccountant.InitializationParams memory _initializationParams =
-            _getInitializationParams(_factoryConfig, _accountantConfig, _chainId, _environment);
+            _getInitializationParams(_deploymentConfig, _accountantConfig, _chainId, _environment);
 
         console.log("operationsMultisig", _initializationParams.operationsMultisig);
         console.log("alephTreasury", _initializationParams.alephTreasury);
@@ -68,14 +68,14 @@ contract DeployAccountantProxy is BaseScript {
     }
 
     function _getInitializationParams(
-        string memory _factoryConfig,
+        string memory _deploymentConfig,
         string memory _accountantConfig,
         string memory _chainId,
         string memory _environment
     ) internal view returns (IAccountant.InitializationParams memory) {
         return IAccountant.InitializationParams({
             operationsMultisig: vm.parseJsonAddress(
-                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
             ),
             alephTreasury: vm.parseJsonAddress(
                 _accountantConfig, string.concat(".", _chainId, ".", _environment, ".alephTreasury")
