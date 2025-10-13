@@ -45,8 +45,7 @@ contract DeployAlephVault is BaseScript {
 
         string memory _vaultName = vm.envString("VAULT_NAME");
         string memory _vaultConfigId = vm.envString("VAULT_CONFIG_ID");
-        AuthLibrary.AuthSignature memory _authSignature =
-            _getAuthSignature(_factory, _vaultName, _vaultConfigId);
+        AuthLibrary.AuthSignature memory _authSignature = _getAuthSignature(_factory, _vaultName, _vaultConfigId);
 
         IAlephVault.ShareClassParams memory _shareClassParams = IAlephVault.ShareClassParams({
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
@@ -76,11 +75,11 @@ contract DeployAlephVault is BaseScript {
         vm.stopBroadcast();
     }
 
-    function _getAuthSignature(
-        address _factory,
-        string memory _vaultName,
-        string memory _vaultConfigId
-    ) internal view returns (AuthLibrary.AuthSignature memory) {
+    function _getAuthSignature(address _factory, string memory _vaultName, string memory _vaultConfigId)
+        internal
+        view
+        returns (AuthLibrary.AuthSignature memory)
+    {
         bytes32 _authMessage =
             keccak256(abi.encode(msg.sender, _factory, _vaultName, _vaultConfigId, block.chainid, type(uint256).max));
         bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
