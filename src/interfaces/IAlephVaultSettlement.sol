@@ -28,19 +28,19 @@ interface IAlephVaultSettlement {
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Emitted when a deposit cycle is settled.
-     * @param fromBatchId The batch ID from which the deposits are settled.
-     * @param toBatchId The batch ID up to which the deposits are settled.
      * @param classId The ID of the share class for which the deposits are settled.
      * @param seriesId The ID of the share series in which the deposits are settled.
+     * @param fromBatchId The batch ID from which the deposits are settled.
+     * @param toBatchId The batch ID up to which the deposits are settled.
      * @param amountToSettle The total amount of deposits that are settled.
      * @param totalAssets The total assets of the share series after settlement.
      * @param totalShares The total shares of the share series after settlement.
      */
     event SettleDeposit(
-        uint48 indexed fromBatchId,
-        uint48 indexed toBatchId,
         uint8 classId,
         uint32 seriesId,
+        uint48 indexed fromBatchId,
+        uint48 indexed toBatchId,
         uint256 amountToSettle,
         uint256 totalAssets,
         uint256 totalShares
@@ -98,70 +98,75 @@ interface IAlephVaultSettlement {
 
     /**
      * @notice Emitted when a deposit request is settled.
-     * @param user The user that made the deposit request.
      * @param classId The ID of the share class for which the deposit request is settled.
      * @param seriesId The ID of the share series in which the deposit request is settled.
+     * @param toBatchId The batch ID up to which the deposit request is settled.
+     * @param user The user that made the deposit request.
      * @param amount The amount of the deposit request.
      * @param sharesToMint The shares to mint for the deposit request.
-     * @param toBatchId The batch ID up to which the deposit request is settled.
      */
     event DepositRequestSettled(
-        address indexed user, uint8 classId, uint32 seriesId, uint256 amount, uint256 sharesToMint, uint48 toBatchId
+        uint8 classId,
+        uint32 seriesId,
+        uint48 indexed toBatchId,
+        address indexed user,
+        uint256 amount,
+        uint256 sharesToMint
     );
 
     /**
      * @notice Emitted when a deposit batch is settled.
-     * @param batchId The batch ID that is settled.
      * @param classId The ID of the share class for which the deposit batch is settled.
      * @param seriesId The ID of the share series in which the deposit batch is settled.
+     * @param batchId The batch ID that is settled.
      * @param totalAmountToDeposit The total amount of the deposits that are settled in the batch.
      * @param totalSharesToMint The total shares to mint for the deposit requests in the batch.
      */
     event SettleDepositBatch(
-        uint48 indexed batchId, uint8 classId, uint32 seriesId, uint256 totalAmountToDeposit, uint256 totalSharesToMint
+        uint8 classId, uint32 seriesId, uint48 indexed batchId, uint256 totalAmountToDeposit, uint256 totalSharesToMint
     );
 
     /**
      * @notice Emitted when a redeem request is settled.
+     * @param classId The ID of the share class for which the redeem request is settled.
      * @param fromBatchId The batch ID from which the redeem request is settled.
      * @param toBatchId The batch ID up to which the redeem request is settled.
-     * @param classId The ID of the share class for which the redeem request is settled.
      */
-    event SettleRedeem(uint48 indexed fromBatchId, uint48 indexed toBatchId, uint8 classId);
+    event SettleRedeem(uint8 classId, uint48 indexed fromBatchId, uint48 indexed toBatchId);
 
     /**
      * @notice Emitted when a redeem request is settled.
+     * @param classId The ID of the share class for which the redeem request is settled.
      * @param batchId The batch ID in which redeem request is settled.
      * @param user The user that made the redeem request.
-     * @param classId The ID of the share class for which the redeem request is settled.
      * @param amountToRedeem The amount of the redeem request.
      */
-    event RedeemRequestSettled(uint48 indexed batchId, address indexed user, uint8 classId, uint256 amountToRedeem);
+    event RedeemRequestSettled(uint8 classId, uint48 indexed batchId, address indexed user, uint256 amountToRedeem);
 
     /**
      * @notice Emitted when a redeem request slice is settled.
-     * @param batchId The batch ID in which redeem slice is settled.
-     * @param user The user that made the redeem request.
      * @param classId The ID of the share class for which the redeem request is settled.
      * @param seriesId The ID of the share series in which the redeem request is settled.
+     * @param batchId The batch ID in which redeem slice is settled.
+     * @param user The user that made the redeem request.
      * @param amountToRedeem The amount of the redeem request.
      */
     event RedeemRequestSliceSettled(
-        uint48 indexed batchId,
-        address indexed user,
         uint8 classId,
         uint32 seriesId,
+        uint48 indexed batchId,
+        address indexed user,
         uint256 amountToRedeem,
         uint256 sharesToBurn
     );
 
     /**
      * @notice Emitted when a redeem batch is settled.
-     * @param batchId The batch ID that is settled.
      * @param classId The ID of the share class for which the redeem batch is settled.
+     * @param batchId The batch ID that is settled.
      * @param totalAmountToRedeem The total amount of the redeem requests that are settled in the batch.
      */
-    event SettleRedeemBatch(uint48 indexed batchId, uint8 indexed classId, uint256 totalAmountToRedeem);
+    event SettleRedeemBatch(uint8 indexed classId, uint48 indexed batchId, uint256 totalAmountToRedeem);
 
     /**
      * @notice Emitted when a redeem is forced by the manager.

@@ -74,6 +74,12 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[1].lastFeePaidId = _lastFeePaidId;
     }
 
+    function setLastConsolidatedSeriesId(uint32 _lastConsolidatedSeriesId) external {
+        AlephVaultStorageData storage _sd = _getStorage();
+        _sd.shareClasses[1].lastConsolidatedSeriesId = _lastConsolidatedSeriesId;
+        _sd.shareClasses[1].shareSeriesId = _lastConsolidatedSeriesId;
+    }
+
     function setBatchDeposit(uint48 _batchId, address _user, uint256 _amount) external {
         AlephVaultStorageData storage _sd = _getStorage();
         _sd.shareClasses[1].depositRequests[_batchId].usersToDeposit.add(_user);
@@ -155,7 +161,7 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[_classId].shareClassParams.performanceFee = _performanceFee;
     }
 
-    function accumulateFees(uint256, uint256, uint48, uint48, uint8, uint32) external returns (uint256) {
+    function accumulateFees(uint8, uint32, uint48, uint48, uint256, uint256) external returns (uint256) {
         _delegate(ModulesLibrary.FEE_MANAGER);
     }
 
@@ -174,7 +180,7 @@ contract ExposedVault is AlephVault {
             return 0;
         }
         return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]).getManagementFeeShares(
-            _newTotalAssets, _totalShares, _batchesElapsed, _getStorage().shareClasses[1].shareClassParams.managementFee
+            _getStorage().shareClasses[1].shareClassParams.managementFee, _batchesElapsed, _newTotalAssets, _totalShares
         );
     }
 
@@ -185,7 +191,7 @@ contract ExposedVault is AlephVault {
             return 0;
         }
         return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER]).getPerformanceFeeShares(
-            _newTotalAssets, _totalShares, _sd.shareClasses[1].shareClassParams.performanceFee, _highWaterMark
+            _sd.shareClasses[1].shareClassParams.performanceFee, _newTotalAssets, _totalShares, _highWaterMark
         );
     }
 

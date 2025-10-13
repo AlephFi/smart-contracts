@@ -97,14 +97,14 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         view
         returns (uint256)
     {
-        uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+        uint32 _shareSeriesId = _shareClass.shareSeriesId;
         uint256 _totalAssetsSum;
-        for (uint32 _seriesId; _seriesId <= _shareClass.shareSeriesId; _seriesId++) {
-            if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
-                _seriesId += _lastConsolidatedSeriesId;
-            }
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // loop through all share series and sum up the total assets
             _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+            if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
+                _seriesId = _shareClass.lastConsolidatedSeriesId;
+            }
         }
         return _totalAssetsSum;
     }
@@ -187,14 +187,13 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 _assets;
-        uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint32 _shareSeriesId = _shareClass.shareSeriesId;
         for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-            if (_seriesId > SeriesAccounting.LEAD_SERIES_ID) {
-                _seriesId += _lastConsolidatedSeriesId;
-            }
             // loop through all share series and sum up the assets
             _assets += _assetsOf(_shareClass, _classId, _seriesId, _user);
+            if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
+                _seriesId = _shareClass.lastConsolidatedSeriesId;
+            }
         }
         return _assets;
     }

@@ -45,9 +45,8 @@ contract DeployAlephVault is BaseScript {
 
         string memory _vaultName = vm.envString("VAULT_NAME");
         string memory _vaultConfigId = vm.envString("VAULT_CONFIG_ID");
-        address _vaultManager = vm.envAddress("VAULT_MANAGER");
         AuthLibrary.AuthSignature memory _authSignature =
-            _getAuthSignature(_factory, _vaultManager, _vaultName, _vaultConfigId);
+            _getAuthSignature(_factory, _vaultName, _vaultConfigId);
 
         IAlephVault.ShareClassParams memory _shareClassParams = IAlephVault.ShareClassParams({
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
@@ -63,7 +62,6 @@ contract DeployAlephVault is BaseScript {
         IAlephVault.UserInitializationParams memory _userInitializationParams = IAlephVault.UserInitializationParams({
             name: _vaultName,
             configId: _vaultConfigId,
-            manager: _vaultManager,
             underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
             custodian: vm.envAddress("VAULT_CUSTODIAN"),
             vaultTreasury: vm.envAddress("VAULT_TREASURY"),
@@ -80,12 +78,11 @@ contract DeployAlephVault is BaseScript {
 
     function _getAuthSignature(
         address _factory,
-        address _vaultManager,
         string memory _vaultName,
         string memory _vaultConfigId
     ) internal view returns (AuthLibrary.AuthSignature memory) {
         bytes32 _authMessage =
-            keccak256(abi.encode(_vaultManager, _factory, _vaultName, _vaultConfigId, block.chainid, type(uint256).max));
+            keccak256(abi.encode(msg.sender, _factory, _vaultName, _vaultConfigId, block.chainid, type(uint256).max));
         bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
         uint256 _authSignerPrivateKey = _getAuthSignerPrivateKey();
         (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(_authSignerPrivateKey, _ethSignedMessage);

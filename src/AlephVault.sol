@@ -102,10 +102,9 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         AlephVaultStorageData storage _sd = _getStorage();
         __AccessControl_init();
         if (
-            _initializationParams.userInitializationParams.manager == address(0)
-                || _initializationParams.operationsMultisig == address(0)
-                || _initializationParams.vaultFactory == address(0) || _initializationParams.oracle == address(0)
-                || _initializationParams.guardian == address(0) || _initializationParams.authSigner == address(0)
+            _initializationParams.operationsMultisig == address(0) || _initializationParams.vaultFactory == address(0)
+                || _initializationParams.oracle == address(0) || _initializationParams.guardian == address(0)
+                || _initializationParams.authSigner == address(0)
                 || _initializationParams.userInitializationParams.underlyingToken == address(0)
                 || _initializationParams.userInitializationParams.custodian == address(0)
                 || _initializationParams.accountant == address(0)
@@ -123,12 +122,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         }
         // set up storage variables
         _sd.operationsMultisig = _initializationParams.operationsMultisig;
+        _sd.manager = _initializationParams.manager;
         _sd.oracle = _initializationParams.oracle;
         _sd.guardian = _initializationParams.guardian;
         _sd.authSigner = _initializationParams.authSigner;
         _sd.accountant = _initializationParams.accountant;
         _sd.name = _initializationParams.userInitializationParams.name;
-        _sd.manager = _initializationParams.userInitializationParams.manager;
         _sd.underlyingToken = _initializationParams.userInitializationParams.underlyingToken;
         _sd.custodian = _initializationParams.userInitializationParams.custodian;
         _sd.isDepositAuthEnabled = true;
@@ -150,21 +149,17 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         // grant roles
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
         _grantRole(RolesLibrary.VAULT_FACTORY, _initializationParams.vaultFactory);
-        _grantRole(RolesLibrary.MANAGER, _initializationParams.userInitializationParams.manager);
+        _grantRole(RolesLibrary.MANAGER, _initializationParams.manager);
         _grantRole(RolesLibrary.ORACLE, _initializationParams.oracle);
         _grantRole(RolesLibrary.GUARDIAN, _initializationParams.guardian);
         _grantRole(RolesLibrary.ACCOUNTANT, _initializationParams.accountant);
 
         // initialize pausable modules
         __AlephVaultDeposit_init(
-            _initializationParams.userInitializationParams.manager,
-            _initializationParams.guardian,
-            _initializationParams.operationsMultisig
+            _initializationParams.manager, _initializationParams.guardian, _initializationParams.operationsMultisig
         );
         __AlephVaultRedeem_init(
-            _initializationParams.userInitializationParams.manager,
-            _initializationParams.guardian,
-            _initializationParams.operationsMultisig
+            _initializationParams.manager, _initializationParams.guardian, _initializationParams.operationsMultisig
         );
         // initialize reentrancy guard
         __ReentrancyGuard_init();
@@ -177,7 +172,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     /// @inheritdoc IAlephVault
-    function startTimestamp() external view returns (uint48) {
+    function startTimeStamp() external view returns (uint48) {
         return _getStorage().startTimeStamp;
     }
 
@@ -197,7 +192,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function lastConsolidatedSeriesId(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint32) {
+    function lastConsolidatedSeriesId(uint8 _classId) external view returns (uint32) {
         return _getStorage().shareClasses[_classId].lastConsolidatedSeriesId;
     }
 
@@ -881,15 +876,6 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @dev Only callable by the VAULT_FACTORY role.
      */
     function migrateAuthSigner(address _newAuthSigner) external onlyRole(RolesLibrary.VAULT_FACTORY) {
-        _delegate(ModulesLibrary.MIGRATION_MANAGER);
-    }
-
-    /**
-     * @notice Migrates the accountant.
-     * @param _newAccountant The new accountant address.
-     * @dev Only callable by the VAULT_FACTORY role.
-     */
-    function migrateAccountant(address _newAccountant) external onlyRole(RolesLibrary.VAULT_FACTORY) {
         _delegate(ModulesLibrary.MIGRATION_MANAGER);
     }
 

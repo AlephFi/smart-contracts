@@ -78,13 +78,13 @@ contract RequestSettleRedeemTest is BaseTest {
         // settle redeem
         vm.startPrank(oracle);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.RedeemRequestSliceSettled(1, mockUser_1, 1, 0, 100 ether, 100 ether);
+        emit IAlephVaultSettlement.RedeemRequestSliceSettled(1, 0, 1, mockUser_1, 100 ether, 100 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.RedeemRequestSettled(1, mockUser_1, 1, 100 ether);
+        emit IAlephVaultSettlement.RedeemRequestSettled(1, 1, mockUser_1, 100 ether);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleRedeemBatch(1, 1, 100 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleRedeem(0, 2, 1);
+        emit IAlephVaultSettlement.SettleRedeem(1, 0, 2);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
@@ -142,7 +142,7 @@ contract RequestSettleRedeemTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultSettlement.SettleRedeemBatch(1, 1, 60 ether);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultSettlement.SettleRedeem(0, 3, 1);
+        emit IAlephVaultSettlement.SettleRedeem(1, 0, 3);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,

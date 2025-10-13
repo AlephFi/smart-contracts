@@ -81,6 +81,7 @@ interface IAlephVault {
      * @notice Initialization params.
      * @param _operationsMultisig The operations multisig address.
      * @param _vaultFactory The vault factory address.
+     * @param _manager The manager address.
      * @param _oracle The oracle address.
      * @param _guardian The guardian address.
      * @param _authSigner The auth signer address.
@@ -91,6 +92,7 @@ interface IAlephVault {
     struct InitializationParams {
         address operationsMultisig;
         address vaultFactory;
+        address manager;
         address oracle;
         address guardian;
         address authSigner;
@@ -103,7 +105,6 @@ interface IAlephVault {
      * @notice Initialization params provided by the user.
      * @param _name The name of the vault.
      * @param _configId The config ID of the vault.
-     * @param _manager The manager address.
      * @param _underlyingToken The underlying token address.
      * @param _custodian The custodian address in which vault funds are stored.
      * @param _vaultTreasury The vault treasury address in which fees are collected.
@@ -113,7 +114,6 @@ interface IAlephVault {
     struct UserInitializationParams {
         string name;
         string configId;
-        address manager;
         address underlyingToken;
         address custodian;
         address vaultTreasury;
@@ -234,12 +234,11 @@ interface IAlephVault {
     /*//////////////////////////////////////////////////////////////
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-
     /**
-     * @notice Returns the timestamp when the vault started operating.
-     * @return The start timestamp.
+     * @notice Returns the start time of the vault.
+     * @return The start time.
      */
-    function startTimestamp() external view returns (uint48);
+    function startTimeStamp() external view returns (uint48);
 
     /**
      * @notice Returns the current batch ID based on the elapsed time since start.
@@ -254,16 +253,16 @@ interface IAlephVault {
     function shareClasses() external view returns (uint8);
 
     /**
-     * @notice Returns the series id of that share class.
+     * @notice Returns the max series ID of the share class.
      * @param _classId The ID of the share class.
-     * @return The series id of that share class.
+     * @return The max series ID of the share class.
      */
     function shareSeriesId(uint8 _classId) external view returns (uint32);
 
     /**
-     * @notice Returns the last consolidated series id of that share class.
+     * @notice Returns the ID of the last consolidated share series.
      * @param _classId The ID of the share class.
-     * @return The last consolidated series id of that share class.
+     * @return The ID of the last consolidated share series.
      */
     function lastConsolidatedSeriesId(uint8 _classId) external view returns (uint32);
 
