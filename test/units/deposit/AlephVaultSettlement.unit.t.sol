@@ -288,10 +288,11 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vault.setBatchDeposit(_currentBatchId - 1, mockUser_2, 200 ether);
 
         // assert total assets and total shares
-        uint256[] memory _newTotalAssets = new uint256[](1);
-        _newTotalAssets[0] = 1000 ether;
-        vault.setTotalAssets(0, 1000 ether);
-        vault.setTotalShares(0, 1000 ether);
+        assertEq(vault.totalAssets(), 0);
+        assertEq(vault.totalSharesPerSeries(1, 0), 0);
+
+        // set higher water mark for lead series
+        vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
 
         // assert user shares
         assertEq(vault.sharesOf(1, 0, mockUser_1), 0);
@@ -302,7 +303,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
 
         // generate auth signature
         AuthLibrary.AuthSignature memory _authSignature =
-            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, _newTotalAssets);
+            _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](1));
 
         // settle deposit
         vm.startPrank(oracle);
@@ -316,7 +317,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
             IAlephVaultSettlement.SettlementParams({
                 classId: 1,
                 toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
+                newTotalAssets: new uint256[](1),
                 authSignature: _authSignature
             })
         );

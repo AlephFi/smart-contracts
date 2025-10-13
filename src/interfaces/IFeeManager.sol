@@ -53,10 +53,23 @@ interface IFeeManager {
 
     /**
      * @notice Emitted when fees are accumulated.
-     * @param accumulateFeesParams The parameters for the accumulated fees.
-     * @param feesAccumulatedDetails The details for the accumulated fees.
+     * @param lastFeePaidId The batch ID in which fees were last accumulated.
+     * @param toBatchId The batch ID up to which fees were accumulated.
+     * @param classId The ID of the share class for which fees were accumulated.
+     * @param seriesId The ID of the share series in which fees were accumulated.
+     * @param newTotalAssets The new total assets upon which fees were accumulated.
+     * @param newTotalShares The new total shares after fees were accumulated.
+     * @param feesAccumulatedParams The parameters for the accumulated fees.
      */
-    event FeesAccumulated(AccumulateFeesParams accumulateFeesParams, FeesAccumulatedDetails feesAccumulatedDetails);
+    event FeesAccumulated(
+        uint8 classId,
+        uint32 seriesId,
+        uint48 lastFeePaidId,
+        uint48 toBatchId,
+        uint256 newTotalAssets,
+        uint256 newTotalShares,
+        FeesAccumulatedParams feesAccumulatedParams
+    );
 
     /**
      * @notice Emitted when a new high water mark is set.
@@ -127,30 +140,12 @@ interface IFeeManager {
 
     /**
      * @notice Parameters for the accumulated fees.
-     * @param classId The id of the class.
-     * @param seriesId The id of the series.
-     * @param currentBatchId The current batch id.
-     * @param lastFeePaidId The last fee paid id.
-     * @param newTotalAssets The new total assets in the vault.
-     * @param totalShares The total shares in the vault.
-     */
-    struct AccumulateFeesParams {
-        uint8 classId;
-        uint32 seriesId;
-        uint48 currentBatchId;
-        uint48 lastFeePaidId;
-        uint256 newTotalAssets;
-        uint256 totalShares;
-    }
-
-    /**
-     * @notice Parameters for the accumulated fees.
      * @param managementFeeAmount The management fee amount to be accumulated.
      * @param managementFeeSharesToMint The management fee shares to be minted.
      * @param performanceFeeAmount The performance fee amount to be accumulated.
      * @param performanceFeeSharesToMint The performance fee shares to be minted.
      */
-    struct FeesAccumulatedDetails {
+    struct FeesAccumulatedParams {
         uint256 managementFeeAmount;
         uint256 managementFeeSharesToMint;
         uint256 performanceFeeAmount;
@@ -234,7 +229,6 @@ interface IFeeManager {
      * @param _newTotalAssets The new total assets in the vault.
      * @param _totalShares The total shares in the vault.
      * @return The accumulated fees.
-     * @return  Whether a new high watermark is set or not.
      */
     function accumulateFees(
         uint8 _classId,
@@ -243,7 +237,7 @@ interface IFeeManager {
         uint48 _lastFeePaidId,
         uint256 _newTotalAssets,
         uint256 _totalShares
-    ) external returns (uint256, bool);
+    ) external returns (uint256);
 
     /**
      * @notice Collects all pending fees.

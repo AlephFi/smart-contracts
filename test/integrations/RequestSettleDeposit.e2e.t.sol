@@ -460,8 +460,10 @@ contract RequestSettleDepositTest is BaseTest {
         uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         SettleDepositExpectations memory _params =
             _getSettleDepositExpectations(false, _newTotalAssets[0], _totalShares, _depositAmount, 10);
-        uint256 _newPricePerShare =
-            Math.ceilDiv(_newTotalAssets[0] * vault.PRICE_DENOMINATOR(), _totalShares + _params.managementFeeShares);
+        uint256 _newPricePerShare = Math.ceilDiv(
+            _newTotalAssets[0] * vault.PRICE_DENOMINATOR(),
+            _totalShares + _params.managementFeeShares + _params.performanceFeeShares
+        );
 
         // settle deposit
         vm.startPrank(oracle);
