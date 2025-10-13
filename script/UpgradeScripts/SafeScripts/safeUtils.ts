@@ -1,11 +1,10 @@
 import SafeApiKit from '@safe-global/api-kit'
 import Safe from '@safe-global/protocol-kit'
 import {
-    MetaTransactionData,
-    OperationType
+    MetaTransactionData
 } from '@safe-global/types-kit'
 import { execSync } from 'child_process'
-import { Interface, Wallet, JsonRpcProvider } from 'ethers'
+import { Interface, Wallet, JsonRpcProvider, keccak256, toUtf8Bytes } from 'ethers'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
@@ -54,7 +53,6 @@ export interface SafeTransactionConfig {
 
 export interface ContractUpgradeParams {
     targetAddress: string;
-    safeOwnerAddress: string;
     abi: string[];
     functionName: string;
     functionArgs: any[];
@@ -122,26 +120,45 @@ export function runForgeScript(scriptName: string, verify: boolean = true): void
     });
 }
 
+export function getModuleKey(module: string): string {
+    const hash = keccak256(toUtf8Bytes(module));
+    return hash.slice(0, 10);
+}
+
 export function encodeTransactionData(abi: string[], functionName: string, args: any[]): string {
     const contractInterface = new Interface(abi);
     return contractInterface.encodeFunctionData(functionName, args);
 }
 
-export async function createAndProposeSafeTransaction(
-    config: SafeTransactionConfig,
+export async function createSafeTransaction(
     upgradeParams: ContractUpgradeParams
-): Promise<string> {
-    const { chainId, rpcUrl, privateKey, safeApiKey } = config;
-    const { targetAddress, safeOwnerAddress, abi, functionName, functionArgs } = upgradeParams;
+): Promise<MetaTransactionData> {
+    const { targetAddress, abi, functionName, functionArgs } = upgradeParams;
 
     // Encode transaction data
     const txData = encodeTransactionData(abi, functionName, functionArgs);
 
-    console.log("================================================");
-    console.log("TX DATA");
+    // Create transaction data
+    const safeTransactionData: MetaTransactionData = {
+        to: targetAddress,
+        value: '0',
+        data: txData
+    };
+
+    console.log("SAFE TX DATA");
     console.log("================================================");
     console.log(txData);
     console.log("================================================");
+
+    return safeTransactionData;
+}
+
+export async function proposeSafeTransaction(
+    config: SafeTransactionConfig,
+    safeOwnerAddress: string,
+    transactions: MetaTransactionData[]
+): Promise<string> {
+    const { chainId, rpcUrl, privateKey, safeApiKey } = config;
 
     // Initialize Safe
     const safeKitOwner = await Safe.init({
@@ -150,18 +167,8 @@ export async function createAndProposeSafeTransaction(
         safeAddress: safeOwnerAddress
     });
 
-    // Create transaction data
-    const safeTransactionData: MetaTransactionData = {
-        to: targetAddress,
-        value: '0',
-        data: txData,
-        operation: OperationType.Call
-    };
-
     // Create Safe transaction
-    const safeTransaction = await safeKitOwner.createTransaction({
-        transactions: [safeTransactionData]
-    });
+    const safeTransaction = await safeKitOwner.createTransaction({ transactions });
 
     // Sign transaction
     const safeTxHash = await safeKitOwner.getTransactionHash(safeTransaction);
@@ -203,4 +210,8 @@ export const PROXY_ADMIN_ABI = [
 
 export const ACCOUNTANT_ABI = [
     "function setVaultFactory(address newVaultFactory) external"
+];
+
+export const FACTORY_ABI = [
+    "function setModuleImplementation(bytes4 _module, address _implementation) external"
 ];

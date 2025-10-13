@@ -1,8 +1,8 @@
 import {
     validateEnvironmentVariables,
     loadDeploymentConfig,
-    loadFactoryConfig,
-    createAndProposeSafeTransaction,
+    createSafeTransaction,
+    proposeSafeTransaction,
     ACCOUNTANT_ABI
 } from './safeUtils';
 
@@ -13,14 +13,16 @@ async function main() {
     // Load deployment configuration
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);
 
-    // Create and propose Safe transaction
-    await createAndProposeSafeTransaction(config, {
+    // Create Safe transaction
+   const safeTransaction = await createSafeTransaction({
         targetAddress: chainConfig.accountantProxyAddress,
-        safeOwnerAddress: chainConfig.operationsMultisig,
         abi: ACCOUNTANT_ABI,
         functionName: 'setVaultFactory',
         functionArgs: [chainConfig.factoryProxyAddress]
     });
+
+    // Propose Safe transaction
+    await proposeSafeTransaction(config, chainConfig.operationsMultisig, [safeTransaction]);
 }
 
 // Run the main function

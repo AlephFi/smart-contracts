@@ -2,7 +2,8 @@ import {
     validateEnvironmentVariables,
     loadDeploymentConfig,
     runForgeScript,
-    createAndProposeSafeTransaction,
+    createSafeTransaction,
+    proposeSafeTransaction,
     getProxyAdminAddress,
     PROXY_ADMIN_ABI
 } from './safeUtils';
@@ -18,18 +19,20 @@ async function main() {
     const chainConfig = loadDeploymentConfig(config.chainId, config.environment);
 
     // Get the proxy admin address from the factory proxy
-    const proxyAdminAddress = await getProxyAdminAddress(chainConfig.factoryProxyAddress, config.rpcUrl);
+    const proxyAdminAddress = await getProxyAdminAddress(chainConfig.accountantProxyAddress, config.rpcUrl);
     console.log(`Accountant Proxy: ${chainConfig.accountantProxyAddress}`);
     console.log(`Proxy Admin: ${proxyAdminAddress}`);
 
-    // Create and propose Safe transaction
-    await createAndProposeSafeTransaction(config, {
+    // Create Safe transaction
+    const safeTransaction = await createSafeTransaction({
         targetAddress: proxyAdminAddress,
-        safeOwnerAddress: chainConfig.accountantProxyOwner,
         abi: PROXY_ADMIN_ABI,
         functionName: 'upgradeAndCall',
         functionArgs: [chainConfig.accountantProxyAddress, chainConfig.accountantImplementationAddress, '0x']
     });
+
+    // Propose Safe transaction
+    await proposeSafeTransaction(config, chainConfig.accountantProxyOwner, [safeTransaction]);
 }
 
 // Run the main function
