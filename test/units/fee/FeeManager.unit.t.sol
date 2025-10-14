@@ -67,8 +67,8 @@ contract FeeManagerTest is BaseTest {
         emit IFeeManager.FeesAccumulated(
             1,
             0,
-            currentBatchId,
             lastFeePaidId,
+            currentBatchId,
             _newTotalAssets,
             1005,
             IFeeManager.FeesAccumulatedParams({
@@ -119,8 +119,8 @@ contract FeeManagerTest is BaseTest {
         emit IFeeManager.FeesAccumulated(
             1,
             0,
-            currentBatchId,
             lastFeePaidId,
+            currentBatchId,
             _newTotalAssets,
             1039,
             IFeeManager.FeesAccumulatedParams({

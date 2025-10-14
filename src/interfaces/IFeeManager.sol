@@ -53,10 +53,10 @@ interface IFeeManager {
 
     /**
      * @notice Emitted when fees are accumulated.
-     * @param lastFeePaidId The batch ID in which fees were last accumulated.
-     * @param toBatchId The batch ID up to which fees were accumulated.
      * @param classId The ID of the share class for which fees were accumulated.
      * @param seriesId The ID of the share series in which fees were accumulated.
+     * @param lastFeePaidId The batch ID in which fees were last accumulated.
+     * @param currentBatchId The batch ID up to which fees were accumulated.
      * @param newTotalAssets The new total assets upon which fees were accumulated.
      * @param newTotalShares The new total shares after fees were accumulated.
      * @param feesAccumulatedParams The parameters for the accumulated fees.
@@ -65,7 +65,7 @@ interface IFeeManager {
         uint8 classId,
         uint32 seriesId,
         uint48 lastFeePaidId,
-        uint48 toBatchId,
+        uint48 currentBatchId,
         uint256 newTotalAssets,
         uint256 newTotalShares,
         FeesAccumulatedParams feesAccumulatedParams

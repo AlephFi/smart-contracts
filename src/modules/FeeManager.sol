@@ -277,7 +277,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         }
         _totalShares += _totalFeeSharesToMint;
         emit FeesAccumulated(
-            _classId, _seriesId, _currentBatchId, _lastFeePaidId, _newTotalAssets, _totalShares, _feesAccumulatedParams
+            _classId, _seriesId, _lastFeePaidId, _currentBatchId, _newTotalAssets, _totalShares, _feesAccumulatedParams
         );
         return _totalFeeSharesToMint;
     }
