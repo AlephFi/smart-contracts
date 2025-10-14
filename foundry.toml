@@ -6,10 +6,12 @@ out = "out"
 libs = ["lib"]
 fs_permissions = [{ access = "read-write", path = "./"}]
 gas_reports = ["*"]
+# Enable CBOR metadata for better verification compatibility
+cbor_metadata = true
 
 [rpc_endpoints]
-11155111 = "https://gateway.tenderly.co/public/sepolia"
-sepolia = "https://gateway.tenderly.co/public/sepolia"
+11155111 = "https://sepolia.gateway.tenderly.co"
+sepolia = "https://sepolia.gateway.tenderly.co"
 
 560048 = "https://ethereum-hoodi-rpc.publicnode.com"
 hoodi = "https://ethereum-hoodi-rpc.publicnode.com"
@@ -17,7 +19,6 @@ hoodi = "https://ethereum-hoodi-rpc.publicnode.com"
 [etherscan]
 sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api-sepolia.etherscan.io/api", chain = 11155111 }
 hoodi = { key = "${ETHERSCAN_API_KEY}", url = "https://api-hoodi.etherscan.io/api", chain = 560048 }
-
 
 [fmt]
 bracket_spacing = false

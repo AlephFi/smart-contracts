@@ -132,6 +132,10 @@ export_common_vars() {
     export ENVIRONMENT="$environment"
     # Ensure private key is clean of any whitespace or newlines
     export PRIVATE_KEY=$(echo "$private_key" | tr -d '[:space:]')
+    
+    # Set verification retry settings
+    export FORGE_VERIFY_RETRIES=15
+    export FORGE_VERIFY_DELAY=10
 }
 
 # Function to verify forge script execution
@@ -141,7 +145,7 @@ verify_forge_script() {
     local error_message="$3"
     
     if [ "$verify" == "true" ]; then
-        forge script "$script_name" --sig="run()" --broadcast -vvvv --verify
+        forge script "$script_name" --sig="run()" --broadcast -vvvv --verify --retries 15 --delay 10
     else
         forge script "$script_name" --sig="run()" --broadcast -vvvv
     fi

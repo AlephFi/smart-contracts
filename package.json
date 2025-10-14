@@ -13,7 +13,9 @@
     "dependencies": {
         "@safe-global/api-kit": "^4.0.0",
         "@safe-global/protocol-kit": "^6.1.0",
-        "@safe-global/types-kit": "^3.0.0"
+        "@safe-global/types-kit": "^3.0.0",
+        "dotenv": "^17.2.3",
+        "ethers": "^6.15.0"
     },
     "devDependencies": {
         "@types/node": "^20.11.0",
