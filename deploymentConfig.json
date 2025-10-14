@@ -5,17 +5,17 @@
       "vaultBeaconOwner": "0x1e8d0483A7e48948aBb96D1874b6985547BCd28a",
       "accountantProxyOwner": "0x1e8d0483A7e48948aBb96D1874b6985547BCd28a",
       "factoryProxyOwner": "0x1e8d0483A7e48948aBb96D1874b6985547BCd28a",
-      "vaultImplementationAddress": "",
-      "vaultDepositImplementationAddress": "",
-      "vaultRedeemImplementationAddress": "",
-      "vaultSettlementImplementationAddress": "",
-      "feeManagerImplementationAddress": "",
-      "migrationManagerImplementationAddress": "",
-      "accountantImplementationAddress": "",
-      "factoryImplementationAddress": "",
-      "vaultBeaconAddress": "",
-      "accountantProxyAddress": "",
-      "factoryProxyAddress": ""
+      "vaultImplementationAddress": "0x7e92EA7aC2c357782ed1F51652F4b1AFB1Adf6B7",
+      "vaultDepositImplementationAddress": "0x2268880A77a379411CB1a18671466359061C3049",
+      "vaultRedeemImplementationAddress": "0xdd6313b917D5b548Ee8C0651c310C235dcbE363f",
+      "vaultSettlementImplementationAddress": "0xf38E70Bd65D1845617189e49f121FD786194b2Fa",
+      "feeManagerImplementationAddress": "0x2854b063C068c2c926dd65BC24F9383a22406857",
+      "migrationManagerImplementationAddress": "0xDE2F4da94EE5e645A1cA08A41E9297fB6029627C",
+      "accountantImplementationAddress": "0x7145DdCf7D1b8176F72C57c189Df0CE3af30454c",
+      "factoryImplementationAddress": "0x258479e83f0239a1BD783d7B20F637145d9514BF",
+      "vaultBeaconAddress": "0x4ABdF6cd7944a9aBFDDd7f0Aa32aDeF1d9cD1868",
+      "accountantProxyAddress": "0xeC809fa8E4617C363fB2e8eCD2963CFCf2276E1B",
+      "factoryProxyAddress": "0x7a9aA939261fb51Ddc9491C929224417a8459229"
     }
   },
   "11155111": {

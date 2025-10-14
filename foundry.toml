@@ -10,6 +10,8 @@ gas_reports = ["*"]
 cbor_metadata = true
 
 [rpc_endpoints]
+1 = "https://mainnet.gateway.tenderly.co"
+mainnet = "https://mainnet.gateway.tenderly.co"
 11155111 = "https://sepolia.gateway.tenderly.co"
 sepolia = "https://sepolia.gateway.tenderly.co"
 
@@ -19,6 +21,7 @@ hoodi = "https://ethereum-hoodi-rpc.publicnode.com"
 [etherscan]
 sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api-sepolia.etherscan.io/api", chain = 11155111 }
 hoodi = { key = "${ETHERSCAN_API_KEY}", url = "https://api-hoodi.etherscan.io/api", chain = 560048 }
+mainnet = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/api", chain = 1 }
 
 [fmt]
 bracket_spacing = false
@@ -28,4 +31,3 @@ multiline_func_header = "attributes_first"
 number_underscore = "thousands"
 quote_style = "double"
 tab_width = 4
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
