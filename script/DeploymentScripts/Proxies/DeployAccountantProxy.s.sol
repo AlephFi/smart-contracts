@@ -29,9 +29,9 @@ import {Accountant} from "@aleph-vault/Accountant.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-// Use to Deploy only an Accountant.
-// forge script DeployAccountant --sig="run()" --broadcast -vvvv
-contract DeployAccountant is BaseScript {
+// Use to Deploy only an Accountant Proxy.
+// forge script DeployAccountantProxy --sig="run()" --broadcast -vvvv
+contract DeployAccountantProxy is BaseScript {
     function setUp() public {}
 
     function run() public {
@@ -41,44 +41,41 @@ contract DeployAccountant is BaseScript {
 
         address _proxyOwner = _getAccountantProxyOwner(_chainId, _environment);
 
-        string memory _factoryConfig = _getFactoryConfig();
+        string memory _deploymentConfig = _getDeploymentConfig();
         string memory _accountantConfig = _getAccountantConfig();
 
         IAccountant.InitializationParams memory _initializationParams =
-            _getInitializationParams(_factoryConfig, _accountantConfig, _chainId, _environment);
+            _getInitializationParams(_deploymentConfig, _accountantConfig, _chainId, _environment);
 
         console.log("operationsMultisig", _initializationParams.operationsMultisig);
         console.log("alephTreasury", _initializationParams.alephTreasury);
 
         bytes memory _initializeArgs = abi.encodeWithSelector(Accountant.initialize.selector, _initializationParams);
+        address _accountantImpl = _getAccountantImplementation(_chainId, _environment);
 
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
-        Accountant _accountantImpl = new Accountant();
 
         ITransparentUpgradeableProxy _proxy = ITransparentUpgradeableProxy(
             address(new TransparentUpgradeableProxy(address(_accountantImpl), _proxyOwner, _initializeArgs))
         );
 
-        console.log("Accountant deployed at:", address(_proxy));
+        console.log("Accountant Proxy deployed at:", address(_proxy));
 
-        _writeDeploymentConfig(
-            _chainId, _environment, ".accountantImplementationAddress", vm.toString(address(_accountantImpl))
-        );
         _writeDeploymentConfig(_chainId, _environment, ".accountantProxyAddress", vm.toString(address(_proxy)));
 
         vm.stopBroadcast();
     }
 
     function _getInitializationParams(
-        string memory _factoryConfig,
+        string memory _deploymentConfig,
         string memory _accountantConfig,
         string memory _chainId,
         string memory _environment
     ) internal view returns (IAccountant.InitializationParams memory) {
         return IAccountant.InitializationParams({
             operationsMultisig: vm.parseJsonAddress(
-                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
             ),
             alephTreasury: vm.parseJsonAddress(
                 _accountantConfig, string.concat(".", _chainId, ".", _environment, ".alephTreasury")

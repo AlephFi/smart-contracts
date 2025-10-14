@@ -11,5 +11,110 @@
             "performanceFeeTimelock": 2764800,
             "batchDuration": 86400
         }
+    },
+    "560048": {
+        "staging": {
+            "minDepositAmountTimelock": 604800,
+            "minUserBalanceTimelock": 604800,
+            "maxDepositCapTimelock": 604800,
+            "noticePeriodTimelock": 604800,
+            "lockInPeriodTimelock": 604800,
+            "minRedeemAmountTimelock": 604800,
+            "managementFeeTimelock": 2764800,
+            "performanceFeeTimelock": 2764800,
+            "batchDuration": 86400
+        },
+        "nightly": {
+            "minDepositAmountTimelock": 600,
+            "minUserBalanceTimelock": 600,
+            "maxDepositCapTimelock": 600,
+            "noticePeriodTimelock": 600,
+            "lockInPeriodTimelock": 600,
+            "minRedeemAmountTimelock": 600,
+            "managementFeeTimelock": 600,
+            "performanceFeeTimelock": 600,
+            "batchDuration": 120
+        },
+        "feature": {
+            "minDepositAmountTimelock": 1,
+            "minUserBalanceTimelock": 1,
+            "maxDepositCapTimelock": 1,
+            "noticePeriodTimelock": 1,
+            "lockInPeriodTimelock": 1,
+            "minRedeemAmountTimelock": 1,
+            "managementFeeTimelock": 1,
+            "performanceFeeTimelock": 1,
+            "batchDuration": 1
+        }
+    },
+    "11155111": {
+        "staging": {
+            "minDepositAmountTimelock": 604800,
+            "minUserBalanceTimelock": 604800,
+            "maxDepositCapTimelock": 604800,
+            "noticePeriodTimelock": 604800,
+            "lockInPeriodTimelock": 604800,
+            "minRedeemAmountTimelock": 604800,
+            "managementFeeTimelock": 2764800,
+            "performanceFeeTimelock": 2764800,
+            "batchDuration": 86400
+        },
+        "nightly": {
+            "minDepositAmountTimelock": 600,
+            "minUserBalanceTimelock": 600,
+            "maxDepositCapTimelock": 600,
+            "noticePeriodTimelock": 600,
+            "lockInPeriodTimelock": 600,
+            "minRedeemAmountTimelock": 600,
+            "managementFeeTimelock": 600,
+            "performanceFeeTimelock": 600,
+            "batchDuration": 120
+        },
+        "feature": {
+            "minDepositAmountTimelock": 1,
+            "minUserBalanceTimelock": 1,
+            "maxDepositCapTimelock": 1,
+            "noticePeriodTimelock": 1,
+            "lockInPeriodTimelock": 1,
+            "minRedeemAmountTimelock": 1,
+            "managementFeeTimelock": 1,
+            "performanceFeeTimelock": 1,
+            "batchDuration": 1
+        }
+    },
+    "84532": {
+        "staging": {
+            "minDepositAmountTimelock": 604800,
+            "minUserBalanceTimelock": 604800,
+            "maxDepositCapTimelock": 604800,
+            "noticePeriodTimelock": 604800,
+            "lockInPeriodTimelock": 604800,
+            "minRedeemAmountTimelock": 604800,
+            "managementFeeTimelock": 2764800,
+            "performanceFeeTimelock": 2764800,
+            "batchDuration": 86400
+        },
+        "nightly": {
+            "minDepositAmountTimelock": 600,
+            "minUserBalanceTimelock": 600,
+            "maxDepositCapTimelock": 600,
+            "noticePeriodTimelock": 600,
+            "lockInPeriodTimelock": 600,
+            "minRedeemAmountTimelock": 600,
+            "managementFeeTimelock": 600,
+            "performanceFeeTimelock": 600,
+            "batchDuration": 120
+        },
+        "feature": {
+            "minDepositAmountTimelock": 1,
+            "minUserBalanceTimelock": 1,
+            "maxDepositCapTimelock": 1,
+            "noticePeriodTimelock": 1,
+            "lockInPeriodTimelock": 1,
+            "minRedeemAmountTimelock": 1,
+            "managementFeeTimelock": 1,
+            "performanceFeeTimelock": 1,
+            "batchDuration": 1
+        }
     }
 }

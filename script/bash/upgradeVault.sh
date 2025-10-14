@@ -51,11 +51,27 @@ echo -e "  ${BLUE}Address:${NC} $NEW_IMPL_ADDRESS\n"
 echo -e "${CYAN}╭─ Step 2: Upgrading Vault Beacon${NC}"
 echo -e "${CYAN}╰─>${NC} Initializing upgrade...\n"
 
-verify_forge_script "UpgradeAlephVault" "true" "Failed to upgrade vault beacon"
+if [ "$ENVIRONMENT" == "feature" ]; then
+    verify_forge_script "UpgradeAlephVault" "true" "Failed to upgrade vault beacon"
+    echo -e "\n${GREEN}✓${NC} Vault Beacon upgraded successfully"
+else
+    echo -e "${YELLOW}Running Safe multisig upgrade ($ENVIRONMENT environment)...${NC}\n"
+    npm run upgrade-vault
+    if [ $? -ne 0 ]; then
+        error_exit "Failed to create Safe transaction for vault upgrade"
+    fi
+    echo -e "\n${GREEN}✓${NC} Safe transaction created and proposed successfully"
+    echo -e "${YELLOW}ℹ${NC}  Transaction needs to be signed by Safe signers to complete the upgrade\n"
+fi
 
 # Final success message
 print_header "Upgrade Summary"
-echo -e "${GREEN}✨ Vault upgrade completed successfully!${NC}\n"
+if [ "$ENVIRONMENT" == "feature" ]; then
+    echo -e "${GREEN}✨ Vault upgrade completed successfully!${NC}\n"
+else
+    echo -e "${GREEN}✨ Vault upgrade transaction proposed to Safe!${NC}\n"
+    echo -e "${YELLOW}⚠${NC}  ${BOLD}Action Required:${NC} Safe signers must approve and execute the transaction\n"
+fi
 echo -e "${BOLD}Contract Addresses${NC}"
 echo -e "  ${BLUE}Vault Beacon:${NC}            $VAULT_BEACON_ADDRESS"
 echo -e "  ${BLUE}Previous Implementation:${NC} $CURRENT_IMPL_ADDRESS"

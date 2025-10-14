@@ -1,16 +1,53 @@
 {
     "1": {
         "staging": {
-            "operationsMultisig": "",
             "oracle": "",
             "guardian": "",
             "authSigner": ""
         },
-        "prod": {
-            "operationsMultisig": "",
-            "oracle": "",
-            "guardian": "",
-            "authSigner": ""
+        "nightly": {
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "feature": {
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        }
+    },
+    "11155111": {
+        "staging": {
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "nightly": {
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "feature": {
+            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        }
+    },
+    "84532" : {
+        "staging" : {
+            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "nightly" : {
+            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        },
+        "feature" : {
+            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "authSigner" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
         }
     }
 }

@@ -266,9 +266,7 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         // update management fee shares of the series
         _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT] +=
             _feesAccumulatedParams.managementFeeSharesToMint;
-        bool _newHighWaterMarkSet;
         if (_feesAccumulatedParams.performanceFeeSharesToMint > 0) {
-            _newHighWaterMarkSet = true;
             // update performance fee shares of the series
             _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT] +=
                 _feesAccumulatedParams.performanceFeeSharesToMint;

@@ -29,9 +29,9 @@ import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
 
-// Use to Deploy only an AlephVaultFactory.
-// forge script DeployAlephVaultFactory --sig="run()" --broadcast -vvvv --verify
-contract DeployAlephVaultFactory is BaseScript {
+// Use to Deploy only an AlephVaultFactory Proxy.
+// forge script DeployAlephVaultFactoryProxy --sig="run()" --broadcast -vvvv --verify
+contract DeployAlephVaultFactoryProxy is BaseScript {
     function setUp() public {}
 
     function run() public {
@@ -55,20 +55,17 @@ contract DeployAlephVaultFactory is BaseScript {
 
         bytes memory _initializeArgs =
             abi.encodeWithSelector(AlephVaultFactory.initialize.selector, _initializationParams);
+        address _factoryImpl = _getFactoryImplementation(_chainId, _environment);
 
         uint256 _privateKey = _getPrivateKey();
         vm.startBroadcast(_privateKey);
-        AlephVaultFactory _factoryImpl = new AlephVaultFactory();
 
         ITransparentUpgradeableProxy _proxy = ITransparentUpgradeableProxy(
             address(new TransparentUpgradeableProxy(address(_factoryImpl), _proxyOwner, _initializeArgs))
         );
 
-        console.log("Factory deployed at:", address(_proxy));
+        console.log("Factory Proxy deployed at:", address(_proxy));
 
-        _writeDeploymentConfig(
-            _chainId, _environment, ".factoryImplementationAddress", vm.toString(address(_factoryImpl))
-        );
         _writeDeploymentConfig(_chainId, _environment, ".factoryProxyAddress", vm.toString(address(_proxy)));
 
         vm.stopBroadcast();
@@ -83,7 +80,7 @@ contract DeployAlephVaultFactory is BaseScript {
         return IAlephVaultFactory.InitializationParams({
             beacon: _getBeacon(_chainId, _environment),
             operationsMultisig: vm.parseJsonAddress(
-                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
+                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")
             ),
             oracle: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".oracle")),
             guardian: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".guardian")),
