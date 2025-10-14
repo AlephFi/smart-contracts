@@ -1,37 +1,15 @@
 {
     "1": {
         "prod": {
-            "alephTreasury": ""
-        }
-    },
-    "560048": {
-        "staging": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        },
-        "nightly": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        },
-        "feature": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+            "alephTreasury": "0x537F66C2421734B5431b03a778d24e7F5e97eaf5"
         }
     },
     "11155111": {
         "staging": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+            "alephTreasury": "0x537F66C2421734B5431b03a778d24e7F5e97eaf5"
         },
         "nightly": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        },
-        "feature": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        }
-    },
-    "84532": {
-        "staging": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        },
-        "nightly": {
-            "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+            "alephTreasury": "0xF441514a8540eB48BA90069e1C3728Db48F935F1"
         },
         "feature": {
             "alephTreasury": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"

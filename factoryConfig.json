@@ -1,53 +1,26 @@
 {
     "1": {
-        "staging": {
-            "oracle": "",
-            "guardian": "",
-            "authSigner": ""
-        },
-        "nightly": {
-            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        },
-        "feature": {
-            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
+        "prod": {
+            "oracle": "0xbBC8d524F505E14c6b31294D11E85bd311259aC4",
+            "guardian": "0x60EDE74fF53c749970b2B4890E02F7756465d9eC",
+            "authSigner": "0x3F4055ea9036BBbDcF15F4446B5173Bea398866E"
         }
     },
     "11155111": {
         "staging": {
-            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "oracle": "0x24f14832C6F1D613D1c1868De6ec23e94d40A4Cb",
+            "guardian": "0x60EDE74fF53c749970b2B4890E02F7756465d9eC",
             "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
         },
         "nightly": {
-            "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
+            "oracle": "0x24f14832C6F1D613D1c1868De6ec23e94d40A4Cb",
+            "guardian": "0x60EDE74fF53c749970b2B4890E02F7756465d9eC",
             "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
         },
         "feature": {
             "oracle": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
             "guardian": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
             "authSigner": "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        }
-    },
-    "84532" : {
-        "staging" : {
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "authSigner" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        },
-        "nightly" : {
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "authSigner" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
-        },
-        "feature" : {
-            "oracle" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "guardian" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584",
-            "authSigner" : "0x7f7eb0b9aC4f796fb96912A7184603EB2633f584"
         }
     }
 }
