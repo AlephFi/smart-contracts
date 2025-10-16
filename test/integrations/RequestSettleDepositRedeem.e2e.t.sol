@@ -78,7 +78,9 @@ contract RequestSettleDepositRedeemTest is BaseTest {
             classId: 1,
             toBatchId: vault.currentBatch(),
             newTotalAssets: new uint256[](1),
-            authSignature: _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1))
+            authSignature: _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1)
+            )
         });
 
         // expected shares to mint per user
@@ -124,8 +126,9 @@ contract RequestSettleDepositRedeemTest is BaseTest {
         uint256 _totalShares = vault.totalSharesPerSeries(1, 0);
         uint256 _expectedManagementShares =
             vault.getManagementFeeShares(_settlementParams.newTotalAssets[0], _totalShares, 2);
-        uint256 _expectedPerformanceShares =
-            vault.getPerformanceFeeShares(_settlementParams.newTotalAssets[0], _totalShares + _expectedManagementShares);
+        uint256 _expectedPerformanceShares = vault.getPerformanceFeeShares(
+            _settlementParams.newTotalAssets[0], _totalShares + _expectedManagementShares
+        );
         _totalShares += _expectedManagementShares + _expectedPerformanceShares;
 
         // expected assets to withdraw per user

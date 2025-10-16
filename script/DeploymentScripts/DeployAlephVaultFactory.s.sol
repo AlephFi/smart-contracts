@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
@@ -24,6 +24,7 @@ import {
 import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {AlephVaultFactory} from "@aleph-vault/factory/AlephVaultFactory.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
@@ -87,7 +88,9 @@ contract DeployAlephVaultFactory is BaseScript {
             ),
             oracle: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".oracle")),
             guardian: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".guardian")),
-            authSigner: vm.parseJsonAddress(_factoryConfig, string.concat(".", _chainId, ".", _environment, ".authSigner")),
+            authSigner: vm.parseJsonAddress(
+                _factoryConfig, string.concat(".", _chainId, ".", _environment, ".authSigner")
+            ),
             accountant: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".accountantProxyAddress")
             ),
@@ -98,13 +101,15 @@ contract DeployAlephVaultFactory is BaseScript {
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultRedeemImplementationAddress")
             ),
             alephVaultSettlementImplementation: vm.parseJsonAddress(
-                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".vaultSettlementImplementationAddress")
+                _deploymentConfig,
+                string.concat(".", _chainId, ".", _environment, ".vaultSettlementImplementationAddress")
             ),
             feeManagerImplementation: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".feeManagerImplementationAddress")
             ),
             migrationManagerImplementation: vm.parseJsonAddress(
-                _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".migrationManagerImplementationAddress")
+                _deploymentConfig,
+                string.concat(".", _chainId, ".", _environment, ".migrationManagerImplementationAddress")
             )
         });
     }

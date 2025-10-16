@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
@@ -35,7 +35,7 @@ contract AlephVault_Unit_Test is BaseTest {
 
         // create share class params
         IAlephVault.ShareClassParams memory _shareClassParams =
-            defaultInitializationParams.userInitializationParams.shareClassParams;
+        defaultInitializationParams.userInitializationParams.shareClassParams;
 
         // set is deposit auth enabled
         vm.prank(nonAuthorizedUser);
@@ -50,7 +50,7 @@ contract AlephVault_Unit_Test is BaseTest {
     function test_createShareClass_revertsWhenManagementFeeIsGreaterThanMAXIMUM_MANAGEMENT_FEE() public {
         // create share class params
         IAlephVault.ShareClassParams memory _shareClassParams =
-            defaultInitializationParams.userInitializationParams.shareClassParams;
+        defaultInitializationParams.userInitializationParams.shareClassParams;
         _shareClassParams.managementFee = vault.MAXIMUM_MANAGEMENT_FEE() + 1;
 
         // create share class
@@ -62,7 +62,7 @@ contract AlephVault_Unit_Test is BaseTest {
     function test_createShareClass_revertsWhenPerformanceFeeIsGreaterThanMAXIMUM_PERFORMANCE_FEE() public {
         // create share class params
         IAlephVault.ShareClassParams memory _shareClassParams =
-            defaultInitializationParams.userInitializationParams.shareClassParams;
+        defaultInitializationParams.userInitializationParams.shareClassParams;
         _shareClassParams.performanceFee = vault.MAXIMUM_PERFORMANCE_FEE() + 1;
 
         // create share class
@@ -74,7 +74,7 @@ contract AlephVault_Unit_Test is BaseTest {
     function test_createShareClass_revertsWhenMinDepositAmountIsZero() public {
         // create share class params
         IAlephVault.ShareClassParams memory _shareClassParams =
-            defaultInitializationParams.userInitializationParams.shareClassParams;
+        defaultInitializationParams.userInitializationParams.shareClassParams;
         _shareClassParams.minDepositAmount = 0;
 
         // create share class
@@ -86,7 +86,7 @@ contract AlephVault_Unit_Test is BaseTest {
     function test_createShareClass_revertsWhenMinRedeemAmountIsZero() public {
         // create share class params
         IAlephVault.ShareClassParams memory _shareClassParams =
-            defaultInitializationParams.userInitializationParams.shareClassParams;
+        defaultInitializationParams.userInitializationParams.shareClassParams;
         _shareClassParams.minRedeemAmount = 0;
 
         // create share class
@@ -101,7 +101,7 @@ contract AlephVault_Unit_Test is BaseTest {
 
         // create share class params
         IAlephVault.ShareClassParams memory _shareClassParams =
-            defaultInitializationParams.userInitializationParams.shareClassParams;
+        defaultInitializationParams.userInitializationParams.shareClassParams;
 
         // create share class
         vm.prank(manager);

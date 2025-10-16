@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
@@ -23,6 +23,7 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
@@ -64,18 +65,14 @@ contract UpgradeAlephVault is BaseScript {
         address _migrationManagerImplementation =
             _getModuleImplementation(_chainId, _environment, "migrationManagerImplementationAddress");
 
-        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
-            ModulesLibrary.ALEPH_VAULT_DEPOSIT, _vaultDepositImplementation
-        );
-        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
-            ModulesLibrary.ALEPH_VAULT_REDEEM, _vaultRedeemImplementation
-        );
-        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
-            ModulesLibrary.ALEPH_VAULT_SETTLEMENT, _vaultSettlementImplementation
-        );
+        IAlephVaultFactory(_vaultFactory)
+            .setModuleImplementation(ModulesLibrary.ALEPH_VAULT_DEPOSIT, _vaultDepositImplementation);
+        IAlephVaultFactory(_vaultFactory)
+            .setModuleImplementation(ModulesLibrary.ALEPH_VAULT_REDEEM, _vaultRedeemImplementation);
+        IAlephVaultFactory(_vaultFactory)
+            .setModuleImplementation(ModulesLibrary.ALEPH_VAULT_SETTLEMENT, _vaultSettlementImplementation);
         IAlephVaultFactory(_vaultFactory).setModuleImplementation(ModulesLibrary.FEE_MANAGER, _feeManagerImplementation);
-        IAlephVaultFactory(_vaultFactory).setModuleImplementation(
-            ModulesLibrary.MIGRATION_MANAGER, _migrationManagerImplementation
-        );
+        IAlephVaultFactory(_vaultFactory)
+            .setModuleImplementation(ModulesLibrary.MIGRATION_MANAGER, _migrationManagerImplementation);
     }
 }

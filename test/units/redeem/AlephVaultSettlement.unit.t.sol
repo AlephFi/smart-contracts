@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
@@ -56,10 +56,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         );
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -70,10 +67,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(IAlephVault.InvalidShareClass.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 0,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 0, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -88,10 +82,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -102,10 +93,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(IAlephVaultSettlement.InvalidToBatchId.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 1,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 1, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -122,10 +110,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(IAlephVaultSettlement.NoRedeemsToSettle.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 1,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 1, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -136,10 +121,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(IAlephVaultSettlement.NoRedeemsToSettle.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -154,10 +136,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(IAlephVaultSettlement.InvalidNewTotalAssets.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](2),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](2), authSignature: authSignature_1
             })
         );
     }
@@ -176,10 +155,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(AuthLibrary.InvalidAuthSignature.selector);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
     }
@@ -204,10 +180,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.prank(oracle);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: _newTotalAssets, authSignature: _authSignature
             })
         );
 
@@ -235,10 +208,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.prank(oracle);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: _newTotalAssets, authSignature: _authSignature
             })
         );
 
@@ -267,10 +237,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(IAlephVaultSettlement.InsufficientAssetsToSettle.selector, 100 ether));
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: _newTotalAssets, authSignature: _authSignature
             })
         );
     }
@@ -325,10 +292,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         emit IAlephVaultSettlement.SettleRedeem(1, 0, _currentBatchId);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: _newTotalAssets, authSignature: _authSignature
             })
         );
         vm.stopPrank();
@@ -410,10 +374,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         emit IAlephVaultSettlement.SettleRedeem(1, 0, _currentBatchId);
         vault.settleRedeem(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: _newTotalAssets, authSignature: _authSignature
             })
         );
         vm.stopPrank();
@@ -467,9 +428,7 @@ contract AlephVaultRedeemSettlementTest is BaseTest {
         vault.forceRedeem(mockUser_1);
     }
 
-    function test_forceRedeem_whenVaultHasSufficientBalanceToSettlePendingDepositsAndWithdrawls_shouldSucceed()
-        public
-    {
+    function test_forceRedeem_whenVaultHasSufficientBalanceToSettlePendingDepositsAndWithdrawls_shouldSucceed() public {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 3 days + 1);
 

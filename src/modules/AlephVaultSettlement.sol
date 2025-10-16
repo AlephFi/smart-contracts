@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
@@ -185,8 +185,8 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 _depositRequestDetails.amount, _settleDepositDetails.totalShares, _settleDepositDetails.totalAssets
             );
             _totalSharesToMint += _depositRequestDetails.sharesToMint;
-            _shareClass.shareSeries[_settleDepositDetails.seriesId].sharesOf[_depositRequestDetails.user] +=
-                _depositRequestDetails.sharesToMint;
+            _shareClass.shareSeries[_settleDepositDetails.seriesId]
+            .sharesOf[_depositRequestDetails.user] += _depositRequestDetails.sharesToMint;
             // add user into settlement series if they don't already exist there
             if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestDetails.user)) {
                 _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestDetails.user);
@@ -442,7 +442,8 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     : SeriesAccounting.LEAD_SERIES_ID;
                 // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
-                _shareClass.shareSeries[_seriesId].totalShares += _accumulateFeeShares(
+                _shareClass.shareSeries[_seriesId]
+                .totalShares += _accumulateFeeShares(
                     _newTotalAssets[_i],
                     _shareClass.shareSeries[_seriesId].totalShares,
                     _toBatchId,
@@ -477,7 +478,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             return 0;
         }
         (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-            .delegatecall(
+        .delegatecall(
             abi.encodeCall(
                 IFeeManager.accumulateFees,
                 (_classId, _seriesId, _toBatchId, _lastFeePaidId, _newTotalAssets, _totalShares)

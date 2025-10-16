@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
@@ -222,10 +222,8 @@ library SeriesAccounting {
             // if user does not exist in lead series, add them in lead series (except for virtual users)
             if (
                 !_leadSeries.users.contains(_userConsolidationDetails.user)
-                    && (
-                        _userConsolidationDetails.user != MANAGEMENT_FEE_RECIPIENT
-                            && _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT
-                    )
+                    && (_userConsolidationDetails.user != MANAGEMENT_FEE_RECIPIENT
+                        && _userConsolidationDetails.user != PERFORMANCE_FEE_RECIPIENT)
             ) {
                 _leadSeries.users.add(_userConsolidationDetails.user);
             }

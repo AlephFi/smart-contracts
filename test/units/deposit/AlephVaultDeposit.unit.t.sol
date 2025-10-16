@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -66,9 +66,7 @@ contract AlephVaultDepositTest is BaseTest {
         );
     }
 
-    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsLessThanMinDepositAmount()
-        public
-    {
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsLessThanMinDepositAmount() public {
         // set min deposit amount to 100 ether
         vault.setMinDepositAmount(1, 100 ether);
 
@@ -94,9 +92,7 @@ contract AlephVaultDepositTest is BaseTest {
         );
     }
 
-    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap()
-        public
-    {
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap() public {
         // set max deposit cap to 200 ether
         vault.setMaxDepositCap(1, 200 ether);
 
@@ -111,8 +107,9 @@ contract AlephVaultDepositTest is BaseTest {
         );
     }
 
-    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap_multipleUsers(
-    ) public {
+    function test_requestDeposit_whenFlowIsUnpaused_revertsWhenDepositedTokenAmountIsGreaterThanMaxDepositCap_multipleUsers()
+        public
+    {
         // set max deposit cap to 300 ether
         vault.setMaxDepositCap(1, 300 ether);
 
@@ -158,9 +155,7 @@ contract AlephVaultDepositTest is BaseTest {
         );
     }
 
-    function test_requestDeposit_whenFlowIsUnpaused_revertsGivenUserHasAlreadyMadeADepositRequestForThisBatch()
-        public
-    {
+    function test_requestDeposit_whenFlowIsUnpaused_revertsGivenUserHasAlreadyMadeADepositRequestForThisBatch() public {
         // roll the block forward to make batch available
         vm.warp(block.timestamp + 1 days + 1);
 
