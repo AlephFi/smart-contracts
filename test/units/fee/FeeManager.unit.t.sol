@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
@@ -46,8 +46,9 @@ contract FeeManagerTest is BaseTest {
         assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 0);
     }
 
-    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsHigherThanPricePerShare_shouldAccumalateOnlyManagementFees(
-    ) public {
+    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsHigherThanPricePerShare_shouldAccumalateOnlyManagementFees()
+        public
+    {
         // set up context
         uint48 currentBatchId = 100;
         uint48 lastFeePaidId = 0;
@@ -95,8 +96,9 @@ contract FeeManagerTest is BaseTest {
         assertEq(vault.sharesOf(1, 0, performanceFeeRecipient), 0);
     }
 
-    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsLowerThanPricePerShare_shouldAccumalateBothPerformanceAndManagementFees(
-    ) public {
+    function test_accumalateFees_whenNewTotalAssetsIsGreaterThan0_givenHighWaterMarkIsLowerThanPricePerShare_shouldAccumalateBothPerformanceAndManagementFees()
+        public
+    {
         // set up context
         uint48 currentBatchId = 100;
         uint48 lastFeePaidId = 0;

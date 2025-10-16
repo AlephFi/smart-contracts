@@ -56,7 +56,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -118,7 +120,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -182,7 +186,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -246,7 +252,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -304,7 +312,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -374,7 +384,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -446,7 +458,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 
@@ -524,7 +538,9 @@ contract RequestSettleDepositTest is BaseTest {
         underlyingToken.mint(address(mockUser_1), _depositAmount);
         underlyingToken.approve(address(vault), _depositAmount);
         uint48 _requestBatchId = vault.requestDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
         vm.stopPrank();
 

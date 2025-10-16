@@ -112,9 +112,7 @@ contract RequestDepositTest is BaseTest {
             // request deposit
             vault.requestDeposit(
                 IAlephVaultDeposit.RequestDepositParams({
-                    classId: 1,
-                    amount: _depositAmount,
-                    authSignature: _authSignature
+                    classId: 1, amount: _depositAmount, authSignature: _authSignature
                 })
             );
             vm.stopPrank();
@@ -174,9 +172,7 @@ contract RequestDepositTest is BaseTest {
                 // request deposit
                 vault.requestDeposit(
                     IAlephVaultDeposit.RequestDepositParams({
-                        classId: 1,
-                        amount: _depositAmount,
-                        authSignature: _authSignature
+                        classId: 1, amount: _depositAmount, authSignature: _authSignature
                     })
                 );
                 vm.stopPrank();

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -91,8 +91,9 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _totalShares,
         uint256 _highWaterMark
     ) external pure returns (uint256 _performanceFeeShares) {
-        uint256 _performanceFeeAmount =
-            _calculatePerformanceFeeAmount(_performanceFee, _newTotalAssets, _totalShares, _highWaterMark);
+        uint256 _performanceFeeAmount = _calculatePerformanceFeeAmount(
+            _performanceFee, _newTotalAssets, _totalShares, _highWaterMark
+        );
         return ERC4626Math.previewDeposit(_performanceFeeAmount, _totalShares, _newTotalAssets - _performanceFeeAmount);
     }
 
@@ -264,12 +265,12 @@ contract FeeManager is IFeeManager, AlephVaultBase {
         uint256 _totalFeeSharesToMint =
             _feesAccumulatedParams.managementFeeSharesToMint + _feesAccumulatedParams.performanceFeeSharesToMint;
         // update management fee shares of the series
-        _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT] +=
-            _feesAccumulatedParams.managementFeeSharesToMint;
+        _shareClass.shareSeries[_seriesId]
+        .sharesOf[SeriesAccounting.MANAGEMENT_FEE_RECIPIENT] += _feesAccumulatedParams.managementFeeSharesToMint;
         if (_feesAccumulatedParams.performanceFeeSharesToMint > 0) {
             // update performance fee shares of the series
-            _shareClass.shareSeries[_seriesId].sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT] +=
-                _feesAccumulatedParams.performanceFeeSharesToMint;
+            _shareClass.shareSeries[_seriesId]
+            .sharesOf[SeriesAccounting.PERFORMANCE_FEE_RECIPIENT] += _feesAccumulatedParams.performanceFeeSharesToMint;
             // update high water mark of the series
             uint256 _highWaterMark = _getPricePerShare(_newTotalAssets, _totalShares + _totalFeeSharesToMint);
             _shareClass.shareSeries[_seriesId].highWaterMark = _highWaterMark;

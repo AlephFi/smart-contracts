@@ -112,8 +112,7 @@ contract VaultSetUpTest is BaseTest {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new FeeManager(
             IFeeManager.FeeConstructorParams({
-                managementFeeTimelock: 0,
-                performanceFeeTimelock: defaultConfigParams.performanceFeeTimelock
+                managementFeeTimelock: 0, performanceFeeTimelock: defaultConfigParams.performanceFeeTimelock
             }),
             defaultConfigParams.batchDuration
         );
@@ -123,8 +122,7 @@ contract VaultSetUpTest is BaseTest {
         vm.expectRevert(AlephVaultBase.InvalidConstructorParams.selector);
         new FeeManager(
             IFeeManager.FeeConstructorParams({
-                managementFeeTimelock: defaultConfigParams.managementFeeTimelock,
-                performanceFeeTimelock: 0
+                managementFeeTimelock: defaultConfigParams.managementFeeTimelock, performanceFeeTimelock: 0
             }),
             defaultConfigParams.batchDuration
         );
