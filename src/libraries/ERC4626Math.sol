@@ -22,11 +22,7 @@ library ERC4626Math {
         return convertToAssets(shares, totalAssets, totalShares, Math.Rounding.Ceil);
     }
 
-    function previewWithdraw(uint256 assets, uint256 totalShares, uint256 totalAssets)
-        internal
-        pure
-        returns (uint256)
-    {
+    function previewWithdraw(uint256 assets, uint256 totalShares, uint256 totalAssets) internal pure returns (uint256) {
         return convertToShares(assets, totalShares, totalAssets, Math.Rounding.Ceil);
     }
 

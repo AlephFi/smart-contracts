@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
@@ -48,9 +48,8 @@ contract UpgradeAccountant is BaseScript {
 
         address _proxyAdmin = address(uint160(uint256(vm.load(_proxy, ADMIN_SLOT))));
 
-        ProxyAdmin(_proxyAdmin).upgradeAndCall(
-            ITransparentUpgradeableProxy(payable(_proxy)), address(_accountantImpl), ""
-        );
+        ProxyAdmin(_proxyAdmin)
+            .upgradeAndCall(ITransparentUpgradeableProxy(payable(_proxy)), address(_accountantImpl), "");
         console.log("Accountant upgraded to", address(_accountantImpl));
 
         _writeDeploymentConfig(

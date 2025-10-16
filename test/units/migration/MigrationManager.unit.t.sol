@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
@@ -51,8 +51,9 @@ contract MigrationManagerTest is BaseTest {
         vault.migrateOperationsMultisig(newOperationsMultisig);
     }
 
-    function test_migrateOperationsMultisig_whenNewOperationsMultisigIsAddress0_revertsWithInvalidOperationsMultisigAddress(
-    ) public {
+    function test_migrateOperationsMultisig_whenNewOperationsMultisigIsAddress0_revertsWithInvalidOperationsMultisigAddress()
+        public
+    {
         // migrate operations multisig
         vm.prank(vaultFactory);
         vm.expectRevert(IMigrationManager.InvalidOperationsMultisigAddress.selector);

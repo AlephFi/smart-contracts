@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
@@ -144,9 +144,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
      * @param _classId The id of the class.
      * @param _minUserBalance The new min user balance.
      */
-    function _queueMinUserBalance(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minUserBalance)
-        internal
-    {
+    function _queueMinUserBalance(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minUserBalance) internal {
         _sd.timelocks[TimelockRegistry.MIN_USER_BALANCE.getKey(_classId)] = TimelockRegistry.Timelock({
             isQueued: true,
             unlockTimestamp: Time.timestamp() + MIN_USER_BALANCE_TIMELOCK,
@@ -226,15 +224,15 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         if (
             _shareClassParams.minUserBalance > 0
                 && _assetsPerClassOf(_shareClass, _requestDepositParams.classId, msg.sender)
-                    + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
-                    < _shareClassParams.minUserBalance
+                        + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender)
+                        + _requestDepositParams.amount < _shareClassParams.minUserBalance
         ) {
             revert DepositLessThanMinUserBalance(_shareClassParams.minUserBalance);
         }
         if (
             _shareClassParams.maxDepositCap > 0
                 && _totalAssetsPerClass(_shareClass, _requestDepositParams.classId)
-                    + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount
+                        + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount
                     > _shareClassParams.maxDepositCap
         ) {
             revert DepositExceedsMaxDepositCap(_shareClassParams.maxDepositCap);

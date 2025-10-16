@@ -338,7 +338,7 @@ npm run upgrade-vault
 
 ## 📄 License
 
-This project is licensed under the Business Source License 1.1 (BUSL-1.1). See the [LICENSE](LICENSE) file for details.
+This project is licensed under the Business Source License 1.1 (BUSL-1.1). See the [LICENSE](https://spdx.org/licenses/BUSL-1.1.html) file for details.
 
 ---
 

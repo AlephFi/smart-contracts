@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
@@ -98,11 +98,7 @@ abstract contract BaseScript is Script {
         return _beacon;
     }
 
-    function _getFactoryProxyOwner(string memory _chainId, string memory _environment)
-        internal
-        view
-        returns (address)
-    {
+    function _getFactoryProxyOwner(string memory _chainId, string memory _environment) internal view returns (address) {
         string memory _deploymentConfig = vm.readFile(_getDeploymentConfigFilePath());
         string memory _proxyOwnerKey = string.concat(".", _chainId, ".", _environment, ".factoryProxyOwner");
         address _proxyOwner = vm.parseJsonAddress(_deploymentConfig, _proxyOwnerKey);
