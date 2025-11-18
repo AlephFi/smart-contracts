@@ -208,9 +208,8 @@ contract ExposedVault is AlephVault {
 
     // Timelock getters
     function _getTimelock(bytes4 _module, bytes4 _selector) internal returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[_module].delegatecall(
-            abi.encodeWithSelector(_selector)
-        );
+        (bool _success, bytes memory _data) =
+            _getStorage().moduleImplementations[_module].delegatecall(abi.encodeWithSelector(_selector));
         return _success ? abi.decode(_data, (uint48)) : 0;
     }
 
