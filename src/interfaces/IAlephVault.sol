@@ -86,7 +86,6 @@ interface IAlephVault {
      * @param _guardian The guardian address.
      * @param _authSigner The auth signer address.
      * @param _accountant The accountant proxy address.
-     * @param _syncExpirationBatches The number of batches sync flows remain valid after valuation update (default: 2).
      * @param _userInitializationParams The user initialization params.
      * @param _moduleInitializationParams The module initialization params.
      */
@@ -98,7 +97,6 @@ interface IAlephVault {
         address guardian;
         address authSigner;
         address accountant;
-        uint48 syncExpirationBatches;
         UserInitializationParams userInitializationParams;
         ModuleInitializationParams moduleInitializationParams;
     }
@@ -110,6 +108,7 @@ interface IAlephVault {
      * @param _underlyingToken The underlying token address.
      * @param _custodian The custodian address in which vault funds are stored.
      * @param _vaultTreasury The vault treasury address in which fees are collected.
+     * @param _syncExpirationBatches The number of batches sync flows remain valid after valuation update.
      * @param _shareClassParams The share class params for default share class.
      * @param _authSignature The auth signature to deploy the vault.
      */
@@ -119,6 +118,7 @@ interface IAlephVault {
         address underlyingToken;
         address custodian;
         address vaultTreasury;
+        uint48 syncExpirationBatches;
         ShareClassParams shareClassParams;
         AuthLibrary.AuthSignature authSignature;
     }

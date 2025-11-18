@@ -98,6 +98,7 @@ contract AlephVaultFactoryTest is Test {
             underlyingToken: underlyingToken,
             custodian: custodian,
             vaultTreasury: vaultTreasury,
+            syncExpirationBatches: 2,
             shareClassParams: shareClassParams,
             authSignature: authSignature
         });

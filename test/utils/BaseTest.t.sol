@@ -149,13 +149,13 @@ contract BaseTest is Test {
             guardian: makeAddr("guardian"),
             authSigner: _authSigner,
             accountant: makeAddr("accountant"),
-            syncExpirationBatches: 2,
             userInitializationParams: IAlephVault.UserInitializationParams({
                 name: "test",
                 configId: "test-123",
                 underlyingToken: address(underlyingToken),
                 custodian: makeAddr("custodian"),
                 vaultTreasury: makeAddr("vaultTreasury"),
+                syncExpirationBatches: 2,
                 shareClassParams: IAlephVault.ShareClassParams({
                     managementFee: 200, // 2%
                     performanceFee: 2000, // 20%

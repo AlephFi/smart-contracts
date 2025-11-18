@@ -129,8 +129,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.guardian = _initializationParams.guardian;
         _sd.authSigner = _initializationParams.authSigner;
         _sd.accountant = _initializationParams.accountant;
-        _sd.syncExpirationBatches =
-            _initializationParams.syncExpirationBatches == 0 ? 2 : _initializationParams.syncExpirationBatches;
+        _sd.syncExpirationBatches = _initializationParams.userInitializationParams.syncExpirationBatches;
         _sd.name = _initializationParams.userInitializationParams.name;
         _sd.underlyingToken = _initializationParams.userInitializationParams.underlyingToken;
         _sd.custodian = _initializationParams.userInitializationParams.custodian;

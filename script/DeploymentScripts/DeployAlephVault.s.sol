@@ -67,6 +67,7 @@ contract DeployAlephVault is BaseScript {
             underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
             custodian: vm.envAddress("VAULT_CUSTODIAN"),
             vaultTreasury: vm.envAddress("VAULT_TREASURY"),
+            syncExpirationBatches: uint48(vm.envUint("VAULT_SYNC_EXPIRATION_BATCHES")),
             shareClassParams: _shareClassParams,
             authSignature: _authSignature
         });

@@ -236,7 +236,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         uint256 _pendingUserAssets = _pendingAssetsOf(_shareClass, _currentBatchId, msg.sender, _totalUserAssets);
 
         // validate redeem request is valid
-        _validateRedeem(
+        _validateAsyncRedeem(
             _shareClass, _currentBatchId, _totalUserAssets, _totalUserAssets - _pendingUserAssets, _redeemRequestParams
         );
 
@@ -312,14 +312,14 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     }
 
     /**
-     * @dev Internal function to validate redeem parameters (shared logic).
+     * @dev Internal function to validate async redeem parameters.
      * @param _shareClass The share class.
      * @param _currentBatchId The current batch ID.
      * @param _totalUserAssets The total user assets.
      * @param _availableUserAssets The available user assets (total - pending for async).
      * @param _redeemRequestParams The redeem request parameters.
      */
-    function _validateRedeem(
+    function _validateAsyncRedeem(
         IAlephVault.ShareClass storage _shareClass,
         uint48 _currentBatchId,
         uint256 _totalUserAssets,
