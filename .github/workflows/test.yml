@@ -18,7 +18,11 @@ jobs:
           submodules: recursive
 
       - name: Install Foundry
+        # Using stable version to ensure consistent formatting with local development
+        # To match this locally, run: foundryup
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
 
       - name: Show Forge version
         run: |
