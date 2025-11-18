@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
@@ -282,11 +282,14 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         bool _checkDuplicateRequest
     ) internal {
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
-        if (_redeemRequestParams.estAmountToRedeem == 0 || _redeemRequestParams.estAmountToRedeem > _availableUserAssets) {
+        if (
+            _redeemRequestParams.estAmountToRedeem == 0 || _redeemRequestParams.estAmountToRedeem > _availableUserAssets
+        ) {
             revert InsufficientAssetsToRedeem();
         }
         uint256 _pendingUserAssets = _bypassNoticePeriod ? 0 : _totalUserAssets - _availableUserAssets;
-        uint256 _previewRemainingAmount = _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
+        uint256 _previewRemainingAmount =
+            _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
         if (_previewRemainingAmount > 0 && _redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
             revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
@@ -322,30 +325,30 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         RedeemRequestParams calldata _redeemRequestParams
     ) internal {
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
-        
+
         // Check amount is not zero
         if (_redeemRequestParams.estAmountToRedeem == 0) {
             revert InsufficientAssetsToRedeem();
         }
-        
+
         // Check if user has sufficient assets
         if (_redeemRequestParams.estAmountToRedeem > _totalUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
-        
+
         uint256 _previewRemainingAmount = _totalUserAssets - _redeemRequestParams.estAmountToRedeem;
-        
+
         // Check lock-in period (skip if redeeming all, as we'll clear it)
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
         if (_previewRemainingAmount > 0 && _shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }
-        
+
         // Check min redeem amount (only if not redeeming all)
         if (_previewRemainingAmount > 0 && _redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
             revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
-        
+
         // Check min user balance (only if not redeeming all)
         if (
             _shareClassParams.minUserBalance > 0 && _previewRemainingAmount > 0
@@ -353,7 +356,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         ) {
             revert RedeemFallBelowMinUserBalance(_shareClassParams.minUserBalance);
         }
-        
+
         // Clear lock-in period if redeeming all
         if (_shareClassParams.lockInPeriod > 0 && _previewRemainingAmount == 0) {
             delete _shareClass.userLockInPeriod[msg.sender];
@@ -412,7 +415,6 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         emit ExcessAssetsWithdrawn(_vaultBalance - _requiredVaultBalance);
     }
 
-
     /**
      * @dev Internal function to handle a synchronous redeem.
      * @param _sd The storage struct.
@@ -429,7 +431,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
 
         IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_redeemRequestParams.classId];
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
-        
+
         // Sync redeem is only available if notice period is 0
         if (_shareClassParams.noticePeriod > 0) {
             revert OnlyAsyncRedeemAllowed();
@@ -445,7 +447,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // Use settleRedeemForUser for FIFO redemption across series
         // This burns shares and updates series accounting, but doesn't transfer tokens
         uint256 _assetsBefore = _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId);
-        _shareClass.settleRedeemForUser(_redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem);
+        _shareClass.settleRedeemForUser(
+            _redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem
+        );
         uint256 _assetsAfter = _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId);
         _assets = _assetsBefore - _assetsAfter;
 

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {Test, console} from "forge-std/Test.sol";
@@ -174,8 +174,7 @@ contract BaseTest is Test {
         });
 
         defaultAccountantInitializationParams = IAccountant.InitializationParams({
-            operationsMultisig: defaultInitializationParams.operationsMultisig,
-            alephTreasury: makeAddr("alephTreasury")
+            operationsMultisig: defaultInitializationParams.operationsMultisig, alephTreasury: makeAddr("alephTreasury")
         });
     }
 
@@ -241,8 +240,7 @@ contract BaseTest is Test {
             feeManagerImplementation: address(
                 new FeeManager(
                     IFeeManager.FeeConstructorParams({
-                        managementFeeTimelock: managementFeeTimelock,
-                        performanceFeeTimelock: performanceFeeTimelock
+                        managementFeeTimelock: managementFeeTimelock, performanceFeeTimelock: performanceFeeTimelock
                     }),
                     batchDuration
                 )

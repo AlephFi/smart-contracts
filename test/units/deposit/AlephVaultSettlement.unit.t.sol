@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
@@ -50,10 +50,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         );
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -64,10 +61,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectRevert(IAlephVault.InvalidShareClass.selector);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 0,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 0, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -82,10 +76,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectRevert(IAlephPausable.FlowIsCurrentlyPaused.selector);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -98,10 +89,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectRevert(IAlephVaultSettlement.InvalidToBatchId.selector);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 1,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 1, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -114,10 +102,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectRevert(IAlephVaultSettlement.NoDepositsToSettle.selector);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: 0,
-                newTotalAssets: new uint256[](1),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: 0, newTotalAssets: new uint256[](1), authSignature: authSignature_1
             })
         );
     }
@@ -132,10 +117,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectRevert(IAlephVaultSettlement.InvalidNewTotalAssets.selector);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](2),
-                authSignature: authSignature_1
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](2), authSignature: authSignature_1
             })
         );
     }
@@ -154,16 +136,14 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectRevert(AuthLibrary.InvalidAuthSignature.selector);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenLastFeePaidIdIsLessThanCurrentBatchId_shouldCallAccumulateFees()
+        public
+    {
         // roll the block forward to make future batch available
         vm.warp(block.timestamp + 1 days + 1);
         uint48 _currentBatchId = vault.currentBatch();
@@ -179,10 +159,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.prank(oracle);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
 
@@ -208,10 +185,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.prank(oracle);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
 
@@ -219,8 +193,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.depositSettleId(), _currentBatchId);
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsZero_whenNewTotalAssetsChanges_shouldUpdateTotalAssets(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsZero_whenNewTotalAssetsChanges_shouldUpdateTotalAssets()
+        public
+    {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 3 days + 1);
         uint48 _currentBatchId = vault.currentBatch();
@@ -239,10 +214,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.prank(oracle);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: _newTotalAssets,
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: _newTotalAssets, authSignature: _authSignature
             })
         );
 
@@ -251,8 +223,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(vault.totalSharesPerSeries(1, 0), _totalShares);
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_revertsGivenVaultHasInsufficientBalance(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_revertsGivenVaultHasInsufficientBalance()
+        public
+    {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 2 days + 1);
         uint48 _currentBatchId = vault.currentBatch();
@@ -269,16 +242,14 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(IAlephVaultSettlement.InsufficientAssetsToSettle.selector, 100));
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch_settleInNewSeries(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch_settleInNewSeries()
+        public
+    {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 2 days + 1);
 
@@ -315,10 +286,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         emit IAlephVaultSettlement.SettleDeposit(1, 1, 0, _currentBatchId, 300 ether, 300 ether, 300 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
         vm.stopPrank();
@@ -338,8 +306,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(underlyingToken.balanceOf(address(custodian)), 300 ether);
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch_settleInLeadSeries(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_singleBatch_settleInLeadSeries()
+        public
+    {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 2 days + 1);
 
@@ -371,10 +340,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         emit IAlephVaultSettlement.SettleDeposit(1, 0, 0, _currentBatchId, 300 ether, 300 ether, 300 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
         vm.stopPrank();
@@ -394,8 +360,9 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         assertEq(underlyingToken.balanceOf(address(custodian)), 300 ether);
     }
 
-    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_multipleBatches(
-    ) public {
+    function test_settleDeposit_whenCallerIsOracle_whenFlowIsUnpaused_whenAmountToSettleIsGreaterThanZero_shouldSucceed_multipleBatches()
+        public
+    {
         // roll the block forward to make future batches available
         vm.warp(block.timestamp + 3 days + 1);
 
@@ -433,10 +400,7 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         emit IAlephVaultSettlement.SettleDeposit(1, 0, 0, _currentBatchId, 600 ether, 600 ether, 600 ether);
         vault.settleDeposit(
             IAlephVaultSettlement.SettlementParams({
-                classId: 1,
-                toBatchId: _currentBatchId,
-                newTotalAssets: new uint256[](1),
-                authSignature: _authSignature
+                classId: 1, toBatchId: _currentBatchId, newTotalAssets: new uint256[](1), authSignature: _authSignature
             })
         );
         vm.stopPrank();

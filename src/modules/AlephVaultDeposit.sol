@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
@@ -163,9 +163,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
      * @param _classId The id of the class.
      * @param _minUserBalance The new min user balance.
      */
-    function _queueMinUserBalance(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minUserBalance)
-        internal
-    {
+    function _queueMinUserBalance(AlephVaultStorageData storage _sd, uint8 _classId, uint256 _minUserBalance) internal {
         _sd.timelocks[TimelockRegistry.MIN_USER_BALANCE.getKey(_classId)] = TimelockRegistry.Timelock({
             isQueued: true,
             unlockTimestamp: Time.timestamp() + MIN_USER_BALANCE_TIMELOCK,
@@ -244,15 +242,15 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         if (
             _shareClassParams.minUserBalance > 0
                 && _assetsPerClassOf(_shareClass, _requestDepositParams.classId, msg.sender)
-                    + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender) + _requestDepositParams.amount
-                    < _shareClassParams.minUserBalance
+                        + _depositRequestOf(_sd, _requestDepositParams.classId, msg.sender)
+                        + _requestDepositParams.amount < _shareClassParams.minUserBalance
         ) {
             revert DepositLessThanMinUserBalance(_shareClassParams.minUserBalance);
         }
         if (
             _shareClassParams.maxDepositCap > 0
                 && _totalAssetsPerClass(_shareClass, _requestDepositParams.classId)
-                    + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount
+                        + _totalAmountToDeposit(_sd, _requestDepositParams.classId) + _requestDepositParams.amount
                     > _shareClassParams.maxDepositCap
         ) {
             revert DepositExceedsMaxDepositCap(_shareClassParams.maxDepositCap);
@@ -284,10 +282,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
      * @param _shareClass The share class.
      * @param _currentBatchId The current batch ID.
      */
-    function _updateLockInPeriod(
-        IAlephVault.ShareClass storage _shareClass,
-        uint48 _currentBatchId
-    ) internal {
+    function _updateLockInPeriod(IAlephVault.ShareClass storage _shareClass, uint48 _currentBatchId) internal {
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
         if (_shareClassParams.lockInPeriod > 0 && _shareClass.userLockInPeriod[msg.sender] == 0) {
             _shareClass.userLockInPeriod[msg.sender] = _currentBatchId + _shareClassParams.lockInPeriod;
@@ -326,7 +321,6 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         return _currentBatchId;
     }
 
-
     /**
      * @dev Internal function to handle a synchronous deposit.
      * @param _sd The storage struct.
@@ -348,16 +342,15 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         // Transfer assets from user to vault, then to custodian
         // This allows users to only approve the vault contract
         _transferAssetsFromUserToVault(_sd, _requestDepositParams.amount);
-        
+
         // Transfer from vault to custodian
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _requestDepositParams.amount);
 
         // Calculate shares using current price per share (lead series)
         uint32 _leadSeriesId = 0; // SeriesAccounting.LEAD_SERIES_ID
         IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[_leadSeriesId];
-        _shares = ERC4626Math.previewDeposit(
-            _requestDepositParams.amount, _leadSeries.totalShares, _leadSeries.totalAssets
-        );
+        _shares =
+            ERC4626Math.previewDeposit(_requestDepositParams.amount, _leadSeries.totalShares, _leadSeries.totalAssets);
 
         // Mint shares immediately to msg.sender in lead series
         _leadSeries.sharesOf[msg.sender] += _shares;
