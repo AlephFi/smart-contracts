@@ -256,7 +256,9 @@ contract SyncRedeemTest is BaseTest {
         underlyingToken.mint(address(vault), _totalAssets);
 
         vm.prank(mockUser_1);
-        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.UserInLockInPeriodNotElapsed.selector, _currentBatch + 5));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAlephVaultRedeem.UserInLockInPeriodNotElapsed.selector, _currentBatch + 5)
+        );
         vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _totalAssets}));
     }
 
