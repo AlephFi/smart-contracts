@@ -86,6 +86,7 @@ interface IAlephVault {
      * @param _guardian The guardian address.
      * @param _authSigner The auth signer address.
      * @param _accountant The accountant proxy address.
+     * @param _syncExpirationBatches The number of batches sync flows remain valid after valuation update (default: 2).
      * @param _userInitializationParams The user initialization params.
      * @param _moduleInitializationParams The module initialization params.
      */
@@ -97,6 +98,7 @@ interface IAlephVault {
         address guardian;
         address authSigner;
         address accountant;
+        uint48 syncExpirationBatches;
         UserInitializationParams userInitializationParams;
         ModuleInitializationParams moduleInitializationParams;
     }

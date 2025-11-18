@@ -129,6 +129,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.guardian = _initializationParams.guardian;
         _sd.authSigner = _initializationParams.authSigner;
         _sd.accountant = _initializationParams.accountant;
+        _sd.syncExpirationBatches = _initializationParams.syncExpirationBatches == 0 ? 2 : _initializationParams.syncExpirationBatches;
         _sd.name = _initializationParams.userInitializationParams.name;
         _sd.underlyingToken = _initializationParams.userInitializationParams.underlyingToken;
         _sd.custodian = _initializationParams.userInitializationParams.custodian;
@@ -871,6 +872,23 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @dev Only callable by the MANAGER role.
      */
     function forceRedeem(address _user) external onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @notice Queues a new sync expiration batches value to be set after the timelock period.
+     * @param _expirationBatches The number of batches sync flows remain valid.
+     * @dev Only callable by the MANAGER role.
+     */
+    function queueSyncExpirationBatches(uint48 _expirationBatches) external onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @notice Sets the sync expiration batches to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setSyncExpirationBatches() external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
     }
 

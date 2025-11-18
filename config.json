@@ -9,6 +9,7 @@
             "minRedeemAmountTimelock": 604800,
             "managementFeeTimelock": 2592000,
             "performanceFeeTimelock": 2592000,
+            "syncExpirationBatchesTimelock": 604800,
             "batchDuration": 86400
         }
     },
@@ -22,7 +23,8 @@
             "minRedeemAmountTimelock": 604800,
             "managementFeeTimelock": 2592000,
             "performanceFeeTimelock": 2592000,
-            "batchDuration": 86400
+            "syncExpirationBatchesTimelock": 604800,
+            "batchDuration": 3600
         },
         "nightly": {
             "minDepositAmountTimelock": 600,
@@ -33,7 +35,8 @@
             "minRedeemAmountTimelock": 600,
             "managementFeeTimelock": 600,
             "performanceFeeTimelock": 600,
-            "batchDuration": 120
+            "syncExpirationBatchesTimelock": 600,
+            "batchDuration": 600
         },
         "feature": {
             "minDepositAmountTimelock": 1,
@@ -44,6 +47,7 @@
             "minRedeemAmountTimelock": 1,
             "managementFeeTimelock": 1,
             "performanceFeeTimelock": 1,
+            "syncExpirationBatchesTimelock": 1,
             "batchDuration": 1
         }
     }

@@ -212,9 +212,10 @@ interface IAlephVaultSettlement {
     error DelegateCallFailed(bytes _data);
 
     /**
-     * @notice Emitted when total assets are expired (sync flows disabled).
+     * @notice Emitted when sync expiration batches are queued.
+     * @param expirationBatches The number of batches sync flows remain valid.
      */
-    event TotalAssetsExpired();
+    event SyncExpirationBatchesQueued(uint48 expirationBatches);
 
     /**
      * @notice Emitted when sync expiration batches are updated.
@@ -293,15 +294,15 @@ interface IAlephVaultSettlement {
     function forceRedeem(address _user) external;
 
     /**
-     * @notice Expires total assets, disabling sync flows immediately.
-     * @dev Only callable by custodian or manager.
+     * @notice Queues a new sync expiration batches value to be set after the timelock period.
+     * @param _expirationBatches The number of batches sync flows remain valid.
+     * @dev Only callable by the MANAGER role.
      */
-    function expireTotalAssets() external;
+    function queueSyncExpirationBatches(uint48 _expirationBatches) external;
 
     /**
-     * @notice Sets the number of batches sync flows remain valid after valuation update.
-     * @param _expirationBatches The number of batches sync flows remain valid.
-     * @dev Only callable by custodian or manager.
+     * @notice Sets the sync expiration batches to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
      */
-    function setSyncExpirationBatches(uint48 _expirationBatches) external;
+    function setSyncExpirationBatches() external;
 }

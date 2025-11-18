@@ -18,6 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
@@ -25,6 +26,7 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -36,15 +38,24 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using SeriesAccounting for IAlephVault.ShareClass;
+    using TimelockRegistry for bytes4;
+
+    /**
+     * @notice The timelock period for sync expiration batches.
+     */
+    uint48 public immutable SYNC_EXPIRATION_BATCHES_TIMELOCK;
 
     /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for AlephVaultSettlement module
+     * @param _syncExpirationBatchesTimelock The timelock period for sync expiration batches in seconds
      * @param _batchDuration The duration of each batch cycle in seconds
      */
-    constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
+    constructor(uint48 _syncExpirationBatchesTimelock, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
+        SYNC_EXPIRATION_BATCHES_TIMELOCK = _syncExpirationBatchesTimelock;
+    }
 
     /*//////////////////////////////////////////////////////////////
                             SETTLEMENT FUNCTIONS
@@ -65,13 +76,13 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function expireTotalAssets() external {
-        _expireTotalAssets(_getStorage());
+    function queueSyncExpirationBatches(uint48 _expirationBatches) external {
+        _queueSyncExpirationBatches(_getStorage(), _expirationBatches);
     }
 
     /// @inheritdoc IAlephVaultSettlement
-    function setSyncExpirationBatches(uint48 _expirationBatches) external {
-        _setSyncExpirationBatches(_getStorage(), _expirationBatches);
+    function setSyncExpirationBatches() external {
+        _setSyncExpirationBatches(_getStorage());
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -144,10 +155,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _shareSeries.totalShares = _settleDepositDetails.totalShares;
         _sd.totalAmountToDeposit -= _amountToSettle;
 
-        // Initialize syncExpirationBatches if not set (default: 2 batches)
-        if (_sd.syncExpirationBatches == 0) {
-            _sd.syncExpirationBatches = 2;
-        }
         uint256 _requiredVaultBalance = _amountToSettle + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
         if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
             revert InsufficientAssetsToSettle(_requiredVaultBalance);
@@ -506,22 +513,28 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     }
 
     /**
-     * @dev Internal function to expire total assets (disable sync flows).
-     * @param _sd The storage struct.
-     */
-    function _expireTotalAssets(AlephVaultStorageData storage _sd) internal {
-        require(msg.sender == _sd.custodian || msg.sender == _sd.manager, "Unauthorized");
-        _sd.syncExpirationBatches = 0;
-        emit TotalAssetsExpired();
-    }
-
-    /**
-     * @dev Internal function to set sync expiration batches.
+     * @dev Internal function to queue sync expiration batches.
      * @param _sd The storage struct.
      * @param _expirationBatches The number of batches sync flows remain valid.
      */
-    function _setSyncExpirationBatches(AlephVaultStorageData storage _sd, uint48 _expirationBatches) internal {
-        require(msg.sender == _sd.custodian || msg.sender == _sd.manager, "Unauthorized");
+    function _queueSyncExpirationBatches(AlephVaultStorageData storage _sd, uint48 _expirationBatches) internal {
+        // Use classId = 0 for vault-level parameters
+        _sd.timelocks[TimelockRegistry.SYNC_EXPIRATION_BATCHES.getKey(0)] = TimelockRegistry.Timelock({
+            isQueued: true,
+            unlockTimestamp: Time.timestamp() + SYNC_EXPIRATION_BATCHES_TIMELOCK,
+            newValue: abi.encode(_expirationBatches)
+        });
+        emit SyncExpirationBatchesQueued(_expirationBatches);
+    }
+
+    /**
+     * @dev Internal function to set sync expiration batches from timelock.
+     * @param _sd The storage struct.
+     */
+    function _setSyncExpirationBatches(AlephVaultStorageData storage _sd) internal {
+        // Use classId = 0 for vault-level parameters
+        bytes memory _newValue = TimelockRegistry.SYNC_EXPIRATION_BATCHES.setTimelock(0, _sd);
+        uint48 _expirationBatches = abi.decode(_newValue, (uint48));
         _sd.syncExpirationBatches = _expirationBatches;
         emit SyncExpirationBatchesUpdated(_expirationBatches);
     }

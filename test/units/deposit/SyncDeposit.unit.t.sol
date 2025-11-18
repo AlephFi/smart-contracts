@@ -123,7 +123,10 @@ contract SyncDepositTest is BaseTest {
 
         // Expire total assets (sets syncExpirationBatches to 0)
         vm.prank(manager);
-        vault.expireTotalAssets();
+        vault.queueSyncExpirationBatches(0);
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(manager);
+        vault.setSyncExpirationBatches();
 
         // If current batch <= lastValuationSettleId, advance time to make it invalid
         if (_currentBatch <= _lastValuationSettleId) {
@@ -292,7 +295,10 @@ contract SyncDepositTest is BaseTest {
 
         // Expire total assets (sets syncExpirationBatches to 0)
         vm.prank(manager);
-        vault.expireTotalAssets();
+        vault.queueSyncExpirationBatches(0);
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(manager);
+        vault.setSyncExpirationBatches();
 
         // If current batch > lastValuationSettleId, it should be false
         // If current batch == lastValuationSettleId, it should still be true (within window of 0)

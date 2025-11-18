@@ -218,6 +218,7 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             guardian: _sd.guardian,
             authSigner: _sd.authSigner,
             accountant: _sd.accountant,
+            syncExpirationBatches: 2,
             userInitializationParams: _userInitializationParams,
             moduleInitializationParams: _moduleInitializationParams
         });
