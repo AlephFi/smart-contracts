@@ -104,9 +104,8 @@ contract DeployAlephVaultImplementation is BaseScript {
             }),
             _configParams.batchDuration
         );
-        AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(
-            _configParams.syncExpirationBatchesTimelock, _configParams.batchDuration
-        );
+        AlephVaultSettlement _alephVaultSettlement =
+            new AlephVaultSettlement(_configParams.syncExpirationBatchesTimelock, _configParams.batchDuration);
         FeeManager _feeManager = new FeeManager(
             IFeeManager.FeeConstructorParams({
                 managementFeeTimelock: _configParams.managementFeeTimelock,

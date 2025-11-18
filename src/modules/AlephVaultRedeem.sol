@@ -237,11 +237,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
 
         // validate redeem request is valid
         _validateRedeem(
-            _shareClass,
-            _currentBatchId,
-            _totalUserAssets,
-            _totalUserAssets - _pendingUserAssets,
-            _redeemRequestParams
+            _shareClass, _currentBatchId, _totalUserAssets, _totalUserAssets - _pendingUserAssets, _redeemRequestParams
         );
 
         // Share units are a proportion of user's available assets
@@ -295,9 +291,8 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // Check lock-in period (skip if redeeming all and flag is set)
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
         if (
-            !(_skipLockInPeriodIfRedeemingAll && _previewRemainingAmount == 0)
-            && _shareClassParams.lockInPeriod > 0
-            && _userLockInPeriod > _currentBatchId
+            !(_skipLockInPeriodIfRedeemingAll && _previewRemainingAmount == 0) && _shareClassParams.lockInPeriod > 0
+                && _userLockInPeriod > _currentBatchId
         ) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }

@@ -288,5 +288,4 @@ contract ExposedVault is AlephVault {
         }
         return 0;
     }
-
 }

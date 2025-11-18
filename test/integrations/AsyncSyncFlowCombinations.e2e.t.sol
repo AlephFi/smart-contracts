@@ -37,7 +37,7 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
 
         // Set notice period to 0 for sync redeem
         vault.setNoticePeriod(1, 0);
-        
+
         // Set minUserBalance to 0 to allow flexible testing
         vault.setMinUserBalance(1, 0);
     }
@@ -137,16 +137,14 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
 
         // User 1: Async redeem
         vm.prank(mockUser_1);
-        uint48 _requestBatchId = vault.requestRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether})
-        );
+        uint48 _requestBatchId =
+            vault.requestRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether}));
 
         // User 1: Sync redeem (partial, remaining assets)
         underlyingToken.mint(address(vault), 20 ether);
         vm.prank(mockUser_1);
-        uint256 _syncAssets = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 20 ether})
-        );
+        uint256 _syncAssets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 20 ether}));
 
         // Assert sync redeem succeeded
         assertGt(_syncAssets, 0);
@@ -190,9 +188,8 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         // User 1: Sync redeem from existing shares (from setup)
         underlyingToken.mint(address(vault), 30 ether);
         vm.prank(mockUser_1);
-        uint256 _syncAssets = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether})
-        );
+        uint256 _syncAssets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether}));
 
         // Assert both operations succeeded
         assertGt(_syncAssets, 0);
@@ -214,9 +211,8 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
 
         // User 1: Async redeem (from existing shares + new sync deposit)
         vm.prank(mockUser_1);
-        uint48 _requestBatchId = vault.requestRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether})
-        );
+        uint48 _requestBatchId =
+            vault.requestRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether}));
 
         // Assert both operations succeeded
         assertGt(_syncShares, 0);
@@ -260,15 +256,13 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
 
         // User 1: Sync redeem
         vm.prank(mockUser_1);
-        uint256 _syncAssets = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether})
-        );
+        uint256 _syncAssets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether}));
 
         // User 1: Async redeem
         vm.prank(mockUser_1);
-        uint48 _requestBatchId = vault.requestRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 20 ether})
-        );
+        uint48 _requestBatchId =
+            vault.requestRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 20 ether}));
 
         // Assert both operations succeeded
         assertGt(_syncAssets, 0);
@@ -321,9 +315,8 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         // User 1: Sync redeem
         underlyingToken.mint(address(vault), 20 ether);
         vm.prank(mockUser_1);
-        uint256 _assets1 = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 20 ether})
-        );
+        uint256 _assets1 =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 20 ether}));
 
         // User 2: Async redeem (from existing shares - user 2 has shares from async deposit request)
         // First settle the async deposit so user 2 has shares
@@ -341,9 +334,8 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
 
         // Now user 2 can redeem
         vm.prank(mockUser_2);
-        uint48 _redeemBatchId = vault.requestRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 25 ether})
-        );
+        uint48 _redeemBatchId =
+            vault.requestRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 25 ether}));
 
         // Assert all operations succeeded
         assertGt(_assets1, 0);
@@ -484,9 +476,8 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
 
         // Sync redeem
         vm.prank(mockUser_1);
-        uint256 _assets = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether})
-        );
+        uint256 _assets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether}));
         assertGt(_assets, 0);
 
         // Sync deposit with same user
@@ -518,9 +509,8 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         // User 1: Sync redeem from existing shares
         underlyingToken.mint(address(vault), 30 ether);
         vm.prank(mockUser_1);
-        uint256 _syncAssets = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether})
-        );
+        uint256 _syncAssets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 30 ether}));
         assertGt(_syncAssets, 0);
 
         // Roll forward and settle async deposit

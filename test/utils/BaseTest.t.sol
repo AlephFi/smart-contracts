@@ -241,7 +241,9 @@ contract BaseTest is Test {
                     batchDuration
                 )
             ),
-            alephVaultSettlementImplementation: address(new AlephVaultSettlement(syncExpirationBatchesTimelock, batchDuration)),
+            alephVaultSettlementImplementation: address(
+                new AlephVaultSettlement(syncExpirationBatchesTimelock, batchDuration)
+            ),
             feeManagerImplementation: address(
                 new FeeManager(
                     IFeeManager.FeeConstructorParams({
