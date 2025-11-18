@@ -113,11 +113,15 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     /**
      * @dev Returns the total assets in the vault.
      * @param _shareClass The share class.
-     * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint32 _seriesId)
+    function _totalAssetsPerSeries(
+        IAlephVault.ShareClass storage _shareClass,
+        uint8,
+        /* _classId */
+        uint32 _seriesId
+    )
         internal
         view
         returns (uint256)
@@ -128,11 +132,15 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     /**
      * @dev Returns the total shares in the vault.
      * @param _shareClass The share class.
-     * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint32 _seriesId)
+    function _totalSharesPerSeries(
+        IAlephVault.ShareClass storage _shareClass,
+        uint8,
+        /* _classId */
+        uint32 _seriesId
+    )
         internal
         view
         returns (uint256)
@@ -228,12 +236,12 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @return true if sync flows are allowed, false otherwise.
      */
     function _isTotalAssetsValid(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (bool) {
-        uint48 _lastValuationSettleId = _lastValuationSettleId(_sd, _classId);
-        if (_lastValuationSettleId == 0) {
+        uint48 _lastValuationSettleIdValue = _lastValuationSettleId(_sd, _classId);
+        if (_lastValuationSettleIdValue == 0) {
             return false;
         }
-        uint48 _currentBatch = _currentBatch(_sd);
-        return _currentBatch <= _lastValuationSettleId + _sd.syncExpirationBatches;
+        uint48 _currentBatchValue = _currentBatch(_sd);
+        return _currentBatchValue <= _lastValuationSettleIdValue + _sd.syncExpirationBatches;
     }
 
     /**

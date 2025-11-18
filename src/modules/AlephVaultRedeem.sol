@@ -268,7 +268,6 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
      * @dev Internal function to validate common redeem parameters (shared between async and sync).
      * @param _shareClass The share class.
      * @param _currentBatchId The current batch ID.
-     * @param _totalUserAssets The total user assets.
      * @param _previewRemainingAmount The remaining amount after redeem (total - amount - pending).
      * @param _redeemRequestParams The redeem request parameters.
      * @param _skipLockInPeriodIfRedeemingAll Whether to skip lock-in period check if redeeming all (for sync).
@@ -276,7 +275,8 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     function _validateRedeemCommon(
         IAlephVault.ShareClass storage _shareClass,
         uint48 _currentBatchId,
-        uint256 _totalUserAssets,
+        uint256,
+        /* _totalUserAssets */
         uint256 _previewRemainingAmount,
         RedeemRequestParams calldata _redeemRequestParams,
         bool _skipLockInPeriodIfRedeemingAll

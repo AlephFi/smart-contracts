@@ -152,7 +152,6 @@ library SeriesAccounting {
         // remaining amount is assets that were not settled in the lead series (this happens if user does not have
         // enough assets in the lead series to complete the redemption)
         uint256 _remainingAmount = _amount;
-        uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint32 _shareSeriesId = _shareClass.shareSeriesId;
 
         // we now iterate through all series to settle the remaining user amount

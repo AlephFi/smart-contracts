@@ -284,7 +284,7 @@ contract SyncDepositTest is BaseTest {
         assertEq(vault.totalAssetsPerSeries(1, 0), 100 ether + _amount1 + _amount2);
     }
 
-    function test_isTotalAssetsValid_returnsTrueWhenValid() public {
+    function test_isTotalAssetsValid_returnsTrueWhenValid() public view {
         assertTrue(vault.isTotalAssetsValid(1));
     }
 
