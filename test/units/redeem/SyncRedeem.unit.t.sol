@@ -243,22 +243,21 @@ contract SyncRedeemTest is BaseTest {
         vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 50 ether}));
     }
 
-    function test_syncRedeem_clearsLockInPeriodWhenRedeemingAll() public {
+    function test_syncRedeem_revertsWhenUserInLockInPeriodAndRedeemingAll() public {
         // Set minUserBalance to 0 so we can redeem all
         vault.setMinUserBalance(1, 0);
 
         vault.setLockInPeriod(1, 5);
-        vault.setUserLockInPeriod(1, vault.currentBatch() + 5, mockUser_1);
+        uint48 _currentBatch = vault.currentBatch();
+        vault.setUserLockInPeriod(1, _currentBatch + 5, mockUser_1);
 
-        // Redeem all assets
+        // Redeem all assets - should revert due to lock-in period
         uint256 _totalAssets = vault.assetsPerClassOf(1, mockUser_1);
         underlyingToken.mint(address(vault), _totalAssets);
 
         vm.prank(mockUser_1);
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.UserInLockInPeriodNotElapsed.selector, _currentBatch + 5));
         vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _totalAssets}));
-
-        // Lock-in period should be cleared
-        assertEq(vault.userLockInPeriod(1, mockUser_1), 0);
     }
 
     function test_syncRedeem_partialRedeem() public {

@@ -296,9 +296,9 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
             revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
 
-        // Check lock-in period (skip if redeeming all, as lock-in period is cleared anyway)
+        // Check lock-in period
         uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
-        if (_previewRemainingAmount > 0 && _shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
+        if (_shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
             revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
         }
 
