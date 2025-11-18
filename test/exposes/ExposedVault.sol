@@ -209,8 +209,10 @@ contract ExposedVault is AlephVault {
     }
 
     function minDepositAmountTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
-        .delegatecall(abi.encodeWithSignature("MIN_DEPOSIT_AMOUNT_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT].delegatecall(
+            abi.encodeWithSignature("MIN_DEPOSIT_AMOUNT_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -218,8 +220,10 @@ contract ExposedVault is AlephVault {
     }
 
     function minUserBalanceTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
-        .delegatecall(abi.encodeWithSignature("MIN_USER_BALANCE_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT].delegatecall(
+            abi.encodeWithSignature("MIN_USER_BALANCE_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -227,8 +231,10 @@ contract ExposedVault is AlephVault {
     }
 
     function maxDepositCapTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
-        .delegatecall(abi.encodeWithSignature("MAX_DEPOSIT_CAP_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT].delegatecall(
+            abi.encodeWithSignature("MAX_DEPOSIT_CAP_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -236,8 +242,10 @@ contract ExposedVault is AlephVault {
     }
 
     function noticePeriodTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
-        .delegatecall(abi.encodeWithSignature("NOTICE_PERIOD_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM].delegatecall(
+            abi.encodeWithSignature("NOTICE_PERIOD_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -245,8 +253,10 @@ contract ExposedVault is AlephVault {
     }
 
     function lockInPeriodTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
-        .delegatecall(abi.encodeWithSignature("LOCK_IN_PERIOD_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM].delegatecall(
+            abi.encodeWithSignature("LOCK_IN_PERIOD_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -254,8 +264,10 @@ contract ExposedVault is AlephVault {
     }
 
     function minRedeemAmountTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
-        .delegatecall(abi.encodeWithSignature("MIN_REDEEM_AMOUNT_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM].delegatecall(
+            abi.encodeWithSignature("MIN_REDEEM_AMOUNT_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -263,8 +275,10 @@ contract ExposedVault is AlephVault {
     }
 
     function managementFeeTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-        .delegatecall(abi.encodeWithSignature("MANAGEMENT_FEE_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
+            abi.encodeWithSignature("MANAGEMENT_FEE_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -272,8 +286,10 @@ contract ExposedVault is AlephVault {
     }
 
     function performanceFeeTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-        .delegatecall(abi.encodeWithSignature("PERFORMANCE_FEE_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
+            abi.encodeWithSignature("PERFORMANCE_FEE_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }
@@ -281,8 +297,10 @@ contract ExposedVault is AlephVault {
     }
 
     function accountantTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-        .delegatecall(abi.encodeWithSignature("ACCOUNTANT_TIMELOCK()"));
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
+            abi.encodeWithSignature("ACCOUNTANT_TIMELOCK()")
+        );
         if (_success) {
             return abi.decode(_data, (uint48));
         }

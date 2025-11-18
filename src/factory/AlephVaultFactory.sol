@@ -79,14 +79,14 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.authSigner = _initializationParams.authSigner;
         _sd.accountant = _initializationParams.accountant;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
-            _initializationParams.alephVaultDepositImplementation;
+        _initializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
-            _initializationParams.alephVaultRedeemImplementation;
+        _initializationParams.alephVaultRedeemImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
-            _initializationParams.alephVaultSettlementImplementation;
+        _initializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initializationParams.feeManagerImplementation;
         _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
-            _initializationParams.migrationManagerImplementation;
+        _initializationParams.migrationManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 

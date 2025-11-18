@@ -140,15 +140,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
         // set up module implementations
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
-            _initializationParams.moduleInitializationParams.alephVaultDepositImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
-            _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
-            _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
-            _initializationParams.moduleInitializationParams.feeManagerImplementation;
+        _initializationParams.moduleInitializationParams.feeManagerImplementation;
         _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
-            _initializationParams.moduleInitializationParams.migrationManagerImplementation;
+        _initializationParams.moduleInitializationParams.migrationManagerImplementation;
 
         // grant roles
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
