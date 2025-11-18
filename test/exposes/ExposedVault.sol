@@ -283,4 +283,12 @@ contract ExposedVault is AlephVault {
         }
         return 0;
     }
+
+    function expireTotalAssets() external {
+        _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    function setSyncExpirationBatches(uint48 _expirationBatches) external {
+        _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
 }

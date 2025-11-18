@@ -766,6 +766,30 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
+    /**
+     * @notice Deposits assets synchronously into the vault, minting shares immediately.
+     * @param _requestDepositParams The parameters for the deposit (same as requestDeposit).
+     * @return _shares The number of shares minted to the caller.
+     * @dev Only callable when totalAssets is valid for the specified class.
+     */
+    function syncDeposit(IAlephVaultDeposit.RequestDepositParams calldata _requestDepositParams)
+        external
+        onlyValidShareClass(_requestDepositParams.classId)
+        whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
+        returns (uint256 _shares)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
+    }
+
+    /**
+     * @notice Checks if total assets are valid for synchronous operations for a specific class.
+     * @param _classId The share class ID to check.
+     * @return true if sync flows are allowed, false otherwise.
+     */
+    function isTotalAssetsValid(uint8 _classId) external view override returns (bool) {
+        return _isTotalAssetsValid(_getStorage(), _classId);
+    }
+
     /*//////////////////////////////////////////////////////////////
                             REDEEM FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -780,6 +804,21 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClass(_redeemRequestParams.classId)
         whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
         returns (uint48 _batchId)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
+    }
+
+    /**
+     * @notice Redeems shares synchronously from the vault, transferring assets immediately.
+     * @param _redeemRequestParams The parameters for the redeem (same as requestRedeem).
+     * @return _assets The amount of assets transferred to the caller.
+     * @dev Only callable when totalAssets is valid.
+     */
+    function syncRedeem(IAlephVaultRedeem.RedeemRequestParams calldata _redeemRequestParams)
+        external
+        onlyValidShareClass(_redeemRequestParams.classId)
+        whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
+        returns (uint256 _assets)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }

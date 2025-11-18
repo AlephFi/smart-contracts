@@ -64,6 +64,16 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _forceRedeem(_getStorage(), _user);
     }
 
+    /// @inheritdoc IAlephVaultSettlement
+    function expireTotalAssets() external {
+        _expireTotalAssets(_getStorage());
+    }
+
+    /// @inheritdoc IAlephVaultSettlement
+    function setSyncExpirationBatches(uint48 _expirationBatches) external {
+        _setSyncExpirationBatches(_getStorage(), _expirationBatches);
+    }
+
     /*//////////////////////////////////////////////////////////////
                             INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -133,6 +143,11 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _shareSeries.totalAssets = _settleDepositDetails.totalAssets;
         _shareSeries.totalShares = _settleDepositDetails.totalShares;
         _sd.totalAmountToDeposit -= _amountToSettle;
+
+        // Initialize syncExpirationBatches if not set (default: 2 batches)
+        if (_sd.syncExpirationBatches == 0) {
+            _sd.syncExpirationBatches = 2;
+        }
         uint256 _requiredVaultBalance = _amountToSettle + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
         if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
             revert InsufficientAssetsToSettle(_requiredVaultBalance);
@@ -487,5 +502,26 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             revert DelegateCallFailed(_data);
         }
         return abi.decode(_data, (uint256));
+    }
+
+    /**
+     * @dev Internal function to expire total assets (disable sync flows).
+     * @param _sd The storage struct.
+     */
+    function _expireTotalAssets(AlephVaultStorageData storage _sd) internal {
+        require(msg.sender == _sd.custodian || msg.sender == _sd.manager, "Unauthorized");
+        _sd.syncExpirationBatches = 0;
+        emit TotalAssetsExpired();
+    }
+
+    /**
+     * @dev Internal function to set sync expiration batches.
+     * @param _sd The storage struct.
+     * @param _expirationBatches The number of batches sync flows remain valid.
+     */
+    function _setSyncExpirationBatches(AlephVaultStorageData storage _sd, uint48 _expirationBatches) internal {
+        require(msg.sender == _sd.custodian || msg.sender == _sd.manager, "Unauthorized");
+        _sd.syncExpirationBatches = _expirationBatches;
+        emit SyncExpirationBatchesUpdated(_expirationBatches);
     }
 }

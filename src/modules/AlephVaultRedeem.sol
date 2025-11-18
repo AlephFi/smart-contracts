@@ -35,6 +35,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     using SafeERC20 for IERC20;
     using TimelockRegistry for bytes4;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SeriesAccounting for IAlephVault.ShareClass;
 
     /**
      * @notice The timelock period for the notice period.
@@ -110,6 +111,15 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     /// @inheritdoc IAlephVaultRedeem
     function requestRedeem(RedeemRequestParams calldata _redeemRequestParams) external returns (uint48 _batchId) {
         return _requestRedeem(_getStorage(), _redeemRequestParams);
+    }
+
+    /// @inheritdoc IAlephVaultRedeem
+    function syncRedeem(RedeemRequestParams calldata _redeemRequestParams)
+        external
+        nonReentrant
+        returns (uint256 _assets)
+    {
+        return _syncRedeem(_getStorage(), _redeemRequestParams);
     }
 
     /// @inheritdoc IAlephVaultRedeem
@@ -253,29 +263,30 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     }
 
     /**
-     * @dev Internal function to validate a redeem request.
+     * @dev Internal function to validate redeem parameters (shared logic).
      * @param _shareClass The share class.
      * @param _currentBatchId The current batch ID.
      * @param _totalUserAssets The total user assets.
-     * @param _pendingUserAssets The pending user assets.
+     * @param _availableUserAssets The available user assets (total - pending for async, total for sync).
      * @param _redeemRequestParams The redeem request parameters.
+     * @param _bypassNoticePeriod Whether to bypass notice period check (for sync redeems).
+     * @param _checkDuplicateRequest Whether to check for duplicate requests in batch (for async only).
      */
-    function _validateRedeemRequest(
+    function _validateRedeem(
         IAlephVault.ShareClass storage _shareClass,
         uint48 _currentBatchId,
         uint256 _totalUserAssets,
-        uint256 _pendingUserAssets,
-        RedeemRequestParams calldata _redeemRequestParams
+        uint256 _availableUserAssets,
+        RedeemRequestParams calldata _redeemRequestParams,
+        bool _bypassNoticePeriod,
+        bool _checkDuplicateRequest
     ) internal {
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
-        if (
-            _redeemRequestParams.estAmountToRedeem == 0
-                || _redeemRequestParams.estAmountToRedeem > _totalUserAssets - _pendingUserAssets
-        ) {
+        if (_redeemRequestParams.estAmountToRedeem == 0 || _redeemRequestParams.estAmountToRedeem > _availableUserAssets) {
             revert InsufficientAssetsToRedeem();
         }
-        uint256 _previewRemainingAmount =
-            _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
+        uint256 _pendingUserAssets = _bypassNoticePeriod ? 0 : _totalUserAssets - _availableUserAssets;
+        uint256 _previewRemainingAmount = _totalUserAssets - (_redeemRequestParams.estAmountToRedeem + _pendingUserAssets);
         if (_previewRemainingAmount > 0 && _redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
             revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
         }
@@ -292,9 +303,87 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         if (_shareClassParams.lockInPeriod > 0 && _previewRemainingAmount == 0) {
             delete _shareClass.userLockInPeriod[msg.sender];
         }
-        if (_shareClass.redeemRequests[_currentBatchId].redeemRequest[msg.sender] > 0) {
+        if (_checkDuplicateRequest && _shareClass.redeemRequests[_currentBatchId].redeemRequest[msg.sender] > 0) {
             revert OnlyOneRequestPerBatchAllowedForRedeem();
         }
+    }
+
+    /**
+     * @dev Internal function to validate a redeem request for sync (no notice period, no pending assets).
+     * @param _shareClass The share class.
+     * @param _currentBatchId The current batch ID.
+     * @param _totalUserAssets The total user assets.
+     * @param _redeemRequestParams The redeem request parameters.
+     */
+    function _validateSyncRedeem(
+        IAlephVault.ShareClass storage _shareClass,
+        uint48 _currentBatchId,
+        uint256 _totalUserAssets,
+        RedeemRequestParams calldata _redeemRequestParams
+    ) internal {
+        IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
+        
+        // Check amount is not zero
+        if (_redeemRequestParams.estAmountToRedeem == 0) {
+            revert InsufficientAssetsToRedeem();
+        }
+        
+        // Check if user has sufficient assets
+        if (_redeemRequestParams.estAmountToRedeem > _totalUserAssets) {
+            revert InsufficientAssetsToRedeem();
+        }
+        
+        uint256 _previewRemainingAmount = _totalUserAssets - _redeemRequestParams.estAmountToRedeem;
+        
+        // Check lock-in period (skip if redeeming all, as we'll clear it)
+        uint48 _userLockInPeriod = _shareClass.userLockInPeriod[msg.sender];
+        if (_previewRemainingAmount > 0 && _shareClassParams.lockInPeriod > 0 && _userLockInPeriod > _currentBatchId) {
+            revert UserInLockInPeriodNotElapsed(_userLockInPeriod);
+        }
+        
+        // Check min redeem amount (only if not redeeming all)
+        if (_previewRemainingAmount > 0 && _redeemRequestParams.estAmountToRedeem < _shareClassParams.minRedeemAmount) {
+            revert RedeemLessThanMinRedeemAmount(_shareClassParams.minRedeemAmount);
+        }
+        
+        // Check min user balance (only if not redeeming all)
+        if (
+            _shareClassParams.minUserBalance > 0 && _previewRemainingAmount > 0
+                && _previewRemainingAmount < _shareClassParams.minUserBalance
+        ) {
+            revert RedeemFallBelowMinUserBalance(_shareClassParams.minUserBalance);
+        }
+        
+        // Clear lock-in period if redeeming all
+        if (_shareClassParams.lockInPeriod > 0 && _previewRemainingAmount == 0) {
+            delete _shareClass.userLockInPeriod[msg.sender];
+        }
+    }
+
+    /**
+     * @dev Internal function to validate a redeem request.
+     * @param _shareClass The share class.
+     * @param _currentBatchId The current batch ID.
+     * @param _totalUserAssets The total user assets.
+     * @param _pendingUserAssets The pending user assets.
+     * @param _redeemRequestParams The redeem request parameters.
+     */
+    function _validateRedeemRequest(
+        IAlephVault.ShareClass storage _shareClass,
+        uint48 _currentBatchId,
+        uint256 _totalUserAssets,
+        uint256 _pendingUserAssets,
+        RedeemRequestParams calldata _redeemRequestParams
+    ) internal {
+        _validateRedeem(
+            _shareClass,
+            _currentBatchId,
+            _totalUserAssets,
+            _totalUserAssets - _pendingUserAssets,
+            _redeemRequestParams,
+            false, // don't bypass notice period
+            true // check duplicate request
+        );
     }
 
     /**
@@ -321,5 +410,54 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         }
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _vaultBalance - _requiredVaultBalance);
         emit ExcessAssetsWithdrawn(_vaultBalance - _requiredVaultBalance);
+    }
+
+
+    /**
+     * @dev Internal function to handle a synchronous redeem.
+     * @param _sd The storage struct.
+     * @param _redeemRequestParams The parameters for the redeem.
+     * @return _assets The amount of assets transferred.
+     */
+    function _syncRedeem(AlephVaultStorageData storage _sd, RedeemRequestParams calldata _redeemRequestParams)
+        internal
+        returns (uint256 _assets)
+    {
+        if (!_isTotalAssetsValid(_sd, _redeemRequestParams.classId)) {
+            revert OnlyAsyncRedeemAllowed();
+        }
+
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_redeemRequestParams.classId];
+        IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
+        
+        // Sync redeem is only available if notice period is 0
+        if (_shareClassParams.noticePeriod > 0) {
+            revert OnlyAsyncRedeemAllowed();
+        }
+
+        uint48 _currentBatchId = _currentBatch(_sd);
+        uint256 _totalUserAssets = _assetsPerClassOf(_shareClass, _redeemRequestParams.classId, msg.sender);
+
+        // Validate redeem request for sync (no pending assets, no duplicate check)
+        // This must happen before settleRedeemForUser to catch validation errors early
+        _validateSyncRedeem(_shareClass, _currentBatchId, _totalUserAssets, _redeemRequestParams);
+
+        // Use settleRedeemForUser for FIFO redemption across series
+        // This burns shares and updates series accounting, but doesn't transfer tokens
+        uint256 _assetsBefore = _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId);
+        _shareClass.settleRedeemForUser(_redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem);
+        uint256 _assetsAfter = _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId);
+        _assets = _assetsBefore - _assetsAfter;
+
+        // Check vault has sufficient balance for transfer
+        uint256 _vaultBalance = IERC20(_sd.underlyingToken).balanceOf(address(this));
+        if (_assets == 0 || _vaultBalance < _assets) {
+            revert InsufficientVaultBalance();
+        }
+
+        // Transfer assets from vault balance to user
+        IERC20(_sd.underlyingToken).safeTransfer(msg.sender, _assets);
+
+        emit SyncRedeem(_redeemRequestParams.classId, msg.sender, _redeemRequestParams.estAmountToRedeem, _assets);
     }
 }

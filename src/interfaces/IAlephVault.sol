@@ -297,6 +297,13 @@ interface IAlephVault {
     function vaultTreasury() external view returns (address);
 
     /**
+     * @notice Checks if total assets are valid for synchronous operations for a specific class.
+     * @param _classId The share class ID to check.
+     * @return true if sync flows are allowed, false otherwise.
+     */
+    function isTotalAssetsValid(uint8 _classId) external view returns (bool);
+
+    /**
      * @notice Returns the operations multisig of the vault.
      * @return The operations multisig.
      */

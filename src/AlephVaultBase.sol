@@ -208,6 +208,34 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     }
 
     /**
+     * @dev Returns the last valuation settle ID for a share class (max of depositSettleId and redeemSettleId).
+     * @param _sd The storage struct.
+     * @param _classId The share class ID.
+     * @return The last batch where valuation was updated for this class (max of deposit and redeem settle IDs).
+     */
+    function _lastValuationSettleId(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint48) {
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _depositSettleId = _shareClass.depositSettleId;
+        uint48 _redeemSettleId = _shareClass.redeemSettleId;
+        return _depositSettleId > _redeemSettleId ? _depositSettleId : _redeemSettleId;
+    }
+
+    /**
+     * @dev Internal function to check if total assets are valid for sync operations.
+     * @param _sd The storage struct.
+     * @param _classId The share class ID.
+     * @return true if sync flows are allowed, false otherwise.
+     */
+    function _isTotalAssetsValid(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (bool) {
+        uint48 _lastValuationSettleId = _lastValuationSettleId(_sd, _classId);
+        if (_lastValuationSettleId == 0) {
+            return false;
+        }
+        uint48 _currentBatch = _currentBatch(_sd);
+        return _currentBatch <= _lastValuationSettleId + _sd.syncExpirationBatches;
+    }
+
+    /**
      * @dev Returns the lead price per share.
      * @param _shareClass The share class.
      * @param _classId The ID of the share class.
