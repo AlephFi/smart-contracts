@@ -30,9 +30,6 @@ Aleph Vaults wrap yield strategies into non-transferable shares that derive thei
 
 ## 🏗️ Architecture
 
-<img width="1868" height="755" alt="Aleph Architecture" src="https://github.com/user-attachments/assets/159f0d2a-e47c-4afb-b4f6-7eb32636dce2" />
-
-### Core Components
 
 ```mermaid
 graph TB
