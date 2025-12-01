@@ -347,7 +347,11 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         /* _classId */
         address _user,
         uint256 _amount
-    ) internal view returns (uint256) {
+    )
+        internal
+        view
+        returns (uint256)
+    {
         uint256 _remainingAmount = _amount;
         uint32 _shareSeriesId = _shareClass.shareSeriesId;
         uint256 _totalAssetsToRedeem = 0;
