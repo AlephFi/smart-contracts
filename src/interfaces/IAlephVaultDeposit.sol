@@ -79,11 +79,24 @@ interface IAlephVaultDeposit {
     /**
      * @notice Emitted when a synchronous deposit is made.
      * @param classId The ID of the share class.
-     * @param depositor The address making the deposit.
+     * @param allocator The address making the deposit.
      * @param amount The amount deposited.
      * @param shares The number of shares minted.
+     * @param seriesId The series ID where shares were minted.
+     * @param batchId The batch ID when the deposit occurred.
+     * @param totalAssets The total assets in the series after the deposit.
+     * @param totalShares The total shares in the series after the deposit.
      */
-    event SyncDeposit(uint8 indexed classId, address indexed depositor, uint256 amount, uint256 shares);
+    event SyncDeposit(
+        uint8 indexed classId,
+        address indexed allocator,
+        uint256 amount,
+        uint256 shares,
+        uint32 seriesId,
+        uint48 batchId,
+        uint256 totalAssets,
+        uint256 totalShares
+    );
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

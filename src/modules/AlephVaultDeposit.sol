@@ -408,8 +408,6 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         // Update lock-in period if applicable
         _updateLockInPeriod(_shareClass, _currentBatchId);
 
-        emit SyncDeposit(_requestDepositParams.classId, msg.sender, _requestDepositParams.amount, _shares);
-
         // CEI Pattern: Interactions last (transfer assets)
         // Transfer assets from user to vault, then to custodian
         // This allows users to only approve the vault contract
@@ -417,5 +415,17 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
 
         // Transfer from vault to custodian
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _requestDepositParams.amount);
+
+        // Emit event after all state changes and transfers are complete
+        emit SyncDeposit(
+            _requestDepositParams.classId,
+            msg.sender,
+            _requestDepositParams.amount,
+            _shares,
+            _seriesId,
+            _currentBatchId,
+            _shareSeries.totalAssets,
+            _shareSeries.totalShares
+        );
     }
 }

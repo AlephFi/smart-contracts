@@ -94,9 +94,23 @@ contract SyncDepositTest is BaseTest {
         uint256 _expectedShares = ERC4626Math.previewDeposit(_depositAmount, _totalSharesBefore, _totalAssetsBefore);
 
         // Sync deposit
+        uint48 _currentBatch = vault.currentBatch();
+        uint32 _seriesId = vault.shareSeriesId(1);
+        uint256 _expectedTotalAssets = _totalAssetsBefore + _depositAmount;
+        uint256 _expectedTotalShares = _totalSharesBefore + _expectedShares;
+
         vm.prank(mockUser_2);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultDeposit.SyncDeposit(1, mockUser_2, _depositAmount, _expectedShares);
+        emit IAlephVaultDeposit.SyncDeposit(
+            1,
+            mockUser_2,
+            _depositAmount,
+            _expectedShares,
+            _seriesId,
+            _currentBatch,
+            _expectedTotalAssets,
+            _expectedTotalShares
+        );
         uint256 _shares = vault.syncDeposit(
             IAlephVaultDeposit.RequestDepositParams({
                 classId: 1, amount: _depositAmount, authSignature: authSignature_2

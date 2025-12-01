@@ -91,11 +91,22 @@ interface IAlephVaultRedeem {
     /**
      * @notice Emitted when a synchronous redeem is made.
      * @param classId The ID of the share class.
-     * @param redeemer The address making the redeem.
+     * @param allocator The address making the redeem.
      * @param requestedAmount The amount requested to redeem.
      * @param assetsReceived The actual assets received.
+     * @param batchId The batch ID when the redeem occurred.
+     * @param totalAssets The total assets in the class after the redeem.
+     * @param totalShares The total shares in the class after the redeem.
      */
-    event SyncRedeem(uint8 indexed classId, address indexed redeemer, uint256 requestedAmount, uint256 assetsReceived);
+    event SyncRedeem(
+        uint8 indexed classId,
+        address indexed allocator,
+        uint256 requestedAmount,
+        uint256 assetsReceived,
+        uint48 batchId,
+        uint256 totalAssets,
+        uint256 totalShares
+    );
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
