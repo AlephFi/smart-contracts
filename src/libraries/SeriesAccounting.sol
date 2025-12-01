@@ -115,8 +115,15 @@ library SeriesAccounting {
                 _classId, _seriesId, _toBatchId, _amountToTransfer, _sharesToTransfer
             );
         }
-        // update the last consolidated series id and add the total amount and shares to transfer into the lead series
-        _shareClass.lastConsolidatedSeriesId = _shareSeriesId;
+        // If all series have been consolidated, reset both to 0 (lead series only)
+        // This ensures shareSeriesId always represents the highest active series ID
+        if (_shareSeriesId > LEAD_SERIES_ID) {
+            _shareClass.shareSeriesId = LEAD_SERIES_ID;
+            _shareClass.lastConsolidatedSeriesId = LEAD_SERIES_ID;
+        } else {
+            // Update the last consolidated series id (only needed when shareSeriesId == 0, which shouldn't happen in practice)
+            _shareClass.lastConsolidatedSeriesId = _shareSeriesId;
+        }
         _shareClass.shareSeries[LEAD_SERIES_ID].totalAssets += _totalAmountToTransfer;
         _shareClass.shareSeries[LEAD_SERIES_ID].totalShares += _totalSharesToTransfer;
         emit IAlephVaultSettlement.AllSeriesConsolidated(

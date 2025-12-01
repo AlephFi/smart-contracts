@@ -390,7 +390,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @dev Internal function to handle the series accounting.
      * @param _shareClass The share class.
      * @param _classId The id of the class.
-     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
      * @param _toBatchId The batch id in which to consolidate/create new series.
      * @return _seriesId The series id in which to settle pending deposits.
      * @dev this function is called before settling deposits/redeems to handle the series accounting.
@@ -446,9 +445,8 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @dev Internal function to accumulate fees.
      * @param _shareClass The share class to accumulate fees for.
      * @param _classId The id of the class.
-     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
      * @param _toBatchId The batch id to settle deposits up to.
-     * @param _newTotalAssets The new total assets after settlement.
+     * @param _newTotalAssets The new total assets after settlement (ordered: [leadSeries, activeSeries1, activeSeries2, ...]).
      */
     function _accumulateFees(
         IAlephVault.ShareClass storage _shareClass,
