@@ -455,10 +455,14 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
 
         uint48 _currentBatchId = _currentBatch(_sd);
         uint256 _totalUserAssets = _assetsPerClassOf(_shareClass, _redeemRequestParams.classId, msg.sender);
+        
+        // Calculate pending assets from async redeem requests to prevent double redemption
+        // This ensures sync redeem accounts for any pending async redeem requests
+        uint256 _pendingUserAssets = _pendingAssetsOf(_shareClass, _currentBatchId, msg.sender, _totalUserAssets);
 
-        // Validate redeem request for sync (no pending assets, no duplicate check)
+        // Validate redeem request for sync (accounting for pending assets, no duplicate check)
         // This must happen before settleRedeemForUser to catch validation errors early
-        _validateRedeem(_shareClass, _currentBatchId, _totalUserAssets, 0, _redeemRequestParams, false);
+        _validateRedeem(_shareClass, _currentBatchId, _totalUserAssets, _pendingUserAssets, _redeemRequestParams, false);
 
         // Preview and validate vault balance before state modification
         // Note: Sync redeems use current state for pricing (may not include current batch fees).

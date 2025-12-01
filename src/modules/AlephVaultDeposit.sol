@@ -348,10 +348,17 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
                 _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark
                     > _leadPricePerShare(_shareClass, _classId)
             ) {
-                // Create the series immediately since sync deposits need immediate creation
-                // Read shareSeriesId after creation to avoid race conditions
-                _shareClass.createNewSeries(_classId, _currentBatchId);
-                _seriesId = _shareClass.shareSeriesId; // Use the actual created series ID
+                // Check if there's already an active series (same logic as async settlement)
+                // If an active series exists, reuse it instead of creating a duplicate
+                if (_shareSeriesId > _lastConsolidatedSeriesId) {
+                    // Use the existing active series
+                    _seriesId = _shareSeriesId;
+                } else {
+                    // No active series exists, create a new one
+                    // Read shareSeriesId after creation to avoid race conditions
+                    _shareClass.createNewSeries(_classId, _currentBatchId);
+                    _seriesId = _shareClass.shareSeriesId; // Use the actual created series ID
+                }
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
                 // If high water mark was reached and outstanding series exist, consolidate them first
                 // This ensures all deposits go to lead series when HWM is reached
@@ -379,22 +386,16 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         _validateDeposit(_sd, _shareClass, _requestDepositParams);
         uint48 _currentBatchId = _currentBatch(_sd);
 
-        // Determine series BEFORE transferring assets to prevent stuck assets if series operations fail
+        // Determine series BEFORE state changes to prevent stuck assets if series operations fail
         uint32 _seriesId = _determineSeriesIdForSyncDeposit(
             _shareClass, _requestDepositParams.classId, _currentBatchId
         );
-
-        // Transfer assets from user to vault, then to custodian
-        // This allows users to only approve the vault contract
-        _transferAssetsFromUserToVault(_sd, _requestDepositParams.amount);
-
-        // Transfer from vault to custodian
-        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _requestDepositParams.amount);
 
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
         _shares =
             ERC4626Math.previewDeposit(_requestDepositParams.amount, _shareSeries.totalShares, _shareSeries.totalAssets);
 
+        // CEI Pattern: Effects first (mint shares, update state)
         // Mint shares immediately to msg.sender in the determined series
         _shareSeries.sharesOf[msg.sender] += _shares;
         _shareSeries.totalShares += _shares;
@@ -409,5 +410,13 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         _updateLockInPeriod(_shareClass, _currentBatchId);
 
         emit SyncDeposit(_requestDepositParams.classId, msg.sender, _requestDepositParams.amount, _shares);
+
+        // CEI Pattern: Interactions last (transfer assets)
+        // Transfer assets from user to vault, then to custodian
+        // This allows users to only approve the vault contract
+        _transferAssetsFromUserToVault(_sd, _requestDepositParams.amount);
+
+        // Transfer from vault to custodian
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _requestDepositParams.amount);
     }
 }
