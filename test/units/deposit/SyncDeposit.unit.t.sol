@@ -539,6 +539,14 @@ contract SyncDepositTest is BaseTest {
         assertFalse(vault.isTotalAssetsValid(1));
     }
 
+    function test_isTotalAssetsValid_externalFunctionCoverage() public view {
+        // Test the external function directly for coverage
+        // This ensures AlephVaultDeposit.isTotalAssetsValid is covered
+        bool _result = vault.isTotalAssetsValid(1);
+        // After setup, it should be valid
+        assertTrue(_result);
+    }
+
     function test_syncDeposit_consolidatesOutstandingSeries_whenHWMReached() public {
         // Set minUserBalance to 0 to avoid balance checks
         vault.setMinUserBalance(1, 0);

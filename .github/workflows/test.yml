@@ -50,5 +50,5 @@ jobs:
 
       - name: Print coverage results
         run: |
-          echo "=== Coverage Results ==="
-          cat coverage_results.txt
+          echo "=== Coverage Percentages ==="
+          grep -E "[0-9]+\.[0-9]+%" coverage_results.txt || cat coverage_results.txt

@@ -419,4 +419,58 @@ contract AlephVaultDepositSettlementTest is BaseTest {
         // assert balance of custodian is 600
         assertEq(underlyingToken.balanceOf(address(custodian)), 600 ether);
     }
+
+    function test_settleDeposit_consolidateSeries_edgeCase_shareSeriesIdZero() public {
+        // This test covers the else branch in consolidateSeries when shareSeriesId == 0
+        // Set up performance fee
+        vm.prank(manager);
+        vault.queuePerformanceFee(1, 2000); // 20% performance fee
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(manager);
+        vault.setPerformanceFee(1);
+
+        // Manually set shareSeriesId and lastConsolidatedSeriesId to 0 to test edge case
+        // This simulates a scenario where all series have been consolidated
+        vault.setLastConsolidatedSeriesId(0);
+
+        // Set up some assets in lead series
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Set HWM to current price (so no new series needed)
+        uint256 _currentPrice = vault.pricePerShare(1, 0);
+        vault.setHighWaterMark(_currentPrice);
+
+        // Make a deposit request
+        underlyingToken.mint(mockUser_2, 1000 ether);
+        vm.prank(mockUser_2);
+        underlyingToken.approve(address(vault), 1000 ether);
+        vm.prank(mockUser_2);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_2})
+        );
+
+        // Settle deposit - this should trigger consolidation logic
+        vm.warp(block.timestamp + 1 days);
+        uint48 _currentBatchId = vault.currentBatch();
+        uint32 _numSeries = vault.shareSeriesId(1) - vault.lastConsolidatedSeriesId(1) + 1;
+        IAlephVaultSettlement.SettlementParams memory _settlementParams = IAlephVaultSettlement.SettlementParams({
+            classId: 1,
+            toBatchId: _currentBatchId,
+            newTotalAssets: new uint256[](_numSeries),
+            authSignature: _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, new uint256[](_numSeries)
+            )
+        });
+        _settlementParams.newTotalAssets[0] = 150 ether; // Lead series with new assets
+        _settlementParams.authSignature = _getSettlementAuthSignature(
+            AuthLibrary.SETTLE_DEPOSIT, _currentBatchId, _settlementParams.newTotalAssets
+        );
+        vm.prank(oracle);
+        vault.settleDeposit(_settlementParams);
+
+        // Verify settlement succeeded
+        assertGt(vault.totalAssetsPerSeries(1, 0), 100 ether);
+    }
 }
