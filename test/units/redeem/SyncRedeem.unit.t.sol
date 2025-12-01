@@ -242,15 +242,15 @@ contract SyncRedeemTest is BaseTest {
         if (_amountInSeries <= _remainingAmount) {
             _expectedAssets = _amountInSeries;
         } else {
-            uint256 _sharesToBurn = ERC4626Math.previewWithdraw(_remainingAmount, _totalSharesBefore, _totalAssetsBefore);
+            uint256 _sharesToBurn =
+                ERC4626Math.previewWithdraw(_remainingAmount, _totalSharesBefore, _totalAssetsBefore);
             _expectedAssets = _remainingAmount;
         }
 
         // Perform sync redeem
         vm.prank(mockUser_1);
-        uint256 _actualAssets = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount})
-        );
+        uint256 _actualAssets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount}));
 
         // Verify actual assets match expected (allowing for rounding differences)
         assertApproxEqRel(_actualAssets, _expectedAssets, 0.01e18, "Preview should match actual redeem");

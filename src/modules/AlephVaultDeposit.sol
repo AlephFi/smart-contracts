@@ -341,7 +341,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         if (_shareClass.shareClassParams.performanceFee > 0) {
             uint32 _shareSeriesId = _shareClass.shareSeriesId;
             uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-            
+
             // If lead series high water mark is above current price, deposits should go to a new series
             // This ensures new deposits don't pay performance fees on gains they didn't participate in
             if (
@@ -387,13 +387,12 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         uint48 _currentBatchId = _currentBatch(_sd);
 
         // Determine series BEFORE state changes to prevent stuck assets if series operations fail
-        uint32 _seriesId = _determineSeriesIdForSyncDeposit(
-            _shareClass, _requestDepositParams.classId, _currentBatchId
-        );
+        uint32 _seriesId = _determineSeriesIdForSyncDeposit(_shareClass, _requestDepositParams.classId, _currentBatchId);
 
         IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
-        _shares =
-            ERC4626Math.previewDeposit(_requestDepositParams.amount, _shareSeries.totalShares, _shareSeries.totalAssets);
+        _shares = ERC4626Math.previewDeposit(
+            _requestDepositParams.amount, _shareSeries.totalShares, _shareSeries.totalAssets
+        );
 
         // CEI Pattern: Effects first (mint shares, update state)
         // Mint shares immediately to msg.sender in the determined series

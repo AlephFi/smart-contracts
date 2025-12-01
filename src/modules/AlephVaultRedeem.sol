@@ -343,7 +343,8 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
      */
     function _previewRedeemAmount(
         IAlephVault.ShareClass storage _shareClass,
-        uint8 /* _classId */,
+        uint8,
+        /* _classId */
         address _user,
         uint256 _amount
     ) internal view returns (uint256) {
@@ -360,7 +361,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
             uint256 _sharesInSeries = _shareSeries.sharesOf[_user];
             uint256 _amountInSeries =
                 ERC4626Math.previewRedeem(_sharesInSeries, _shareSeries.totalAssets, _shareSeries.totalShares);
-            
+
             if (_amountInSeries <= _remainingAmount) {
                 _totalAssetsToRedeem += _amountInSeries;
                 _remainingAmount -= _amountInSeries;
@@ -368,12 +369,12 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
                 _totalAssetsToRedeem += _remainingAmount;
                 _remainingAmount = 0;
             }
-            
+
             if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
                 _seriesId = _shareClass.lastConsolidatedSeriesId;
             }
         }
-        
+
         return _totalAssetsToRedeem;
     }
 
@@ -414,13 +415,13 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         uint256 _assetsBefore = _totalAssetsPerClass(_shareClass, _classId);
         _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _estAmountToRedeem);
         uint256 _assetsAfter = _totalAssetsPerClass(_shareClass, _classId);
-        
+
         // Prevent underflow and validate assets decreased
         if (_assetsAfter > _assetsBefore) {
             revert InsufficientVaultBalance(); // Assets increased unexpectedly
         }
         _assets = _assetsBefore - _assetsAfter;
-        
+
         // Validate that actual assets match preview (within tolerance for rounding)
         // This ensures vault balance check was accurate and prevents incorrect transfers
         if (_assets > _previewAssets) {
@@ -455,7 +456,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
 
         uint48 _currentBatchId = _currentBatch(_sd);
         uint256 _totalUserAssets = _assetsPerClassOf(_shareClass, _redeemRequestParams.classId, msg.sender);
-        
+
         // Calculate pending assets from async redeem requests to prevent double redemption
         // This ensures sync redeem accounts for any pending async redeem requests
         uint256 _pendingUserAssets = _pendingAssetsOf(_shareClass, _currentBatchId, msg.sender, _totalUserAssets);

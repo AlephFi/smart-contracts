@@ -150,7 +150,7 @@ contract SyncDepositTest is BaseTest {
     function test_syncDeposit_createsNewSeries_whenHWMAbovePrice() public {
         // Set minUserBalance to 0 to avoid balance checks
         vault.setMinUserBalance(1, 0);
-        
+
         // Set up performance fee
         vm.prank(manager);
         vault.queuePerformanceFee(1, 2000); // 20% performance fee
@@ -167,7 +167,7 @@ contract SyncDepositTest is BaseTest {
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
-        
+
         // Roll forward and settle
         vm.warp(block.timestamp + 1 days);
         IAlephVaultSettlement.SettlementParams memory _initialSettlementParams = IAlephVaultSettlement.SettlementParams({
@@ -244,7 +244,7 @@ contract SyncDepositTest is BaseTest {
         // Verify new series was created
         uint32 _shareSeriesIdAfter = vault.shareSeriesId(1);
         assertEq(_shareSeriesIdAfter, _shareSeriesIdBeforeSync + 1, "New series should be created");
-        
+
         // Verify shares are in the new series
         uint256 _sharesInNewSeries = vault.sharesOf(1, _shareSeriesIdAfter, mockUser_2);
         assertGt(_sharesInNewSeries, 0, "Shares should be in new series");
@@ -253,7 +253,7 @@ contract SyncDepositTest is BaseTest {
     function test_syncDeposit_usesCorrectSeriesId_afterCreateNewSeries() public {
         // Set minUserBalance to 0 to avoid balance checks
         vault.setMinUserBalance(1, 0);
-        
+
         // Test for race condition fix: series ID should be read after creation
         // Set up performance fee
         vm.prank(manager);
@@ -271,7 +271,7 @@ contract SyncDepositTest is BaseTest {
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 100 ether, authSignature: authSignature_1})
         );
-        
+
         // Roll forward and settle
         vm.warp(block.timestamp + 1 days);
         IAlephVaultSettlement.SettlementParams memory _initialSettlementParams2 = IAlephVaultSettlement.SettlementParams({
@@ -335,7 +335,7 @@ contract SyncDepositTest is BaseTest {
         vault.settleDeposit(_settlementParams);
 
         uint32 _expectedSeriesId = vault.shareSeriesId(1) + 1;
-        
+
         // Deposit should create new series and use correct ID
         underlyingToken.mint(mockUser_2, 1000 ether);
         vm.prank(mockUser_2);

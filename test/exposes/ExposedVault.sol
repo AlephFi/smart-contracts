@@ -55,7 +55,6 @@ contract ExposedVault is AlephVault {
         return _getStorage().shareClasses[1].shareSeriesId;
     }
 
-
     function timelocks(bytes4 _key) external view returns (TimelockRegistry.Timelock memory) {
         return _getStorage().timelocks[_key];
     }
