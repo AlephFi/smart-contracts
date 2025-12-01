@@ -42,3 +42,13 @@ jobs:
         run: |
           forge test -vvv
         id: test
+
+      - name: Run Forge coverage
+        run: |
+          forge coverage --exclude-tests --report summary | grep -v "script/" | grep -v "test/" > coverage_results.txt
+        id: coverage
+
+      - name: Print coverage results
+        run: |
+          echo "=== Coverage Results ==="
+          cat coverage_results.txt

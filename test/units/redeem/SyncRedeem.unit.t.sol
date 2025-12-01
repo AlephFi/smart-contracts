@@ -358,9 +358,8 @@ contract SyncRedeemTest is BaseTest {
         // Calculate expected assets (will be less than or equal to redeem amount due to rounding)
         uint256 _expectedAssets = _previewRedeemAmount(1, mockUser_1, _redeemAmount);
         uint256 _expectedTotalAssets = _totalAssetsBefore - _expectedAssets;
-        uint256 _expectedTotalShares = _totalSharesBefore - ERC4626Math.previewWithdraw(
-            _expectedAssets, _totalSharesBefore, _totalAssetsBefore
-        );
+        uint256 _expectedTotalShares =
+            _totalSharesBefore - ERC4626Math.previewWithdraw(_expectedAssets, _totalSharesBefore, _totalAssetsBefore);
 
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
@@ -419,9 +418,8 @@ contract SyncRedeemTest is BaseTest {
 
         // Should succeed in the same batch
         vm.prank(mockUser_1);
-        uint256 _assets = vault.syncRedeem(
-            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount})
-        );
+        uint256 _assets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount}));
         assertGt(_assets, 0, "Sync redeem should work in exact batch when expirationBatches = 0");
     }
 

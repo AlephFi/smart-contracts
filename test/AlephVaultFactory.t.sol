@@ -309,7 +309,9 @@ contract AlephVaultFactoryTest is Test {
         address _vault = factory.deployVault(params);
 
         address _newOperationsMultisig = address(0x7777);
-        vm.mockCall(_vault, abi.encodeCall(IMigrationManager.migrateOperationsMultisig, (_newOperationsMultisig)), abi.encode());
+        vm.mockCall(
+            _vault, abi.encodeCall(IMigrationManager.migrateOperationsMultisig, (_newOperationsMultisig)), abi.encode()
+        );
 
         vm.prank(operationsMultisig);
         factory.setOperationsMultisig(_newOperationsMultisig);
@@ -543,7 +545,9 @@ contract AlephVaultFactoryTest is Test {
 
         bytes4 _module = bytes4(0x12345678);
         address _newImplementation = address(0x7777);
-        vm.mockCall(_vault, abi.encodeCall(IMigrationManager.migrateModules, (_module, _newImplementation)), abi.encode());
+        vm.mockCall(
+            _vault, abi.encodeCall(IMigrationManager.migrateModules, (_module, _newImplementation)), abi.encode()
+        );
 
         vm.prank(operationsMultisig);
         factory.setModuleImplementation(_module, _newImplementation);

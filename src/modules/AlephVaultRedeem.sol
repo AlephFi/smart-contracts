@@ -341,13 +341,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
      * @param _amount The amount to preview redeem.
      * @return The previewed assets amount.
      */
-    function _previewRedeemAmount(
-        IAlephVault.ShareClass storage _shareClass,
-        uint8,
-        /* _classId */
-        address _user,
-        uint256 _amount
-    )
+    function _previewRedeemAmount(IAlephVault.ShareClass storage _shareClass, address _user, uint256 _amount)
         internal
         view
         returns (uint256)
@@ -474,9 +468,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // Preview and validate vault balance before state modification
         // Note: Sync redeems use current state for pricing (may not include current batch fees).
         // This is acceptable as _isTotalAssetsValid ensures recent settlement.
-        uint256 _previewAssets = _previewRedeemAmount(
-            _shareClass, _redeemRequestParams.classId, msg.sender, _redeemRequestParams.estAmountToRedeem
-        );
+        uint256 _previewAssets = _previewRedeemAmount(_shareClass, msg.sender, _redeemRequestParams.estAmountToRedeem);
         uint256 _vaultBalance = IERC20(_sd.underlyingToken).balanceOf(address(this));
         if (_previewAssets == 0 || _vaultBalance < _previewAssets) {
             revert InsufficientVaultBalance();

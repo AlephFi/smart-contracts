@@ -697,10 +697,19 @@ contract SyncDepositTest is BaseTest {
         vm.prank(mockUser_2);
         vm.expectEmit(true, true, true, true);
         emit IAlephVaultDeposit.SyncDeposit(
-            1, mockUser_2, _depositAmount, _expectedShares, _seriesId, _currentBatch, _expectedTotalAssets, _expectedTotalShares
+            1,
+            mockUser_2,
+            _depositAmount,
+            _expectedShares,
+            _seriesId,
+            _currentBatch,
+            _expectedTotalAssets,
+            _expectedTotalShares
         );
         vault.syncDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_2})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_2
+            })
         );
     }
 
