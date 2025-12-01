@@ -687,7 +687,8 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         // Redeem less to ensure we stay above min balance
         underlyingToken.mint(address(vault), 80 ether);
         vm.prank(mockUser_1);
-        uint256 _redeemedAssets = vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 80 ether}));
+        uint256 _redeemedAssets =
+            vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 80 ether}));
 
         // Check remaining assets
         uint256 _remainingAssets = vault.assetsPerClassOf(1, mockUser_1);
@@ -705,7 +706,9 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         uint256 _depositAmount = 20 ether > _remainingAssets ? 20 ether - _remainingAssets : 15 ether;
         vm.prank(mockUser_1);
         uint256 _shares = vault.syncDeposit(
-            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_1})
+            IAlephVaultDeposit.RequestDepositParams({
+                classId: 1, amount: _depositAmount, authSignature: authSignature_1
+            })
         );
 
         assertGt(_shares, 0);
@@ -736,7 +739,7 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         // Available assets = total assets - pending async redeem
         uint256 _remainingAssets = vault.assetsPerClassOf(1, mockUser_1);
         uint256 _pendingAsyncRedeem = vault.redeemRequestOfAt(1, mockUser_1, _asyncBatchId);
-        
+
         // User should not be able to sync redeem more than available (remaining - pending)
         // If remaining is less than pending + large amount, it should fail
         if (_remainingAssets < _pendingAsyncRedeem + 25 ether) {
