@@ -538,5 +538,226 @@ contract SyncDepositTest is BaseTest {
         // Should be false before any settlement
         assertFalse(vault.isTotalAssetsValid(1));
     }
+
+    function test_syncDeposit_consolidatesOutstandingSeries_whenHWMReached() public {
+        // Set minUserBalance to 0 to avoid balance checks
+        vault.setMinUserBalance(1, 0);
+
+        // Set up performance fee
+        vm.prank(manager);
+        vault.queuePerformanceFee(1, 2000); // 20% performance fee
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(manager);
+        vault.setPerformanceFee(1);
+
+        // Create scenario: HWM was above price, created new series via async, then HWM reached
+        // First, create a new series by having HWM > price and making async deposit
+        vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
+
+        underlyingToken.mint(mockUser_1, 1000 ether);
+        vm.prank(mockUser_1);
+        underlyingToken.approve(address(vault), 1000 ether);
+        vm.prank(mockUser_1);
+        vault.requestDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
+        );
+
+        // Settle to create new series
+        vm.warp(block.timestamp + 1 days);
+        uint32 _numSeriesBefore = vault.shareSeriesId(1) - vault.lastConsolidatedSeriesId(1) + 1;
+        IAlephVaultSettlement.SettlementParams memory _settlementParams = IAlephVaultSettlement.SettlementParams({
+            classId: 1,
+            toBatchId: vault.currentBatch(),
+            newTotalAssets: new uint256[](_numSeriesBefore),
+            authSignature: _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](_numSeriesBefore)
+            )
+        });
+        _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0);
+        if (_numSeriesBefore > 1) {
+            _settlementParams.newTotalAssets[1] = 50 ether;
+        }
+        _settlementParams.authSignature = _getSettlementAuthSignature(
+            AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), _settlementParams.newTotalAssets
+        );
+        vm.prank(oracle);
+        vault.settleDeposit(_settlementParams);
+
+        uint32 _shareSeriesIdBefore = vault.shareSeriesId(1);
+        uint32 _lastConsolidatedSeriesIdBefore = vault.lastConsolidatedSeriesId(1);
+        assertGt(_shareSeriesIdBefore, _lastConsolidatedSeriesIdBefore, "Should have outstanding series");
+
+        // Now simulate HWM being reached (price catches up to HWM)
+        // Set HWM to current price
+        uint256 _currentPrice = vault.pricePerShare(1, 0);
+        vault.setHighWaterMark(_currentPrice);
+
+        // Next sync deposit should consolidate outstanding series and go to lead series
+        underlyingToken.mint(mockUser_2, 1000 ether);
+        vm.prank(mockUser_2);
+        underlyingToken.approve(address(vault), 1000 ether);
+
+        vm.prank(mockUser_2);
+        vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 30 ether, authSignature: authSignature_2})
+        );
+
+        // Verify consolidation happened - outstanding series should be consolidated
+        uint32 _shareSeriesIdAfter = vault.shareSeriesId(1);
+        uint32 _lastConsolidatedSeriesIdAfter = vault.lastConsolidatedSeriesId(1);
+        // After consolidation, shareSeriesId should equal lastConsolidatedSeriesId (or be 0)
+        assertLe(_shareSeriesIdAfter, _lastConsolidatedSeriesIdAfter, "Series should be consolidated");
+
+        // Verify shares are in lead series
+        uint256 _sharesInLead = vault.sharesOf(1, 0, mockUser_2);
+        assertGt(_sharesInLead, 0, "Shares should be in lead series after consolidation");
+    }
+
+    function test_syncDeposit_reusesExistingActiveSeries() public {
+        // Set minUserBalance to 0 to avoid balance checks
+        vault.setMinUserBalance(1, 0);
+
+        // Set up performance fee (but don't advance time too much to keep sync valid)
+        vm.prank(manager);
+        vault.queuePerformanceFee(1, 2000); // 20% performance fee
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(manager);
+        vault.setPerformanceFee(1);
+
+        // Ensure sync is still valid by settling if needed
+        if (!vault.isTotalAssetsValid(1)) {
+            vm.warp(block.timestamp + 1 days);
+            IAlephVaultSettlement.SettlementParams memory _settlementParams = IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: vault.currentBatch(),
+                newTotalAssets: new uint256[](1),
+                authSignature: _getSettlementAuthSignature(
+                    AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1)
+                )
+            });
+            _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0);
+            _settlementParams.authSignature = _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), _settlementParams.newTotalAssets
+            );
+            vm.prank(oracle);
+            vault.settleDeposit(_settlementParams);
+        }
+
+        // Create scenario: HWM > price, so first deposit creates new series
+        vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
+
+        underlyingToken.mint(mockUser_1, 1000 ether);
+        vm.prank(mockUser_1);
+        underlyingToken.approve(address(vault), 1000 ether);
+
+        // First sync deposit creates new series
+        vm.prank(mockUser_1);
+        vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
+        );
+
+        uint32 _activeSeriesId = vault.shareSeriesId(1);
+        assertGt(_activeSeriesId, 0, "Should have active series");
+
+        // Second sync deposit in the same batch should reuse the same active series
+        underlyingToken.mint(mockUser_2, 1000 ether);
+        vm.prank(mockUser_2);
+        underlyingToken.approve(address(vault), 1000 ether);
+
+        vm.prank(mockUser_2);
+        vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 30 ether, authSignature: authSignature_2})
+        );
+
+        // Verify same series ID (no new series created)
+        uint32 _shareSeriesIdAfter = vault.shareSeriesId(1);
+        assertEq(_shareSeriesIdAfter, _activeSeriesId, "Should reuse existing active series");
+
+        // Verify both users have shares in the same series
+        uint256 _shares1 = vault.sharesOf(1, _activeSeriesId, mockUser_1);
+        uint256 _shares2 = vault.sharesOf(1, _activeSeriesId, mockUser_2);
+        assertGt(_shares1, 0, "User 1 should have shares in active series");
+        assertGt(_shares2, 0, "User 2 should have shares in active series");
+    }
+
+    function test_syncDeposit_eventIncludesAllParameters() public {
+        underlyingToken.mint(mockUser_2, 1000 ether);
+        vm.prank(mockUser_2);
+        underlyingToken.approve(address(vault), 1000 ether);
+
+        uint256 _depositAmount = 100 ether;
+        uint48 _currentBatch = vault.currentBatch();
+        uint32 _seriesId = vault.shareSeriesId(1);
+        uint256 _totalAssetsBefore = vault.totalAssetsPerSeries(1, _seriesId);
+        uint256 _totalSharesBefore = vault.totalSharesPerSeries(1, _seriesId);
+        uint256 _expectedShares = ERC4626Math.previewDeposit(_depositAmount, _totalSharesBefore, _totalAssetsBefore);
+        uint256 _expectedTotalAssets = _totalAssetsBefore + _depositAmount;
+        uint256 _expectedTotalShares = _totalSharesBefore + _expectedShares;
+
+        vm.prank(mockUser_2);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultDeposit.SyncDeposit(
+            1, mockUser_2, _depositAmount, _expectedShares, _seriesId, _currentBatch, _expectedTotalAssets, _expectedTotalShares
+        );
+        vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: _depositAmount, authSignature: authSignature_2})
+        );
+    }
+
+    function test_syncDeposit_expirationBoundaryExactBatch() public {
+        // Test that sync works in the exact batch where expiration batches = 0
+        vault.setMinUserBalance(1, 0); // Set to 0 to avoid balance checks
+
+        // First ensure we have a recent settlement
+        vm.warp(block.timestamp + 1 days);
+        IAlephVaultSettlement.SettlementParams memory _settlementParams = IAlephVaultSettlement.SettlementParams({
+            classId: 1,
+            toBatchId: vault.currentBatch(),
+            newTotalAssets: new uint256[](1),
+            authSignature: _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1)
+            )
+        });
+        _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0);
+        _settlementParams.authSignature = _getSettlementAuthSignature(
+            AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), _settlementParams.newTotalAssets
+        );
+        vm.prank(oracle);
+        vault.settleDeposit(_settlementParams);
+
+        uint48 _settlementBatch = vault.currentBatch();
+
+        // Set syncExpirationBatches to 0 (only valid in exact batch)
+        vm.prank(manager);
+        vault.queueSyncExpirationBatches(0);
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(manager);
+        vault.setSyncExpirationBatches();
+
+        // Ensure we're still in the same batch as settlement (don't advance time)
+        // If we've moved to a new batch, we need to settle again
+        if (vault.currentBatch() > _settlementBatch) {
+            // Settle again to update the settle ID
+            _settlementParams.toBatchId = vault.currentBatch();
+            _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0);
+            _settlementParams.authSignature = _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), _settlementParams.newTotalAssets
+            );
+            vm.prank(oracle);
+            vault.settleDeposit(_settlementParams);
+        }
+
+        // We should be in the same batch as settlement, sync should still work
+        underlyingToken.mint(mockUser_2, 1000 ether);
+        vm.prank(mockUser_2);
+        underlyingToken.approve(address(vault), 1000 ether);
+
+        // Should succeed in the same batch
+        vm.prank(mockUser_2);
+        uint256 _shares = vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_2})
+        );
+        assertGt(_shares, 0, "Sync deposit should work in exact batch when expirationBatches = 0");
+    }
 }
 

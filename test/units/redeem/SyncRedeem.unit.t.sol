@@ -336,5 +336,177 @@ contract SyncRedeemTest is BaseTest {
         assertGt(vault.sharesOf(1, 0, mockUser_1), 0);
         assertLt(vault.totalSharesPerSeries(1, 0), _totalSharesBefore);
     }
+
+    function test_syncRedeem_eventIncludesAllParameters() public {
+        // Set minUserBalance to 0 so we can test
+        vault.setMinUserBalance(1, 0);
+
+        uint256 _redeemAmount = 30 ether;
+        uint48 _currentBatch = vault.currentBatch();
+        uint256 _totalAssetsBefore = vault.totalAssetsPerClass(1);
+        uint256 _totalSharesBefore;
+        uint32 _shareSeriesId = vault.shareSeriesId(1);
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            _totalSharesBefore += vault.totalSharesPerSeries(1, _seriesId);
+            if (_seriesId == 0) {
+                _seriesId = vault.lastConsolidatedSeriesId(1);
+            }
+        }
+
+        underlyingToken.mint(address(vault), _redeemAmount);
+
+        // Calculate expected assets (will be less than or equal to redeem amount due to rounding)
+        uint256 _expectedAssets = _previewRedeemAmount(1, mockUser_1, _redeemAmount);
+        uint256 _expectedTotalAssets = _totalAssetsBefore - _expectedAssets;
+        uint256 _expectedTotalShares = _totalSharesBefore - ERC4626Math.previewWithdraw(
+            _expectedAssets, _totalSharesBefore, _totalAssetsBefore
+        );
+
+        vm.prank(mockUser_1);
+        vm.expectEmit(true, true, true, true);
+        emit IAlephVaultRedeem.SyncRedeem(
+            1, mockUser_1, _redeemAmount, _expectedAssets, _currentBatch, _expectedTotalAssets, _expectedTotalShares
+        );
+        vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount}));
+    }
+
+    function test_syncRedeem_expirationBoundaryExactBatch() public {
+        // Test that sync works in the exact batch where expiration batches = 0
+        vault.setMinUserBalance(1, 0);
+
+        // First ensure we have a recent settlement
+        vm.warp(block.timestamp + 1 days);
+        IAlephVaultSettlement.SettlementParams memory _settlementParams = IAlephVaultSettlement.SettlementParams({
+            classId: 1,
+            toBatchId: vault.currentBatch(),
+            newTotalAssets: new uint256[](1),
+            authSignature: _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1)
+            )
+        });
+        _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0);
+        _settlementParams.authSignature = _getSettlementAuthSignature(
+            AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), _settlementParams.newTotalAssets
+        );
+        vm.prank(oracle);
+        vault.settleDeposit(_settlementParams);
+
+        uint48 _settlementBatch = vault.currentBatch();
+
+        // Set syncExpirationBatches to 0 (only valid in exact batch)
+        vm.prank(manager);
+        vault.queueSyncExpirationBatches(0);
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(manager);
+        vault.setSyncExpirationBatches();
+
+        // Ensure we're still in the same batch as settlement (don't advance time)
+        // If we've moved to a new batch, we need to settle again
+        if (vault.currentBatch() > _settlementBatch) {
+            // Settle again to update the settle ID
+            _settlementParams.toBatchId = vault.currentBatch();
+            _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0);
+            _settlementParams.authSignature = _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), _settlementParams.newTotalAssets
+            );
+            vm.prank(oracle);
+            vault.settleDeposit(_settlementParams);
+        }
+
+        // We should be in the same batch as settlement, sync should still work
+        uint256 _redeemAmount = 30 ether;
+        underlyingToken.mint(address(vault), _redeemAmount);
+
+        // Should succeed in the same batch
+        vm.prank(mockUser_1);
+        uint256 _assets = vault.syncRedeem(
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount})
+        );
+        assertGt(_assets, 0, "Sync redeem should work in exact batch when expirationBatches = 0");
+    }
+
+    function test_syncRedeem_withMultipleSeriesFIFO() public {
+        // Set minUserBalance to 0 so we can test
+        vault.setMinUserBalance(1, 0);
+
+        // Create multiple series by setting HWM above price
+        vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
+
+        // Make deposits to create multiple series
+        underlyingToken.mint(mockUser_1, 1000 ether);
+        vm.prank(mockUser_1);
+        underlyingToken.approve(address(vault), 1000 ether);
+        vm.prank(mockUser_1);
+        vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
+        );
+
+        // Ensure sync is still valid
+        if (!vault.isTotalAssetsValid(1)) {
+            vm.warp(block.timestamp + 1 days);
+            uint32 _numSeries = vault.shareSeriesId(1) - vault.lastConsolidatedSeriesId(1) + 1;
+            IAlephVaultSettlement.SettlementParams memory _settlementParams = IAlephVaultSettlement.SettlementParams({
+                classId: 1,
+                toBatchId: vault.currentBatch(),
+                newTotalAssets: new uint256[](_numSeries),
+                authSignature: _getSettlementAuthSignature(
+                    AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](_numSeries)
+                )
+            });
+            _settlementParams.newTotalAssets[0] = vault.totalAssetsPerSeries(1, 0);
+            if (_numSeries > 1) {
+                _settlementParams.newTotalAssets[1] = vault.totalAssetsPerSeries(1, vault.shareSeriesId(1));
+            }
+            _settlementParams.authSignature = _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), _settlementParams.newTotalAssets
+            );
+            vm.prank(oracle);
+            vault.settleDeposit(_settlementParams);
+        }
+
+        // User now has shares in multiple series (lead + new series)
+        uint256 _totalUserAssets = vault.assetsPerClassOf(1, mockUser_1);
+        uint256 _redeemAmount = _totalUserAssets / 2; // Redeem half
+
+        underlyingToken.mint(address(vault), _redeemAmount);
+
+        uint256 _sharesBeforeLead = vault.sharesOf(1, 0, mockUser_1);
+
+        vm.prank(mockUser_1);
+        vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount}));
+
+        // Verify FIFO: should redeem from lead series first
+        uint256 _sharesAfterLead = vault.sharesOf(1, 0, mockUser_1);
+        assertLt(_sharesAfterLead, _sharesBeforeLead, "Should redeem from lead series first (FIFO)");
+    }
+
+    // Helper function to preview redeem amount
+    function _previewRedeemAmount(uint8 _classId, address _user, uint256 _amount) internal view returns (uint256) {
+        uint256 _remainingAmount = _amount;
+        uint32 _shareSeriesId = vault.shareSeriesId(_classId);
+        uint256 _totalAssetsToRedeem = 0;
+
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            if (_remainingAmount == 0) break;
+            uint256 _sharesInSeries = vault.sharesOf(_classId, _seriesId, _user);
+            uint256 _totalAssets = vault.totalAssetsPerSeries(_classId, _seriesId);
+            uint256 _totalShares = vault.totalSharesPerSeries(_classId, _seriesId);
+            uint256 _amountInSeries = ERC4626Math.previewRedeem(_sharesInSeries, _totalAssets, _totalShares);
+
+            if (_amountInSeries <= _remainingAmount) {
+                _totalAssetsToRedeem += _amountInSeries;
+                _remainingAmount -= _amountInSeries;
+            } else {
+                _totalAssetsToRedeem += _remainingAmount;
+                _remainingAmount = 0;
+            }
+
+            if (_seriesId == 0) {
+                _seriesId = vault.lastConsolidatedSeriesId(_classId);
+            }
+        }
+
+        return _totalAssetsToRedeem;
+    }
 }
 
