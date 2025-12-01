@@ -297,6 +297,7 @@ interface IAlephVaultSettlement {
      * @notice Queues a new sync expiration batches value to be set after the timelock period.
      * @param _expirationBatches The number of batches sync flows remain valid.
      * @dev Only callable by the MANAGER role.
+     * @dev Setting _expirationBatches to 0 will disable sync flows (only valid in the exact batch where settlement occurred).
      */
     function queueSyncExpirationBatches(uint48 _expirationBatches) external;
 

@@ -514,6 +514,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @dev Internal function to queue sync expiration batches.
      * @param _sd The storage struct.
      * @param _expirationBatches The number of batches sync flows remain valid.
+     * @dev Setting _expirationBatches to 0 will disable sync flows (only valid in the exact batch where settlement occurred).
      */
     function _queueSyncExpirationBatches(AlephVaultStorageData storage _sd, uint48 _expirationBatches) internal {
         // Use classId = 0 for vault-level parameters

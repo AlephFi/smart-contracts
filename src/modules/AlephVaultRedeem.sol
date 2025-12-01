@@ -427,13 +427,15 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         _assets = _assetsBefore - _assetsAfter;
 
         // Validate that actual assets match preview (within tolerance for rounding)
-        // This ensures vault balance check was accurate and prevents incorrect transfers
+        // Due to FIFO redemption across series, actual assets may differ from preview due to rounding.
+        // If actual assets exceed preview, re-validate vault balance to ensure sufficient funds.
         if (_assets > _previewAssets) {
-            // Actual is more than preview - vault might not have enough
+            // Actual assets are more than preview - re-check vault balance to ensure sufficient funds
             if (_vaultBalance < _assets) {
                 revert InsufficientVaultBalance();
             }
         }
+        // Note: If _assets <= _previewAssets, the initial vault balance check is sufficient
     }
 
     /**
