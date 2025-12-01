@@ -140,9 +140,8 @@ interface IAlephVaultRedeem {
 
     /**
      * @notice Emitted when only async redeem is allowed (sync is not valid).
-     * @param isExpired Whether the total assets have expired (true) or no settlement has occurred (false).
      */
-    error OnlyAsyncRedeemAllowed(bool isExpired);
+    error OnlyAsyncRedeemAllowed();
 
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
