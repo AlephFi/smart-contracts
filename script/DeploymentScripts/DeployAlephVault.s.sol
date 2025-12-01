@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.25;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {Script, console} from "forge-std/Script.sol";
@@ -22,6 +22,7 @@ import {BaseScript} from "@aleph-script/BaseScript.s.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultFactory} from "@aleph-vault/interfaces/IAlephVaultFactory.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
@@ -83,8 +84,9 @@ contract DeployAlephVault is BaseScript {
         string memory _vaultName,
         string memory _vaultConfigId
     ) internal view returns (AuthLibrary.AuthSignature memory) {
-        bytes32 _authMessage =
-            keccak256(abi.encode(_manager, _factory, _vaultName, _vaultConfigId, block.chainid, type(uint256).max));
+        bytes32 _authMessage = keccak256(
+            abi.encode(_manager, _factory, _vaultName, _vaultConfigId, block.chainid, type(uint256).max)
+        );
         bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
         uint256 _authSignerPrivateKey = _getAuthSignerPrivateKey();
         (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(_authSignerPrivateKey, _ethSignedMessage);

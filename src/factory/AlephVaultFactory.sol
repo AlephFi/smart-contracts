@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
-import {AccessControlUpgradeable} from
-    "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import {
+    AccessControlUpgradeable
+} from "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconProxy.sol";
 import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
@@ -29,7 +30,8 @@ import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {RolesLibrary} from "@aleph-vault/libraries/RolesLibrary.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 import {
-    AlephVaultFactoryStorage, AlephVaultFactoryStorageData
+    AlephVaultFactoryStorage,
+    AlephVaultFactoryStorageData
 } from "@aleph-vault/factory/AlephVaultFactoryStorage.sol";
 
 /**
@@ -77,14 +79,14 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
         _sd.authSigner = _initializationParams.authSigner;
         _sd.accountant = _initializationParams.accountant;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
-            _initializationParams.alephVaultDepositImplementation;
+        _initializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
-            _initializationParams.alephVaultRedeemImplementation;
+        _initializationParams.alephVaultRedeemImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
-            _initializationParams.alephVaultSettlementImplementation;
+        _initializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] = _initializationParams.feeManagerImplementation;
         _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
-            _initializationParams.migrationManagerImplementation;
+        _initializationParams.migrationManagerImplementation;
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
     }
 
@@ -200,14 +202,14 @@ contract AlephVaultFactory is IAlephVaultFactory, AccessControlUpgradeable {
             _sd.authSigner,
             _userInitializationParams.authSignature
         );
-        IAlephVault.ModuleInitializationParams memory _moduleInitializationParams = IAlephVault
-            .ModuleInitializationParams({
-            alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
-            alephVaultRedeemImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM],
-            alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
-            feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER],
-            migrationManagerImplementation: _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER]
-        });
+        IAlephVault.ModuleInitializationParams memory _moduleInitializationParams =
+            IAlephVault.ModuleInitializationParams({
+                alephVaultDepositImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT],
+                alephVaultRedeemImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM],
+                alephVaultSettlementImplementation: _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT],
+                feeManagerImplementation: _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER],
+                migrationManagerImplementation: _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER]
+            });
         IAlephVault.InitializationParams memory _initializationParams = IAlephVault.InitializationParams({
             operationsMultisig: _sd.operationsMultisig,
             vaultFactory: address(this),

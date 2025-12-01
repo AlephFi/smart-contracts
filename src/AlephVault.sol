@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 /*
-  ______   __                      __       
- /      \ /  |                    /  |      
-/$$$$$$  |$$ |  ______    ______  $$ |____  
-$$ |__$$ |$$ | /      \  /      \ $$      \ 
+  ______   __                      __
+ /      \ /  |                    /  |
+/$$$$$$  |$$ |  ______    ______  $$ |____
+$$ |__$$ |$$ | /      \  /      \ $$      \
 $$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
 $$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
 $$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
 $$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/ 
-                        $$ |                
-                        $$ |                
-                        $$/                 
+$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
+                        $$ |
+                        $$ |
+                        $$/
 */
 
 import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
@@ -113,8 +113,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
                 || _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation == address(0)
                 || _initializationParams.moduleInitializationParams.feeManagerImplementation == address(0)
                 || _initializationParams.moduleInitializationParams.migrationManagerImplementation == address(0)
-                || _initializationParams.userInitializationParams.shareClassParams.managementFee > MAXIMUM_MANAGEMENT_FEE
-                || _initializationParams.userInitializationParams.shareClassParams.performanceFee > MAXIMUM_PERFORMANCE_FEE
+                || _initializationParams.userInitializationParams.shareClassParams.managementFee
+                    > MAXIMUM_MANAGEMENT_FEE
+                || _initializationParams.userInitializationParams.shareClassParams.performanceFee
+                    > MAXIMUM_PERFORMANCE_FEE
                 || _initializationParams.userInitializationParams.shareClassParams.minDepositAmount == 0
                 || _initializationParams.userInitializationParams.shareClassParams.minRedeemAmount == 0
         ) {
@@ -136,15 +138,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
         // set up module implementations
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
-            _initializationParams.moduleInitializationParams.alephVaultDepositImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
-            _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
-            _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
-            _initializationParams.moduleInitializationParams.feeManagerImplementation;
+        _initializationParams.moduleInitializationParams.feeManagerImplementation;
         _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
-            _initializationParams.moduleInitializationParams.migrationManagerImplementation;
+        _initializationParams.moduleInitializationParams.migrationManagerImplementation;
 
         // grant roles
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
@@ -317,12 +319,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     }
 
     /// @inheritdoc IAlephVault
-    function totalAssetsOfClass(uint8 _classId)
-        external
-        view
-        onlyValidShareClass(_classId)
-        returns (uint256[] memory)
-    {
+    function totalAssetsOfClass(uint8 _classId) external view onlyValidShareClass(_classId) returns (uint256[] memory) {
         IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
         uint32 _shareSeriesId = _shareClass.shareSeriesId;
         uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
@@ -463,7 +460,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function usersToDepositAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory) {
         bytes32[] memory _bytesUsers =
-            _getStorage().shareClasses[_classId].depositRequests[_batchId].usersToDeposit._inner._values;
+        _getStorage().shareClasses[_classId].depositRequests[_batchId].usersToDeposit._inner._values;
         address[] memory _users = new address[](_bytesUsers.length);
         assembly {
             _users := _bytesUsers
@@ -474,7 +471,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
     /// @inheritdoc IAlephVault
     function usersToRedeemAt(uint8 _classId, uint48 _batchId) external view returns (address[] memory) {
         bytes32[] memory _bytesUsers =
-            _getStorage().shareClasses[_classId].redeemRequests[_batchId].usersToRedeem._inner._values;
+        _getStorage().shareClasses[_classId].redeemRequests[_batchId].usersToRedeem._inner._values;
         address[] memory _users = new address[](_bytesUsers.length);
         assembly {
             _users := _bytesUsers
@@ -488,10 +485,12 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         uint8 _shareClasses = _sd.shareClassesId;
         for (uint8 _classId = 1; _classId <= _shareClasses; _classId++) {
             IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
-            _totalFeeAmountToCollect +=
-                _assetsPerClassOf(_shareClass, _classId, SeriesAccounting.MANAGEMENT_FEE_RECIPIENT);
-            _totalFeeAmountToCollect +=
-                _assetsPerClassOf(_shareClass, _classId, SeriesAccounting.PERFORMANCE_FEE_RECIPIENT);
+            _totalFeeAmountToCollect += _assetsPerClassOf(
+                _shareClass, _classId, SeriesAccounting.MANAGEMENT_FEE_RECIPIENT
+            );
+            _totalFeeAmountToCollect += _assetsPerClassOf(
+                _shareClass, _classId, SeriesAccounting.PERFORMANCE_FEE_RECIPIENT
+            );
         }
     }
 
@@ -660,11 +659,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @param _classId The ID of the share class to set the minimum deposit amount for.
      * @dev Only callable by the MANAGER role.
      */
-    function setMinDepositAmount(uint8 _classId)
-        external
-        onlyValidShareClass(_classId)
-        onlyRole(RolesLibrary.MANAGER)
-    {
+    function setMinDepositAmount(uint8 _classId) external onlyValidShareClass(_classId) onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 

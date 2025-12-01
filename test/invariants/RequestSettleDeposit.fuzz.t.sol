@@ -224,9 +224,7 @@ contract RequestSettleDepositTest is BaseTest {
         AuthLibrary.AuthSignature memory _authSignature_1 = _getDepositAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({
-                classId: 1,
-                amount: _firstDepositAmount,
-                authSignature: _authSignature_1
+                classId: 1, amount: _firstDepositAmount, authSignature: _authSignature_1
             })
         );
         vm.stopPrank();
@@ -259,9 +257,7 @@ contract RequestSettleDepositTest is BaseTest {
             AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
             vault.requestDeposit(
                 IAlephVaultDeposit.RequestDepositParams({
-                    classId: 1,
-                    amount: _depositAmount,
-                    authSignature: _authSignature
+                    classId: 1, amount: _depositAmount, authSignature: _authSignature
                 })
             );
             vm.stopPrank();
@@ -322,9 +318,7 @@ contract RequestSettleDepositTest is BaseTest {
         AuthLibrary.AuthSignature memory _authSignature_1 = _getDepositAuthSignature(_firstUser, type(uint256).max);
         vault.requestDeposit(
             IAlephVaultDeposit.RequestDepositParams({
-                classId: 1,
-                amount: _firstDepositAmount,
-                authSignature: _authSignature_1
+                classId: 1, amount: _firstDepositAmount, authSignature: _authSignature_1
             })
         );
         vm.stopPrank();
@@ -337,7 +331,9 @@ contract RequestSettleDepositTest is BaseTest {
             classId: 1,
             toBatchId: vault.currentBatch(),
             newTotalAssets: new uint256[](1),
-            authSignature: _getSettlementAuthSignature(AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1))
+            authSignature: _getSettlementAuthSignature(
+                AuthLibrary.SETTLE_DEPOSIT, vault.currentBatch(), new uint256[](1)
+            )
         });
         vm.prank(oracle);
         vault.settleDeposit(_settlementParams);
@@ -364,9 +360,7 @@ contract RequestSettleDepositTest is BaseTest {
                     AuthLibrary.AuthSignature memory _authSignature = _getDepositAuthSignature(_user, type(uint256).max);
                     vault.requestDeposit(
                         IAlephVaultDeposit.RequestDepositParams({
-                            classId: 1,
-                            amount: _depositAmount,
-                            authSignature: _authSignature
+                            classId: 1, amount: _depositAmount, authSignature: _authSignature
                         })
                     );
                     vm.stopPrank();
@@ -393,9 +387,8 @@ contract RequestSettleDepositTest is BaseTest {
                 _newTotalAssetsArr[0] = _newTotalAssets;
                 _vaultSharesBefore[0] = vault.totalSharesPerSeries(1, 0);
                 for (uint32 k = 1; k < _activeSeries; k++) {
-                    _newTotalAssetsArr[k] = vault.totalAssetsPerSeries(1, k + _lastConsolidatedSeriesId).mulDiv(
-                        _scalingFactor, _priceDenominator
-                    );
+                    _newTotalAssetsArr[k] = vault.totalAssetsPerSeries(1, k + _lastConsolidatedSeriesId)
+                        .mulDiv(_scalingFactor, _priceDenominator);
                     _vaultSharesBefore[k] = vault.totalSharesPerSeries(1, k + _lastConsolidatedSeriesId);
                 }
 
