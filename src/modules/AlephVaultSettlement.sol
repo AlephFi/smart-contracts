@@ -116,7 +116,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 _settlementParams.authSignature
             );
         }
-        // accumalate fees if applicable
+        // accumulate fees if applicable
         _accumulateFees(
             _shareClass,
             _settlementParams.classId,
@@ -269,7 +269,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 _settlementParams.authSignature
             );
         }
-        // accumalate fees if applicable
+        // accumulate fees if applicable
         _accumulateFees(
             _shareClass,
             _settlementParams.classId,
@@ -406,9 +406,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         // for non-incentive classes, all settlements take place in the lead series
         if (_shareClass.shareClassParams.performanceFee > 0) {
             uint32 _shareSeriesId = _shareClass.shareSeriesId;
-            // if new lead series highwatermark is not reached, deposit settlements must take place in a new series
-            // if a new highwater mark is reached in this cycle, it will be updated in _accumalateFees function
-            // hence, after fee accumalation process, the lead highwater mark is either greater than or equal to
+            // if new lead series high water mark is not reached, deposit settlements must take place in a new series
+            // if a new high water mark is reached in this cycle, it will be updated in _accumulateFees function
+            // hence, after fee accumulation process, the lead high water mark is either greater than or equal to
             // the lead price per share
             if (
                 _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark
@@ -418,7 +418,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 // in this cycle
                 _seriesId = _shareSeriesId + 1;
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
-                // if new lead series highwatermark was reached in this cycle and their exists outstanding series,
+                // if new lead series high water mark was reached in this cycle and there exist outstanding series,
                 // consolidate them into lead series
                 _shareClass.consolidateSeries(_classId, _shareSeriesId, _lastConsolidatedSeriesId, _toBatchId);
             }

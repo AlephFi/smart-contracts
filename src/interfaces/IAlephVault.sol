@@ -269,11 +269,6 @@ interface IAlephVault {
     function lastConsolidatedSeriesId(uint8 _classId) external view returns (uint32);
 
     /**
-     * @notice Returns the ID of the last consolidated share series.
-     * @param _classId The ID of the share class.
-     * @return The ID of the last consolidated share series.
-     */
-    /**
      * @notice Returns the name of the vault.
      * @return The name.
      */
