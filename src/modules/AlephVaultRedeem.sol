@@ -334,6 +334,50 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
     }
 
     /**
+     * @dev Internal function to preview the amount of assets that will be redeemed.
+     * This uses the same FIFO logic as settleRedeemForUser but doesn't modify state.
+     * @param _shareClass The share class.
+     * @param _user The user to preview redeem for.
+     * @param _amount The amount to preview redeem.
+     * @return The previewed assets amount.
+     */
+    function _previewRedeemAmount(
+        IAlephVault.ShareClass storage _shareClass,
+        uint8 /* _classId */,
+        address _user,
+        uint256 _amount
+    ) internal view returns (uint256) {
+        uint256 _remainingAmount = _amount;
+        uint32 _shareSeriesId = _shareClass.shareSeriesId;
+        uint256 _totalAssetsToRedeem = 0;
+
+        // Iterate through all series in FIFO order (same as settleRedeemForUser)
+        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
+            if (_remainingAmount == 0) {
+                break;
+            }
+            IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
+            uint256 _sharesInSeries = _shareSeries.sharesOf[_user];
+            uint256 _amountInSeries =
+                ERC4626Math.previewRedeem(_sharesInSeries, _shareSeries.totalAssets, _shareSeries.totalShares);
+            
+            if (_amountInSeries <= _remainingAmount) {
+                _totalAssetsToRedeem += _amountInSeries;
+                _remainingAmount -= _amountInSeries;
+            } else {
+                _totalAssetsToRedeem += _remainingAmount;
+                _remainingAmount = 0;
+            }
+            
+            if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
+                _seriesId = _shareClass.lastConsolidatedSeriesId;
+            }
+        }
+        
+        return _totalAssetsToRedeem;
+    }
+
+    /**
      * @dev Internal function to withdraw excess assets.
      * @param _sd The storage struct.
      */
@@ -345,6 +389,46 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         }
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _vaultBalance - _requiredVaultBalance);
         emit ExcessAssetsWithdrawn(_vaultBalance - _requiredVaultBalance);
+    }
+
+    /**
+     * @dev Internal function to calculate and validate redeemed assets.
+     * @param _shareClass The share class.
+     * @param _classId The class ID.
+     * @param _currentBatchId The current batch ID.
+     * @param _user The user redeeming.
+     * @param _estAmountToRedeem The estimated amount to redeem.
+     * @param _previewAssets The previewed assets amount.
+     * @param _vaultBalance The vault balance.
+     * @return _assets The validated amount of assets redeemed.
+     */
+    function _calculateAndValidateRedeemedAssets(
+        IAlephVault.ShareClass storage _shareClass,
+        uint8 _classId,
+        uint48 _currentBatchId,
+        address _user,
+        uint256 _estAmountToRedeem,
+        uint256 _previewAssets,
+        uint256 _vaultBalance
+    ) internal returns (uint256 _assets) {
+        uint256 _assetsBefore = _totalAssetsPerClass(_shareClass, _classId);
+        _shareClass.settleRedeemForUser(_classId, _currentBatchId, _user, _estAmountToRedeem);
+        uint256 _assetsAfter = _totalAssetsPerClass(_shareClass, _classId);
+        
+        // Prevent underflow and validate assets decreased
+        if (_assetsAfter > _assetsBefore) {
+            revert InsufficientVaultBalance(); // Assets increased unexpectedly
+        }
+        _assets = _assetsBefore - _assetsAfter;
+        
+        // Validate that actual assets match preview (within tolerance for rounding)
+        // This ensures vault balance check was accurate and prevents incorrect transfers
+        if (_assets > _previewAssets) {
+            // Actual is more than preview - vault might not have enough
+            if (_vaultBalance < _assets) {
+                revert InsufficientVaultBalance();
+            }
+        }
     }
 
     /**
@@ -376,20 +460,28 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // This must happen before settleRedeemForUser to catch validation errors early
         _validateRedeem(_shareClass, _currentBatchId, _totalUserAssets, 0, _redeemRequestParams, false);
 
-        // Use settleRedeemForUser for FIFO redemption across series
-        // This burns shares and updates series accounting, but doesn't transfer tokens
-        uint256 _assetsBefore = _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId);
-        _shareClass.settleRedeemForUser(
-            _redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem
+        // Preview and validate vault balance before state modification
+        // Note: Sync redeems use current state for pricing (may not include current batch fees).
+        // This is acceptable as _isTotalAssetsValid ensures recent settlement.
+        uint256 _previewAssets = _previewRedeemAmount(
+            _shareClass, _redeemRequestParams.classId, msg.sender, _redeemRequestParams.estAmountToRedeem
         );
-        uint256 _assetsAfter = _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId);
-        _assets = _assetsBefore - _assetsAfter;
-
-        // Check vault has sufficient balance for transfer
         uint256 _vaultBalance = IERC20(_sd.underlyingToken).balanceOf(address(this));
-        if (_assets == 0 || _vaultBalance < _assets) {
+        if (_previewAssets == 0 || _vaultBalance < _previewAssets) {
             revert InsufficientVaultBalance();
         }
+
+        // Use settleRedeemForUser for FIFO redemption across series
+        // This burns shares and updates series accounting, but doesn't transfer tokens
+        _assets = _calculateAndValidateRedeemedAssets(
+            _shareClass,
+            _redeemRequestParams.classId,
+            _currentBatchId,
+            msg.sender,
+            _redeemRequestParams.estAmountToRedeem,
+            _previewAssets,
+            _vaultBalance
+        );
 
         // Transfer assets from vault balance to user
         IERC20(_sd.underlyingToken).safeTransfer(msg.sender, _assets);

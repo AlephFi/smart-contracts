@@ -24,6 +24,8 @@ import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -35,6 +37,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     using SafeERC20 for IERC20;
     using TimelockRegistry for bytes4;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SeriesAccounting for IAlephVault.ShareClass;
 
     /**
      * @notice The timelock period for the minimum deposit amount.
@@ -322,6 +325,43 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     }
 
     /**
+     * @dev Internal function to determine the series ID for a sync deposit.
+     * Uses the same logic as settlement to ensure consistent series accounting.
+     * @param _shareClass The share class.
+     * @param _classId The class ID.
+     * @param _currentBatchId The current batch ID.
+     * @return _seriesId The series ID to use for the deposit.
+     */
+    function _determineSeriesIdForSyncDeposit(
+        IAlephVault.ShareClass storage _shareClass,
+        uint8 _classId,
+        uint48 _currentBatchId
+    ) internal returns (uint32 _seriesId) {
+        _seriesId = SeriesAccounting.LEAD_SERIES_ID;
+        if (_shareClass.shareClassParams.performanceFee > 0) {
+            uint32 _shareSeriesId = _shareClass.shareSeriesId;
+            uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
+            
+            // If lead series high water mark is above current price, deposits should go to a new series
+            // This ensures new deposits don't pay performance fees on gains they didn't participate in
+            if (
+                _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark
+                    > _leadPricePerShare(_shareClass, _classId)
+            ) {
+                // Create the series immediately since sync deposits need immediate creation
+                // Read shareSeriesId after creation to avoid race conditions
+                _shareClass.createNewSeries(_classId, _currentBatchId);
+                _seriesId = _shareClass.shareSeriesId; // Use the actual created series ID
+            } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
+                // If high water mark was reached and outstanding series exist, consolidate them first
+                // This ensures all deposits go to lead series when HWM is reached
+                _shareClass.consolidateSeries(_classId, _shareSeriesId, _lastConsolidatedSeriesId, _currentBatchId);
+                _seriesId = SeriesAccounting.LEAD_SERIES_ID;
+            }
+        }
+    }
+
+    /**
      * @dev Internal function to handle a synchronous deposit.
      * @param _sd The storage struct.
      * @param _requestDepositParams The parameters for the deposit.
@@ -339,6 +379,11 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         _validateDeposit(_sd, _shareClass, _requestDepositParams);
         uint48 _currentBatchId = _currentBatch(_sd);
 
+        // Determine series BEFORE transferring assets to prevent stuck assets if series operations fail
+        uint32 _seriesId = _determineSeriesIdForSyncDeposit(
+            _shareClass, _requestDepositParams.classId, _currentBatchId
+        );
+
         // Transfer assets from user to vault, then to custodian
         // This allows users to only approve the vault contract
         _transferAssetsFromUserToVault(_sd, _requestDepositParams.amount);
@@ -346,20 +391,18 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         // Transfer from vault to custodian
         IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _requestDepositParams.amount);
 
-        // Calculate shares using current price per share (lead series)
-        uint32 _leadSeriesId = 0; // SeriesAccounting.LEAD_SERIES_ID
-        IAlephVault.ShareSeries storage _leadSeries = _shareClass.shareSeries[_leadSeriesId];
+        IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
         _shares =
-            ERC4626Math.previewDeposit(_requestDepositParams.amount, _leadSeries.totalShares, _leadSeries.totalAssets);
+            ERC4626Math.previewDeposit(_requestDepositParams.amount, _shareSeries.totalShares, _shareSeries.totalAssets);
 
-        // Mint shares immediately to msg.sender in lead series
-        _leadSeries.sharesOf[msg.sender] += _shares;
-        _leadSeries.totalShares += _shares;
-        _leadSeries.totalAssets += _requestDepositParams.amount;
+        // Mint shares immediately to msg.sender in the determined series
+        _shareSeries.sharesOf[msg.sender] += _shares;
+        _shareSeries.totalShares += _shares;
+        _shareSeries.totalAssets += _requestDepositParams.amount;
 
         // Add user to series if they don't already exist
-        if (!_leadSeries.users.contains(msg.sender)) {
-            _leadSeries.users.add(msg.sender);
+        if (!_shareSeries.users.contains(msg.sender)) {
+            _shareSeries.users.add(msg.sender);
         }
 
         // Update lock-in period if applicable

@@ -22,6 +22,7 @@ import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol
 import {IAlephVaultRedeem} from "@aleph-vault/interfaces/IAlephVaultRedeem.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {PausableFlows} from "@aleph-vault/libraries/PausableFlows.sol";
 import {BaseTest} from "@aleph-test/utils/BaseTest.t.sol";
 
@@ -198,6 +199,61 @@ contract SyncRedeemTest is BaseTest {
         vm.prank(mockUser_1);
         vm.expectRevert(IAlephVaultRedeem.InsufficientVaultBalance.selector);
         vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount}));
+    }
+
+    function test_syncRedeem_doesNotModifyState_whenVaultBalanceInsufficient() public {
+        // Bug fix test: Verify that state is not modified before vault balance check
+        // Set minUserBalance to 0 so we can test vault balance check
+        vault.setMinUserBalance(1, 0);
+
+        uint256 _redeemAmount = 50 ether;
+        uint256 _userSharesBefore = vault.sharesOf(1, 0, mockUser_1);
+        uint256 _totalSharesBefore = vault.totalSharesPerSeries(1, 0);
+        uint256 _totalAssetsBefore = vault.totalAssetsPerSeries(1, 0);
+
+        // Don't fund vault - should revert before modifying state
+        vm.prank(mockUser_1);
+        vm.expectRevert(IAlephVaultRedeem.InsufficientVaultBalance.selector);
+        vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount}));
+
+        // Verify state was NOT modified (shares not burned, assets not decreased)
+        assertEq(vault.sharesOf(1, 0, mockUser_1), _userSharesBefore, "User shares should not be modified");
+        assertEq(vault.totalSharesPerSeries(1, 0), _totalSharesBefore, "Total shares should not be modified");
+        assertEq(vault.totalAssetsPerSeries(1, 0), _totalAssetsBefore, "Total assets should not be modified");
+    }
+
+    function test_syncRedeem_previewMatchesActualRedeem() public {
+        // Bug fix test: Verify that preview calculation matches actual redeem
+        // Set minUserBalance to 0 so we can test
+        vault.setMinUserBalance(1, 0);
+
+        uint256 _redeemAmount = 30 ether;
+        underlyingToken.mint(address(vault), _redeemAmount);
+
+        uint256 _userSharesBefore = vault.sharesOf(1, 0, mockUser_1);
+        uint256 _totalAssetsBefore = vault.totalAssetsPerSeries(1, 0);
+        uint256 _totalSharesBefore = vault.totalSharesPerSeries(1, 0);
+
+        // Calculate expected assets using preview logic
+        uint256 _expectedAssets = 0;
+        uint256 _remainingAmount = _redeemAmount;
+        uint256 _sharesInSeries = _userSharesBefore;
+        uint256 _amountInSeries = ERC4626Math.previewRedeem(_sharesInSeries, _totalAssetsBefore, _totalSharesBefore);
+        if (_amountInSeries <= _remainingAmount) {
+            _expectedAssets = _amountInSeries;
+        } else {
+            uint256 _sharesToBurn = ERC4626Math.previewWithdraw(_remainingAmount, _totalSharesBefore, _totalAssetsBefore);
+            _expectedAssets = _remainingAmount;
+        }
+
+        // Perform sync redeem
+        vm.prank(mockUser_1);
+        uint256 _actualAssets = vault.syncRedeem(
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount})
+        );
+
+        // Verify actual assets match expected (allowing for rounding differences)
+        assertApproxEqRel(_actualAssets, _expectedAssets, 0.01e18, "Preview should match actual redeem");
     }
 
     function test_syncRedeem_revertsWhenAmountLessThanMinRedeemAmount() public {
