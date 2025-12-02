@@ -268,6 +268,13 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         uint32 _operatorFeeCut = _sd.operatorFeeCut[_vault];
         uint256 _totalOperatorFeesToCollect =
             _remainingFees.mulDiv(uint256(_operatorFeeCut), BPS_DENOMINATOR, Math.Rounding.Floor);
+        
+        // If totalOperatorAllocations is 0, skip operator fee distribution to avoid division by zero
+        // All fees go to the vault in this case
+        if (_totalOperatorAllocations == 0) {
+            return (_remainingFees, _operatorsFee);
+        }
+        
         for (uint256 i = 0; i < _length; i++) {
             address _operator = _operatorAllocations.operators.at(i);
             uint256 _operatorFee = _totalOperatorFeesToCollect.mulDiv(
