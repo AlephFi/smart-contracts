@@ -80,6 +80,14 @@ interface IAccountant {
     event OperatorAllocationsSet(address vault, address operator, uint256 allocatedAmount);
 
     /**
+     * @notice Emitted when operator fees are distributed to an operator.
+     * @param vault The vault.
+     * @param operator The operator receiving the fee.
+     * @param operatorFee The fee amount distributed to the operator.
+     */
+    event OperatorFeeDistributed(address vault, address operator, uint256 operatorFee);
+
+    /**
      * @notice Emitted when fees are collected.
      * @param vault The vault.
      * @param managementFeesToCollect The management fees to collect.

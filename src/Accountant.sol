@@ -284,6 +284,7 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
             );
             _operatorsFee[i] = _operatorFee;
             IERC20(_underlyingToken).safeTransfer(_operator, _operatorFee);
+            emit OperatorFeeDistributed(_vault, _operator, _operatorFee);
         }
         return (_remainingFees - _totalOperatorFeesToCollect, _operatorsFee);
     }
