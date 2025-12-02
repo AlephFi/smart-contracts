@@ -262,9 +262,6 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         uint256 _length = _operatorAllocations.operators.length();
         _operatorsFee = new uint256[](_length);
         uint32 _operatorFeeCut = _sd.operatorFeeCut[_vault];
-        if (uint256(_operatorFeeCut) > BPS_DENOMINATOR) {
-            revert InvalidOperatorFeeCut();
-        }
         uint256 _totalOperatorFeesToCollect =
             _remainingFees.mulDiv(uint256(_operatorFeeCut), BPS_DENOMINATOR, Math.Rounding.Floor);
         for (uint256 i = 0; i < _length; i++) {
