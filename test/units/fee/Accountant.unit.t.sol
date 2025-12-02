@@ -130,7 +130,7 @@ contract AccountantTest is BaseTest {
         mocks.mockIsValidVault(vaultFactory, _vault, true);
         vm.prank(manager);
         vm.expectEmit(true, true, true, true);
-        emit IAccountant.FeesCollected(_vault, 100 ether, 100 ether, 125 ether, 75 ether);
+        emit IAccountant.FeesCollected(_vault, 100 ether, 100 ether, 125 ether, 75 ether, new uint256[](0));
         accountant.collectFees(_vault);
 
         // assert fee is transferred

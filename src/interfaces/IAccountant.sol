@@ -15,6 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$ |
                         $$/
 */
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -64,19 +65,28 @@ interface IAccountant {
     event PerformanceFeeCutSet(address vault, uint32 performanceFeeCut);
 
     /**
+     * @notice Emitted when the operator fee cut is set.
+     * @param vault The vault.
+     * @param operatorFeeCut The new operator fee cut.
+     */
+    event OperatorFeeCutSet(address vault, uint32 operatorFeeCut);
+
+    /**
      * @notice Emitted when fees are collected.
      * @param vault The vault.
      * @param managementFeesToCollect The management fees to collect.
      * @param performanceFeesToCollect The performance fees to collect.
      * @param vaultFee The vault fee split
      * @param alephFee The aleph fee split
+     * @param operatorsFee The fees for the operators.
      */
     event FeesCollected(
         address vault,
         uint256 managementFeesToCollect,
         uint256 performanceFeesToCollect,
         uint256 vaultFee,
-        uint256 alephFee
+        uint256 alephFee,
+        uint256[] operatorsFee
     );
 
     /*//////////////////////////////////////////////////////////////
@@ -123,6 +133,18 @@ interface IAccountant {
     struct InitializationParams {
         address operationsMultisig;
         address alephTreasury;
+    }
+
+    /**
+     * @notice Operator allocations.
+     * @param totalOperatorAllocations The total operator allocations.
+     * @param operators The operators.
+     * @param allocatedAmount The allocated amount by each operator.
+     */
+    struct OperatorAllocations {
+        uint256 totalOperatorAllocations;
+        EnumerableSet.AddressSet operators;
+        mapping(address operator => uint256 allocatedAmount) allocatedAmount;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -181,6 +203,13 @@ interface IAccountant {
      * @param _performanceFeeCut The new performance fee cut.
      */
     function setPerformanceFeeCut(address _vault, uint32 _performanceFeeCut) external;
+
+    /**
+     * @notice Sets the operator fee cut.
+     * @param _vault The vault to set the operator fee cut for.
+     * @param _operatorFeeCut The new operator fee cut.
+     */
+    function setOperatorFeeCut(address _vault, uint32 _operatorFeeCut) external;
 
     /*//////////////////////////////////////////////////////////////
                             FEE FUNCTIONS
