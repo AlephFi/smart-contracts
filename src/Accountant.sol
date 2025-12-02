@@ -174,9 +174,13 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
     {
         AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
-        _sd.operatorAllocatedAmount[_vault].operators.add(_operator);
-        _sd.operatorAllocatedAmount[_vault].allocatedAmount[_operator] += _allocatedAmount;
-        _sd.operatorAllocatedAmount[_vault].totalOperatorAllocations += _allocatedAmount;
+        if (_allocatedAmount == 0) {
+            revert InvalidOperatorAllocation();
+        }
+        IAccountant.OperatorAllocations storage _operatorAllocations = _sd.operatorAllocatedAmount[_vault];
+        _operatorAllocations.operators.add(_operator);
+        _operatorAllocations.allocatedAmount[_operator] += _allocatedAmount;
+        _operatorAllocations.totalOperatorAllocations += _allocatedAmount;
         emit OperatorAllocationsSet(_vault, _operator, _allocatedAmount);
     }
 
