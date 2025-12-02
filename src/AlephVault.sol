@@ -329,7 +329,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         for (uint32 _i; _i < _len; _i++) {
             uint32 _seriesId =
                 _i > SeriesAccounting.LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : SeriesAccounting.LEAD_SERIES_ID;
-            _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+            _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _seriesId);
         }
         return _totalAssets;
     }
@@ -346,7 +346,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _totalAssetsPerSeries(_getStorage().shareClasses[_classId], _classId, _seriesId);
+        return _totalAssetsPerSeries(_getStorage().shareClasses[_classId], _seriesId);
     }
 
     /// @inheritdoc IAlephVault
@@ -356,7 +356,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _totalSharesPerSeries(_getStorage().shareClasses[_classId], _classId, _seriesId);
+        return _totalSharesPerSeries(_getStorage().shareClasses[_classId], _seriesId);
     }
 
     /// @inheritdoc IAlephVault
@@ -397,10 +397,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         returns (uint256)
     {
         IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
-        return _getPricePerShare(
-            _totalAssetsPerSeries(_shareClass, _classId, _seriesId),
-            _totalSharesPerSeries(_shareClass, _classId, _seriesId)
-        );
+        return
+            _getPricePerShare(
+                _totalAssetsPerSeries(_shareClass, _seriesId), _totalSharesPerSeries(_shareClass, _seriesId)
+            );
     }
 
     /// @inheritdoc IAlephVault

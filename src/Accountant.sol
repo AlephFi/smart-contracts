@@ -154,7 +154,10 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
     }
 
     /// @inheritdoc IAccountant
-    function setOperatorFeeCut(address _vault, uint32 _operatorFeeCut) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+    function setOperatorFeeCut(address _vault, uint32 _operatorFeeCut)
+        external
+        onlyRole(RolesLibrary.OPERATIONS_MULTISIG)
+    {
         AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
         _sd.operatorFeeCut[_vault] = _operatorFeeCut;
@@ -162,7 +165,10 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
     }
 
     /// @inheritdoc IAccountant
-    function setOperatorAllocations(address _vault, address _operator, uint256 _allocatedAmount) external onlyRole(RolesLibrary.ALEPH_AVS) {
+    function setOperatorAllocations(address _vault, address _operator, uint256 _allocatedAmount)
+        external
+        onlyRole(RolesLibrary.ALEPH_AVS)
+    {
         AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
         _sd.operatorAllocatedAmount[_vault].operators.add(_operator);
@@ -193,7 +199,9 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         (uint256 _vaultFee, uint256 _alephFee, uint256[] memory _operatorsFee) = _splitFees(
             _sd, _vault, _vaultTreasury, _underlyingToken, _managementFeesToCollect, _performanceFeesToCollect
         );
-        emit FeesCollected(_vault, _managementFeesToCollect, _performanceFeesToCollect, _vaultFee, _alephFee, _operatorsFee);
+        emit FeesCollected(
+            _vault, _managementFeesToCollect, _performanceFeesToCollect, _vaultFee, _alephFee, _operatorsFee
+        );
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -219,14 +227,15 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         uint256 _managementFeesToCollect,
         uint256 _performanceFeesToCollect
     ) internal returns (uint256 _vaultFee, uint256 _alephFee, uint256[] memory _operatorsFee) {
-        uint256 _alephManagementFee = _managementFeesToCollect.mulDiv(
-            uint256(_sd.managementFeeCut[_vault]), BPS_DENOMINATOR, Math.Rounding.Ceil
-        );
+        uint256 _alephManagementFee =
+            _managementFeesToCollect.mulDiv(uint256(_sd.managementFeeCut[_vault]), BPS_DENOMINATOR, Math.Rounding.Ceil);
         uint256 _alephPerformanceFee = _performanceFeesToCollect.mulDiv(
             uint256(_sd.performanceFeeCut[_vault]), BPS_DENOMINATOR, Math.Rounding.Ceil
         );
         _alephFee = _alephManagementFee + _alephPerformanceFee;
-        (_vaultFee, _operatorsFee) = _splitFeesForOperators(_sd, _vault, _underlyingToken, _managementFeesToCollect + _performanceFeesToCollect - _alephFee);
+        (_vaultFee, _operatorsFee) = _splitFeesForOperators(
+            _sd, _vault, _underlyingToken, _managementFeesToCollect + _performanceFeesToCollect - _alephFee
+        );
         IERC20(_underlyingToken).safeTransfer(_vaultTreasury, _vaultFee);
         IERC20(_underlyingToken).safeTransfer(_sd.alephTreasury, _alephFee);
     }
@@ -239,15 +248,23 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
      * @return _vaultFee The fee for the vault.
      * @return _operatorsFee The fees for the operators.
      */
-    function _splitFeesForOperators(AccountantStorageData storage _sd, address _vault, address _underlyingToken, uint256 _remainingFees) internal returns (uint256 _vaultFee, uint256[] memory _operatorsFee) {
+    function _splitFeesForOperators(
+        AccountantStorageData storage _sd,
+        address _vault,
+        address _underlyingToken,
+        uint256 _remainingFees
+    ) internal returns (uint256 _vaultFee, uint256[] memory _operatorsFee) {
         IAccountant.OperatorAllocations storage _operatorAllocations = _sd.operatorAllocatedAmount[_vault];
         uint256 _totalOperatorAllocations = _operatorAllocations.totalOperatorAllocations;
         uint256 _length = _operatorAllocations.operators.length();
         _operatorsFee = new uint256[](_length);
-        uint256 _totalOperatorFeesToCollect = _remainingFees.mulDiv(_sd.operatorFeeCut[_vault], BPS_DENOMINATOR, Math.Rounding.Floor);
+        uint256 _totalOperatorFeesToCollect =
+            _remainingFees.mulDiv(_sd.operatorFeeCut[_vault], BPS_DENOMINATOR, Math.Rounding.Floor);
         for (uint256 i = 0; i < _length; i++) {
             address _operator = _operatorAllocations.operators.at(i);
-            uint256 _operatorFee = _totalOperatorFeesToCollect.mulDiv(_operatorAllocations.allocatedAmount[_operator], _totalOperatorAllocations, Math.Rounding.Floor);
+            uint256 _operatorFee = _totalOperatorFeesToCollect.mulDiv(
+                _operatorAllocations.allocatedAmount[_operator], _totalOperatorAllocations, Math.Rounding.Floor
+            );
             _operatorsFee[i] = _operatorFee;
             IERC20(_underlyingToken).safeTransfer(_operator, _operatorFee);
         }

@@ -102,7 +102,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         uint256 _totalAssetsSum;
         for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // loop through all share series and sum up the total assets
-            _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+            _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _seriesId);
             if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
                 _seriesId = _shareClass.lastConsolidatedSeriesId;
             }
@@ -116,12 +116,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssetsPerSeries(
-        IAlephVault.ShareClass storage _shareClass,
-        uint8,
-        /* _classId */
-        uint32 _seriesId
-    )
+    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint32 _seriesId)
         internal
         view
         returns (uint256)
@@ -135,12 +130,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalSharesPerSeries(
-        IAlephVault.ShareClass storage _shareClass,
-        uint8,
-        /* _classId */
-        uint32 _seriesId
-    )
+    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint32 _seriesId)
         internal
         view
         returns (uint256)
@@ -178,8 +168,8 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     {
         return ERC4626Math.previewRedeem(
             _sharesOf(_shareClass, _seriesId, _user),
-            _totalAssetsPerSeries(_shareClass, _classId, _seriesId),
-            _totalSharesPerSeries(_shareClass, _classId, _seriesId)
+            _totalAssetsPerSeries(_shareClass, _seriesId),
+            _totalSharesPerSeries(_shareClass, _seriesId)
         );
     }
 
@@ -256,8 +246,8 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         return _getPricePerShare(
-            _totalAssetsPerSeries(_shareClass, _classId, SeriesAccounting.LEAD_SERIES_ID),
-            _totalSharesPerSeries(_shareClass, _classId, SeriesAccounting.LEAD_SERIES_ID)
+            _totalAssetsPerSeries(_shareClass, SeriesAccounting.LEAD_SERIES_ID),
+            _totalSharesPerSeries(_shareClass, SeriesAccounting.LEAD_SERIES_ID)
         );
     }
 
