@@ -367,4 +367,237 @@ contract AccountantTest is BaseTest {
         vm.expectRevert();
         accountant.initializeVaultTreasury(_vault, _vaultTreasury);
     }
+
+    function test_setAlephAvs_grantsAlephAvsRole() public {
+        address _alephAvs = makeAddr("alephAvs");
+
+        vm.prank(operationsMultisig);
+        accountant.setAlephAvs(_alephAvs);
+
+        assertTrue(accountant.hasRole(RolesLibrary.ALEPH_AVS, _alephAvs));
+    }
+
+    function test_setAlephAvs_revertsWhenUnauthorized() public {
+        address _alephAvs = makeAddr("alephAvs");
+        address unauthorized = makeAddr("unauthorized");
+
+        vm.prank(unauthorized);
+        vm.expectRevert();
+        accountant.setAlephAvs(_alephAvs);
+    }
+
+    function test_setOperatorFeeCut_setsFeeCut() public {
+        address _vault = address(vault);
+        uint32 _operatorFeeCut = 2000; // 20%
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+
+        vm.prank(operationsMultisig);
+        vm.expectEmit(true, true, false, false);
+        emit IAccountant.OperatorFeeCutSet(_vault, _operatorFeeCut);
+        accountant.setOperatorFeeCut(_vault, _operatorFeeCut);
+    }
+
+    function test_setOperatorFeeCut_revertsWhenUnauthorized() public {
+        address _vault = address(vault);
+        uint32 _operatorFeeCut = 2000;
+        address unauthorized = makeAddr("unauthorized");
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+
+        vm.prank(unauthorized);
+        vm.expectRevert();
+        accountant.setOperatorFeeCut(_vault, _operatorFeeCut);
+    }
+
+    function test_setOperatorFeeCut_revertsWhenVaultIsNotValid() public {
+        address nonValidVault = makeAddr("nonValidVault");
+        uint32 _operatorFeeCut = 2000;
+        mocks.mockIsValidVault(vaultFactory, nonValidVault, false);
+
+        vm.prank(operationsMultisig);
+        vm.expectRevert(IAccountant.InvalidVault.selector);
+        accountant.setOperatorFeeCut(nonValidVault, _operatorFeeCut);
+    }
+
+    function test_setOperatorAllocations_setsAllocations() public {
+        address _vault = address(vault);
+        address _operator = makeAddr("operator");
+        uint256 _allocatedAmount = 1000 ether;
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+
+        // First grant ALEPH_AVS role
+        address _alephAvs = makeAddr("alephAvs");
+        vm.prank(operationsMultisig);
+        accountant.setAlephAvs(_alephAvs);
+
+        vm.prank(_alephAvs);
+        vm.expectEmit(true, true, true, false);
+        emit IAccountant.OperatorAllocationsSet(_vault, _operator, _allocatedAmount);
+        accountant.setOperatorAllocations(_vault, _operator, _allocatedAmount);
+    }
+
+    function test_setOperatorAllocations_addsMultipleAllocations() public {
+        address _vault = address(vault);
+        address _operator1 = makeAddr("operator1");
+        address _operator2 = makeAddr("operator2");
+        uint256 _allocatedAmount1 = 1000 ether;
+        uint256 _allocatedAmount2 = 2000 ether;
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+
+        // Grant ALEPH_AVS role
+        address _alephAvs = makeAddr("alephAvs");
+        vm.prank(operationsMultisig);
+        accountant.setAlephAvs(_alephAvs);
+
+        // Set first allocation
+        vm.prank(_alephAvs);
+        accountant.setOperatorAllocations(_vault, _operator1, _allocatedAmount1);
+
+        // Set second allocation
+        vm.prank(_alephAvs);
+        accountant.setOperatorAllocations(_vault, _operator2, _allocatedAmount2);
+
+        // Add more to first operator
+        vm.prank(_alephAvs);
+        accountant.setOperatorAllocations(_vault, _operator1, _allocatedAmount1);
+    }
+
+    function test_setOperatorAllocations_revertsWhenUnauthorized() public {
+        address _vault = address(vault);
+        address _operator = makeAddr("operator");
+        uint256 _allocatedAmount = 1000 ether;
+        address unauthorized = makeAddr("unauthorized");
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+
+        vm.prank(unauthorized);
+        vm.expectRevert();
+        accountant.setOperatorAllocations(_vault, _operator, _allocatedAmount);
+    }
+
+    function test_setOperatorAllocations_revertsWhenVaultIsNotValid() public {
+        address nonValidVault = makeAddr("nonValidVault");
+        address _operator = makeAddr("operator");
+        uint256 _allocatedAmount = 1000 ether;
+        mocks.mockIsValidVault(vaultFactory, nonValidVault, false);
+
+        // Grant ALEPH_AVS role
+        address _alephAvs = makeAddr("alephAvs");
+        vm.prank(operationsMultisig);
+        accountant.setAlephAvs(_alephAvs);
+
+        vm.prank(_alephAvs);
+        vm.expectRevert(IAccountant.InvalidVault.selector);
+        accountant.setOperatorAllocations(nonValidVault, _operator, _allocatedAmount);
+    }
+
+    function test_collectFees_withOperators_shouldSplitFeesCorrectly() public {
+        // Setup vault treasury
+        address _vault = address(vault);
+        address _vaultTreasury = makeAddr("testVaultTreasury");
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+        vm.prank(_vault);
+        accountant.setVaultTreasury(_vaultTreasury);
+
+        // Set operator fee cut to 20%
+        vm.prank(operationsMultisig);
+        accountant.setOperatorFeeCut(_vault, 2000);
+
+        // Setup operators
+        address _operator1 = makeAddr("operator1");
+        address _operator2 = makeAddr("operator2");
+        address _alephAvs = makeAddr("alephAvs");
+        vm.prank(operationsMultisig);
+        accountant.setAlephAvs(_alephAvs);
+
+        // Set operator allocations: operator1 gets 1000, operator2 gets 2000 (total 3000)
+        vm.prank(_alephAvs);
+        accountant.setOperatorAllocations(_vault, _operator1, 1000 ether);
+        vm.prank(_alephAvs);
+        accountant.setOperatorAllocations(_vault, _operator2, 2000 ether);
+
+        // Approve accountant
+        vm.prank(_vault);
+        underlyingToken.approve(address(accountant), 200 ether);
+
+        // Set up vault
+        vault.setTotalAssets(0, 200 ether);
+        vault.setTotalShares(0, 200 ether);
+        vault.setSharesOf(0, vault.managementFeeRecipient(), 100 ether);
+        vault.setSharesOf(0, vault.performanceFeeRecipient(), 100 ether);
+        underlyingToken.mint(address(vault), 200 ether);
+
+        // Get balances before
+        uint256 _vaultTreasuryBalanceBefore = underlyingToken.balanceOf(_vaultTreasury);
+        uint256 _alephTreasuryBalanceBefore = underlyingToken.balanceOf(alephTreasury);
+        uint256 _operator1BalanceBefore = underlyingToken.balanceOf(_operator1);
+        uint256 _operator2BalanceBefore = underlyingToken.balanceOf(_operator2);
+
+        // Collect fees
+        // Total fees: 200 ether
+        // Aleph fee: 25% of 100 + 50% of 100 = 25 + 50 = 75 ether
+        // Remaining: 200 - 75 = 125 ether
+        // Operator fee: 20% of 125 = 25 ether
+        // Operator1: 25 * (1000/3000) = 8.33... ether
+        // Operator2: 25 * (2000/3000) = 16.66... ether
+        // Vault fee: 125 - 25 = 100 ether
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+        vm.prank(manager);
+        accountant.collectFees(_vault);
+
+        // Assert balances
+        assertEq(underlyingToken.balanceOf(_vaultTreasury), _vaultTreasuryBalanceBefore + 100 ether);
+        assertEq(underlyingToken.balanceOf(alephTreasury), _alephTreasuryBalanceBefore + 75 ether);
+        assertGt(underlyingToken.balanceOf(_operator1), _operator1BalanceBefore);
+        assertGt(underlyingToken.balanceOf(_operator2), _operator2BalanceBefore);
+        // Check that operator fees sum to approximately 25 ether (with rounding)
+        uint256 _totalOperatorFees = underlyingToken.balanceOf(_operator1) - _operator1BalanceBefore
+            + underlyingToken.balanceOf(_operator2) - _operator2BalanceBefore;
+        assertApproxEqRel(_totalOperatorFees, 25 ether, 0.01e18);
+    }
+
+    function test_collectFees_withOperatorsAndZeroFeeCut_shouldNotDistributeToOperators() public {
+        // Setup vault treasury
+        address _vault = address(vault);
+        address _vaultTreasury = makeAddr("testVaultTreasury");
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+        vm.prank(_vault);
+        accountant.setVaultTreasury(_vaultTreasury);
+
+        // Set operator fee cut to 0%
+        vm.prank(operationsMultisig);
+        accountant.setOperatorFeeCut(_vault, 0);
+
+        // Setup operators
+        address _operator1 = makeAddr("operator1");
+        address _alephAvs = makeAddr("alephAvs");
+        vm.prank(operationsMultisig);
+        accountant.setAlephAvs(_alephAvs);
+        vm.prank(_alephAvs);
+        accountant.setOperatorAllocations(_vault, _operator1, 1000 ether);
+
+        // Approve accountant
+        vm.prank(_vault);
+        underlyingToken.approve(address(accountant), 200 ether);
+
+        // Set up vault
+        vault.setTotalAssets(0, 200 ether);
+        vault.setTotalShares(0, 200 ether);
+        vault.setSharesOf(0, vault.managementFeeRecipient(), 100 ether);
+        vault.setSharesOf(0, vault.performanceFeeRecipient(), 100 ether);
+        underlyingToken.mint(address(vault), 200 ether);
+
+        // Get balances before
+        uint256 _vaultTreasuryBalanceBefore = underlyingToken.balanceOf(_vaultTreasury);
+        uint256 _alephTreasuryBalanceBefore = underlyingToken.balanceOf(alephTreasury);
+        uint256 _operator1BalanceBefore = underlyingToken.balanceOf(_operator1);
+
+        // Collect fees
+        mocks.mockIsValidVault(vaultFactory, _vault, true);
+        vm.prank(manager);
+        accountant.collectFees(_vault);
+
+        // Assert balances - operators should get nothing
+        assertEq(underlyingToken.balanceOf(_vaultTreasury), _vaultTreasuryBalanceBefore + 125 ether);
+        assertEq(underlyingToken.balanceOf(alephTreasury), _alephTreasuryBalanceBefore + 75 ether);
+        assertEq(underlyingToken.balanceOf(_operator1), _operator1BalanceBefore);
+    }
 }
