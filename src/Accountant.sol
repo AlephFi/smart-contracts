@@ -244,15 +244,14 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         uint256 _totalOperatorAllocations = _operatorAllocations.totalOperatorAllocations;
         uint256 _length = _operatorAllocations.operators.length();
         _operatorsFee = new uint256[](_length);
-        uint256 _totalOperatorFee;
+        uint256 _totalOperatorFeesToCollect = _remainingFees.mulDiv(_sd.operatorFeeCut[_vault], BPS_DENOMINATOR, Math.Rounding.Floor);
         for (uint256 i = 0; i < _length; i++) {
             address _operator = _operatorAllocations.operators.at(i);
-            uint256 _operatorFee = _remainingFees.mulDiv(_operatorAllocations.allocatedAmount[_operator], _totalOperatorAllocations, Math.Rounding.Floor);
+            uint256 _operatorFee = _totalOperatorFeesToCollect.mulDiv(_operatorAllocations.allocatedAmount[_operator], _totalOperatorAllocations, Math.Rounding.Floor);
             _operatorsFee[i] = _operatorFee;
-            _totalOperatorFee += _operatorFee;
             IERC20(_underlyingToken).safeTransfer(_operator, _operatorFee);
         }
-        return (_remainingFees - _totalOperatorFee, _operatorsFee);
+        return (_remainingFees - _totalOperatorFeesToCollect, _operatorsFee);
     }
 
     function _validateVault(AccountantStorageData storage _sd, address _vault) internal view {
