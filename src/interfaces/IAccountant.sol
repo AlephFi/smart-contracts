@@ -135,6 +135,11 @@ interface IAccountant {
      */
     error InvalidOperatorFeeCut();
 
+    /**
+     * @notice Emitted when the operator allocation input is invalid.
+     */
+    error InvalidOperatorAllocation();
+
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
     //////////////////////////////////////////////////////////////*/
