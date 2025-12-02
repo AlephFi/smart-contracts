@@ -265,15 +265,17 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         uint256 _totalOperatorAllocations = _operatorAllocations.totalOperatorAllocations;
         uint256 _length = _operatorAllocations.operators.length();
         _operatorsFee = new uint256[](_length);
+        
+        // If there are no operators or totalOperatorAllocations is 0, skip operator fee distribution
+        // This prevents division by zero and avoids unnecessary calculations
+        // All fees go to the vault in this case
+        if (_length == 0 || _totalOperatorAllocations == 0) {
+            return (_remainingFees, _operatorsFee);
+        }
+        
         uint32 _operatorFeeCut = _sd.operatorFeeCut[_vault];
         uint256 _totalOperatorFeesToCollect =
             _remainingFees.mulDiv(uint256(_operatorFeeCut), BPS_DENOMINATOR, Math.Rounding.Floor);
-        
-        // If totalOperatorAllocations is 0, skip operator fee distribution to avoid division by zero
-        // All fees go to the vault in this case
-        if (_totalOperatorAllocations == 0) {
-            return (_remainingFees, _operatorsFee);
-        }
         
         for (uint256 i = 0; i < _length; i++) {
             address _operator = _operatorAllocations.operators.at(i);
