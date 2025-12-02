@@ -489,17 +489,6 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         // Transfer assets from vault balance to user
         IERC20(_sd.underlyingToken).safeTransfer(msg.sender, _assets);
 
-        // Calculate totals after redeem for event emission
-        uint256 _totalAssets = _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId);
-        uint256 _totalShares;
-        uint32 _shareSeriesId = _shareClass.shareSeriesId;
-        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-            _totalShares += _shareClass.shareSeries[_seriesId].totalShares;
-            if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
-                _seriesId = _shareClass.lastConsolidatedSeriesId;
-            }
-        }
-
         // Emit event after all state changes and transfers are complete
         emit SyncRedeem(
             _redeemRequestParams.classId,
@@ -507,8 +496,8 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
             _redeemRequestParams.estAmountToRedeem,
             _assets,
             _currentBatchId,
-            _totalAssets,
-            _totalShares
+            _totalAssetsPerClass(_shareClass, _redeemRequestParams.classId),
+            _totalSharesPerClass(_shareClass)
         );
     }
 }
