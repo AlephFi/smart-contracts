@@ -127,6 +127,10 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         emit VaultTreasurySet(msg.sender, _vaultTreasury);
     }
 
+    function setAlephAvs(address _alephAvs) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
+        _grantRole(RolesLibrary.ALEPH_AVS, _alephAvs);
+    }
+
     /// @inheritdoc IAccountant
     function setManagementFeeCut(address _vault, uint32 _managementFeeCut)
         external
@@ -155,6 +159,16 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         _validateVault(_sd, _vault);
         _sd.operatorFeeCut[_vault] = _operatorFeeCut;
         emit OperatorFeeCutSet(_vault, _operatorFeeCut);
+    }
+
+    /// @inheritdoc IAccountant
+    function setOperatorAllocations(address _vault, address _operator, uint256 _allocatedAmount) external onlyRole(RolesLibrary.ALEPH_AVS) {
+        AccountantStorageData storage _sd = _getStorage();
+        _validateVault(_sd, _vault);
+        _sd.operatorAllocatedAmount[_vault].operators.add(_operator);
+        _sd.operatorAllocatedAmount[_vault].allocatedAmount[_operator] += _allocatedAmount;
+        _sd.operatorAllocatedAmount[_vault].totalOperatorAllocations += _allocatedAmount;
+        emit OperatorAllocationsSet(_vault, _operator, _allocatedAmount);
     }
 
     /*//////////////////////////////////////////////////////////////

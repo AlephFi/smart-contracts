@@ -72,6 +72,14 @@ interface IAccountant {
     event OperatorFeeCutSet(address vault, uint32 operatorFeeCut);
 
     /**
+     * @notice Emitted when the operator allocations are set.
+     * @param vault The vault.
+     * @param operator The operator.
+     * @param allocatedAmount The allocated amount.
+     */
+    event OperatorAllocationsSet(address vault, address operator, uint256 allocatedAmount);
+
+    /**
      * @notice Emitted when fees are collected.
      * @param vault The vault.
      * @param managementFeesToCollect The management fees to collect.
@@ -191,6 +199,12 @@ interface IAccountant {
     function setVaultTreasury(address _vaultTreasury) external;
 
     /**
+     * @notice Sets the aleph avs.
+     * @param _alephAvs The new aleph avs.
+     */
+    function setAlephAvs(address _alephAvs) external;
+
+    /**
      * @notice Sets the management fee cut.
      * @param _vault The vault to set the management fee cut for.
      * @param _managementFeeCut The new management fee cut.
@@ -210,6 +224,14 @@ interface IAccountant {
      * @param _operatorFeeCut The new operator fee cut.
      */
     function setOperatorFeeCut(address _vault, uint32 _operatorFeeCut) external;
+
+    /**
+     * @notice Sets the operator allocations.
+     * @param _vault The vault to set the operator allocations for.
+     * @param _operator The operator to set the allocations for.
+     * @param _allocatedAmount The new allocated amount.
+     */
+    function setOperatorAllocations(address _vault, address _operator, uint256 _allocatedAmount) external;
 
     /*//////////////////////////////////////////////////////////////
                             FEE FUNCTIONS
