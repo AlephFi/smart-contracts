@@ -130,6 +130,11 @@ interface IAccountant {
      */
     error FeesNotCollected();
 
+    /**
+     * @notice Emitted when the operator fee cut is invalid.
+     */
+    error InvalidOperatorFeeCut();
+
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
     //////////////////////////////////////////////////////////////*/

@@ -160,6 +160,9 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
     {
         AccountantStorageData storage _sd = _getStorage();
         _validateVault(_sd, _vault);
+        if (uint256(_operatorFeeCut) > BPS_DENOMINATOR) {
+            revert InvalidOperatorFeeCut();
+        }
         _sd.operatorFeeCut[_vault] = _operatorFeeCut;
         emit OperatorFeeCutSet(_vault, _operatorFeeCut);
     }
@@ -258,8 +261,12 @@ contract Accountant is IAccountant, AccessControlUpgradeable {
         uint256 _totalOperatorAllocations = _operatorAllocations.totalOperatorAllocations;
         uint256 _length = _operatorAllocations.operators.length();
         _operatorsFee = new uint256[](_length);
+        uint32 _operatorFeeCut = _sd.operatorFeeCut[_vault];
+        if (uint256(_operatorFeeCut) > BPS_DENOMINATOR) {
+            revert InvalidOperatorFeeCut();
+        }
         uint256 _totalOperatorFeesToCollect =
-            _remainingFees.mulDiv(_sd.operatorFeeCut[_vault], BPS_DENOMINATOR, Math.Rounding.Floor);
+            _remainingFees.mulDiv(uint256(_operatorFeeCut), BPS_DENOMINATOR, Math.Rounding.Floor);
         for (uint256 i = 0; i < _length; i++) {
             address _operator = _operatorAllocations.operators.at(i);
             uint256 _operatorFee = _totalOperatorFeesToCollect.mulDiv(
