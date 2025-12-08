@@ -440,7 +440,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
             _redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem
         );
 
-        /// @note estAmountToRedeem for syncRedeem is the exact amount that users recieve without any rounding errors
+        // Note: estAmountToRedeem for syncRedeem is the exact amount that users receive without any rounding errors
         // Transfer assets from vault balance to user
         IERC20(_sd.underlyingToken).safeTransfer(msg.sender, _redeemRequestParams.estAmountToRedeem);
 
@@ -448,5 +448,7 @@ contract AlephVaultRedeem is IAlephVaultRedeem, AlephVaultBase {
         emit SyncRedeem(
             _redeemRequestParams.classId, _currentBatchId, msg.sender, _redeemRequestParams.estAmountToRedeem
         );
+
+        return _redeemRequestParams.estAmountToRedeem;
     }
 }
