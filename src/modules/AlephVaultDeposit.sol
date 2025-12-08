@@ -340,30 +340,8 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         _seriesId = SeriesAccounting.LEAD_SERIES_ID;
         if (_shareClass.shareClassParams.performanceFee > 0) {
             uint32 _shareSeriesId = _shareClass.shareSeriesId;
-            uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
-
-            // If lead series high water mark is above current price, deposits should go to a new series
-            // This ensures new deposits don't pay performance fees on gains they didn't participate in
-            if (
-                _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark
-                    > _leadPricePerShare(_shareClass, _classId)
-            ) {
-                // Check if there's already an active series (same logic as async settlement)
-                // If an active series exists, reuse it instead of creating a duplicate
-                if (_shareSeriesId > _lastConsolidatedSeriesId) {
-                    // Use the existing active series
-                    _seriesId = _shareSeriesId;
-                } else {
-                    // No active series exists, create a new one
-                    // Read shareSeriesId after creation to avoid race conditions
-                    _shareClass.createNewSeries(_classId, _currentBatchId);
-                    _seriesId = _shareClass.shareSeriesId; // Use the actual created series ID
-                }
-            } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
-                // If high water mark was reached and outstanding series exist, consolidate them first
-                // This ensures all deposits go to lead series when HWM is reached
-                _shareClass.consolidateSeries(_classId, _shareSeriesId, _lastConsolidatedSeriesId, _currentBatchId);
-                _seriesId = SeriesAccounting.LEAD_SERIES_ID;
+            if (_shareSeriesId > _shareClass.lastConsolidatedSeriesId) {
+                _seriesId = _shareSeriesId;
             }
         }
     }

@@ -811,12 +811,11 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         assertApproxEqRel(_shares2, _shares3, 0.01e18);
     }
 
-    function test_syncOperationsWithPerformanceFeeSeries() public {
+    function test_syncOperationsWithNewSeries() public {
         _setupInitialSettlement();
 
-        // Set high water mark above current price to trigger new series
-        uint256 _currentPrice = vault.pricePerShare(1, 0);
-        vault.setHighWaterMark(2 * vault.PRICE_DENOMINATOR());
+        vault.setLastConsolidatedSeriesId(1);
+        vault.setShareSeriesId(2);
 
         underlyingToken.mint(mockUser_1, 1000 ether);
         underlyingToken.mint(mockUser_2, 1000 ether);
@@ -829,20 +828,14 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         underlyingToken.approve(address(vault), 1000 ether);
         vm.stopPrank();
 
-        // Get initial series ID
-        uint32 _initialSeriesId = vault.shareSeriesId(1);
-
-        // Sync deposit should go to new series (HWM > price)
+        // Sync deposit should go to new series
         vm.prank(mockUser_1);
         uint256 _shares1 = vault.syncDeposit(
             IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
         );
 
-        uint32 _newSeriesId = vault.shareSeriesId(1);
-        assertGt(_newSeriesId, _initialSeriesId); // Should be in a new series
-
         // Verify shares are in the new series
-        assertGt(vault.sharesOf(1, _newSeriesId, mockUser_1), 0);
+        assertGt(vault.sharesOf(1, 2, mockUser_1), 0);
         // User still has shares in lead series from initial setup, so we just check new series has shares
         assertGt(vault.sharesOf(1, 0, mockUser_1), 0); // User has shares in lead series from setup
 
@@ -853,7 +846,44 @@ contract AsyncSyncFlowCombinationsTest is BaseTest {
         );
 
         assertGt(_shares2, 0);
-        assertGt(vault.sharesOf(1, _newSeriesId, mockUser_2), 0);
+        assertGt(vault.sharesOf(1, 2, mockUser_2), 0);
+    }
+
+    function test_syncOperationsWithConsolidatedSeries() public {
+        _setupInitialSettlement();
+
+        vault.setLastConsolidatedSeriesId(1);
+
+        underlyingToken.mint(mockUser_1, 1000 ether);
+        underlyingToken.mint(mockUser_2, 1000 ether);
+
+        vm.startPrank(mockUser_1);
+        underlyingToken.approve(address(vault), 1000 ether);
+        vm.stopPrank();
+
+        vm.startPrank(mockUser_2);
+        underlyingToken.approve(address(vault), 1000 ether);
+        vm.stopPrank();
+
+        uint256 _userSharesInLead = vault.sharesOf(1, 0, mockUser_1);
+
+        // Sync deposit should go to lead series
+        vm.prank(mockUser_1);
+        uint256 _shares1 = vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_1})
+        );
+
+        // Verify shares are in the lead series
+        assertGt(vault.sharesOf(1, 0, mockUser_1), _userSharesInLead);
+
+        // Another sync deposit should reuse the same series
+        vm.prank(mockUser_2);
+        uint256 _shares2 = vault.syncDeposit(
+            IAlephVaultDeposit.RequestDepositParams({classId: 1, amount: 50 ether, authSignature: authSignature_2})
+        );
+
+        assertGt(_shares2, 0);
+        assertGt(vault.sharesOf(1, 0, mockUser_2), 0);
     }
 
     function test_syncRedeemFromMultipleSeries() public {

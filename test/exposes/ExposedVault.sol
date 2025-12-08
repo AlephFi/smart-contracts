@@ -48,6 +48,10 @@ contract ExposedVault is AlephVault {
         _getStorage().shareClasses[1].lastFeePaidId = _i;
     }
 
+    function setShareSeriesId(uint32 _i) external {
+        _getStorage().shareClasses[1].shareSeriesId = _i;
+    }
+
     function setLastConsolidatedSeriesId(uint32 _i) external {
         AlephVaultStorageData storage _s = _getStorage();
         _s.shareClasses[1].lastConsolidatedSeriesId = _i;
