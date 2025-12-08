@@ -355,18 +355,17 @@ contract SyncRedeemTest is BaseTest {
 
         underlyingToken.mint(address(vault), _redeemAmount);
 
-        // Calculate expected assets (will be less than or equal to redeem amount due to rounding)
-        uint256 _expectedAssets = _previewRedeemAmount(1, mockUser_1, _redeemAmount);
-        uint256 _expectedTotalAssets = _totalAssetsBefore - _expectedAssets;
+        uint256 _expectedTotalAssets = _totalAssetsBefore - _redeemAmount;
         uint256 _expectedTotalShares =
-            _totalSharesBefore - ERC4626Math.previewWithdraw(_expectedAssets, _totalSharesBefore, _totalAssetsBefore);
+            _totalSharesBefore - ERC4626Math.previewWithdraw(_redeemAmount, _totalSharesBefore, _totalAssetsBefore);
 
         vm.prank(mockUser_1);
         vm.expectEmit(true, true, true, true);
-        emit IAlephVaultRedeem.SyncRedeem(
-            1, mockUser_1, _redeemAmount, _expectedAssets, _currentBatch, _expectedTotalAssets, _expectedTotalShares
-        );
+        emit IAlephVaultRedeem.SyncRedeem(1, _currentBatch, mockUser_1, _redeemAmount);
         vault.syncRedeem(IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: _redeemAmount}));
+
+        assertEq(vault.totalAssetsPerSeries(1, 0), _expectedTotalAssets);
+        assertEq(vault.totalSharesPerSeries(1, 0), _expectedTotalShares);
     }
 
     function test_syncRedeem_expirationBoundaryExactBatch() public {

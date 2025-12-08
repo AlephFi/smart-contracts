@@ -125,24 +125,6 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @dev Returns the total shares in the vault for a given class.
-     * @param _shareClass The share class.
-     * @return The total shares in the vault for the given class.
-     */
-    function _totalSharesPerClass(IAlephVault.ShareClass storage _shareClass) internal view returns (uint256) {
-        uint32 _shareSeriesId = _shareClass.shareSeriesId;
-        uint256 _totalSharesSum;
-        for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
-            // loop through all share series and sum up the total shares
-            _totalSharesSum += _totalSharesPerSeries(_shareClass, _seriesId);
-            if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
-                _seriesId = _shareClass.lastConsolidatedSeriesId;
-            }
-        }
-        return _totalSharesSum;
-    }
-
-    /**
      * @dev Returns the total shares in the vault.
      * @param _shareClass The share class.
      * @param _seriesId The ID of the share series.
