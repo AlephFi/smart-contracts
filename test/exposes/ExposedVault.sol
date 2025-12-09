@@ -11,10 +11,10 @@ import {AlephVault} from "@aleph-vault/AlephVault.sol";
 contract ExposedVault is AlephVault {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint256 public constant PRICE_DENOMINATOR = 1e6;
-    uint256 public constant TOTAL_SHARE_UNITS = 1e18;
-
     constructor(uint48 _b) AlephVault(_b) {}
+
+    function PRICE_DENOMINATOR() external pure returns (uint256) { return 1e6; }
+    function TOTAL_SHARE_UNITS() external pure returns (uint256) { return 1e18; }
 
     function accumulateFees(uint8, uint32, uint48, uint48, uint256, uint256) external returns (uint256) {
         _delegate(ModulesLibrary.FEE_MANAGER);
@@ -142,7 +142,7 @@ contract ExposedVault is AlephVault {
 
     function createNewSeries() external {
         AlephVaultStorageData storage _s = _getStorage();
-        _s.shareClasses[1].shareSeries[++_s.shareClasses[1].shareSeriesId].highWaterMark = PRICE_DENOMINATOR;
+        _s.shareClasses[1].shareSeries[++_s.shareClasses[1].shareSeriesId].highWaterMark = 1e6;
     }
 
     function getManagementFeeShares(uint256 _a, uint256 _sh, uint48 _b) external view returns (uint256) {
@@ -161,51 +161,51 @@ contract ExposedVault is AlephVault {
     }
 
     function managementFeeRecipient() external pure returns (address) {
-        return address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
+        return 0xF0a23D75A9e5dF0052261216441270569eDD5BEb;
     }
 
     function performanceFeeRecipient() external pure returns (address) {
-        return address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
+        return 0x91f69C0184bF67632Da9B6c9Cea82BFf2A506925;
     }
 
-    function _getTimelock(bytes4 _m, string memory _s) internal returns (uint48) {
-        (bool _o, bytes memory _d) = _getStorage().moduleImplementations[_m].delegatecall(abi.encodeWithSignature(_s));
+    function _getTimelock(bytes4 _m, bytes4 _s) internal returns (uint48) {
+        (bool _o, bytes memory _d) = _getStorage().moduleImplementations[_m].delegatecall(abi.encodePacked(_s));
         return _o ? abi.decode(_d, (uint48)) : 0;
     }
 
     function minDepositAmountTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, "MIN_DEPOSIT_AMOUNT_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, 0xc24b4e6c);
     }
 
     function minUserBalanceTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, "MIN_USER_BALANCE_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, 0x0a220052);
     }
 
     function maxDepositCapTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, "MAX_DEPOSIT_CAP_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, 0x3e05ec9d);
     }
 
     function noticePeriodTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, "NOTICE_PERIOD_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, 0xf20e464c);
     }
 
     function lockInPeriodTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, "LOCK_IN_PERIOD_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, 0xed46888d);
     }
 
     function minRedeemAmountTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, "MIN_REDEEM_AMOUNT_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, 0x36dffe3b);
     }
 
     function managementFeeTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.FEE_MANAGER, "MANAGEMENT_FEE_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.FEE_MANAGER, 0xe7d7db61);
     }
 
     function performanceFeeTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.FEE_MANAGER, "PERFORMANCE_FEE_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.FEE_MANAGER, 0xa4362f78);
     }
 
     function accountantTimelock() external returns (uint48) {
-        return _getTimelock(ModulesLibrary.FEE_MANAGER, "ACCOUNTANT_TIMELOCK()");
+        return _getTimelock(ModulesLibrary.FEE_MANAGER, 0x0e16c6c3);
     }
 }
