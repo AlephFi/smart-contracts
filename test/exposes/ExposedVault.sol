@@ -13,8 +13,13 @@ contract ExposedVault is AlephVault {
 
     constructor(uint48 _b) AlephVault(_b) {}
 
-    function PRICE_DENOMINATOR() external pure returns (uint256) { return 1e6; }
-    function TOTAL_SHARE_UNITS() external pure returns (uint256) { return 1e18; }
+    function PRICE_DENOMINATOR() external pure returns (uint256) {
+        return 1e6;
+    }
+
+    function TOTAL_SHARE_UNITS() external pure returns (uint256) {
+        return 1e18;
+    }
 
     function accumulateFees(uint8, uint32, uint48, uint48, uint256, uint256) external returns (uint256) {
         _delegate(ModulesLibrary.FEE_MANAGER);
