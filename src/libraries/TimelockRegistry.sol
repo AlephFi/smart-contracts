@@ -59,6 +59,10 @@ library TimelockRegistry {
      * @notice The key for the accountant.
      */
     bytes4 internal constant ACCOUNTANT = bytes4(keccak256("ACCOUNTANT"));
+    /**
+     * @notice The key for the sync expiration batches.
+     */
+    bytes4 internal constant SYNC_EXPIRATION_BATCHES = bytes4(keccak256("SYNC_EXPIRATION_BATCHES"));
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

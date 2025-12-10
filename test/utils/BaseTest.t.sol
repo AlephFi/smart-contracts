@@ -56,6 +56,7 @@ contract BaseTest is Test {
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
         uint48 accountantTimelock;
+        uint48 syncExpirationBatchesTimelock;
         uint48 batchDuration;
     }
 
@@ -83,6 +84,7 @@ contract BaseTest is Test {
     uint48 public managementFeeTimelock;
     uint48 public performanceFeeTimelock;
     uint48 public accountantTimelock;
+    uint48 public syncExpirationBatchesTimelock;
     uint48 public batchDuration;
     uint32 public managementFeeCut;
     uint32 public performanceFeeCut;
@@ -135,6 +137,7 @@ contract BaseTest is Test {
             managementFeeTimelock: 7 days,
             performanceFeeTimelock: 7 days,
             accountantTimelock: 7 days,
+            syncExpirationBatchesTimelock: 7 days,
             batchDuration: 1 days
         });
 
@@ -152,6 +155,7 @@ contract BaseTest is Test {
                 underlyingToken: address(underlyingToken),
                 custodian: makeAddr("custodian"),
                 vaultTreasury: makeAddr("vaultTreasury"),
+                syncExpirationBatches: 2,
                 shareClassParams: IAlephVault.ShareClassParams({
                     managementFee: 200, // 2%
                     performanceFee: 2000, // 20%
@@ -212,6 +216,7 @@ contract BaseTest is Test {
         managementFeeTimelock = _configParams.managementFeeTimelock;
         performanceFeeTimelock = _configParams.performanceFeeTimelock;
         accountantTimelock = _configParams.accountantTimelock;
+        syncExpirationBatchesTimelock = _configParams.syncExpirationBatchesTimelock;
         batchDuration = _configParams.batchDuration;
 
         // deploy modules
@@ -236,7 +241,9 @@ contract BaseTest is Test {
                     batchDuration
                 )
             ),
-            alephVaultSettlementImplementation: address(new AlephVaultSettlement(batchDuration)),
+            alephVaultSettlementImplementation: address(
+                new AlephVaultSettlement(syncExpirationBatchesTimelock, batchDuration)
+            ),
             feeManagerImplementation: address(
                 new FeeManager(
                     IFeeManager.FeeConstructorParams({

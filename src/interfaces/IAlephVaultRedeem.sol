@@ -88,6 +88,15 @@ interface IAlephVaultRedeem {
      */
     event ExcessAssetsWithdrawn(uint256 excessAssets);
 
+    /**
+     * @notice Emitted when a synchronous redeem is made.
+     * @param classId The ID of the share class.
+     * @param batchId The batch ID when the redeem occurred.
+     * @param allocator The address making the redeem.
+     * @param requestedAmount The amount requested to redeem.
+     */
+    event SyncRedeem(uint8 indexed classId, uint48 batchId, address indexed allocator, uint256 requestedAmount);
+
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -128,6 +137,11 @@ interface IAlephVaultRedeem {
      * @notice Emitted when the vault balance is insufficient.
      */
     error InsufficientVaultBalance();
+
+    /**
+     * @notice Emitted when only async redeem is allowed (sync is not valid).
+     */
+    error OnlyAsyncRedeemAllowed();
 
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
@@ -218,4 +232,12 @@ interface IAlephVaultRedeem {
      * @notice Withdraws excess assets from the vault and sends back to custodian.
      */
     function withdrawExcessAssets() external;
+
+    /**
+     * @notice Redeems shares synchronously from the vault, transferring assets immediately.
+     * @param _redeemRequestParams The parameters for the redeem (same as requestRedeem).
+     * @return _assets The amount of assets transferred to the caller.
+     * @dev Only callable when totalAssets is valid. Bypasses notice period.
+     */
+    function syncRedeem(RedeemRequestParams calldata _redeemRequestParams) external returns (uint256 _assets);
 }

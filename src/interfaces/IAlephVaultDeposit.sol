@@ -76,6 +76,28 @@ interface IAlephVaultDeposit {
      */
     event DepositRequest(uint8 classId, uint48 batchId, address indexed user, uint256 amount);
 
+    /**
+     * @notice Emitted when a synchronous deposit is made.
+     * @param classId The ID of the share class.
+     * @param allocator The address making the deposit.
+     * @param amount The amount deposited.
+     * @param shares The number of shares minted.
+     * @param seriesId The series ID where shares were minted.
+     * @param batchId The batch ID when the deposit occurred.
+     * @param totalAssets The total assets in the series after the deposit.
+     * @param totalShares The total shares in the series after the deposit.
+     */
+    event SyncDeposit(
+        uint8 indexed classId,
+        address indexed allocator,
+        uint256 amount,
+        uint256 shares,
+        uint32 seriesId,
+        uint48 batchId,
+        uint256 totalAssets,
+        uint256 totalShares
+    );
+
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -113,6 +135,11 @@ interface IAlephVaultDeposit {
      * @notice Emitted when the deposit request fails.
      */
     error DepositRequestFailed();
+
+    /**
+     * @notice Emitted when only async deposit is allowed (sync is not valid).
+     */
+    error OnlyAsyncDepositAllowed();
 
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
@@ -192,4 +219,12 @@ interface IAlephVaultDeposit {
      * @return _batchId The batch ID for the deposit.
      */
     function requestDeposit(RequestDepositParams calldata _requestDepositParams) external returns (uint48 _batchId);
+
+    /**
+     * @notice Deposits assets synchronously into the vault, minting shares immediately.
+     * @param _requestDepositParams The parameters for the deposit (same as requestDeposit).
+     * @return _shares The number of shares minted to the caller.
+     * @dev Only callable when totalAssets is valid for the specified class.
+     */
+    function syncDeposit(RequestDepositParams calldata _requestDepositParams) external returns (uint256 _shares);
 }

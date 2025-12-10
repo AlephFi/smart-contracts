@@ -73,7 +73,7 @@ contract DeployAccountantProxy is BaseScript {
         string memory _accountantConfig,
         string memory _chainId,
         string memory _environment
-    ) internal view returns (IAccountant.InitializationParams memory) {
+    ) internal pure returns (IAccountant.InitializationParams memory) {
         return IAccountant.InitializationParams({
             operationsMultisig: vm.parseJsonAddress(
                 _deploymentConfig, string.concat(".", _chainId, ".", _environment, ".operationsMultisig")

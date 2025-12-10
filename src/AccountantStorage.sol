@@ -15,6 +15,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
                         $$ |
                         $$/
 */
+import {IAccountant} from "@aleph-vault/interfaces/IAccountant.sol";
 
 /**
  * @notice Data layout for the accountant storage.
@@ -32,12 +33,14 @@ struct AccountantStorageData {
     mapping(address vault => uint32) managementFeeCut;
     mapping(address vault => uint32) performanceFeeCut;
     mapping(address vault => address) vaultTreasury;
+    mapping(address vault => uint32) operatorFeeCut;
+    mapping(address vault => IAccountant.OperatorAllocations) operatorAllocatedAmount;
 }
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://aleph.finance/terms-of-service
  */
-
 library AccountantStorage {
     uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.aleph.accountant")) - 1;
 

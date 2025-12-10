@@ -12,7 +12,18 @@ jobs:
     name: Protected Files
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Check Config Changes
         run: |
-          echo "⚠️ This PR modifies protected configuration files that require approval from @0xtechdean"
-          exit 1 
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          OWNER="0xtechdean"
+          
+          if [ "$PR_AUTHOR" = "$OWNER" ]; then
+            echo "✅ PR author is the config owner. Allowing changes."
+            exit 0
+          else
+            echo "⚠️ This PR modifies protected configuration files that require approval from @0xtechdean"
+            echo "::warning::Protected configuration files modified. Approval required from @0xtechdean"
+            exit 1
+          fi 

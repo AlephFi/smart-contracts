@@ -102,7 +102,7 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         uint256 _totalAssetsSum;
         for (uint32 _seriesId; _seriesId <= _shareSeriesId; _seriesId++) {
             // loop through all share series and sum up the total assets
-            _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+            _totalAssetsSum += _totalAssetsPerSeries(_shareClass, _seriesId);
             if (_seriesId == SeriesAccounting.LEAD_SERIES_ID) {
                 _seriesId = _shareClass.lastConsolidatedSeriesId;
             }
@@ -113,11 +113,10 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     /**
      * @dev Returns the total assets in the vault.
      * @param _shareClass The share class.
-     * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total assets in the vault.
      */
-    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint32 _seriesId)
+    function _totalAssetsPerSeries(IAlephVault.ShareClass storage _shareClass, uint32 _seriesId)
         internal
         view
         returns (uint256)
@@ -128,11 +127,10 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     /**
      * @dev Returns the total shares in the vault.
      * @param _shareClass The share class.
-     * @param _classId The ID of the share class.
      * @param _seriesId The ID of the share series.
      * @return The total shares in the vault.
      */
-    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint8 _classId, uint32 _seriesId)
+    function _totalSharesPerSeries(IAlephVault.ShareClass storage _shareClass, uint32 _seriesId)
         internal
         view
         returns (uint256)
@@ -170,8 +168,8 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     {
         return ERC4626Math.previewRedeem(
             _sharesOf(_shareClass, _seriesId, _user),
-            _totalAssetsPerSeries(_shareClass, _classId, _seriesId),
-            _totalSharesPerSeries(_shareClass, _classId, _seriesId)
+            _totalAssetsPerSeries(_shareClass, _seriesId),
+            _totalSharesPerSeries(_shareClass, _seriesId)
         );
     }
 
@@ -209,6 +207,34 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
     }
 
     /**
+     * @dev Returns the last valuation settle ID for a share class (max of depositSettleId and redeemSettleId).
+     * @param _sd The storage struct.
+     * @param _classId The share class ID.
+     * @return The last batch where valuation was updated for this class (max of deposit and redeem settle IDs).
+     */
+    function _lastValuationSettleId(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (uint48) {
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_classId];
+        uint48 _depositSettleId = _shareClass.depositSettleId;
+        uint48 _redeemSettleId = _shareClass.redeemSettleId;
+        return _depositSettleId > _redeemSettleId ? _depositSettleId : _redeemSettleId;
+    }
+
+    /**
+     * @dev Internal function to check if total assets are valid for sync operations.
+     * @param _sd The storage struct.
+     * @param _classId The share class ID.
+     * @return true if sync flows are allowed, false otherwise.
+     */
+    function _isTotalAssetsValid(AlephVaultStorageData storage _sd, uint8 _classId) internal view returns (bool) {
+        uint48 _lastValuationSettleIdValue = _lastValuationSettleId(_sd, _classId);
+        if (_lastValuationSettleIdValue == 0) {
+            return false;
+        }
+        uint48 _currentBatchValue = _currentBatch(_sd);
+        return _currentBatchValue <= _lastValuationSettleIdValue + _sd.syncExpirationBatches;
+    }
+
+    /**
      * @dev Returns the lead price per share.
      * @param _shareClass The share class.
      * @param _classId The ID of the share class.
@@ -220,8 +246,8 @@ contract AlephVaultBase is ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         return _getPricePerShare(
-            _totalAssetsPerSeries(_shareClass, _classId, SeriesAccounting.LEAD_SERIES_ID),
-            _totalSharesPerSeries(_shareClass, _classId, SeriesAccounting.LEAD_SERIES_ID)
+            _totalAssetsPerSeries(_shareClass, SeriesAccounting.LEAD_SERIES_ID),
+            _totalSharesPerSeries(_shareClass, SeriesAccounting.LEAD_SERIES_ID)
         );
     }
 

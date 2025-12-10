@@ -4,7 +4,7 @@ import {
     MetaTransactionData
 } from '@safe-global/types-kit'
 import { execSync } from 'child_process'
-import { Interface, Wallet, JsonRpcProvider, keccak256, toUtf8Bytes } from 'ethers'
+import { Interface, Wallet, JsonRpcProvider, keccak256, toUtf8Bytes, getAddress } from 'ethers'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
@@ -175,14 +175,67 @@ export async function proposeSafeTransaction(
         apiKey: safeApiKey
     });
 
-    // Propose transaction
-    await apiKit.proposeTransaction({
-        safeAddress: safeOwnerAddress,
-        safeTransactionData: safeTransaction.data,
+    const senderAddress = getAddress(new Wallet(privateKey).address);
+    const checksummedSafeAddress = getAddress(safeOwnerAddress);
+    
+    // Get transaction data in the format expected by the API
+    // In Safe protocol-kit v6, the transaction data should be serialized properly
+    const transactionData = safeTransaction.data;
+    
+    // Ensure all addresses in transaction data are checksummed
+    const normalizedTransactionData = {
+        ...transactionData,
+        to: getAddress(transactionData.to),
+        gasToken: transactionData.gasToken ? getAddress(transactionData.gasToken) : transactionData.gasToken,
+        refundReceiver: transactionData.refundReceiver ? getAddress(transactionData.refundReceiver) : transactionData.refundReceiver
+    };
+    
+    const proposalData = {
+        safeAddress: checksummedSafeAddress,
+        safeTransactionData: normalizedTransactionData,
         safeTxHash,
-        senderAddress: new Wallet(privateKey).address,
+        senderAddress,
         senderSignature: signatureOwner.data
-    });
+    };
+
+    console.log("PROPOSAL DATA");
+    console.log("================================================");
+    console.log("Safe Address (original):", safeOwnerAddress);
+    console.log("Safe Address (checksummed):", checksummedSafeAddress);
+    console.log("Sender Address:", senderAddress);
+    console.log("Chain ID:", chainId);
+    console.log("Transaction Hash:", safeTxHash);
+    console.log("Transaction Data Type:", typeof normalizedTransactionData);
+    console.log("Normalized Transaction Data:", JSON.stringify(normalizedTransactionData, null, 2));
+    console.log("Signature:", signatureOwner.data);
+    console.log("================================================");
+
+    // Propose transaction
+    try {
+        await apiKit.proposeTransaction(proposalData);
+    } catch (error: any) {
+        console.error('Error proposing transaction:');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        
+        // Try to extract more details
+        if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response status text:', error.response.statusText);
+            console.error('Response data:', JSON.stringify(error.response.data, null, 2));
+        }
+        if (error.cause) {
+            console.error('Error cause:', error.cause);
+        }
+        if (error.body) {
+            console.error('Error body:', error.body);
+        }
+        if (error.data) {
+            console.error('Error data:', error.data);
+        }
+        throw error;
+    }
 
     console.log("Safe transaction proposed successfully!");
     return safeTxHash;
