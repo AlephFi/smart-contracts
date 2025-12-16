@@ -45,4 +45,8 @@ library RolesLibrary {
      * @notice The role for the accountant.
      */
     bytes4 internal constant ACCOUNTANT = bytes4(keccak256("ACCOUNTANT"));
+    /**
+     * @notice The role for the aleph avs.
+     */
+    bytes4 internal constant ALEPH_AVS = bytes4(keccak256("ALEPH_AVS"));
 }

@@ -18,6 +18,7 @@ $$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Time} from "openzeppelin-contracts/contracts/utils/types/Time.sol";
 import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
@@ -25,6 +26,7 @@ import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
+import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -36,15 +38,24 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using SeriesAccounting for IAlephVault.ShareClass;
+    using TimelockRegistry for bytes4;
+
+    /**
+     * @notice The timelock period for sync expiration batches.
+     */
+    uint48 public immutable SYNC_EXPIRATION_BATCHES_TIMELOCK;
 
     /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Constructor for AlephVaultSettlement module
+     * @param _syncExpirationBatchesTimelock The timelock period for sync expiration batches in seconds
      * @param _batchDuration The duration of each batch cycle in seconds
      */
-    constructor(uint48 _batchDuration) AlephVaultBase(_batchDuration) {}
+    constructor(uint48 _syncExpirationBatchesTimelock, uint48 _batchDuration) AlephVaultBase(_batchDuration) {
+        SYNC_EXPIRATION_BATCHES_TIMELOCK = _syncExpirationBatchesTimelock;
+    }
 
     /*//////////////////////////////////////////////////////////////
                             SETTLEMENT FUNCTIONS
@@ -62,6 +73,16 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
     /// @inheritdoc IAlephVaultSettlement
     function forceRedeem(address _user) external nonReentrant {
         _forceRedeem(_getStorage(), _user);
+    }
+
+    /// @inheritdoc IAlephVaultSettlement
+    function queueSyncExpirationBatches(uint48 _expirationBatches) external {
+        _queueSyncExpirationBatches(_getStorage(), _expirationBatches);
+    }
+
+    /// @inheritdoc IAlephVaultSettlement
+    function setSyncExpirationBatches() external {
+        _setSyncExpirationBatches(_getStorage());
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -95,7 +116,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 _settlementParams.authSignature
             );
         }
-        // accumalate fees if applicable
+        // accumulate fees if applicable
         _accumulateFees(
             _shareClass,
             _settlementParams.classId,
@@ -133,6 +154,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         _shareSeries.totalAssets = _settleDepositDetails.totalAssets;
         _shareSeries.totalShares = _settleDepositDetails.totalShares;
         _sd.totalAmountToDeposit -= _amountToSettle;
+
         uint256 _requiredVaultBalance = _amountToSettle + _sd.totalAmountToDeposit + _sd.totalAmountToWithdraw;
         if (IERC20(_sd.underlyingToken).balanceOf(address(this)) < _requiredVaultBalance) {
             revert InsufficientAssetsToSettle(_requiredVaultBalance);
@@ -185,8 +207,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 _depositRequestDetails.amount, _settleDepositDetails.totalShares, _settleDepositDetails.totalAssets
             );
             _totalSharesToMint += _depositRequestDetails.sharesToMint;
-            _shareClass.shareSeries[_settleDepositDetails.seriesId]
-            .sharesOf[_depositRequestDetails.user] += _depositRequestDetails.sharesToMint;
+            _shareClass.shareSeries[_settleDepositDetails.seriesId].sharesOf[
+                _depositRequestDetails.user
+            ] += _depositRequestDetails.sharesToMint;
             // add user into settlement series if they don't already exist there
             if (!_shareClass.shareSeries[_settleDepositDetails.seriesId].users.contains(_depositRequestDetails.user)) {
                 _shareClass.shareSeries[_settleDepositDetails.seriesId].users.add(_depositRequestDetails.user);
@@ -246,7 +269,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 _settlementParams.authSignature
             );
         }
-        // accumalate fees if applicable
+        // accumulate fees if applicable
         _accumulateFees(
             _shareClass,
             _settlementParams.classId,
@@ -367,7 +390,6 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @dev Internal function to handle the series accounting.
      * @param _shareClass The share class.
      * @param _classId The id of the class.
-     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
      * @param _toBatchId The batch id in which to consolidate/create new series.
      * @return _seriesId The series id in which to settle pending deposits.
      * @dev this function is called before settling deposits/redeems to handle the series accounting.
@@ -384,9 +406,9 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         // for non-incentive classes, all settlements take place in the lead series
         if (_shareClass.shareClassParams.performanceFee > 0) {
             uint32 _shareSeriesId = _shareClass.shareSeriesId;
-            // if new lead series highwatermark is not reached, deposit settlements must take place in a new series
-            // if a new highwater mark is reached in this cycle, it will be updated in _accumalateFees function
-            // hence, after fee accumalation process, the lead highwater mark is either greater than or equal to
+            // if new lead series high water mark is not reached, deposit settlements must take place in a new series
+            // if a new high water mark is reached in this cycle, it will be updated in _accumulateFees function
+            // hence, after fee accumulation process, the lead high water mark is either greater than or equal to
             // the lead price per share
             if (
                 _shareClass.shareSeries[SeriesAccounting.LEAD_SERIES_ID].highWaterMark
@@ -396,7 +418,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                 // in this cycle
                 _seriesId = _shareSeriesId + 1;
             } else if (_shareSeriesId > _lastConsolidatedSeriesId) {
-                // if new lead series highwatermark was reached in this cycle and their exists outstanding series,
+                // if new lead series high water mark was reached in this cycle and there exist outstanding series,
                 // consolidate them into lead series
                 _shareClass.consolidateSeries(_classId, _shareSeriesId, _lastConsolidatedSeriesId, _toBatchId);
             }
@@ -423,9 +445,8 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
      * @dev Internal function to accumulate fees.
      * @param _shareClass The share class to accumulate fees for.
      * @param _classId The id of the class.
-     * @param _lastConsolidatedSeriesId The id of the last consolidated series.
      * @param _toBatchId The batch id to settle deposits up to.
-     * @param _newTotalAssets The new total assets after settlement.
+     * @param _newTotalAssets The new total assets after settlement (ordered: [leadSeries, activeSeries1, activeSeries2, ...]).
      */
     function _accumulateFees(
         IAlephVault.ShareClass storage _shareClass,
@@ -442,8 +463,7 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
                     : SeriesAccounting.LEAD_SERIES_ID;
                 // update the series total assets and shares
                 _shareClass.shareSeries[_seriesId].totalAssets = _newTotalAssets[_i];
-                _shareClass.shareSeries[_seriesId]
-                .totalShares += _accumulateFeeShares(
+                _shareClass.shareSeries[_seriesId].totalShares += _accumulateFeeShares(
                     _newTotalAssets[_i],
                     _shareClass.shareSeries[_seriesId].totalShares,
                     _toBatchId,
@@ -477,8 +497,8 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
         if (_newTotalAssets == 0) {
             return 0;
         }
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-        .delegatecall(
+        (bool _success, bytes memory _data) = _getStorage()
+        .moduleImplementations[ModulesLibrary.FEE_MANAGER].delegatecall(
             abi.encodeCall(
                 IFeeManager.accumulateFees,
                 (_classId, _seriesId, _toBatchId, _lastFeePaidId, _newTotalAssets, _totalShares)
@@ -488,5 +508,33 @@ contract AlephVaultSettlement is IAlephVaultSettlement, AlephVaultBase {
             revert DelegateCallFailed(_data);
         }
         return abi.decode(_data, (uint256));
+    }
+
+    /**
+     * @dev Internal function to queue sync expiration batches.
+     * @param _sd The storage struct.
+     * @param _expirationBatches The number of batches sync flows remain valid.
+     * @dev Setting _expirationBatches to 0 will disable sync flows (only valid in the exact batch where settlement occurred).
+     */
+    function _queueSyncExpirationBatches(AlephVaultStorageData storage _sd, uint48 _expirationBatches) internal {
+        // Use classId = 0 for vault-level parameters
+        _sd.timelocks[TimelockRegistry.SYNC_EXPIRATION_BATCHES.getKey(0)] = TimelockRegistry.Timelock({
+            isQueued: true,
+            unlockTimestamp: Time.timestamp() + SYNC_EXPIRATION_BATCHES_TIMELOCK,
+            newValue: abi.encode(_expirationBatches)
+        });
+        emit SyncExpirationBatchesQueued(_expirationBatches);
+    }
+
+    /**
+     * @dev Internal function to set sync expiration batches from timelock.
+     * @param _sd The storage struct.
+     */
+    function _setSyncExpirationBatches(AlephVaultStorageData storage _sd) internal {
+        // Use classId = 0 for vault-level parameters
+        bytes memory _newValue = TimelockRegistry.SYNC_EXPIRATION_BATCHES.setTimelock(0, _sd);
+        uint48 _expirationBatches = abi.decode(_newValue, (uint48));
+        _sd.syncExpirationBatches = _expirationBatches;
+        emit SyncExpirationBatchesUpdated(_expirationBatches);
     }
 }

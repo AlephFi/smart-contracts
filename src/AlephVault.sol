@@ -129,6 +129,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _sd.guardian = _initializationParams.guardian;
         _sd.authSigner = _initializationParams.authSigner;
         _sd.accountant = _initializationParams.accountant;
+        _sd.syncExpirationBatches = _initializationParams.userInitializationParams.syncExpirationBatches;
         _sd.name = _initializationParams.userInitializationParams.name;
         _sd.underlyingToken = _initializationParams.userInitializationParams.underlyingToken;
         _sd.custodian = _initializationParams.userInitializationParams.custodian;
@@ -138,15 +139,15 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
 
         // set up module implementations
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT] =
-            _initializationParams.moduleInitializationParams.alephVaultDepositImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultDepositImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM] =
-            _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultRedeemImplementation;
         _sd.moduleImplementations[ModulesLibrary.ALEPH_VAULT_SETTLEMENT] =
-            _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation;
+        _initializationParams.moduleInitializationParams.alephVaultSettlementImplementation;
         _sd.moduleImplementations[ModulesLibrary.FEE_MANAGER] =
-            _initializationParams.moduleInitializationParams.feeManagerImplementation;
+        _initializationParams.moduleInitializationParams.feeManagerImplementation;
         _sd.moduleImplementations[ModulesLibrary.MIGRATION_MANAGER] =
-            _initializationParams.moduleInitializationParams.migrationManagerImplementation;
+        _initializationParams.moduleInitializationParams.migrationManagerImplementation;
 
         // grant roles
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _initializationParams.operationsMultisig);
@@ -328,7 +329,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         for (uint32 _i; _i < _len; _i++) {
             uint32 _seriesId =
                 _i > SeriesAccounting.LEAD_SERIES_ID ? _lastConsolidatedSeriesId + _i : SeriesAccounting.LEAD_SERIES_ID;
-            _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _classId, _seriesId);
+            _totalAssets[_i] = _totalAssetsPerSeries(_shareClass, _seriesId);
         }
         return _totalAssets;
     }
@@ -345,7 +346,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _totalAssetsPerSeries(_getStorage().shareClasses[_classId], _classId, _seriesId);
+        return _totalAssetsPerSeries(_getStorage().shareClasses[_classId], _seriesId);
     }
 
     /// @inheritdoc IAlephVault
@@ -355,7 +356,7 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClassAndSeries(_classId, _seriesId)
         returns (uint256)
     {
-        return _totalSharesPerSeries(_getStorage().shareClasses[_classId], _classId, _seriesId);
+        return _totalSharesPerSeries(_getStorage().shareClasses[_classId], _seriesId);
     }
 
     /// @inheritdoc IAlephVault
@@ -396,10 +397,10 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         returns (uint256)
     {
         IAlephVault.ShareClass storage _shareClass = _getStorage().shareClasses[_classId];
-        return _getPricePerShare(
-            _totalAssetsPerSeries(_shareClass, _classId, _seriesId),
-            _totalSharesPerSeries(_shareClass, _classId, _seriesId)
-        );
+        return
+            _getPricePerShare(
+                _totalAssetsPerSeries(_shareClass, _seriesId), _totalSharesPerSeries(_shareClass, _seriesId)
+            );
     }
 
     /// @inheritdoc IAlephVault
@@ -761,6 +762,30 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
     }
 
+    /**
+     * @notice Deposits assets synchronously into the vault, minting shares immediately.
+     * @param _requestDepositParams The parameters for the deposit (same as requestDeposit).
+     * @return _shares The number of shares minted to the caller.
+     * @dev Only callable when totalAssets is valid for the specified class.
+     */
+    function syncDeposit(IAlephVaultDeposit.RequestDepositParams calldata _requestDepositParams)
+        external
+        onlyValidShareClass(_requestDepositParams.classId)
+        whenFlowNotPaused(PausableFlows.DEPOSIT_REQUEST_FLOW)
+        returns (uint256 _shares)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_DEPOSIT);
+    }
+
+    /**
+     * @notice Checks if total assets are valid for synchronous operations for a specific class.
+     * @param _classId The share class ID to check.
+     * @return true if sync flows are allowed, false otherwise.
+     */
+    function isTotalAssetsValid(uint8 _classId) external view override returns (bool) {
+        return _isTotalAssetsValid(_getStorage(), _classId);
+    }
+
     /*//////////////////////////////////////////////////////////////
                             REDEEM FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -775,6 +800,21 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
         onlyValidShareClass(_redeemRequestParams.classId)
         whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
         returns (uint48 _batchId)
+    {
+        _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
+    }
+
+    /**
+     * @notice Redeems shares synchronously from the vault, transferring assets immediately.
+     * @param _redeemRequestParams The parameters for the redeem (same as requestRedeem).
+     * @return _assets The amount of assets transferred to the caller.
+     * @dev Only callable when totalAssets is valid.
+     */
+    function syncRedeem(IAlephVaultRedeem.RedeemRequestParams calldata _redeemRequestParams)
+        external
+        onlyValidShareClass(_redeemRequestParams.classId)
+        whenFlowNotPaused(PausableFlows.REDEEM_REQUEST_FLOW)
+        returns (uint256 _assets)
     {
         _delegate(ModulesLibrary.ALEPH_VAULT_REDEEM);
     }
@@ -832,6 +872,24 @@ contract AlephVault is IAlephVault, AlephVaultBase, AlephPausable {
      * @dev Only callable by the MANAGER role.
      */
     function forceRedeem(address _user) external onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @notice Queues a new sync expiration batches value to be set after the timelock period.
+     * @param _expirationBatches The number of batches sync flows remain valid.
+     * @dev Only callable by the MANAGER role.
+     * @dev Setting _expirationBatches to 0 will disable sync flows (only valid in the exact batch where settlement occurred).
+     */
+    function queueSyncExpirationBatches(uint48 _expirationBatches) external onlyRole(RolesLibrary.MANAGER) {
+        _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
+    }
+
+    /**
+     * @notice Sets the sync expiration batches to the queued value after the timelock period.
+     * @dev Only callable by the MANAGER role.
+     */
+    function setSyncExpirationBatches() external onlyRole(RolesLibrary.MANAGER) {
         _delegate(ModulesLibrary.ALEPH_VAULT_SETTLEMENT);
     }
 

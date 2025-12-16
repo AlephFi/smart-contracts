@@ -39,6 +39,7 @@ contract DeployAlephVault is BaseScript {
         string memory _chainId = _getChainId();
         vm.createSelectFork(_chainId);
         uint256 _privateKey = _getPrivateKey();
+        address _manager = vm.addr(_privateKey);
         vm.startBroadcast(_privateKey);
 
         string memory _environment = _getEnvironment();
@@ -47,7 +48,7 @@ contract DeployAlephVault is BaseScript {
         string memory _vaultName = vm.envString("VAULT_NAME");
         string memory _vaultConfigId = vm.envString("VAULT_CONFIG_ID");
         AuthLibrary.AuthSignature memory _authSignature =
-            _getAuthSignature(_factory, msg.sender, _vaultName, _vaultConfigId);
+            _getAuthSignature(_manager, _factory, _vaultName, _vaultConfigId);
 
         IAlephVault.ShareClassParams memory _shareClassParams = IAlephVault.ShareClassParams({
             managementFee: uint32(vm.envUint("VAULT_MANAGEMENT_FEE")),
@@ -66,6 +67,7 @@ contract DeployAlephVault is BaseScript {
             underlyingToken: vm.envAddress("VAULT_UNDERLYING_TOKEN"),
             custodian: vm.envAddress("VAULT_CUSTODIAN"),
             vaultTreasury: vm.envAddress("VAULT_TREASURY"),
+            syncExpirationBatches: uint48(vm.envUint("VAULT_SYNC_EXPIRATION_BATCHES")),
             shareClassParams: _shareClassParams,
             authSignature: _authSignature
         });
@@ -78,13 +80,13 @@ contract DeployAlephVault is BaseScript {
     }
 
     function _getAuthSignature(
+        address _manager,
         address _factory,
-        address _vaultManager,
         string memory _vaultName,
         string memory _vaultConfigId
     ) internal view returns (AuthLibrary.AuthSignature memory) {
         bytes32 _authMessage = keccak256(
-            abi.encode(_vaultManager, _factory, _vaultName, _vaultConfigId, block.chainid, type(uint256).max)
+            abi.encode(_manager, _factory, _vaultName, _vaultConfigId, block.chainid, type(uint256).max)
         );
         bytes32 _ethSignedMessage = _authMessage.toEthSignedMessageHash();
         uint256 _authSignerPrivateKey = _getAuthSignerPrivateKey();

@@ -23,6 +23,9 @@ import {IAlephVault} from "@aleph-vault/interfaces/IAlephVault.sol";
 import {IAlephVaultDeposit} from "@aleph-vault/interfaces/IAlephVaultDeposit.sol";
 import {AuthLibrary} from "@aleph-vault/libraries/AuthLibrary.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
+import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
+import {SeriesAccounting} from "@aleph-vault/libraries/SeriesAccounting.sol";
+import {IAlephVaultSettlement} from "@aleph-vault/interfaces/IAlephVaultSettlement.sol";
 import {AlephVaultBase} from "@aleph-vault/AlephVaultBase.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 
@@ -34,6 +37,7 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     using SafeERC20 for IERC20;
     using TimelockRegistry for bytes4;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SeriesAccounting for IAlephVault.ShareClass;
 
     /**
      * @notice The timelock period for the minimum deposit amount.
@@ -113,6 +117,24 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         returns (uint48 _batchId)
     {
         return _requestDeposit(_getStorage(), _requestDepositParams);
+    }
+
+    /// @inheritdoc IAlephVaultDeposit
+    function syncDeposit(RequestDepositParams calldata _requestDepositParams)
+        external
+        nonReentrant
+        returns (uint256 _shares)
+    {
+        return _syncDeposit(_getStorage(), _requestDepositParams);
+    }
+
+    /**
+     * @notice Checks if total assets are valid for synchronous operations for a specific class.
+     * @param _classId The share class ID to check.
+     * @return true if sync flows are allowed, false otherwise.
+     */
+    function isTotalAssetsValid(uint8 _classId) external view returns (bool) {
+        return _isTotalAssetsValid(_getStorage(), _classId);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -203,20 +225,19 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
     }
 
     /**
-     * @dev Internal function to handle a deposit request.
+     * @dev Internal function to validate deposit parameters.
      * @param _sd The storage struct.
-     * @param _requestDepositParams The parameters for the deposit request.
-     * @return _batchId The batch ID for the deposit.
+     * @param _shareClass The share class.
+     * @param _requestDepositParams The parameters for the deposit.
      */
-    function _requestDeposit(AlephVaultStorageData storage _sd, RequestDepositParams calldata _requestDepositParams)
-        internal
-        returns (uint48 _batchId)
-    {
-        // verify all conditions are satisfied to make deposit request
+    function _validateDeposit(
+        AlephVaultStorageData storage _sd,
+        IAlephVault.ShareClass storage _shareClass,
+        RequestDepositParams calldata _requestDepositParams
+    ) internal view {
         if (_requestDepositParams.amount == 0) {
             revert InsufficientDeposit();
         }
-        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_requestDepositParams.classId];
         IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
         if (_requestDepositParams.amount < _shareClassParams.minDepositAmount) {
             revert DepositLessThanMinDepositAmount(_shareClassParams.minDepositAmount);
@@ -242,14 +263,54 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
                 _requestDepositParams.classId, _sd.authSigner, _requestDepositParams.authSignature
             );
         }
+    }
+
+    /**
+     * @dev Internal function to transfer assets from user to vault.
+     * @param _sd The storage struct.
+     * @param _amount The amount to transfer.
+     */
+    function _transferAssetsFromUserToVault(AlephVaultStorageData storage _sd, uint256 _amount) internal {
+        IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
+        uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
+        _underlyingToken.safeTransferFrom(msg.sender, address(this), _amount);
+        uint256 _depositedAmount = _underlyingToken.balanceOf(address(this)) - _balanceBefore;
+        if (_depositedAmount != _amount) {
+            revert DepositRequestFailed();
+        }
+    }
+
+    /**
+     * @dev Internal function to update lock-in period for a user if applicable.
+     * @param _shareClass The share class.
+     * @param _currentBatchId The current batch ID.
+     */
+    function _updateLockInPeriod(IAlephVault.ShareClass storage _shareClass, uint48 _currentBatchId) internal {
+        IAlephVault.ShareClassParams memory _shareClassParams = _shareClass.shareClassParams;
+        if (_shareClassParams.lockInPeriod > 0 && _shareClass.userLockInPeriod[msg.sender] == 0) {
+            _shareClass.userLockInPeriod[msg.sender] = _currentBatchId + _shareClassParams.lockInPeriod;
+        }
+    }
+
+    /**
+     * @dev Internal function to handle a deposit request.
+     * @param _sd The storage struct.
+     * @param _requestDepositParams The parameters for the deposit request.
+     * @return _batchId The batch ID for the deposit.
+     */
+    function _requestDeposit(AlephVaultStorageData storage _sd, RequestDepositParams calldata _requestDepositParams)
+        internal
+        returns (uint48 _batchId)
+    {
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_requestDepositParams.classId];
+        _validateDeposit(_sd, _shareClass, _requestDepositParams);
         uint48 _currentBatchId = _currentBatch(_sd);
         IAlephVault.DepositRequests storage _depositRequests = _shareClass.depositRequests[_currentBatchId];
         if (_depositRequests.depositRequest[msg.sender] > 0) {
             revert OnlyOneRequestPerBatchAllowedForDeposit();
         }
-        if (_shareClassParams.lockInPeriod > 0 && _shareClass.userLockInPeriod[msg.sender] == 0) {
-            _shareClass.userLockInPeriod[msg.sender] = _currentBatchId + _shareClassParams.lockInPeriod;
-        }
+
+        _updateLockInPeriod(_shareClass, _currentBatchId);
 
         // register deposit request
         _sd.totalAmountToDeposit += _requestDepositParams.amount;
@@ -259,13 +320,90 @@ contract AlephVaultDeposit is IAlephVaultDeposit, AlephVaultBase {
         emit DepositRequest(_requestDepositParams.classId, _currentBatchId, msg.sender, _requestDepositParams.amount);
 
         // transfer underlying token from user to vault
-        IERC20 _underlyingToken = IERC20(_sd.underlyingToken);
-        uint256 _balanceBefore = _underlyingToken.balanceOf(address(this));
-        _underlyingToken.safeTransferFrom(msg.sender, address(this), _requestDepositParams.amount);
-        uint256 _depositedAmount = _underlyingToken.balanceOf(address(this)) - _balanceBefore;
-        if (_depositedAmount != _requestDepositParams.amount) {
-            revert DepositRequestFailed();
-        }
+        _transferAssetsFromUserToVault(_sd, _requestDepositParams.amount);
         return _currentBatchId;
+    }
+
+    /**
+     * @dev Internal function to determine the series ID for a sync deposit.
+     * Uses the same logic as settlement to ensure consistent series accounting.
+     * @param _shareClass The share class.
+     * @param _classId The class ID.
+     * @param _currentBatchId The current batch ID.
+     * @return _seriesId The series ID to use for the deposit.
+     */
+    function _determineSeriesIdForSyncDeposit(
+        IAlephVault.ShareClass storage _shareClass,
+        uint8 _classId,
+        uint48 _currentBatchId
+    ) internal returns (uint32 _seriesId) {
+        _seriesId = SeriesAccounting.LEAD_SERIES_ID;
+        if (_shareClass.shareClassParams.performanceFee > 0) {
+            uint32 _shareSeriesId = _shareClass.shareSeriesId;
+            if (_shareSeriesId > _shareClass.lastConsolidatedSeriesId) {
+                _seriesId = _shareSeriesId;
+            }
+        }
+    }
+
+    /**
+     * @dev Internal function to handle a synchronous deposit.
+     * @param _sd The storage struct.
+     * @param _requestDepositParams The parameters for the deposit.
+     * @return _shares The number of shares minted.
+     */
+    function _syncDeposit(AlephVaultStorageData storage _sd, RequestDepositParams calldata _requestDepositParams)
+        internal
+        returns (uint256 _shares)
+    {
+        if (!_isTotalAssetsValid(_sd, _requestDepositParams.classId)) {
+            revert OnlyAsyncDepositAllowed();
+        }
+
+        IAlephVault.ShareClass storage _shareClass = _sd.shareClasses[_requestDepositParams.classId];
+        _validateDeposit(_sd, _shareClass, _requestDepositParams);
+        uint48 _currentBatchId = _currentBatch(_sd);
+
+        // Determine series BEFORE state changes to prevent stuck assets if series operations fail
+        uint32 _seriesId = _determineSeriesIdForSyncDeposit(_shareClass, _requestDepositParams.classId, _currentBatchId);
+
+        IAlephVault.ShareSeries storage _shareSeries = _shareClass.shareSeries[_seriesId];
+        _shares = ERC4626Math.previewDeposit(
+            _requestDepositParams.amount, _shareSeries.totalShares, _shareSeries.totalAssets
+        );
+
+        // CEI Pattern: Effects first (mint shares, update state)
+        // Mint shares immediately to msg.sender in the determined series
+        _shareSeries.sharesOf[msg.sender] += _shares;
+        _shareSeries.totalShares += _shares;
+        _shareSeries.totalAssets += _requestDepositParams.amount;
+
+        // Add user to series if they don't already exist
+        if (!_shareSeries.users.contains(msg.sender)) {
+            _shareSeries.users.add(msg.sender);
+        }
+
+        // Update lock-in period if applicable
+        _updateLockInPeriod(_shareClass, _currentBatchId);
+
+        // CEI Pattern: Interactions last (transfer assets)
+        // Transfer assets from user to vault, then to custodian
+        // This allows users to only approve the vault contract
+        _transferAssetsFromUserToVault(_sd, _requestDepositParams.amount);
+
+        // Transfer from vault to custodian
+        IERC20(_sd.underlyingToken).safeTransfer(_sd.custodian, _requestDepositParams.amount);
+
+        // Emit event after all state changes and transfers are complete
+        emit SyncDeposit(
+            _requestDepositParams.classId,
+            msg.sender,
+            _requestDepositParams.amount,
+            _shares,
+            _seriesId,
+            _currentBatchId,
+            _shareSeries.totalAssets,
+            _shareSeries.totalShares
+        );
     }
 }
