@@ -46,6 +46,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         uint48 minRedeemAmountTimelock;
         uint48 managementFeeTimelock;
         uint48 performanceFeeTimelock;
+        uint48 syncExpirationBatchesTimelock;
         uint48 batchDuration;
     }
 
@@ -73,6 +74,7 @@ contract DeployAlephVaultImplementation is BaseScript {
         console.log("minRedeemAmountTimelock", _configParams.minRedeemAmountTimelock);
         console.log("managementFeeTimelock", _configParams.managementFeeTimelock);
         console.log("performanceFeeTimelock", _configParams.performanceFeeTimelock);
+        console.log("syncExpirationBatchesTimelock", _configParams.syncExpirationBatchesTimelock);
         console.log("batchDuration", _configParams.batchDuration);
 
         IAlephVault.ModuleInitializationParams memory _moduleImplementationAddresses = _deployModules(_configParams);
@@ -103,7 +105,8 @@ contract DeployAlephVaultImplementation is BaseScript {
             }),
             _configParams.batchDuration
         );
-        AlephVaultSettlement _alephVaultSettlement = new AlephVaultSettlement(_configParams.batchDuration);
+        AlephVaultSettlement _alephVaultSettlement =
+            new AlephVaultSettlement(_configParams.syncExpirationBatchesTimelock, _configParams.batchDuration);
         FeeManager _feeManager = new FeeManager(
             IFeeManager.FeeConstructorParams({
                 managementFeeTimelock: _configParams.managementFeeTimelock,
@@ -133,6 +136,7 @@ contract DeployAlephVaultImplementation is BaseScript {
             minRedeemAmountTimelock: _getTimelock(_config, "minRedeemAmountTimelock"),
             managementFeeTimelock: _getTimelock(_config, "managementFeeTimelock"),
             performanceFeeTimelock: _getTimelock(_config, "performanceFeeTimelock"),
+            syncExpirationBatchesTimelock: _getTimelock(_config, "syncExpirationBatchesTimelock"),
             batchDuration: _getTimelock(_config, "batchDuration")
         });
     }
