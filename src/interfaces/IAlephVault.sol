@@ -108,6 +108,7 @@ interface IAlephVault {
      * @param _underlyingToken The underlying token address.
      * @param _custodian The custodian address in which vault funds are stored.
      * @param _vaultTreasury The vault treasury address in which fees are collected.
+     * @param _syncExpirationBatches The number of batches sync flows remain valid after valuation update.
      * @param _shareClassParams The share class params for default share class.
      * @param _authSignature The auth signature to deploy the vault.
      */
@@ -117,6 +118,7 @@ interface IAlephVault {
         address underlyingToken;
         address custodian;
         address vaultTreasury;
+        uint48 syncExpirationBatches;
         ShareClassParams shareClassParams;
         AuthLibrary.AuthSignature authSignature;
     }
@@ -260,9 +262,9 @@ interface IAlephVault {
     function shareSeriesId(uint8 _classId) external view returns (uint32);
 
     /**
-     * @notice Returns the ID of the last consolidated share series.
+     * @notice Returns the last consolidated series ID of the share class.
      * @param _classId The ID of the share class.
-     * @return The ID of the last consolidated share series.
+     * @return The last consolidated series ID of the share class.
      */
     function lastConsolidatedSeriesId(uint8 _classId) external view returns (uint32);
 
@@ -295,6 +297,13 @@ interface IAlephVault {
      * @return The vault treasury.
      */
     function vaultTreasury() external view returns (address);
+
+    /**
+     * @notice Checks if total assets are valid for synchronous operations for a specific class.
+     * @param _classId The share class ID to check.
+     * @return true if sync flows are allowed, false otherwise.
+     */
+    function isTotalAssetsValid(uint8 _classId) external view returns (bool);
 
     /**
      * @notice Returns the operations multisig of the vault.

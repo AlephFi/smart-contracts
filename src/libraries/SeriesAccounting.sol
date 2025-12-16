@@ -136,7 +136,7 @@ library SeriesAccounting {
      * @param _batchId The id of the batch.
      * @param _user The user to settle the redeem for.
      * @param _amount The amount to settle.
-     * @dev redemptions are settled based on first-in first out basis. This means amount is attempeted to be
+     * @dev redemptions are settled based on first-in first out basis. This means amount is attempted to be
      * redeemed from lead series, and then outstanding series in order until the total requested amount is
      * completely redeemed. The redemption of shares from each constituent series is called a redemption slice
      */
@@ -147,12 +147,11 @@ library SeriesAccounting {
         address _user,
         uint256 _amount
     ) internal {
-        // the amount requested is redeemed from teh class in a first-in first-out basis
+        // the amount requested is redeemed from the class in a first-in first-out basis
         // we first try to settle the redemption from the lead series
         // remaining amount is assets that were not settled in the lead series (this happens if user does not have
         // enough assets in the lead series to complete the redemption)
         uint256 _remainingAmount = _amount;
-        uint32 _lastConsolidatedSeriesId = _shareClass.lastConsolidatedSeriesId;
         uint32 _shareSeriesId = _shareClass.shareSeriesId;
 
         // we now iterate through all series to settle the remaining user amount

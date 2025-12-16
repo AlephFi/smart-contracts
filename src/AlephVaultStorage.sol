@@ -60,6 +60,7 @@ struct AlephVaultStorageData {
     mapping(bytes4 => TimelockRegistry.Timelock) timelocks;
     mapping(bytes4 => address) moduleImplementations;
     mapping(address user => uint256) redeemableAmount;
+    uint48 syncExpirationBatches;
 }
 
 /**

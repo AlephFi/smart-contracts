@@ -90,14 +90,12 @@ library AuthLibrary {
      * @param _authSigner The auth signer.
      * @param _authSignature The auth signature.
      */
-    function verifyDepositRequestAuthSignature(
-        uint8 _classId,
-        address _authSigner,
-        AuthSignature memory _authSignature
-    ) internal view {
-        bytes32 _hash = keccak256(
-            abi.encode(msg.sender, address(this), block.chainid, _classId, _authSignature.expiryBlock)
-        );
+    function verifyDepositRequestAuthSignature(uint8 _classId, address _authSigner, AuthSignature memory _authSignature)
+        internal
+        view
+    {
+        bytes32 _hash =
+            keccak256(abi.encode(msg.sender, address(this), block.chainid, _classId, _authSignature.expiryBlock));
         _verifyAuthSignature(_hash, _authSigner, _authSignature);
     }
 

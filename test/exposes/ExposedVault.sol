@@ -1,42 +1,29 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.25;
-/*
-  ______   __                      __
- /      \ /  |                    /  |
-/$$$$$$  |$$ |  ______    ______  $$ |____
-$$ |__$$ |$$ | /      \  /      \ $$      \
-$$    $$ |$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |
-$$$$$$$$ |$$ |$$    $$ |$$ |  $$ |$$ |  $$ |
-$$ |  $$ |$$ |$$$$$$$$/ $$ |__$$ |$$ |  $$ |
-$$ |  $$ |$$ |$$       |$$    $$/ $$ |  $$ |
-$$/   $$/ $$/  $$$$$$$/ $$$$$$$/  $$/   $$/
-                        $$ |
-                        $$ |
-                        $$/
-*/
 
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IFeeManager} from "@aleph-vault/interfaces/IFeeManager.sol";
-import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
-import {ERC4626Math} from "@aleph-vault/libraries/ERC4626Math.sol";
 import {TimelockRegistry} from "@aleph-vault/libraries/TimelockRegistry.sol";
-import {AlephVaultDeposit} from "@aleph-vault/modules/AlephVaultDeposit.sol";
+import {ModulesLibrary} from "@aleph-vault/libraries/ModulesLibrary.sol";
 import {AlephVaultStorageData} from "@aleph-vault/AlephVaultStorage.sol";
 import {AlephVault} from "@aleph-vault/AlephVault.sol";
 
-/**
- * @author Othentic Labs LTD.
- * @notice Terms of Service: https://aleph.finance/terms-of-service
- */
 contract ExposedVault is AlephVault {
-    using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint256 public constant PRICE_DENOMINATOR = 1e6;
-    uint256 public constant TOTAL_SHARE_UNITS = 1e18;
+    constructor(uint48 _b) AlephVault(_b) {}
 
-    constructor(uint48 _batchDuration) AlephVault(_batchDuration) {}
+    function PRICE_DENOMINATOR() external pure returns (uint256) {
+        return 1e6;
+    }
+
+    function TOTAL_SHARE_UNITS() external pure returns (uint256) {
+        return 1e18;
+    }
+
+    function accumulateFees(uint8, uint32, uint48, uint48, uint256, uint256) external returns (uint256) {
+        _delegate(ModulesLibrary.FEE_MANAGER);
+    }
 
     function depositSettleId() external view returns (uint48) {
         return _getStorage().shareClasses[1].depositSettleId;
@@ -54,238 +41,176 @@ contract ExposedVault is AlephVault {
         return _getStorage().shareClasses[1].shareSeriesId;
     }
 
+    function timelocks(bytes4 _k) external view returns (TimelockRegistry.Timelock memory) {
+        return _getStorage().timelocks[_k];
+    }
+
     function lastConsolidatedSeriesId() external view returns (uint32) {
         return _getStorage().shareClasses[1].lastConsolidatedSeriesId;
     }
 
-    function timelocks(bytes4 _key) external view returns (TimelockRegistry.Timelock memory) {
-        return _getStorage().timelocks[_key];
+    function setLastFeePaidId(uint48 _i) external {
+        _getStorage().shareClasses[1].lastFeePaidId = _i;
     }
 
-    function setCurrentDepositBatchId(uint48 _currentDepositBatchId) external {
-        _getStorage().shareClasses[1].depositSettleId = _currentDepositBatchId;
+    function setShareSeriesId(uint32 _i) external {
+        _getStorage().shareClasses[1].shareSeriesId = _i;
     }
 
-    function setBatchDepositRequest(uint48 _batchId, address _user, uint256 _amount) external {
-        _getStorage().shareClasses[1].depositRequests[_batchId].depositRequest[_user] = _amount;
+    function setLastConsolidatedSeriesId(uint32 _i) external {
+        AlephVaultStorageData storage _s = _getStorage();
+        _s.shareClasses[1].lastConsolidatedSeriesId = _i;
+        _s.shareClasses[1].shareSeriesId = _i;
     }
 
-    function setLastFeePaidId(uint48 _lastFeePaidId) external {
-        _getStorage().shareClasses[1].lastFeePaidId = _lastFeePaidId;
+    function setBatchDeposit(uint48 _b, address _u, uint256 _a) external {
+        AlephVaultStorageData storage _s = _getStorage();
+        _s.shareClasses[1].depositRequests[_b].usersToDeposit.add(_u);
+        _s.shareClasses[1].depositRequests[_b].depositRequest[_u] = _a;
+        _s.shareClasses[1].depositRequests[_b].totalAmountToDeposit += _a;
+        _s.totalAmountToDeposit += _a;
     }
 
-    function setLastConsolidatedSeriesId(uint32 _lastConsolidatedSeriesId) external {
-        AlephVaultStorageData storage _sd = _getStorage();
-        _sd.shareClasses[1].lastConsolidatedSeriesId = _lastConsolidatedSeriesId;
-        _sd.shareClasses[1].shareSeriesId = _lastConsolidatedSeriesId;
+    function setBatchRedeem(uint48 _b, address _u, uint256 _a) external {
+        AlephVaultStorageData storage _s = _getStorage();
+        _s.shareClasses[1].redeemRequests[_b].usersToRedeem.add(_u);
+        _s.shareClasses[1].redeemRequests[_b].redeemRequest[_u] = _a;
     }
 
-    function setBatchDeposit(uint48 _batchId, address _user, uint256 _amount) external {
-        AlephVaultStorageData storage _sd = _getStorage();
-        _sd.shareClasses[1].depositRequests[_batchId].usersToDeposit.add(_user);
-        _sd.shareClasses[1].depositRequests[_batchId].depositRequest[_user] = _amount;
-        _sd.shareClasses[1].depositRequests[_batchId].totalAmountToDeposit += _amount;
-        _sd.totalAmountToDeposit += _amount;
+    function setMinDepositAmount(uint8 _c, uint256 _a) external {
+        _getStorage().shareClasses[_c].shareClassParams.minDepositAmount = _a;
     }
 
-    function setBatchRedeem(uint48 _batchId, address _user, uint256 _amount) external {
-        AlephVaultStorageData storage _sd = _getStorage();
-        _sd.shareClasses[1].redeemRequests[_batchId].usersToRedeem.add(_user);
-        _sd.shareClasses[1].redeemRequests[_batchId].redeemRequest[_user] = _amount;
+    function setMinUserBalance(uint8 _c, uint256 _b) external {
+        _getStorage().shareClasses[_c].shareClassParams.minUserBalance = _b;
     }
 
-    function setMinDepositAmount(uint8 _classId, uint256 _minDepositAmount) external {
-        _getStorage().shareClasses[_classId].shareClassParams.minDepositAmount = _minDepositAmount;
+    function setMaxDepositCap(uint8 _c, uint256 _cap) external {
+        _getStorage().shareClasses[_c].shareClassParams.maxDepositCap = _cap;
     }
 
-    function setMinUserBalance(uint8 _classId, uint256 _minUserBalance) external {
-        _getStorage().shareClasses[_classId].shareClassParams.minUserBalance = _minUserBalance;
+    function setNoticePeriod(uint8 _c, uint48 _p) external {
+        _getStorage().shareClasses[_c].shareClassParams.noticePeriod = _p;
     }
 
-    function setMaxDepositCap(uint8 _classId, uint256 _maxDepositCap) external {
-        _getStorage().shareClasses[_classId].shareClassParams.maxDepositCap = _maxDepositCap;
+    function setLockInPeriod(uint8 _c, uint48 _p) external {
+        _getStorage().shareClasses[_c].shareClassParams.lockInPeriod = _p;
     }
 
-    function setNoticePeriod(uint8 _classId, uint48 _noticePeriod) external {
-        _getStorage().shareClasses[_classId].shareClassParams.noticePeriod = _noticePeriod;
+    function setUserLockInPeriod(uint8 _c, uint48 _p, address _u) external {
+        AlephVaultStorageData storage _s = _getStorage();
+        _s.shareClasses[_c].shareClassParams.lockInPeriod = 1;
+        _s.shareClasses[_c].userLockInPeriod[_u] = _p;
     }
 
-    function setLockInPeriod(uint8 _classId, uint48 _lockInPeriod) external {
-        _getStorage().shareClasses[_classId].shareClassParams.lockInPeriod = _lockInPeriod;
+    function setMinRedeemAmount(uint8 _c, uint256 _a) external {
+        _getStorage().shareClasses[_c].shareClassParams.minRedeemAmount = _a;
     }
 
-    function setUserLockInPeriod(uint8 _classId, uint48 _userLockInPeriod, address _user) external {
-        AlephVaultStorageData storage _sd = _getStorage();
-        _sd.shareClasses[_classId].shareClassParams.lockInPeriod = 1;
-        _sd.shareClasses[_classId].userLockInPeriod[_user] = _userLockInPeriod;
+    function setRedeemableAmount(address _u, uint256 _a) external {
+        AlephVaultStorageData storage _s = _getStorage();
+        _s.redeemableAmount[_u] += _a;
+        _s.totalAmountToWithdraw += _a;
     }
 
-    function setMinRedeemAmount(uint8 _classId, uint256 _minRedeemAmount) external {
-        _getStorage().shareClasses[_classId].shareClassParams.minRedeemAmount = _minRedeemAmount;
+    function setTotalAmountToDeposit(uint256 _a) external {
+        _getStorage().totalAmountToDeposit = _a;
     }
 
-    function setRedeemableAmount(address _user, uint256 _redeemableAmount) external {
-        _getStorage().redeemableAmount[_user] += _redeemableAmount;
-        _getStorage().totalAmountToWithdraw += _redeemableAmount;
+    function setTotalAmountToWithdraw(uint256 _a) external {
+        _getStorage().totalAmountToWithdraw = _a;
     }
 
-    function setTotalAmountToDeposit(uint256 _totalAmountToDeposit) external {
-        _getStorage().totalAmountToDeposit = _totalAmountToDeposit;
+    function setTotalAssets(uint32 _s, uint256 _a) external {
+        _getStorage().shareClasses[1].shareSeries[_s].totalAssets = _a;
     }
 
-    function setTotalAmountToWithdraw(uint256 _totalAmountToWithdraw) external {
-        _getStorage().totalAmountToWithdraw = _totalAmountToWithdraw;
+    function setTotalShares(uint32 _s, uint256 _sh) external {
+        _getStorage().shareClasses[1].shareSeries[_s].totalShares = _sh;
     }
 
-    function setTotalAssets(uint32 _seriesId, uint256 _totalAssets) external {
-        _getStorage().shareClasses[1].shareSeries[_seriesId].totalAssets = _totalAssets;
+    function setSharesOf(uint32 _s, address _u, uint256 _sh) external {
+        _getStorage().shareClasses[1].shareSeries[_s].sharesOf[_u] = _sh;
     }
 
-    function setTotalShares(uint32 _seriesId, uint256 _totalShares) external {
-        _getStorage().shareClasses[1].shareSeries[_seriesId].totalShares = _totalShares;
+    function setHighWaterMark(uint256 _h) external {
+        _getStorage().shareClasses[1].shareSeries[0].highWaterMark = _h;
     }
 
-    function setSharesOf(uint32 _seriesId, address _user, uint256 _shares) external {
-        _getStorage().shareClasses[1].shareSeries[_seriesId].sharesOf[_user] = _shares;
+    function setManagementFee(uint8 _c, uint32 _f) external {
+        _getStorage().shareClasses[_c].shareClassParams.managementFee = _f;
     }
 
-    function setHighWaterMark(uint256 _highWaterMark) external {
-        _getStorage().shareClasses[1].shareSeries[0].highWaterMark = _highWaterMark;
-    }
-
-    function setManagementFee(uint8 _classId, uint32 _managementFee) external {
-        _getStorage().shareClasses[_classId].shareClassParams.managementFee = _managementFee;
-    }
-
-    function setPerformanceFee(uint8 _classId, uint32 _performanceFee) external {
-        _getStorage().shareClasses[_classId].shareClassParams.performanceFee = _performanceFee;
-    }
-
-    function accumulateFees(uint8, uint32, uint48, uint48, uint256, uint256) external returns (uint256) {
-        _delegate(ModulesLibrary.FEE_MANAGER);
+    function setPerformanceFee(uint8 _c, uint32 _f) external {
+        _getStorage().shareClasses[_c].shareClassParams.performanceFee = _f;
     }
 
     function createNewSeries() external {
-        AlephVaultStorageData storage _sd = _getStorage();
-        _sd.shareClasses[1].shareSeriesId++;
-        _sd.shareClasses[1].shareSeries[_sd.shareClasses[1].shareSeriesId].highWaterMark = PRICE_DENOMINATOR;
+        AlephVaultStorageData storage _s = _getStorage();
+        _s.shareClasses[1].shareSeries[++_s.shareClasses[1].shareSeriesId].highWaterMark = 1e6;
     }
 
-    function getManagementFeeShares(uint256 _newTotalAssets, uint256 _totalShares, uint48 _batchesElapsed)
-        external
-        view
-        returns (uint256)
-    {
-        if (_batchesElapsed == 0) {
-            return 0;
-        }
-        return IFeeManager(_getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER])
-            .getManagementFeeShares(
-                _getStorage().shareClasses[1].shareClassParams.managementFee,
-                _batchesElapsed,
-                _newTotalAssets,
-                _totalShares
-            );
+    function getManagementFeeShares(uint256 _a, uint256 _sh, uint48 _b) external view returns (uint256) {
+        if (_b == 0) return 0;
+        AlephVaultStorageData storage _s = _getStorage();
+        return IFeeManager(_s.moduleImplementations[ModulesLibrary.FEE_MANAGER])
+            .getManagementFeeShares(_s.shareClasses[1].shareClassParams.managementFee, _b, _a, _sh);
     }
 
-    function getPerformanceFeeShares(uint256 _newTotalAssets, uint256 _totalShares) external view returns (uint256) {
-        AlephVaultStorageData storage _sd = _getStorage();
-        uint256 _highWaterMark = _sd.shareClasses[1].shareSeries[0].highWaterMark;
-        if (_highWaterMark == 0) {
-            return 0;
-        }
-        return IFeeManager(_sd.moduleImplementations[ModulesLibrary.FEE_MANAGER])
-            .getPerformanceFeeShares(
-                _sd.shareClasses[1].shareClassParams.performanceFee, _newTotalAssets, _totalShares, _highWaterMark
-            );
+    function getPerformanceFeeShares(uint256 _a, uint256 _sh) external view returns (uint256) {
+        AlephVaultStorageData storage _s = _getStorage();
+        uint256 _h = _s.shareClasses[1].shareSeries[0].highWaterMark;
+        if (_h == 0) return 0;
+        return IFeeManager(_s.moduleImplementations[ModulesLibrary.FEE_MANAGER])
+            .getPerformanceFeeShares(_s.shareClasses[1].shareClassParams.performanceFee, _a, _sh, _h);
     }
 
     function managementFeeRecipient() external pure returns (address) {
-        return address(bytes20(keccak256("MANAGEMENT_FEE_RECIPIENT")));
+        return 0xF0a23D75A9e5dF0052261216441270569eDD5BEb;
     }
 
     function performanceFeeRecipient() external pure returns (address) {
-        return address(bytes20(keccak256("PERFORMANCE_FEE_RECIPIENT")));
+        return 0x91f69C0184bF67632Da9B6c9Cea82BFf2A506925;
+    }
+
+    function _getTimelock(bytes4 _m, bytes4 _s) internal returns (uint48) {
+        (bool _o, bytes memory _d) = _getStorage().moduleImplementations[_m].delegatecall(abi.encodePacked(_s));
+        return _o ? abi.decode(_d, (uint48)) : 0;
     }
 
     function minDepositAmountTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
-        .delegatecall(abi.encodeWithSignature("MIN_DEPOSIT_AMOUNT_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, 0xc24b4e6c);
     }
 
     function minUserBalanceTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
-        .delegatecall(abi.encodeWithSignature("MIN_USER_BALANCE_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, 0x0a220052);
     }
 
     function maxDepositCapTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_DEPOSIT]
-        .delegatecall(abi.encodeWithSignature("MAX_DEPOSIT_CAP_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_DEPOSIT, 0x3e05ec9d);
     }
 
     function noticePeriodTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
-        .delegatecall(abi.encodeWithSignature("NOTICE_PERIOD_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, 0xf20e464c);
     }
 
     function lockInPeriodTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
-        .delegatecall(abi.encodeWithSignature("LOCK_IN_PERIOD_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, 0xed46888d);
     }
 
     function minRedeemAmountTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.ALEPH_VAULT_REDEEM]
-        .delegatecall(abi.encodeWithSignature("MIN_REDEEM_AMOUNT_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.ALEPH_VAULT_REDEEM, 0x36dffe3b);
     }
 
     function managementFeeTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-        .delegatecall(abi.encodeWithSignature("MANAGEMENT_FEE_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.FEE_MANAGER, 0xe7d7db61);
     }
 
     function performanceFeeTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-        .delegatecall(abi.encodeWithSignature("PERFORMANCE_FEE_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.FEE_MANAGER, 0xa4362f78);
     }
 
     function accountantTimelock() external returns (uint48) {
-        (bool _success, bytes memory _data) = _getStorage().moduleImplementations[ModulesLibrary.FEE_MANAGER]
-        .delegatecall(abi.encodeWithSignature("ACCOUNTANT_TIMELOCK()"));
-        if (_success) {
-            return abi.decode(_data, (uint48));
-        }
-        return 0;
+        return _getTimelock(ModulesLibrary.FEE_MANAGER, 0x0e16c6c3);
     }
 }

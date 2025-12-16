@@ -349,4 +349,148 @@ contract AlephVaultRedeemTest is BaseTest {
         emit IAlephVaultRedeem.ExcessAssetsWithdrawn(100 ether);
         vault.withdrawExcessAssets();
     }
+
+    function test_requestRedeem_clearsLockInPeriodWhenRedeemingAll() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // Set lock-in period
+        vault.setLockInPeriod(1, 5);
+        uint48 _currentBatch = vault.currentBatch();
+        uint48 _lockInPeriodBatch = _currentBatch + 5;
+        vault.setUserLockInPeriod(1, _lockInPeriodBatch, mockUser_1);
+
+        // Set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Verify lock-in period is set
+        assertEq(vault.userLockInPeriod(1, mockUser_1), _lockInPeriodBatch);
+
+        // Advance time so lock-in period has elapsed
+        vm.warp(block.timestamp + 6 days);
+
+        // Redeem all assets - should clear lock-in period
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
+        vm.prank(mockUser_1);
+        vault.requestRedeem(params);
+
+        // Verify lock-in period is cleared
+        assertEq(vault.userLockInPeriod(1, mockUser_1), 0);
+    }
+
+    function test_requestRedeem_minRedeemAmountCheckWhenRemainingGreaterThanZero() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // Set min redeem amount to 30 ether
+        vault.setMinRedeemAmount(1, 30 ether);
+
+        // Set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Try to redeem 20 ether (would leave 80, but 20 < 30 min)
+        vm.prank(mockUser_1);
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 20 ether});
+        vm.expectRevert(abi.encodeWithSelector(IAlephVaultRedeem.RedeemLessThanMinRedeemAmount.selector, 30 ether));
+        vault.requestRedeem(params);
+    }
+
+    function test_requestRedeem_minRedeemAmountNotCheckedWhenRedeemingAll() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // Set min redeem amount to 200 ether (higher than user's balance)
+        vault.setMinRedeemAmount(1, 200 ether);
+
+        // Set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Redeem all assets - should succeed even though amount < minRedeemAmount
+        // because _previewRemainingAmount == 0
+        vm.prank(mockUser_1);
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
+        vault.requestRedeem(params);
+
+        // Verify request was created
+        assertGt(vault.redeemRequestOf(1, mockUser_1), 0);
+    }
+
+    function test_requestRedeem_minUserBalanceNotCheckedWhenRedeemingAll() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // Set min user balance to 200 ether (higher than what would remain)
+        vault.setMinUserBalance(1, 200 ether);
+
+        // Set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Redeem all assets - should succeed even though remaining would be < minUserBalance
+        // because _previewRemainingAmount == 0
+        vm.prank(mockUser_1);
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 100 ether});
+        vault.requestRedeem(params);
+
+        // Verify request was created
+        assertGt(vault.redeemRequestOf(1, mockUser_1), 0);
+    }
+
+    function test_requestRedeem_lockInPeriodNotCheckedWhenZero() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // Set lock-in period to 0 first (before setting user lock-in period)
+        vault.setLockInPeriod(1, 0);
+        // Set minUserBalance to 0 to avoid balance checks
+        vault.setMinUserBalance(1, 0);
+
+        // Set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Request redeem - should succeed because lockInPeriod is 0
+        // (even if user has a lock-in period set, it won't be checked)
+        vm.prank(mockUser_1);
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 50 ether});
+        vault.requestRedeem(params);
+
+        // Verify request was created
+        assertGt(vault.redeemRequestOf(1, mockUser_1), 0);
+    }
+
+    function test_requestRedeem_minUserBalanceNotCheckedWhenZero() public {
+        // roll the block forward to make batch available
+        vm.warp(block.timestamp + 1 days + 1);
+
+        // Set min user balance to 0
+        vault.setMinUserBalance(1, 0);
+
+        // Set user assets to 100 ether
+        vault.setTotalAssets(0, 100 ether);
+        vault.setTotalShares(0, 100 ether);
+        vault.setSharesOf(0, mockUser_1, 100 ether);
+
+        // Request redeem - should succeed because minUserBalance is 0
+        vm.prank(mockUser_1);
+        IAlephVaultRedeem.RedeemRequestParams memory params =
+            IAlephVaultRedeem.RedeemRequestParams({classId: 1, estAmountToRedeem: 50 ether});
+        vault.requestRedeem(params);
+
+        // Verify request was created
+        assertGt(vault.redeemRequestOf(1, mockUser_1), 0);
+    }
 }
